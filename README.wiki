@@ -1,0 +1,110 @@
+=KeySnail=
+
+[http://github.com/mooz/keysnail/raw/7eca08100b366ddf8f1a8159e77dd7d59a9880ce/logo.png]
+
+==Description==
+
+KeySnail is the extension for Mozilla Firefox, which enables you to bind arbitrary function to the arbitrary key sequence.
+
+If you are the Emacs user, imagine .emacs file (i.e. init file). KeySnail uses .keysnail.js file (which corresponds to the .emacs file) to bind function to the key sequence.
+
+Init file that emulates the Emacs / w3m keybindings is packed into the extension. You can view the list of keybindings and customize them.
+
+==Features==
+
+KeySnail currently supports,
+
+ * Bind function to the key sequence in global, view, edit mode
+ * Emacs-like prefix argument
+
+and
+
+ * Init file that emulates Emacs / w3m keybindings
+ * Generate all keybindings from the init file
+
+are also available.
+
+; Prompts in minibuffer and selector like anything.el are 
+
+==Init file format==
+
+KeySnail loads the .keysnail.js / _keysnail.js from user home directory (or a profile directory in Windows) and execute it. This directory can be changed in the  
+
+Init file is the complete javascript program. You can call Javascript / Firefox API and moreover, other extensions function.
+
+This also means the.
+
+{{{
+// ==================== set global keys ==================== //
+
+key.setGlobalKey("C-M-r",
+                 function () {
+                     userscript.load();
+                 },
+                 "Reload the initialization file");
+
+// -------------------- help command -------------------- //
+
+key.setGlobalKey(["<f1>", "b"], function () {
+                     key.listKeyBindings();
+                 }, "List all keybindings");
+
+key.setGlobalKey(["<f1>", "F"], function (aEvent) {
+                     openHelpLink('firefox-help');
+                 }, "Display Firefox help");
+
+// -------------------- search -------------------- //
+
+key.setGlobalKey("C-s", function () {
+                     command.iSearchForward();
+                 },
+                 "isearch forward");
+
+key.setGlobalKey("C-r", function () {
+                     command.iSearchBackward();
+                 }, "isearch backward");
+
+// -------------------- window --------------------
+key.setGlobalKey(["C-x", "k"],
+                 function () { BrowserCloseTabOrWindow(); },
+                 "Close tab / window");
+
+key.setGlobalKey(["C-x", "K"],
+                 function () { closeWindow(true); },
+                 "Close the window");
+
+// ==================== set edit mode key ==================== //
+
+key.setEditKey("C-SPC",
+               function (aEvent) {
+                   command.setMark(aEvent);
+               },
+               "Set mark");
+
+key.setEditKey("C-@",
+               function (aEvent) {
+                   command.setMark(aEvent);
+               },
+               "Set mark");
+
+key.setEditKey("C-o",
+               function (aEvent) {
+                   command.openLine(aEvent);
+               },
+               "Open line");
+
+// -------------------- undo --------------------
+
+key.setEditKey(["C-x", "u"],
+               function () { goDoCommand('cmd_undo'); },
+               "Undo");
+key.setEditKey("C-_",
+               function () { goDoCommand('cmd_undo'); },
+               "Undo");
+}}}
+
+In this example, we bind the Ctrl + Alt + r key to the function in the Global keymap, that reload the current page.
+
+So when user press Ctrl + Alt + r, this init file is reloaded and applied immediately. You doesn't need to restart the Firefox and reopen the window.
+ 
+In next setGlobalKey, the key is specified by array like ["\<f1\>", "b"]. This means the key sequence "First press \<f1\>, and next press b". In this example, inspired from Emacs, binds the function which displays all key bindings.

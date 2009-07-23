@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<!-- for findfiled -->
+<?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
+<?xml-stylesheet href="chrome://browser/skin/preferences/preferences.css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/rcwizard.dtd">
+
+<wizard id="keysnail-userscript-wizard" title="&keySnail.rcWizard.title;"
+        onload="rcWizard.onLoad();"
+        onwizardfinish="return rcWizard.onFinish();"
+        onwizardcancel="return rcWizard.onCancel();"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+    <!-- ==================== START ==================== -->
+
+    <wizardpage pageid="start" next="create-rcfile"
+                id="keysnail-rcwizard-startpage"
+                onpageadvanced="return rcWizard.selectMethod();"
+                >
+        <description>
+            &keySnail.rcWizard.selectMethodDescription;
+        </description>
+        <separator />
+        <menulist id="keysnail-rcwizard-selectmethod">
+            <menupopup>
+                <menuitem label="&keySnail.rcWizard.createRcFile;"
+                          name="create-rcfile"/>
+                <menuitem label="&keySnail.rcWizard.selectRcFile;"
+                          name="select-rcfile"/>
+            </menupopup>
+        </menulist>
+    </wizardpage>
+
+    <!-- ==================== CREATE ==================== -->
+
+    <wizardpage pageid="create-rcfile"
+                onpageshow="rcWizard.updatePageCreate();"
+                description="&keySnail.rcWizard.createRcFile;">
+        <description>
+            &keySnail.rcWizard.createRcFileDescription;
+        </description>
+        <separator />
+        <grid flex="1">
+            <columns>
+                <column />
+                <column flex="1" />
+            </columns>
+            <rows>
+                <row>
+                    <label value="&keySnail.rcWizard.rcFileDestination;" />
+                    <hbox>
+                        <filefield id="keysnail-userscript-destination"
+                                   style="width: 25em;"
+                                   flex="2" />
+                        <button label="&keySnail.rcWizard.change;"
+                                oncommand="rcWizard.changePathClicked(rcWizard.updatePageCreate);" />
+                    </hbox>
+                </row>
+                <row>
+                    <label value="&keySnail.rcWizard.filename;" />
+                    <radiogroup id="keysnail-userscript-filename-candidates">
+                        <radio id="keysnail-userscript-filename-dot"
+                               label=".keysnail.js" selected="true"
+                               tooltiptext="&keySnail.rcWizard.filenameDotDiscription;"
+                               />
+                        <radio id="keysnail-userscript-filename-underbar"
+                               label="_keysnail.js"
+                               tooltiptext="&keySnail.rcWizard.filenameUBDiscription;"/>
+                    </radiogroup>
+                </row>
+            </rows>
+        </grid>
+    </wizardpage>
+
+    <wizardpage pageid="select-rcfile"
+                onpageshow="rcWizard.updatePageSelect();"
+                description="&keySnail.rcWizard.selectRcFile;">
+        <description>
+            &keySnail.rcWizard.selectRcFileDescription;
+        </description>
+        <separator />
+        <hbox>
+            <label value="&keySnail.rcWizard.rcFilePlace;" />
+            <filefield id="keysnail-userscript-place"
+                       style="width: 25em;"
+                       flex="2" />
+            <button label="&keySnail.rcWizard.change;"
+                    oncommand="rcWizard.changePathClicked(rcWizard.updatePageSelect);" />
+        </hbox>
+    </wizardpage>
+
+    <script type="application/x-javascript" src="chrome://keysnail/content/rcwizard.js" />
+</wizard>

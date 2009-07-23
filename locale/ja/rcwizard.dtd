@@ -1,0 +1,30 @@
+<!ENTITY keySnail.rcWizard.title "KeySnail 初期化ファイルの作成 / 選択">
+
+<!-- PAGE 1 -->
+
+<!ENTITY keySnail.rcWizard.selectMethodDescription "初期化ファイルを新しく作成します。既に存在するファイルを使用したい場合は初期化ファイルの場所を選んでください。">
+
+<!ENTITY keySnail.rcWizard.selectMethodDescription1 "利用可能な初期化ファイルが既定の場所に見つかりませんでした。">
+<!ENTITY keySnail.rcWizard.selectMethodDescription2 "新しく作成するか、既に存在するファイルを指定するかを選んでください。">
+
+<!-- menuitem -->
+
+<!ENTITY keySnail.rcWizard.createRcFile "初期化ファイルを新しく作成する">
+<!ENTITY keySnail.rcWizard.selectRcFile "初期化ファイルの場所を選ぶ">
+
+<!-- PAGE 2 -->
+
+<!ENTITY keySnail.rcWizard.createRcFileDescription "初期化ファイルの名前と作成先を選んでください">
+<!ENTITY keySnail.rcWizard.rcFileDestination "作成先: ">
+<!ENTITY keySnail.rcWizard.filenameDotDiscription "UNIX 等で一般的なドットファイルです">
+<!ENTITY keySnail.rcWizard.filenameUBDiscription "ドットの代わりにアンダーバーを使ったタイプのものです">
+
+<!-- PAGE 3 -->
+
+<!ENTITY keySnail.rcWizard.selectRcFileDescription "初期化ファイルの場所を選んでください">
+<!ENTITY keySnail.rcWizard.rcFilePlace "読み込み元: ">
+
+<!-- common -->
+
+<!ENTITY keySnail.rcWizard.change "変更">
+<!ENTITY keySnail.rcWizard.filename "ファイル名: ">

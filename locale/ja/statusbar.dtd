@@ -1,0 +1,8 @@
+<!ENTITY keySnail.statusbar.listKeyBindings "キーバインド一覧を表示">
+<!ENTITY keySnail.statusbar.reloadUserScript "設定ファイルを再読み込み">
+
+<!ENTITY keySnail.statusbar.settings "設定">
+<!ENTITY keySnail.statusbar.openPreference "設定ダイアログを開く">
+<!ENTITY keySnail.statusbar.wizard "初期化ファイルを作成 / 選択">
+
+<!ENTITY keySnail.statusbar.isEnabled "有効">

@@ -1,0 +1,160 @@
+h1. KeySnail
+
+!=http://github.com/mooz/keysnail/raw/7eca08100b366ddf8f1a8159e77dd7d59a9880ce/logo.png(KeySnail)!
+
+キーシーケンスに関数を割り当てよう！
+
+"http://github.com/mooz/keysnail/":http://github.com/mooz/keysnail/
+
+h2. 説明
+
+KeySnail は Mozilla Firefox に bindkey 機能を提供する拡張機能です。
+
+この拡張機能をインストールすることで、 *任意の関数* を *任意のキーシーケンス* へ割り当てることが可能となります。
+
+Emacs ユーザの方は .emacs ファイルを想像していただけると分かりやすいかと思います。この拡張機能は .keysnail.js という初期化スクリプト (.emacs に相当) を使い、各キーシーケンスへ関数を割り当てていきます。
+
+Emacs や w3m のキーバインドをエミュレートする設定スクリプトをあらかじめ用意しておきました。キーバインド一覧を見ることが可能となっていますので、気に入らない部分があればどんどんカスタマイズしていくことが出来ます。
+
+h2. 特徴
+
+KeySnail は現在のところ
+
+* Global, View, Edit 各モードにおけるキーシーケンスに対し関数を割り当て
+* Emacs ライクな前置引数 (関数に渡される)
+
+といった機能を備えています。
+
+細かいところでは、
+
+* Emacs / w3m ライクなキーバインドを実現する初期化ファイル
+* 初期化ファイルの内容からキーバインド一覧を生成する機能
+
+といったものも用意されています。
+
+将来的には、ミニバッファを使ったプロンプトや anything.el 風のセレクタなどを実装し、ユーザが関数を書く際役に立つようしたいと考えています。
+
+h2. 設定ファイルのフォーマット
+
+KeySnail は起動時に .keysnail.js や _keysnail.js といった名前のファイルをユーザのホームディレクトリなどから読み込み、その内容を実行します。このディレクトリは設定から変更することが可能です。
+
+設定ファイルは完全なプログラムとなっており、中からは JavaScript や Firefox の API を呼び出したり、さらには他の拡張機能の関数を使うことすら出来ます。
+
+これは裏を返せばある程度の危険性を伴うということにもなるので、設定ファイルの記述には十分な注意を払ってください。
+
+<pre>
+<code>
+// ==================== set global keys ==================== //
+
+key.setGlobalKey("C-M-r",
+                 function () {
+                     userscript.load();
+                 },
+                 "Reload the initialization file");
+
+// -------------------- help command -------------------- //
+
+key.setGlobalKey(["<f1>", "b"], function () {
+                     key.listKeyBindings();
+                 }, "List all keybindings");
+
+key.setGlobalKey(["<f1>", "F"], function (aEvent) {
+                     openHelpLink('firefox-help');
+                 }, "Display Firefox help");
+
+// -------------------- search -------------------- //
+
+key.setGlobalKey("C-s", function () {
+                     command.iSearchForward();
+                 },
+                 "isearch forward");
+
+key.setGlobalKey("C-r", function () {
+                     command.iSearchBackward();
+                 }, "isearch backward");
+
+// -------------------- window --------------------
+key.setGlobalKey(["C-x", "k"],
+                 function () { BrowserCloseTabOrWindow(); },
+                 "Close tab / window");
+
+key.setGlobalKey(["C-x", "K"],
+                 function () { closeWindow(true); },
+                 "Close the window");
+
+// ==================== set edit mode key ==================== //
+
+key.setEditKey("C-SPC",
+               function (aEvent) {
+                   command.setMark(aEvent);
+               },
+               "Set mark");
+
+key.setEditKey("C-@",
+               function (aEvent) {
+                   command.setMark(aEvent);
+               },
+               "Set mark");
+
+key.setEditKey("C-o",
+               function (aEvent) {
+                   command.openLine(aEvent);
+               },
+               "Open line");
+
+// -------------------- undo --------------------
+
+key.setEditKey(["C-x", "u"],
+               function () { goDoCommand('cmd_undo'); },
+               "Undo");
+key.setEditKey("C-_",
+               function () { goDoCommand('cmd_undo'); },
+               "Undo");
+</code>
+</pre>
+
+この例ではまず Global キーマップへの設定として、 Ctrl + Alt + r というキーの組み合わせに対し初期化ファイルの再読み込みを行う関数を割り当てています。
+
+これにより、ユーザが Ctrl + Alt + r というキーを入力するとこの初期化ファイルが再読み込みされ、即座にその内容が反映されるようになります。いちいち Firefox を再起動したり、ウィンドウを開き直したりする必要はありません。
+
+次の例では、割り当てるキーが ["<f1>", "b"] のように配列で表現されています。これは「まず <f1> を押してから b を押す」というキーシーケンスへ対する割り当てを意味します。ここでは Emacs にならい、キーバインド一覧を表示する関数を割り当てています。
+
+h2. TODO
+
+|      | Mac で C-SPC が効かない問題を修正                       |
+| Done | Mac で Meta キーイベントをキャッチ出来るように          |
+| Done | Preference とかつくる                                   |
+|      | selector の実装                                         |
+|      | prompt の実装                                           |
+|      | sources の用意                                          |
+| Done | パッケージング                                          |
+| Done | RETURN キーイベントがサーチツールバーでうまく動くように |
+| Done | リファクタリング                                        |
+| Done | コードをモジュールへ分割                                |
+| Done | Linux 以外でも動くように (windows, mac, bsd, ...)       |
+
+h2. LICENSE
+
+(The MIT License)
+
+Copyright (c) 2009 mooz
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

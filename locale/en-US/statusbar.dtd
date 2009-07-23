@@ -1,0 +1,8 @@
+<!ENTITY keySnail.statusbar.listKeyBindings "Display all keybindings">
+<!ENTITY keySnail.statusbar.reloadUserScript "Reload the initialization file">
+
+<!ENTITY keySnail.statusbar.settings "Settings">
+<!ENTITY keySnail.statusbar.openPreference "Open preference dialog">
+<!ENTITY keySnail.statusbar.wizard "Create / Select initialization file">
+
+<!ENTITY keySnail.statusbar.isEnabled "Enable">
