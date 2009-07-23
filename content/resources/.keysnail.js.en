@@ -47,6 +47,7 @@
 // key.quitKey = "C-g";
 // key.helpKey = "<f1>";
 
+// ----------------------------------------
 // If you want to change the Ctrl key and Meta key,
 // modify two functions below.
 
