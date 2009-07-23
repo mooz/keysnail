@@ -118,9 +118,6 @@ var rcWizard = {
 
         window.arguments[0].out.selectedMethod = selectedMethod;
 
-        // Application.console.log("window.arguments[0].out.selectedMethod: " + window.arguments[0].out.selectedMethod);
-        // Application.console.log("window.arguments[0].out.configFileNameIndex: " + window.arguments[0].out.configFileNameIndex);
-
         return true;
     },
 

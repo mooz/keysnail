@@ -50,7 +50,14 @@ KeySnail.UserScript = {
             = this.getPrefDirectory();
 
         this.userPath = nsPreferences
-            .getLocalizedUnicharPref("extensions.keysnail.userscript.location");
+            .getLocalizedUnicharPref("extensions.keysnail.userscript.location")
+            || nsPreferences
+            .copyUnicharPref("extensions.keysnail.userscript.location");
+
+        if (!this.userPath) {
+            this.userPath = this.prefDirectory;
+            nsPreferences.setUnicharPref("extensions.keysnail.userscript.location", this.userPath);
+        }
 
         this.load();
     },
@@ -92,10 +99,10 @@ KeySnail.UserScript = {
                                               this.defaultConfigFileNames);
         }
 
-        if (loadStatus < 0 && this.userPath != this.prefDirectory) {
-            // check for the default path
-            loadStatus = this.loadDefaultConfigFile();
-        }
+        // if (loadStatus < 0 && this.userPath != this.prefDirectory) {
+        //     // check for the default path
+        //     loadStatus = this.loadDefaultConfigFile();
+        // }
 
         if (loadStatus < 0) {
             switch (loadStatus) {
@@ -106,7 +113,7 @@ KeySnail.UserScript = {
                 loadStatus = this.beginRcFileWizard();
                 break;
             case -2:
-                // an error occured
+                // an error occured in the userscript file
                 break;
             }
         }
@@ -123,10 +130,10 @@ KeySnail.UserScript = {
         }
     },
 
-    loadDefaultConfigFile: function () {
-        return this.loadConfigFiles(this.prefDirectory,
-                                    this.defaultConfigFileNames);
-    },
+    // loadDefaultConfigFile: function () {
+    //     return this.loadConfigFiles(this.prefDirectory,
+    //                                 this.defaultConfigFileNames);
+    // },
 
     loadUserConfigFile: function () {
         return this.loadConfigFiles(this.userPath,
@@ -157,8 +164,9 @@ KeySnail.UserScript = {
                 var msgstr = this.modules.util
                     .getLocaleString("userScriptError", [e.fileName, e.lineNumber]);
                 msgstr += "\n [" + e.message + "]";
+                this.modules.display.prettyPrint(msgstr);
                 this.message(msgstr);
-                this.modules.util.alert(window, "KeySnail", msgstr);
+                // this.modules.util.alert(window, "KeySnail", msgstr);
                 return -2;
             }
         }
@@ -180,7 +188,7 @@ KeySnail.UserScript = {
 
         window.openDialog("chrome://keysnail/content/rcwizard.xul",
                           "KeySnail",
-                          "chrome, dialog, modal, resizable=no, top=200,left=200",
+                          "chrome, dialog, modal, resizable=no, top=300,left=300",
                           params).focus();
 
         if (!params.out) {

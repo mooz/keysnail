@@ -213,8 +213,8 @@ KeySnail.Key = {
                 }
             }
 
-            this.message(modeName + "-mode");
-            this.modules.display.prettyPrint(modeName + "-mode");
+            // this.message(modeName + "-mode");
+            // this.modules.display.prettyPrint(modeName + "-mode");
             this.currentKeyMap = this.keyMapHolder[modeName];
 
             if (this.isPrefixArgumentKey(key, aEvent)) {

@@ -52,23 +52,25 @@ KeySnail.Display = {
             var ksMessageStyle = "z-index: 500; font-size: 14px; font-family: 'Helvetica';"
                 + " padding: 3px; margin: 3px; color: white; background-color: #1e354a;"
                 + " -moz-opacity: 0.9; opacity: 0.9; position: fixed;"
-                // + " -moz-border-radius: 8px;"
                 + " bottom: 0.5em; left: 0.5em; display: inline;";
 
-            msg = msg.replace("\n", "<br>");
+            // msg = msg.replace("\n", "<br />");
 
             var span = content.document.getElementById(ksMessageId)
                 || document.getElementById(ksMessageId);
 
             if (span == null) {
                 // this.message("<span> created");
-                span = document.createElement("p");
+                span = document.createElement("div");
                 span.id = ksMessageId;
                 span.style.cssText = ksMessageStyle;
                 span.appendChild(document.createTextNode(msg));
 
                 dBody.appendChild(span);
-                // dBody.insertBefore(span, dBody.firstChild);
+
+                span.onclick = function () {
+                    this.style.display = 'none';
+                };
             } else {
                 var newText = document.createTextNode(msg);
                 span.replaceChild(newText, span.childNodes[0]);

@@ -8,7 +8,9 @@ var ksPreference = {
 
     updateRcFileLocation: function () {
         var location = nsPreferences
-            .getLocalizedUnicharPref("extensions.keysnail.userscript.location");
+            .getLocalizedUnicharPref("extensions.keysnail.userscript.location")
+            || nsPreferences
+            .copyUnicharPref("extensions.keysnail.userscript.location");
         var fileField =
             document.getElementById("keysnail.preference.userscript.location");
 
@@ -16,8 +18,13 @@ var ksPreference = {
 
         var file = this.pathToLocalFile(location);
 
-        fileField.file = file;
-        fileField.label = file.path;
+        if (file) {
+            fileField.file = file;
+            fileField.label = file.path;
+        } else {
+            fileField.file = null;
+            fileField.label = "No path specified";
+        }
     },
 
     pathToLocalFile: function (aPath) {
@@ -25,9 +32,12 @@ var ksPreference = {
             .createInstance();
         var localFile = file
             .QueryInterface(Components.interfaces.nsILocalFile);
-        if (!localFile) return false;
 
-        localFile.initWithPath(aPath);
+        try {
+            localFile.initWithPath(aPath);
+        } catch (e) {
+            return null;
+        }
 
         return localFile;
     },
