@@ -47,6 +47,9 @@
 // key.quitKey = "C-g";
 // key.helpKey = "<f1>";
 
+// If you want to change the Ctrl key and Meta key,
+// modify two functions below.
+
 // key.isControlKey = function (aEvent) {
 //     return aEvent.ctrlKey;
 // };
@@ -54,6 +57,12 @@
 // key.isMetaKey = function (aEvent) {
 //     return aEvent.altKey || aEvent.commandKey;
 // };
+
+// ----------------------------------------
+// key macro (currently, not works well)
+// key.macroStartKey = "<f3>";
+// key.macroEndKey   = "<f4>";
+// macro.setSleepTime(100);
 
 // ==================== remap ==================== //
 // you can use view-mode keybindings in edit-mode adding
@@ -149,6 +158,14 @@ key.setGlobalKey(["C-x", "s"],
                      command.focusElement(command.elementsRetrieverButton, 0);
                  },
                  "Focus to the first button", true);
+
+// -------------------- copy -------------------- //
+
+key.setGlobalKey("M-w",
+                 function (aEvent) {
+                     command.copyRegion(aEvent);
+                 },
+                 "Copy selected text");
 
 // -------------------- search -------------------- //
 
@@ -424,12 +441,6 @@ key.setEditKey("C-w",
                },
                "Cut current region");
 
-key.setGlobalKey("M-w",
-                 function (aEvent) {
-                     command.copyRegion(aEvent);
-                 },
-                 "Copy current region");
-
 // -------------------- selection --------------------
 
 key.setEditKey(["C-x", "h"],
@@ -447,6 +458,20 @@ key.setEditKey("M-n", function () {
 key.setEditKey("M-p", function () {
                    command.walkInputElement(command.elementsRetrieverTextarea, false, true);
                }, "Focus to the previous textarea");
+
+// ==================== caret mode (press F7 to enter) ==================== //
+
+// copy view mode keymap to caret mode keymap
+key.copy("view", "caret");
+
+// remap h and l
+key.setCaretKey("h", function () {
+                    goDoCommand('cmd_scrollLeft');
+                }, "scroll left");
+
+key.setCaretKey("l", function () {
+                    goDoCommand('cmd_scrollRight');
+                }, "scroll right");
 
 // ==================== Define your function (if needed) ==================== //
 // You can create the module and define the funtions like below.

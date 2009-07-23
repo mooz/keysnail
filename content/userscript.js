@@ -216,14 +216,10 @@ KeySnail.UserScript = {
             // When I tried to get the userLocale via copyUnicharPref(), the function sometimes
             // returned the "property" file place, not the locale. So it's better to use
             // getLocalizedUnicharPref()
-            var userLocale = nsPreferences.getLocalizedUnicharPref("general.useragent.locale");
-            if (userLocale == null) {
-                // and getLocalizedUnicharPref() sometimes return null :<
-                // so I have to check whether it is null or not.
-                userLocale = nsPreferences.copyUnicharPref("general.useragent.locale");
-            }
-
-            this.message(userLocale);
+            // and getLocalizedUnicharPref() sometimes return null :<
+            // so I have to check whether it is null or not.
+            var userLocale = nsPreferences.getLocalizedUnicharPref("general.useragent.locale")
+                || nsPreferences.copyUnicharPref("general.useragent.locale");
 
             userLocale = {
                 "ja-JP": "ja",
@@ -231,6 +227,8 @@ KeySnail.UserScript = {
                 "JP":    "ja",
                 "en-US": "en"
             }[userLocale] || userLocale;
+
+            this.message("userLocale: " + userLocale);
 
             var defaultConfigFile = this.modules.util.getContents(defaultConfigFileBase + userLocale);
 

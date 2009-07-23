@@ -1,66 +1,55 @@
-// ==================== KeySnail configuration file ==================== //
+// ==================== KeySnail 0.1.0 configuration file ==================== //
 
-// -------------------- キーシーケンスへの関数割り当て方法 -------------------- //
-//
-// 以下に示す関数群を使って, キーシーケンスを関数へと割り当てることができる.
+// -------------------- How to bind function to the key -------------------- //
 //
 // key.setGlobalKey(keys, func, ksDescription, ksNoRepeat);
 // key.setEditKey(keys, func, ksDescription, ksNoRepeat);
 // key.setViewKey(keys, func, ksDescription, ksNoRepeat);
-// key.setCaretKey(keys, func, ksDescription, ksNoRepeat);
 //
-// 各引数の説明は次の通り.
-//
-// keys          => キー (文字列) か キーシーケンス (文字列の配列) を指定する
-//                  キーの表記は Emacs のそれを踏襲
+// keys          => key (string) or key sequence (array)
+//                  expression of the key follows the Emacs
 //                  ex1) Ctrl + Alt + t : C-M-t
 //                  ex2) Arrow Key      : <up>, <down>, <left>, <right>
 //                  ex3) PgUp, PgDn     : <prior>, <next>
 //                  ex4) F1, F2, F3     : <f1>, <f2>, <f3>
 //
-// func          => 無名関数を指定する. この関数は二つの引数を取ることが出来る
-//                     * 第一引数 => キーイベント
-//                     * 第二引数 => 前置引数 (無ければ null)
-//                  のようになっている.
-//                  必要な場合は function (aEvent, aArg) のようにして
-//                  これら二つの引数を関数中から使うことが出来る.
+// func          => anonymous function.
+//                  this function can take two arguments.
+//                     * argument 1 => key event
+//                     * argument 2 => prefix argument (or null)
+//                  you can use these arguments through declaring the
+//                  following expression.
+//                        function (aEvent, aArg)
 //
-// ksDescription => 関数の説明. 省略可能. <help>
+// ksDescription => Description of the function.
+//                  you can omit this argument.
 //
-// ksNoRepeat    => func 内で独自に前置引数を扱いたい場合など,
-//                  勝手にコマンドが繰り返されるのを防ぐ為に使用する.
-//                  この値が true でなければコマンドが前置引数の数だけ繰り返される
-//                  省略可能.
-//
-// これらの関数は次に示す関数をラップしているだけ.
+// ksNoRepeat    => when false, command (function) is executed
+//                  prefix arguments times.
+//                  if you want to use prefix argument in your
+//                  function, and do not want to repeat it, set
+//                  this value to true.
+//                  you can omit this argument.
 //
 // key.defineKey(keyMapName, keys, func, ksDescription, ksNoRepeat);
 //
-// keyMapName    => 現在のところ "global", "view", "edit" の三つが指定可能
-//
-// ==================== フックの説明 ====================
-// プログラムの各所には「フック」というものが設けられており, ユーザはここに任意の
-// 関数を割り当てることが可能.
-// 例えば C-g が入力された時には KeyBoardQuit というフックに登録された
-// 関数が呼ばれる.
-// ユーザはここに「検索のキャンセル」, 「選択の解除」などの関数を登録することができる
-
+// keyMapName    => currently "global", "view", "edit" are supported
 
 // ==================== misc settings ==================== //
-// 特殊キーの設定.
-// key.quitKey : キーシーケンス入力のキャンセルに用いられる.
-//               KeyBoardQuit フックを呼ぶので, 検索バーを閉じる等の動作をそこに登録しておくことも出来る.
+// key.quitKey : Cancel the current input.
+//               This key event calls the KeyBoardQuit hook.
+//               You can set the command like "close the find bar" to it.
 
-// key.helpKey : インタラクティヴヘルプの表示, 汎用のヘルプキーとして働く.
-//               例えば C-c C-c <helpKey> と入力すると, C-c C-c から始まるキーバインド一覧が表示される.
-//               またこの初期化ファイルの設定では <helpKey> b とすればキーバインド一覧が表示されるようになっている.
-
+// key.helpKey : Display the interactive help. General help key.
+//               When you input C-c C-c <helpKey>, keybindings begin with C-c C-c are displayed.
+//               And in this script settings, <helpKey> b lists the all keybindings.
+//
 // key.quitKey = "C-g";
 // key.helpKey = "<f1>";
 
 // ----------------------------------------
-// コントロールキー / メタキーとして解釈させたいキーを変更したい場合は
-// 次に示す二つの関数を変更する.
+// If you want to change the Ctrl key and Meta key,
+// modify two functions below.
 
 // key.isControlKey = function (aEvent) {
 //     return aEvent.ctrlKey;
@@ -71,37 +60,37 @@
 // };
 
 // ----------------------------------------
-// キーマクロ機能 (まだまともに動かない)
+// key macro (currently, not works well)
 // key.macroStartKey = "<f3>";
 // key.macroEndKey   = "<f4>";
 // macro.setSleepTime(100);
 
 // ==================== remap ==================== //
-// エディットモード中からでもビューモードのキーバインドを使えるように
-// エディットモードで C-z を入力するとビューモードのキーバインドが使える
+// you can use view-mode keybindings in edit-mode adding
+// the prefix key C-z.
 key.keyMapHolder["edit"]["C-z"] = key.keyMapHolder["view"];
 
 // ==================== access key ==================== //
-// Mac ユーザで Ctrl キーを使いたい場合はアンコメント.
+// If you are Mac user and want to use Ctrl key, uncomment.
 // nsPreferences.setIntPref("ui.key.generalAccessKey", 0);
 
 // ==================== set hooks ==================== //
 
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
-                // 検索バーが開いていたら閉じる
+                // Close the find bar if opened
                 command.gFindBar.close();
                 if (util.isWritable()) {
-                    // 編集エリアならマークをリセット
+                    // in edit area, reset the mark
                     command.resetMark(aEvent);
                 } else {
-                    // ビューモードなら選択を解除 & 汎用的なキャンセルイベントを生成
+                    // in view mode, deselect all & generate cancell event
                     goDoCommand('cmd_selectNone');
                     key.generateKey(aEvent.target,
                                     KeyEvent.DOM_VK_ESCAPE, true);
                 }
                 if (util.isMenu()) {
-                    // 補完メニュー内ならポップアップなどを閉じる
+                    // in autocomplete menu, close the popup
                     key.generateKey(aEvent.originalTarget,
                                     KeyEvent.DOM_VK_ESCAPE, true);
                 }
@@ -110,40 +99,40 @@ hook.setHook("KeyBoardQuit",
 // ==================== set global keys ==================== //
 
 key.setGlobalKey("C-M-r",
-                 function () { userscript.load(); },
-                 "設定ファイルを再読み込み");
+                 function () { userscript.loadDefaultConfigFile(); },
+                 "Reload the initialization file");
 
 // -------------------- help command -------------------- //
 
-key.setGlobalKey([key.helpKey, "b"], function () {
+key.setGlobalKey(["<f1>", "b"], function () {
                      key.listKeyBindings();
-                 }, "キーバインド一覧を表示");
+                 }, "List all keybindings");
 
-key.setGlobalKey([key.helpKey, "F"], function (aEvent) {
+key.setGlobalKey(["<f1>", "F"], function (aEvent) {
                      openHelpLink('firefox-help');
-                 }, "Firefox のヘルプを表示");
+                 }, "Display Firefox help");
 
 // -------------------- misc -------------------- //
 
 key.setGlobalKey("C-t", function () {
                      document.getElementById("cmd_newNavigatorTab").doCommand();
-                 }, "タブを開く");
+                 }, "Open the new tab");
 
 key.setGlobalKey(["C-x", "j"], function (aEvent) {
                      hah.enterStartKey(aEvent);
-                 }, "LoL を開始");
+                 }, "Start LoL");
 
 key.setGlobalKey("C-m", function (aEvent) {
                      key.generateKey(aEvent.originalTarget,
                                      KeyEvent.DOM_VK_RETURN, true);
                  },
-                 "リターンコードを生成");
+                 "Generate the return key code");
 
 key.setGlobalKey("C-j",
                  function (aEvent, arg) {
                      command.bookMarkToolBarJumpTo(aEvent, arg);
                  },
-                 "ブックマークツールバーのアイテムを開く", true);
+                 "Open the the bookmark toolbar item", true);
 
 // -------------------- useful focus -------------------- //
 
@@ -151,25 +140,25 @@ key.setGlobalKey(["C-x", "l"],
                  function () {
                      command.focusToById('urlbar');
                  },
-                 "ロケーションバーへフォーカス", true);
+                 "Focus to the location bar", true);
 
 key.setGlobalKey(["C-x", "g"],
                  function () {
                      command.focusToById('searchbar');
                  },
-                 "検索バーへフォーカス", true);
+                 "Focus to the search bar", true);
 
 key.setGlobalKey(["C-x", "t"],
                  function () {
                      command.focusElement(command.elementsRetrieverTextarea, 0);
                  },
-                 "最初のインプットエリアへフォーカス", true);
+                 "Focus to the first textarea", true);
 
 key.setGlobalKey(["C-x", "s"],
                  function () {
                      command.focusElement(command.elementsRetrieverButton, 0);
                  },
-                 "最初のボタンへフォーカス", true);
+                 "Focus to the first button", true);
 
 // -------------------- copy -------------------- //
 
@@ -177,73 +166,73 @@ key.setGlobalKey("M-w",
                  function (aEvent) {
                      command.copyRegion(aEvent);
                  },
-                 "選択中のテキストをコピー");
+                 "Copy selected text");
 
 // -------------------- search -------------------- //
 
 key.setGlobalKey("C-s", function () {
                      command.iSearchForward();
                  },
-                 "インクリメンタル検索");
+                 "isearch forward");
 
 key.setGlobalKey("C-r", function () {
                      command.iSearchBackward();
-                 }, "逆方向インクリメンタル検索");
+                 }, "isearch backward");
 
 // -------------------- window --------------------
 key.setGlobalKey(["C-x", "k"],
                  function () { BrowserCloseTabOrWindow(); },
-                 "タブ / ウィンドウを閉じる");
+                 "Close tab / window");
 
 key.setGlobalKey(["C-x", "K"],
                  function () { closeWindow(true); },
-                 "ウィンドウを閉じる");
+                 "Close the window");
 
 key.setGlobalKey(["C-x", "n"],
                  function () { OpenBrowserWindow(); },
-                 " ウィンドウを開く");
+                 " Open the window");
 
 key.setGlobalKey(["C-x", "C-c"],
                  function () { goQuitApplication(); },
-                 "Firefox を終了");
+                 "Exit Firefox");
 key.setGlobalKey(["C-x", "o"],
                  function (aEvent, aArg) {
                      rc.focusOtherFrame(aArg);
                  },
-                 "次のフレームを選択");
+                 "Select next frame");
 
 // -------------------- tab --------------------
 key.setGlobalKey(["C-c", "C-t", "l"],
                  function () { gBrowser.mTabContainer.advanceSelectedTab(1, true); },
-                 "ひとつ右のタブへ");
+                 "Select next tab");
 key.setGlobalKey(["C-c", "C-t", "h"],
                  function () { gBrowser.mTabContainer.advanceSelectedTab(-1, true); },
-                 "ひとつ左のタブへ");
+                 "Select previous tab");
 key.setGlobalKey(["C-c", "C-t", "u"],
                  function () { undoCloseTab(); },
-                 "閉じたタブを元に戻す");
+                 "Undo closed tab");
 
 // -------------------- console --------------------
 key.setGlobalKey(["C-c", "C-c", "C-v"],
                  function () { toJavaScriptConsole(); },
-                 "Javascript コンソールを表示");
+                 "Display Javascript console");
 key.setGlobalKey(["C-c", "C-c", "C-c"],
                  function () {
                      command.clearConsole();
                  },
-                 "Javascript コンソールの表示をクリア");
+                 "Clear Javascript console");
 
 key.setGlobalKey(["C-c", "i"],
                  function () { BrowserPageInfo(); },
-                 "ページ情報表示");
+                 "Display page information");
 
 // -------------------- file --------------------
 key.setGlobalKey(["C-x", "C-w"],
                  function () { saveDocument(window.content.document); },
-                 "ファイルを保存");
+                 "Save current page to the file");
 key.setGlobalKey(["C-x", "C-f"],
                  function () { BrowserOpenFileWindow(); },
-                 "ファイルを開く");
+                 "Open the file");
 
 // ==================== set view mode keys ==================== //
 
@@ -253,87 +242,87 @@ key.setViewKey("C-n", function (aEvent) {
                                    KeyEvent.DOM_VK_DOWN, true);
                    // goDoCommand('cmd_scrollLineDown');
                },
-               "一行スクロールダウン");
+               "Scroll line down");
 key.setViewKey("C-p", function (aEvent) {
                    key.generateKey(aEvent.originalTarget,
                                    KeyEvent.DOM_VK_UP, true);
                    // goDoCommand('cmd_scrollLineUp');
                },
-               "一行スクロールアップ");
+               "Scroll line up");
 key.setViewKey("C-f", function (aEvent) {
                    key.generateKey(aEvent.originalTarget,
                                    KeyEvent.DOM_VK_RIGHT, true);
                },
-               "右へスクロール");
+               "Scroll right");
 key.setViewKey("C-b", function (aEvent) {
                    key.generateKey(aEvent.originalTarget,
                                    KeyEvent.DOM_VK_LEFT, true);
                },
-               "左へスクロール");
+               "Scroll left");
 
 key.setViewKey("j", function () { goDoCommand('cmd_scrollLineDown'); },
-               "一行スクロールダウン");
+               "Scroll line down");
 key.setViewKey("k", function () { goDoCommand('cmd_scrollLineUp'); },
-               "一行スクロールアップ");
+               "Scroll line up");
 
 key.setViewKey(">", function () { goDoCommand('cmd_scrollRight'); },
-               "右へスクロール");
+               "Scroll right");
 key.setViewKey("<", function () { goDoCommand('cmd_scrollLeft'); },
-               "左へスクロール");
+               "Scroll left");
 key.setViewKey(".", function () { goDoCommand('cmd_scrollRight'); },
-               "右へスクロール");
+               "Scroll right");
 key.setViewKey(",", function () { goDoCommand('cmd_scrollLeft'); },
-               "左へスクロール");
+               "Scroll left");
 
 key.setViewKey("b", function () { goDoCommand('cmd_scrollPageUp'); },
-               "一画面分スクロールアップ");
+               "Scroll page up");
 key.setViewKey("M-v",
                function () { goDoCommand('cmd_scrollPageUp'); },
-               "一画面スクロールアップ");
+               "Scroll page up");
 key.setViewKey("C-v",
                function () { goDoCommand('cmd_scrollPageDown'); },
-               "一画面スクロールダウン");
+               "Scroll page down");
 
 key.setViewKey("g", function () { goDoCommand('cmd_scrollTop'); },
-               "ページ先頭へ移動");
+               "Scroll to top of the page");
 key.setViewKey("G", function () { goDoCommand('cmd_scrollBottom'); },
-               "ページ末尾へ移動");
+               "Scroll to bottom of the page");
 
 key.setViewKey("M-<",
                function () { goDoCommand('cmd_scrollTop'); },
-               "ページ先頭へ移動");
+               "Scroll to top of the page");
 key.setViewKey("M->",
                function () { goDoCommand('cmd_scrollBottom'); },
-               "ページ末尾へ移動");
+               "Scroll to bottom of the page");
 
 // -------------------- navigation --------------------
 key.setViewKey("R", function (aEvent) { BrowserReload(); },
-               "更新");
+               "Reload the page");
 key.setViewKey("B", function (aEvent) { BrowserBack(); },
-               "戻る");
+               "Back");
 key.setViewKey("F", function (aEvent) { BrowserForward(); },
-               "進む");
+               "Forward");
 
 // -------------------- tab --------------------
 key.setViewKey("l", function () { gBrowser.mTabContainer.advanceSelectedTab(1, true); },
-               "ひとつ右のタブへ");
+               "Select next tab");
 key.setViewKey("h", function () { gBrowser.mTabContainer.advanceSelectedTab(-1, true); },
-               "ひとつ左のタブへ");
+               "Select previous tab");
 
 // -------------------- text --------------------
 key.setViewKey(["C-x", "h"],
                function () { goDoCommand('cmd_selectAll'); },
-               "すべて選択");
+               "Select all");
 
 // -------------------- walk through --------------------
 
 key.setViewKey("M-n", function () {
                    command.walkInputElement(command.elementsRetrieverButton, true, true);
-               }, "次のボタンへフォーカスを当てる");
+               }, "Focus to the next button");
 
 key.setViewKey("M-p", function () {
                    command.walkInputElement(command.elementsRetrieverButton, false, true);
-               }, "前のボタンへフォーカスを当てる");
+               }, "Focus to the previous button");
 
 // ==================== set edit mode key ==================== //
 
@@ -341,28 +330,28 @@ key.setEditKey("C-SPC",
                function (aEvent) {
                    command.setMark(aEvent);
                },
-               "マークをセット");
+               "Set mark");
 
 key.setEditKey("C-@",
                function (aEvent) {
                    command.setMark(aEvent);
                },
-               "マークをセット");
+               "Set mark");
 
 key.setEditKey("C-o",
                function (aEvent) {
                    command.openLine(aEvent);
                },
-               "行を開く (open line)");
+               "Open line");
 
 // -------------------- undo --------------------
 
 key.setEditKey(["C-x", "u"],
                function () { goDoCommand('cmd_undo'); },
-               "アンドゥ");
+               "Undo");
 key.setEditKey("C-_",
                function () { goDoCommand('cmd_undo'); },
-               "アンドゥ");
+               "Undo");
 
 // -------------------- cursor navigation --------------------
 
@@ -370,51 +359,51 @@ key.setEditKey("C-_",
 
 key.setEditKey("C-a",
                function (aEvent) { command.beginLine(aEvent); },
-               "行頭へ移動");
+               "Beginning of the line");
 key.setEditKey("C-e",
                function (aEvent) { command.endLine(aEvent); },
-               "行末へ");
+               "End of the line");
 
 key.setEditKey("C-f",
                function (aEvent) { command.nextChar(aEvent); },
-               "一文字右へ移動");
+               "Forward char");
 key.setEditKey("C-b",
                function (aEvent) { command.previousChar(aEvent); },
-               "一文字左へ移動");
+               "Backward char");
 
 key.setEditKey("M-f",
                function (aEvent) { command.nextWord(aEvent); },
-               "一単語右へ移動");
+               "Forward word");
 key.setEditKey("M-b",
                function (aEvent) { command.previousWord(aEvent); },
-               "一単語左へ移動");
+               "Backward word");
 
 // -------------------- by line --------------------
 
 key.setEditKey("C-n",
                function (aEvent) { command.nextLine(aEvent); },
-               "一行下へ");
+               "Next line");
 key.setEditKey("C-p",
                function (aEvent) { command.previousLine(aEvent); },
-               "一行上へ");
+               "Previous line");
 
 // -------------------- by page --------------------
 
 key.setEditKey("C-v",
                function (aEvent) { command.pageDown(aEvent); },
-               "一画面分下へ");
+               "Page down");
 key.setEditKey("M-v",
                function (aEvent) { command.pageUp(aEvent); },
-               "一画面分上へ");
+               "Page up");
 
 // -------------------- absolute --------------------
 
 key.setEditKey("M-<",
                function (aEvent) { command.moveTop(aEvent); },
-               "テキストエリア先頭へ");
+               "Beginning of the text area");
 key.setEditKey("M->",
                function (aEvent) { command.moveBottom(aEvent); },
-               "テキストエリア末尾へ");
+               "End of the text area");
 
 // -------------------- delete --------------------
 
@@ -422,17 +411,17 @@ key.setEditKey("C-d",
                function () {
                    goDoCommand("cmd_deleteCharForward");
                },
-               "次の一文字削除");
+               "Delete forward char");
 key.setEditKey("C-h",
                function () {
                    goDoCommand("cmd_deleteCharBackward");
                },
-               "前の一文字を削除");
+               "Delete backward char");
 key.setEditKey("M-d",
                function () {
                    goDoCommand('cmd_deleteWordForward');
                },
-               "前の一単語を削除");
+               "Delete forward word");
 
 // -------------------- cut / paste --------------------
 
@@ -440,10 +429,10 @@ key.setEditKey("C-k",
                function (aEvent) {
                    command.killLine(aEvent);
                },
-               "カーソルから先を一行カット");
+               "Kill the rest of the line");
 key.setEditKey("C-y",
                function () { goDoCommand("cmd_paste"); },
-               "ペースト");
+               "Paste (Yank)");
 
 key.setEditKey("C-w",
                function (aEvent) {
@@ -451,24 +440,25 @@ key.setEditKey("C-w",
                    goDoCommand("cmd_delete");
                    command.resetMark(aEvent);
                },
-               "リージョンをカット");
+               "Cut current region");
 
-// -------------------- selection -------------------- //
+// -------------------- selection --------------------
+
 key.setEditKey(["C-x", "h"],
                  function (aEvent) {
                      command.selectAll(aEvent);
                  },
-                 "全て選択");
+                 "Select whole text");
 
-// -------------------- walk through elements -------------------- //
+// -------------------- walk through -------------------- //
 
 key.setEditKey("M-n", function () {
                    command.walkInputElement(command.elementsRetrieverTextarea, true, true);
-               }, "次のテキストエリアへフォーカス");
+               }, "Focus to the next textarea");
 
 key.setEditKey("M-p", function () {
                    command.walkInputElement(command.elementsRetrieverTextarea, false, true);
-               }, "前のテキストエリアへフォーカス");
+               }, "Focus to the previous textarea");
 
 // ==================== caret mode (press F7 to enter) ==================== //
 
@@ -485,14 +475,14 @@ key.setCaretKey("l", function () {
                 }, "scroll right");
 
 // ==================== Define your function (if needed) ==================== //
-// 以下のようにしてモジュールを作成して関数を定義することが出来ます.
-// ここでは RC という名前になっていますが, 他のモジュールと被らない範囲であれば
-// 自由につけてしまって構いません.
-// あらかじめ予約された名前空間は現在のところ
-// Command, Display, Hook, HTML, Key, Util, Prompt, UserScript
-// となっています.
-// モジュールへのアクセスは「小文字にしたモジュール名」で行います.
-// RC なら rc.hoge といった具合です.
+// You can create the module and define the funtions like below.
+// Although in this example the module name is RC, you can choose it freely
+// unless overlap the other modules.
+// Modules already registered are currently,
+//     Command, Display, Hook, HTML, Key, Util, Prompt, UserScript
+// so you have to choose the other names.
+// To access to the created module, use lower-cased module name.
+// RC => rc.foo
 
 KeySnail.RC = {
     init: function () {
@@ -554,7 +544,7 @@ KeySnail.RC = {
             for (var i = 0; i < frameWindows.length; ++i) {
                 if (this.isFrameSetWindow(frameWindows[i])) {
                     var childWindows = this.getListFrameWindow(frameWindows[i]);
-                    // 子フレームをくっつける
+                    // Append child frame
                     listFrameWindow = listFrameWindow.concat(childWindows);
                 } else {
                     listFrameWindow.push(frameWindows[i]);
@@ -579,7 +569,7 @@ KeySnail.RC = {
     }
 };
 
-// モジュールを登録
+// Register the module
 KeySnail.registerModule("RC");
-// モジュールを初期化 (init メソッドが呼ばれる)
+// Initialize the module (just call the init method)
 KeySnail.initModule("RC");

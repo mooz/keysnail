@@ -38,7 +38,7 @@
             <groupbox orient="vertical">
                 <caption label="&keySnail.preference.userscript.settings;" />
                 <vbox flex="1">
-                    <hbox >
+                    <hbox>
                         <label value="&keySnail.preference.userscript.location;"
                                control="userScriptLocation"/>
                         <filefield id="keysnail.preference.userscript.location" flex="2"
@@ -56,9 +56,12 @@
     </prefpane>
 
     <prefpane id="prefpane-about" label="&keySnail.preference.about;" flex="1">
-        <description>KeySnail 0.3.7b</description>
-        <spacer height="20px" />
-        <description>(c) 2009 mooz &lt;stillpedant _at_ gmail.com&gt;. All rights reserved.</description>
+        <vbox flex="2" align="center">
+            <image src="chrome://keysnail/skin/logo.png" width="128" height="128"
+                   tooltiptext="KeySnail 0.3.7" />
+            <spacer height="10px" />
+            <description>(c) 2009 mooz &lt;stillpedant _at_ gmail.com&gt;. All rights reserved.</description>
+        </vbox>
     </prefpane>
 
     <!-- load preference manipulating library -->

@@ -200,6 +200,15 @@ KeySnail.Key = {
         } else {
             // first stroke
 
+            if (this.isPrefixArgumentKey(key, aEvent)) {
+                // transit state: to inputting prefix argument
+                this.modules.util.stopEventPropagation(aEvent);
+                this.currentKeySequence.push(key);
+                this.modules.display.echoStatusBar(key);
+                this.inputtingPrefixArgument = true;
+                return;
+            }
+
             // decide which keymap to use
             var modeName;
 
@@ -216,15 +225,6 @@ KeySnail.Key = {
             // this.message(modeName + "-mode");
             // this.modules.display.prettyPrint(modeName + "-mode");
             this.currentKeyMap = this.keyMapHolder[modeName];
-
-            if (this.isPrefixArgumentKey(key, aEvent)) {
-                // transit state: to inputting prefix argument
-                this.modules.util.stopEventPropagation(aEvent);
-                this.currentKeySequence.push(key);
-                this.modules.display.echoStatusBar(key);
-                this.inputtingPrefixArgument = true;
-                return;
-            }
         }
 
         if (!this.currentKeyMap[key]) {
@@ -241,8 +241,6 @@ KeySnail.Key = {
         }
 
         if (this.currentKeyMap[key]) {
-            // add key to the key sequece
-            this.currentKeySequence.push(key);
             // prevent browser default behaviour
             this.modules.util.stopEventPropagation(aEvent);
 
@@ -252,8 +250,7 @@ KeySnail.Key = {
                 var arg  = this.prefixArgument;
                 this.backToNeutral("");
 
-                // Maybe this annoys not a few people
-                // So I disable this
+                // Maybe this annoys not a few people. So I disable this.
                 // if (this.func.ksDescription) {
                 //     this.modules.display.echoStatusBar(func.ksDescription, 2000);
                 // }
@@ -262,6 +259,9 @@ KeySnail.Key = {
                 // this.message("Prefix Argument : " + arg);
                 this.executeFunction(func, aEvent, arg);
             } else {
+                // add key to the key sequece
+                this.currentKeySequence.push(key);
+
                 // Display key sequence
                 if (this.prefixArgumentString) {
                     this.modules.display.echoStatusBar(this.prefixArgumentString
@@ -791,9 +791,9 @@ KeySnail.Key = {
         }
     },
 
-    generateKeyBindingTable: function (aContentHolder, aH1, aKeyMap, aKeySequence) {
+    generateKeyBindingTable: function (aContentHolder, aH2, aAnchor, aKeyMap, aKeySequence) {
         if (aKeyMap) {
-            aContentHolder.push("<h1>" + aH1 + "</h1>");
+            aContentHolder.push("<h2 id='" + aAnchor + "'>" + aH2 + "</h2>");
             aContentHolder.push("<table class='table-keybindings'>");
             aContentHolder.push("<tr><th>" + "Key" + "</th><th>" + "Binding" + "</th></tr>");
             this.generateKeyBindingRows(aContentHolder, aKeyMap, aKeySequence);
@@ -803,11 +803,13 @@ KeySnail.Key = {
 
     // 現在のキーシーケンスから可能なキーバインド一覧を表示
     interactiveHelp: function () {
-        var contentHolder = [];
+        var contentHolder = ['<h1>Key Bindings Starting With ' +
+                             this.currentKeySequence.join(" ") + '</h1><hr />'];
 
         this.generateKeyBindingTable(contentHolder,
                                      "Global Bindings Starting With "
                                      + this.currentKeySequence.join(" "),
+                                     "global",
                                      this.trailByKeySequence(this.keyMapHolder["global"],
                                                              this.currentKeySequence),
                                      this.currentKeySequence);
@@ -815,6 +817,7 @@ KeySnail.Key = {
         this.generateKeyBindingTable(contentHolder,
                                      "View mode Bindings Starting With "
                                      + this.currentKeySequence.join(" "),
+                                     "view",
                                      this.trailByKeySequence(this.keyMapHolder["view"],
                                                              this.currentKeySequence),
                                      this.currentKeySequence);
@@ -822,6 +825,7 @@ KeySnail.Key = {
         this.generateKeyBindingTable(contentHolder,
                                      "Edit mode Bindings Starting With "
                                      + this.currentKeySequence.join(" "),
+                                     "edit",
                                      this.trailByKeySequence(this.keyMapHolder["edit"],
                                                              this.currentKeySequence),
                                      this.currentKeySequence);
@@ -829,6 +833,7 @@ KeySnail.Key = {
         this.generateKeyBindingTable(contentHolder,
                                      "Caret mode Bindings Starting With "
                                      + this.currentKeySequence.join(" "),
+                                     "caret",
                                      this.trailByKeySequence(this.keyMapHolder["caret"],
                                                              this.currentKeySequence),
                                      this.currentKeySequence);
@@ -843,26 +848,32 @@ KeySnail.Key = {
 
     // 全てのキーバインドを一覧
     listKeyBindings: function () {
-        var contentHolder = [];
+        var contentHolder = ['<h1>All key bindings</h1><hr />',
+                             '<ul>',
+                             '<li><a href="#global">Global Bindings</a></li>',
+                             '<li><a href="#view">View mode Bindings</a></li>',
+                             '<li><a href="#edit">Edit mode Bindings</a></li>',
+                             '<li><a href="#caret">Caret mode Bindings</a></li>',
+                             '</ul>'];
 
         this.generateKeyBindingTable(contentHolder,
-                                     "Global Bindings"
-                                     + this.currentKeySequence.join(" "),
+                                     "Global Bindings",
+                                     "global",
                                      this.keyMapHolder["global"]);
 
         this.generateKeyBindingTable(contentHolder,
-                                     "View mode Bindings"
-                                     + this.currentKeySequence.join(" "),
+                                     "View mode Bindings",
+                                     "view",
                                      this.keyMapHolder["view"]);
 
         this.generateKeyBindingTable(contentHolder,
-                                     "Edit mode Bindings"
-                                     + this.currentKeySequence.join(" "),
+                                     "Edit mode Bindings",
+                                     "edit",
                                      this.keyMapHolder["edit"]);
 
         this.generateKeyBindingTable(contentHolder,
-                                     "Caret mode Bindings"
-                                     + this.currentKeySequence.join(" "),
+                                     "Caret mode Bindings",
+                                     "caret",
                                      this.keyMapHolder["caret"]);
 
         var contentSource = this.modules.html

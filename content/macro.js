@@ -1,11 +1,16 @@
 KeySnail.Macro = {
     init: function () {
+        this.sleepTime = 100;
+    },
 
+    setSleepTime: function (aMsec) {
+        this.sleepTime = aMsec;
     },
 
     doMacro: function (aEvents) {
         var len = aEvents.length;
         var newEvent;
+        var sleepTime = this.sleepTime;
         // var keyEventToString = this.modules.key
         //     .keyEventToString;
 
@@ -22,7 +27,7 @@ KeySnail.Macro = {
             Application.console.log(this.modules.key
                                     .keyEventToString(event));
             event.originalTarget.dispatchEvent(newEvent);
-            this.sleep(100);
+            this.sleep(sleepTime);
         }
     },
 
