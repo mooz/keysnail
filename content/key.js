@@ -297,7 +297,12 @@ KeySnail.Key = {
             //     aEvent.target.dispatchEvent(aEvent);
             // }
 
-            this.backToNeutral("");
+            if (this.currentKeySequence.length) {
+                this.backToNeutral(this.currentKeySequence.join(" ") + " " + key
+                                   + " is undefined", 3000);
+            } else {
+                this.backToNeutral("");
+            }
         }
     },
 

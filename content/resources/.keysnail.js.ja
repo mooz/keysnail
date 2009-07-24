@@ -432,7 +432,7 @@ key.setEditKey("M-d",
                function () {
                    goDoCommand('cmd_deleteWordForward');
                },
-               "前の一単語を削除");
+               "次の一単語を削除");
 
 // -------------------- cut / paste --------------------
 
