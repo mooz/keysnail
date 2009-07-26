@@ -169,10 +169,13 @@ KeySnail.Command = {
         if (aArg > items.length - 1)
             aArg = items.length - 1;
 
+        // this.modules.util.listProperty(items[aArg].node);
+
         // 一覧表示したいならこっち
         // for (i = 0; i < items.length; ++i) {
         //     this.message("Name : " + items[i].label);
-        //     PlacesUIUtils.openNodeIn(items[i].node, "tab");
+        //     this.message("URI : " + items[i].node.uri);
+        //     // PlacesUIUtils.openNodeIn(items[i].node, "tab");
         // }
 
         PlacesUIUtils.openNodeIn(items[aArg - 1].node, "tab");

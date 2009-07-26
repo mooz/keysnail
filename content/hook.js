@@ -10,8 +10,6 @@ KeySnail.Hook = {
     },
 
     setHook: function (aHookName, aFunction) {
-        // this.modules.util.message("hit.hooklist[" + aHookName + "] = "
-        //                           + aFunction);
         this.hookList[aHookName] = [aFunction];
     },
 
@@ -26,7 +24,7 @@ KeySnail.Hook = {
         if (this.hookList[aHookName]) {
             var hook = this.hookList[aHookName];
             for (var i = 0; i < hook.length; ++i) {
-                hook[i].apply(this, [aEvent]);
+                hook[i].apply(this.modules, [aEvent]);
             }
         }
     }

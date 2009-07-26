@@ -1,8 +1,6 @@
 var KeySnail = {
     modules: {},
 
-    version: "0.3.7",
-
     init: function () {
         // unfortunately, changes in this order
         // may cause the undefined error

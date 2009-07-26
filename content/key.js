@@ -276,30 +276,16 @@ KeySnail.Key = {
         } else {
             // call default handler or insert text
 
-            if (this.prefixArgument && this.modules.util.isWritable()) {
+            if (this.prefixArgument > 0 && this.modules.util.isWritable()) {
                 this.modules.util.stopEventPropagation(aEvent);
-                for (var i = 0; i < this.prefixArgument; ++i) {
-                    this.insertText(key);
-                }
+                // insert repeated string
+                this.insertText(new Array(this.prefixArgument + 1)
+                                .join(String.fromCharCode(aEvent.charCode)));
             }
 
-            // aEvent.stopPropagation();
-            // aEvent.ksNoHandle = true;
-
-            // if (this.prefixArgument && this.modules.util.isWritable()) {
-            //     for (var i = 0; i < this.prefixArgument; ++i) {
-            //         this.insertText(key);
-            //         // aEvent.originalTarget.dispatchEvent(aEvent);
-            //     }
-            // } else {
-            //     this.util.listProperty(aEvent);
-            //     aEvent.originalTarget.dispatchEvent(aEvent);
-            //     aEvent.target.dispatchEvent(aEvent);
-            // }
-
             if (this.currentKeySequence.length) {
-                this.backToNeutral(this.currentKeySequence.join(" ") + " " + key
-                                   + " is undefined", 3000);
+                this.backToNeutral(this.currentKeySequence.join(" ")
+                                   + " " + key + " is undefined", 3000);
             } else {
                 this.backToNeutral("");
             }

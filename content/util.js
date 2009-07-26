@@ -172,6 +172,19 @@ KeySnail.Util = {
         // return this.selectionController.getCaretEnabled();
     },
 
+    stirngRepeat: function (s, n) {
+        var s, r = '';
+
+        while (n > 0) {
+            if (n & 1)
+                r += s;
+            s += s;
+            n >>= 1;
+        }
+
+        return r;
+    },
+
     // ==================== ==================== //
 
     stopEventPropagation: function (aEvent) {

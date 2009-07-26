@@ -1,10 +1,12 @@
 h1. KeySnail
 
-!=http://github.com/mooz/keysnail/raw/7eca08100b366ddf8f1a8159e77dd7d59a9880ce/logo.png(KeySnail)!
+!http://github.com/mooz/keysnail/tree/master/skin/classic/keysnail/logo.png?raw=true(KeySnail)!
 
 キーシーケンスに関数を割り当てよう！
 
-"http://github.com/mooz/keysnail/":http://github.com/mooz/keysnail/
+Project site: "http://wiki.github.com/mooz/keysnail":http://wiki.github.com/mooz/keysnail
+
+Download : "https://addons.mozilla.org/ja/firefox/addon/13118":https://addons.mozilla.org/ja/firefox/addon/13118
 
 h2. 説明
 
@@ -29,6 +31,7 @@ KeySnail は現在のところ
 
 * Emacs / w3m ライクなキーバインドを実現する初期化ファイル
 * 初期化ファイルの内容からキーバインド一覧を生成する機能
+* キーマクロ
 
 といったものも用意されています。
 
@@ -45,6 +48,7 @@ KeySnail は起動時に .keysnail.js や _keysnail.js といった名前のフ�
 <pre>
 <code>
 // ==================== set global keys ==================== //
+key.helpKey = "<f1>";
 
 key.setGlobalKey("C-M-r",
                  function () {
@@ -54,11 +58,11 @@ key.setGlobalKey("C-M-r",
 
 // -------------------- help command -------------------- //
 
-key.setGlobalKey(["<f1>", "b"], function () {
+key.setGlobalKey([key.helpKey, "b"], function () {
                      key.listKeyBindings();
                  }, "List all keybindings");
 
-key.setGlobalKey(["<f1>", "F"], function (aEvent) {
+key.setGlobalKey([key.helpKey, "F"], function (aEvent) {
                      openHelpLink('firefox-help');
                  }, "Display Firefox help");
 
@@ -117,7 +121,7 @@ key.setEditKey("C-_",
 
 これにより、ユーザが Ctrl + Alt + r というキーを入力するとこの初期化ファイルが再読み込みされ、即座にその内容が反映されるようになります。いちいち Firefox を再起動したり、ウィンドウを開き直したりする必要はありません。
 
-次の例では、割り当てるキーが ["<f1>", "b"] のように配列で表現されています。これは「まず <f1> を押してから b を押す」というキーシーケンスへ対する割り当てを意味します。ここでは Emacs にならい、キーバインド一覧を表示する関数を割り当てています。
+次の例では、割り当てるキーが [key.helpKey, "b"] のように配列で表現されています。これは「まず key.helpKey を押してから b を押す」というキーシーケンスへ対する割り当てを意味します。ここでは Emacs にならい、キーバインド一覧を表示する関数を割り当てています。
 
 h2. TODO
 
