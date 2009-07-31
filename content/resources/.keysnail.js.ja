@@ -483,6 +483,15 @@ key.setCaretKey("l", function () {
                     goDoCommand('cmd_scrollRight');
                 }, "scroll right");
 
+// w3m like
+key.setCaretKey("J", function () {
+                    util.getSelectionController().scrollLine(true);
+                }, "scroll line down");
+
+key.setCaretKey("K", function () {
+                    util.getSelectionController().scrollLine(false);
+                }, "scroll line up");
+
 // ==================== Define your function (if needed) ==================== //
 // 以下のようにしてモジュールを作成して関数を定義することが出来ます.
 // ここでは RC という名前になっていますが, 他のモジュールと被らない範囲であれば

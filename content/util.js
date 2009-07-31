@@ -164,6 +164,10 @@ KeySnail.Util = {
     },
 
     isCaretEnabled: function () {
+        return this.getSelectionController.getCaretEnabled();
+    },
+
+    getSelectionController: function () {
         var docShell = document.commandDispatcher.focusedWindow
 	    .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
 	    .getInterface(Components.interfaces.nsIWebNavigation)
@@ -172,8 +176,7 @@ KeySnail.Util = {
         return docShell
             .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
             .getInterface(Components.interfaces.nsISelectionDisplay)
-            .QueryInterface(Components.interfaces.nsISelectionController)
-            .getCaretEnabled();
+            .QueryInterface(Components.interfaces.nsISelectionController);        
     },
 
     stirngRepeat: function (s, n) {

@@ -474,6 +474,15 @@ key.setCaretKey("l", function () {
                     goDoCommand('cmd_scrollRight');
                 }, "scroll right");
 
+// w3m like
+key.setCaretKey("J", function () {
+                    util.getSelectionController().scrollLine(true);
+                }, "scroll line down");
+
+key.setCaretKey("K", function () {
+                    util.getSelectionController().scrollLine(false);
+                }, "scroll line up");
+
 // ==================== Define your function (if needed) ==================== //
 // You can create the module and define the funtions like below.
 // Although in this example the module name is RC, you can choose it freely
