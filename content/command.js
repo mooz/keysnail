@@ -18,27 +18,29 @@ KeySnail.Command = {
         return document.evaluate(aXPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     },
 
-    elementsRetrieverTextarea: function () {
-        var document = gBrowser.contentWindow.document;
+    elementsRetrieverTextarea: function (aDocument) {
+        // var document = gBrowser.contentWindow.document;
         // Note: type="search" is Safari specific
         var xPathExp = '//input[@type="text" or @type="password" or @type="search" or not(@type)] | //textarea';
-        return document.evaluate(xPathExp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        return aDocument.evaluate(xPathExp, aDocument, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     },
 
-    elementsRetrieverButton: function () {
-        var document = gBrowser.contentWindow.document;
+    elementsRetrieverButton: function (aDocument) {
+        // var document = gBrowser.contentWindow.document;
         var xPathExp = '//input[@type="submit" or @type="reset" or @type="button" or @type="image"]';
-        return document.evaluate(xPathExp, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        return aDocument.evaluate(xPathExp, aDocument, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     },
 
     isSkippable: function (aElement) {
-        return (aElement.style.display && aElement.style.display == 'none')
-            || (aElement.style.visibility && aElement.style.visibility == 'hidden')
-            || ("readonly" in aElement);
+        return (aElement.style.display === 'none')
+            || (aElement.style.visibility === 'hidden')
+            || (aElement.readOnly);
+        // 'readonly' in aElement
     },
 
     focusElement: function (aElementsRetriever, aNum) {
-        var xPathResults = aElementsRetriever();
+        var xPathResults = aElementsRetriever(document.commandDispatcher.focusedWindow.document
+                                              || gBrowser.contentWindow.document);
 
         if (xPathResults.snapshotLength == 0) {
             return;
@@ -60,7 +62,8 @@ KeySnail.Command = {
     },
 
     walkInputElement: function (aElementsRetriever, aForward, aCycle) {
-        var xPathResults = aElementsRetriever();
+        var xPathResults = aElementsRetriever(document.commandDispatcher.focusedWindow.document
+                                              || gBrowser.contentWindow.document);
         var focused = document.commandDispatcher.focusedElement;
 
         var elemCount = xPathResults.snapshotLength;

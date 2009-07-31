@@ -26,8 +26,11 @@ KeySnail.UserScript = {
             new Function("with (KeySnail.modules) {" + code + " }")();
         } catch (e) {
             // how awful ...
-            e.fileName = aConfigFilePath;
-            e.lineNumber = e.lineNumber - this.userScriptOffset + 1;
+            // this.message(e.fileName);
+            if (e.fileName == "chrome://keysnail/content/userscript.js") {
+                e.fileName = aConfigFilePath;
+                e.lineNumber = e.lineNumber - this.userScriptOffset + 1;                
+            }
             throw e;
         }
 

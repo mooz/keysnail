@@ -164,16 +164,20 @@ KeySnail.Util = {
     },
 
     isCaretEnabled: function () {
-        return getBrowser().docShell
+        var docShell = document.commandDispatcher.focusedWindow
+	    .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+	    .getInterface(Components.interfaces.nsIWebNavigation)
+	    .QueryInterface(Components.interfaces.nsIDocShell);
+
+        return docShell
             .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
             .getInterface(Components.interfaces.nsISelectionDisplay)
             .QueryInterface(Components.interfaces.nsISelectionController)
             .getCaretEnabled();
-        // return this.selectionController.getCaretEnabled();
     },
 
     stirngRepeat: function (s, n) {
-        var s, r = '';
+        var r = '';
 
         while (n > 0) {
             if (n & 1)
