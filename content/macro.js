@@ -1,18 +1,32 @@
 KeySnail.Macro = {
     init: function () {
-        this.sleepTime = 100;
+        this.sleepTime = 10;
     },
 
     setSleepTime: function (aMsec) {
         this.sleepTime = aMsec;
     },
 
+    getCurrentFocusedElement: function () {
+        var doc;
+
+        if (document) {
+            doc = (document.commandDispatcher.focusedWindow
+                   || gBrowser.contentWindow)
+            .document;
+        } else {
+            doc = content.document;
+        }
+
+        return (doc.commandDispatcher) ? doc.commandDispatcher.focusedElement
+            : doc;
+    },
+
     doMacro: function (aEvents) {
         var len = aEvents.length;
         var newEvent;
         var sleepTime = this.sleepTime;
-        // var keyEventToString = this.modules.key
-        //     .keyEventToString;
+        // var stack = [];
 
         for (var i = 0; i < len; ++i) {
             event = aEvents[i];
@@ -24,11 +38,11 @@ KeySnail.Macro = {
                                   event.metaKey,
                                   event.keyCode,
                                   event.charCode);
-            Application.console.log(this.modules.key
-                                    .keyEventToString(event));
-            event.originalTarget.dispatchEvent(newEvent);
+            // stack.push(this.modules.key.keyEventToString(event));
+            this.getCurrentFocusedElement().dispatchEvent(newEvent);
             this.sleep(sleepTime);
         }
+        // Application.console.log(stack.join(" "));
     },
 
     // from http://d.hatena.ne.jp/fls/20090224/p1

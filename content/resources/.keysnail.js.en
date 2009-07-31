@@ -68,7 +68,7 @@
 // ==================== remap ==================== //
 // you can use view-mode keybindings in edit-mode adding
 // the prefix key C-z.
-key.keyMapHolder["edit"]["C-z"] = key.keyMapHolder["view"];
+key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
 // ==================== access key ==================== //
 // If you are Mac user and want to use Ctrl key, uncomment.
@@ -199,7 +199,7 @@ key.setGlobalKey(["C-x", "o"],
                  function (aEvent, aArg) {
                      rc.focusOtherFrame(aArg);
                  },
-                 "Select next frame");
+                 "Select next frame", true);
 
 // -------------------- tab --------------------
 key.setGlobalKey(["C-c", "C-t", "l"],
@@ -463,7 +463,7 @@ key.setEditKey("M-p", function () {
 // ==================== caret mode (press F7 to enter) ==================== //
 
 // copy view mode keymap to caret mode keymap
-key.copy("view", "caret");
+key.copyKeyMap(key.modes.VIEW, key.modes.CARET);
 
 // remap h and l
 key.setCaretKey("h", function () {

@@ -71,15 +71,14 @@
 // };
 
 // ----------------------------------------
-// キーマクロ機能 (まだまともに動かない)
+// キーマクロ機能
 // key.macroStartKey = "<f3>";
 // key.macroEndKey   = "<f4>";
 // macro.setSleepTime(100);
 
 // ==================== remap ==================== //
-// エディットモード中からでもビューモードのキーバインドを使えるように
-// エディットモードで C-z を入力するとビューモードのキーバインドが使える
-key.keyMapHolder["edit"]["C-z"] = key.keyMapHolder["view"];
+// エディットモードで C-z を入力すると, ビューモードのキーバインドが使える
+key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
 // ==================== access key ==================== //
 // Mac ユーザで Ctrl キーを使いたい場合はアンコメント.
@@ -210,7 +209,7 @@ key.setGlobalKey(["C-x", "o"],
                  function (aEvent, aArg) {
                      rc.focusOtherFrame(aArg);
                  },
-                 "次のフレームを選択");
+                 "次のフレームを選択", true);
 
 // -------------------- tab --------------------
 key.setGlobalKey(["C-c", "C-t", "l"],
@@ -473,7 +472,7 @@ key.setEditKey("M-p", function () {
 // ==================== caret mode (press F7 to enter) ==================== //
 
 // copy view mode keymap to caret mode keymap
-key.copy("view", "caret");
+key.copyKeyMap(key.modes.VIEW, key.modes.CARET);
 
 // remap h and l
 key.setCaretKey("h", function () {

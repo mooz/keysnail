@@ -58,7 +58,7 @@
     <prefpane id="prefpane-about" label="&keySnail.preference.about;" flex="1">
         <vbox flex="2" align="center">
             <image src="chrome://keysnail/skin/logo.png" width="128" height="128"
-                   tooltiptext="KeySnail 0.3.8b" />
+                   tooltiptext="KeySnail 0.3.8" />
             <spacer height="10px" />
             <description>mooz &lt;stillpedant@gmail.com&gt; (c) 2009</description>
         </vbox>

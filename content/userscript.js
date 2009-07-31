@@ -231,8 +231,6 @@ KeySnail.UserScript = {
                 "en-US": "en"
             }[userLocale] || userLocale;
 
-            this.message("userLocale: " + userLocale);
-
             var defaultConfigFile = this.modules.util.getContents(defaultConfigFileBase + userLocale);
 
             if (!defaultConfigFile) {

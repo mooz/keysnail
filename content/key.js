@@ -142,6 +142,10 @@ KeySnail.Key = {
 
         var key = this.keyEventToString(aEvent);
 
+        if (this.inputtingMacro) {
+            this.currentMacro.push(aEvent);
+        }
+
         switch (key) {
         case this.escapeKey:
             this.modules.util.stopEventPropagation(aEvent);
@@ -158,6 +162,7 @@ KeySnail.Key = {
         case this.macroEndKey:
             this.modules.util.stopEventPropagation(aEvent);
             if (this.inputtingMacro) {
+                this.currentMacro.pop();
                 this.modules.display.echoStatusBar("Keyboard macro defined", 3000);
                 this.inputtingMacro = false;
             } else {
@@ -171,14 +176,14 @@ KeySnail.Key = {
             return;
         case this.macroStartKey:
             this.modules.util.stopEventPropagation(aEvent);
-            this.modules.display.echoStatusBar("Defining Keyboard macro ...", 3000);
-            this.currentMacro.length = 0;
-            this.inputtingMacro = true;
+            if (this.inputtingMacro) {
+                this.currentMacro.pop();
+            } else {
+                this.modules.display.echoStatusBar("Defining Keyboard macro ...", 3000);
+                this.currentMacro.length = 0;
+                this.inputtingMacro = true;
+            }
             return;
-        }
-
-        if (this.inputtingMacro) {
-            this.currentMacro.push(aEvent);
         }
 
         if (this.inputtingPrefixArgument) {
@@ -359,9 +364,6 @@ KeySnail.Key = {
                 break;
             case KeyEvent.DOM_VK_BACK_SPACE:
                 key = "<backspace>";
-                break;
-            case KeyEvent.DOM_VK_BACK_SPACE:
-                key = '<delete>';
                 break;
             case KeyEvent.DOM_VK_PRINTSCREEN:
                 key = "<print>";
@@ -692,7 +694,7 @@ KeySnail.Key = {
             arg += (numSequence[i] * base);
         }
 
-        this.message("prefix : " + coef * arg);
+        // this.message("prefix : " + coef * arg);
 
         return coef * arg;
     },
