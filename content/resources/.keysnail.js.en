@@ -468,11 +468,11 @@ key.copyKeyMap(key.modes.VIEW, key.modes.CARET);
 // remap h and l
 key.setCaretKey("h", function () {
                     goDoCommand('cmd_scrollLeft');
-                }, "scroll left");
+                }, "move caret left");
 
 key.setCaretKey("l", function () {
                     goDoCommand('cmd_scrollRight');
-                }, "scroll right");
+                }, "move caret right");
 
 // w3m like
 key.setCaretKey("J", function () {
@@ -482,6 +482,46 @@ key.setCaretKey("J", function () {
 key.setCaretKey("K", function () {
                     util.getSelectionController().scrollLine(false);
                 }, "scroll line up");
+
+key.setCaretKey("b", function () {
+                    util.getSelectionController().pageMove(false, false);
+                }, "page move up");
+
+key.setCaretKey("SPC", function () {
+                    util.getSelectionController().pageMove(true, false);
+                }, "page move down");
+
+key.setCaretKey(",", function () {
+                    util.getSelectionController().scrollHorizontal(true);
+                }, "scroll page left");
+
+key.setCaretKey(".", function () {
+                    util.getSelectionController().scrollHorizontal(false);
+                }, "scroll page right");
+
+key.setCaretKey("w", function () {
+                    util.getSelectionController().wordMove(true, false);
+                }, "move caret right by word");
+
+key.setCaretKey("W", function () {
+                    util.getSelectionController().wordMove(false, false);
+                }, "move caret left by word");
+
+key.setCaretKey("M-f", function () {
+                    util.getSelectionController().wordMove(true, false);
+                }, "move caret right by word");
+
+key.setCaretKey("M-b", function () {
+                    util.getSelectionController().wordMove(false, false);
+                }, "move caret left by word");
+
+key.setCaretKey("L", function () {
+                    gBrowser.mTabContainer.advanceSelectedTab(1, true);
+                }, "select the right tab");
+
+key.setCaretKey("H", function () {
+                    gBrowser.mTabContainer.advanceSelectedTab(-1, true);
+                }, "select the left tab");
 
 // ==================== Define your function (if needed) ==================== //
 // You can create the module and define the funtions like below.

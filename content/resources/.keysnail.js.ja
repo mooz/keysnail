@@ -477,20 +477,60 @@ key.copyKeyMap(key.modes.VIEW, key.modes.CARET);
 // remap h and l
 key.setCaretKey("h", function () {
                     goDoCommand('cmd_scrollLeft');
-                }, "scroll left");
+                }, "キャレットを一文字右へ");
 
 key.setCaretKey("l", function () {
                     goDoCommand('cmd_scrollRight');
-                }, "scroll right");
+                }, "キャレットを一文字左へ");
 
 // w3m like
 key.setCaretKey("J", function () {
                     util.getSelectionController().scrollLine(true);
-                }, "scroll line down");
+                }, "画面を一行分下へスクロール");
 
 key.setCaretKey("K", function () {
                     util.getSelectionController().scrollLine(false);
-                }, "scroll line up");
+                }, "画面を一行分上へスクロール");
+
+key.setCaretKey("b", function () {
+                    util.getSelectionController().pageMove(false, false);
+                }, "キャレットを一画面分上へ");
+
+key.setCaretKey("SPC", function () {
+                    util.getSelectionController().pageMove(true, false);
+                }, "キャレットを一画面分下へ");
+
+key.setCaretKey(",", function () {
+                    util.getSelectionController().scrollHorizontal(true);
+                }, "ページを左へスクロール");
+
+key.setCaretKey(".", function () {
+                    util.getSelectionController().scrollHorizontal(false);
+                }, "ページを右へスクロール");
+
+key.setCaretKey("w", function () {
+                    util.getSelectionController().wordMove(true, false);
+                }, "一単語分キャレットを右へ");
+
+key.setCaretKey("W", function () {
+                    util.getSelectionController().wordMove(false, false);
+                }, "一単語分キャレットを左へ");
+
+key.setCaretKey("M-f", function () {
+                    util.getSelectionController().wordMove(true, false);
+                }, "一単語分キャレットを右へ");
+
+key.setCaretKey("M-b", function () {
+                    util.getSelectionController().wordMove(false, false);
+                }, "一単語分キャレットを左へ");
+
+key.setCaretKey("L", function () {
+                    gBrowser.mTabContainer.advanceSelectedTab(1, true);
+                }, "ひとつ右のタブへ");
+
+key.setCaretKey("H", function () {
+                    gBrowser.mTabContainer.advanceSelectedTab(-1, true);
+                }, "ひとつ左のタブへ");
 
 // ==================== Define your function (if needed) ==================== //
 // 以下のようにしてモジュールを作成して関数を定義することが出来ます.
