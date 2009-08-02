@@ -56,7 +56,7 @@
                    onpopupshowing="KeySnail.Key.updateMenu();">
 	    <menuitem id="keysnail-menu-reload-userscript"
 		      label="&keySnail.statusbar.reloadUserScript;"
-		      oncommand="KeySnail.UserScript.load();"/>
+		      oncommand="KeySnail.UserScript.reload();"/>
             <menuseparator/>
 	    <menuitem id="keysnail-menu-list-keybinds"
 		      label="&keySnail.statusbar.listKeyBindings;"

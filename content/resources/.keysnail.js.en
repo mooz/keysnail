@@ -1,10 +1,15 @@
-// ==================== KeySnail 0.1.0 configuration file ==================== //
+// ==================== KeySnail configuration file ==================== //
 
-// -------------------- How to bind function to the key -------------------- //
+// -------------------- How to bind function to the key sequence -------------------- //
+//
+// You can bind the function to the key sequence, using the functions listed below.
 //
 // key.setGlobalKey(keys, func, ksDescription, ksNoRepeat);
 // key.setEditKey(keys, func, ksDescription, ksNoRepeat);
 // key.setViewKey(keys, func, ksDescription, ksNoRepeat);
+// key.setCaretKey(keys, func, ksDescription, ksNoRepeat);
+//
+// Here are the descriptions of the each argument.
 //
 // keys          => key (string) or key sequence (array)
 //                  expression of the key follows the Emacs
@@ -20,7 +25,6 @@
 //                  you can use these arguments through declaring the
 //                  following expression.
 //                        function (aEvent, aArg)
-//
 // ksDescription => Description of the function.
 //                  you can omit this argument.
 //
@@ -31,9 +35,17 @@
 //                  this value to true.
 //                  you can omit this argument.
 //
+// Actually, these functions just wrap the function below.
+//
 // key.defineKey(keyMapName, keys, func, ksDescription, ksNoRepeat);
 //
-// keyMapName    => currently "global", "view", "edit" are supported
+// keyMapName    => key.modes.GLOBAL, key.modes.VIEW, key.modes.EDIT, key.modes.CARET
+//
+// ==================== About hook ====================
+// User can set the function to the hook.
+// For example, when KeySnail the key press event of the key.quitKey,
+// functions set to KeyBoardQuit are called.
+// You can bind "Cancell isearch", "Deselect the text", and so forth.
 
 // ==================== misc settings ==================== //
 // key.quitKey : Cancel the current input.
@@ -43,13 +55,11 @@
 // key.helpKey : Display the interactive help. General help key.
 //               When you input C-c C-c <helpKey>, keybindings begin with C-c C-c are displayed.
 //               And in this script settings, <helpKey> b lists the all keybindings.
-//
 // key.quitKey = "C-g";
 // key.helpKey = "<f1>";
 
 // ----------------------------------------
-// If you want to change the Ctrl key and Meta key,
-// modify two functions below.
+// // If you want to change the Ctrl key and Meta key, modify two functions below.
 
 // key.isControlKey = function (aEvent) {
 //     return aEvent.ctrlKey;
@@ -60,18 +70,18 @@
 // };
 
 // ----------------------------------------
-// key macro (currently, not works well)
+// key macro
 // key.macroStartKey = "<f3>";
 // key.macroEndKey   = "<f4>";
 // macro.setSleepTime(100);
 
 // ==================== remap ==================== //
-// you can use view-mode keybindings in edit-mode adding
+// // you can use view-mode keybindings in edit-mode adding
 // the prefix key C-z.
 key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
 // ==================== access key ==================== //
-// If you are Mac user and want to use Ctrl key, uncomment.
+// // If you are Mac user and want to use Ctrl key, uncomment.
 // nsPreferences.setIntPref("ui.key.generalAccessKey", 0);
 
 // ==================== set hooks ==================== //
@@ -80,8 +90,8 @@ hook.setHook("KeyBoardQuit",
             function (aEvent) {
                 // Close the find bar if opened
                 command.gFindBar.close();
-                if (util.isWritable()) {
-                    // in edit area, reset the mark
+                if (util.isCaretEnabled()) {
+                    // in edit area or caret browsing mode, reset the mark
                     command.resetMark(aEvent);
                 } else {
                     // in view mode, deselect all & generate cancell event
@@ -99,16 +109,16 @@ hook.setHook("KeyBoardQuit",
 // ==================== set global keys ==================== //
 
 key.setGlobalKey("C-M-r",
-                 function () { userscript.loadDefaultConfigFile(); },
+                 function () { userscript.reload(); },
                  "Reload the initialization file");
 
 // -------------------- help command -------------------- //
 
-key.setGlobalKey(["<f1>", "b"], function () {
+key.setGlobalKey([key.helpKey, "b"], function () {
                      key.listKeyBindings();
                  }, "List all keybindings");
 
-key.setGlobalKey(["<f1>", "F"], function (aEvent) {
+key.setGlobalKey([key.helpKey, "F"], function (aEvent) {
                      openHelpLink('firefox-help');
                  }, "Display Firefox help");
 
@@ -132,7 +142,7 @@ key.setGlobalKey("C-j",
                  function (aEvent, arg) {
                      command.bookMarkToolBarJumpTo(aEvent, arg);
                  },
-                 "Open the the bookmark toolbar item", true);
+                 "Open the bookmark toolbar item", true);
 
 // -------------------- useful focus -------------------- //
 
@@ -177,7 +187,8 @@ key.setGlobalKey("C-s", function () {
 
 key.setGlobalKey("C-r", function () {
                      command.iSearchBackward();
-                 }, "isearch backward");
+                 },
+                 "isearch backward");
 
 // -------------------- window --------------------
 key.setGlobalKey(["C-x", "k"],
@@ -190,7 +201,7 @@ key.setGlobalKey(["C-x", "K"],
 
 key.setGlobalKey(["C-x", "n"],
                  function () { OpenBrowserWindow(); },
-                 " Open the window");
+                 "Open new window");
 
 key.setGlobalKey(["C-x", "C-c"],
                  function () { goQuitApplication(); },
@@ -215,7 +226,7 @@ key.setGlobalKey(["C-c", "C-t", "u"],
 // -------------------- console --------------------
 key.setGlobalKey(["C-c", "C-c", "C-v"],
                  function () { toJavaScriptConsole(); },
-                 "Display Javascript console");
+                 "Display JavaScript console");
 key.setGlobalKey(["C-c", "C-c", "C-c"],
                  function () {
                      command.clearConsole();
@@ -232,31 +243,31 @@ key.setGlobalKey(["C-x", "C-w"],
                  "Save current page to the file");
 key.setGlobalKey(["C-x", "C-f"],
                  function () { BrowserOpenFileWindow(); },
-                 "Open the file");
+                 "Open the local file");
+
+// -------------------- frame -------------------- //
+key.setGlobalKey(["C-x", "1"],
+                 function (aEvent) { window.loadURI(aEvent.target.ownerDocument.location.href); },
+                 "Show current frame only");
 
 // ==================== set view mode keys ==================== //
 
 // -------------------- scroll --------------------
+
 key.setViewKey("C-n", function (aEvent) {
-                   key.generateKey(aEvent.originalTarget,
-                                   KeyEvent.DOM_VK_DOWN, true);
-                   // goDoCommand('cmd_scrollLineDown');
+                   key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_DOWN, true);
                },
                "Scroll line down");
 key.setViewKey("C-p", function (aEvent) {
-                   key.generateKey(aEvent.originalTarget,
-                                   KeyEvent.DOM_VK_UP, true);
-                   // goDoCommand('cmd_scrollLineUp');
+                   key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_UP, true);
                },
                "Scroll line up");
 key.setViewKey("C-f", function (aEvent) {
-                   key.generateKey(aEvent.originalTarget,
-                                   KeyEvent.DOM_VK_RIGHT, true);
+                   key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_RIGHT, true);
                },
                "Scroll right");
 key.setViewKey("C-b", function (aEvent) {
-                   key.generateKey(aEvent.originalTarget,
-                                   KeyEvent.DOM_VK_LEFT, true);
+                   key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_LEFT, true);
                },
                "Scroll left");
 
@@ -265,35 +276,32 @@ key.setViewKey("j", function () { goDoCommand('cmd_scrollLineDown'); },
 key.setViewKey("k", function () { goDoCommand('cmd_scrollLineUp'); },
                "Scroll line up");
 
-key.setViewKey(">", function () { goDoCommand('cmd_scrollRight'); },
+key.setViewKey([[">"],
+                ["."]],
+               function () { goDoCommand('cmd_scrollRight'); },
                "Scroll right");
-key.setViewKey("<", function () { goDoCommand('cmd_scrollLeft'); },
-               "Scroll left");
-key.setViewKey(".", function () { goDoCommand('cmd_scrollRight'); },
-               "Scroll right");
-key.setViewKey(",", function () { goDoCommand('cmd_scrollLeft'); },
+key.setViewKey([["<"],
+                [","]], function () { goDoCommand('cmd_scrollLeft'); },
                "Scroll left");
 
-key.setViewKey("b", function () { goDoCommand('cmd_scrollPageUp'); },
-               "Scroll page up");
-key.setViewKey("M-v",
+key.setViewKey([["b"],
+                ["M-v"]],
                function () { goDoCommand('cmd_scrollPageUp'); },
                "Scroll page up");
 key.setViewKey("C-v",
                function () { goDoCommand('cmd_scrollPageDown'); },
                "Scroll page down");
 
-key.setViewKey("g", function () { goDoCommand('cmd_scrollTop'); },
-               "Scroll to top of the page");
-key.setViewKey("G", function () { goDoCommand('cmd_scrollBottom'); },
-               "Scroll to bottom of the page");
-
-key.setViewKey("M-<",
+key.setViewKey([["g"],
+                ["M-<"],
+                ["ESC", "<"]],
                function () { goDoCommand('cmd_scrollTop'); },
-               "Scroll to top of the page");
-key.setViewKey("M->",
+               "Scroll to the top of the page");
+key.setViewKey([["G"],
+                ["M->"],
+                ["ESC", ">"]],
                function () { goDoCommand('cmd_scrollBottom'); },
-               "Scroll to bottom of the page");
+               "Scroll to the bottom of the page");
 
 // -------------------- navigation --------------------
 key.setViewKey("R", function (aEvent) { BrowserReload(); },
@@ -305,9 +313,9 @@ key.setViewKey("F", function (aEvent) { BrowserForward(); },
 
 // -------------------- tab --------------------
 key.setViewKey("l", function () { gBrowser.mTabContainer.advanceSelectedTab(1, true); },
-               "Select next tab");
+               "Select the next tab");
 key.setViewKey("h", function () { gBrowser.mTabContainer.advanceSelectedTab(-1, true); },
-               "Select previous tab");
+               "Select the previous tab");
 
 // -------------------- text --------------------
 key.setViewKey(["C-x", "h"],
@@ -326,36 +334,25 @@ key.setViewKey("M-p", function () {
 
 // ==================== set edit mode key ==================== //
 
-key.setEditKey("C-SPC",
-               function (aEvent) {
-                   command.setMark(aEvent);
-               },
-               "Set mark");
-
-key.setEditKey("C-@",
-               function (aEvent) {
-                   command.setMark(aEvent);
-               },
-               "Set mark");
+key.setEditKey([["C-SPC"],
+                ["C-@"]],
+               function (aEvent) { command.setMark(aEvent); },
+               "Reset the mark");
 
 key.setEditKey("C-o",
-               function (aEvent) {
-                   command.openLine(aEvent);
-               },
+               function (aEvent) { command.openLine(aEvent); },
                "Open line");
 
 // -------------------- undo --------------------
 
-key.setEditKey(["C-x", "u"],
-               function () { goDoCommand('cmd_undo'); },
-               "Undo");
-key.setEditKey("C-_",
+key.setEditKey([["C-x", "u"],
+                ["C-_"]],
                function () { goDoCommand('cmd_undo'); },
                "Undo");
 
 // -------------------- cursor navigation --------------------
 
-// -------------------- inner line --------------------
+// -------------------- intra-line --------------------
 
 key.setEditKey("C-a",
                function (aEvent) { command.beginLine(aEvent); },
@@ -369,14 +366,14 @@ key.setEditKey("C-f",
                "Forward char");
 key.setEditKey("C-b",
                function (aEvent) { command.previousChar(aEvent); },
-               "Backward char");
+               "Previous char");
 
 key.setEditKey("M-f",
                function (aEvent) { command.nextWord(aEvent); },
-               "Forward word");
+               "Next word");
 key.setEditKey("M-b",
                function (aEvent) { command.previousWord(aEvent); },
-               "Backward word");
+               "previous word");
 
 // -------------------- by line --------------------
 
@@ -398,14 +395,16 @@ key.setEditKey("M-v",
 
 // -------------------- absolute --------------------
 
-key.setEditKey("M-<",
+key.setEditKey([["M-<"],
+                ["ESC", "<"]],
                function (aEvent) { command.moveTop(aEvent); },
                "Beginning of the text area");
-key.setEditKey("M->",
+key.setEditKey([["M->"],
+                ["ESC", ">"]],
                function (aEvent) { command.moveBottom(aEvent); },
                "End of the text area");
 
-// -------------------- delete --------------------
+// -------------------- deletion --------------------
 
 key.setEditKey("C-d",
                function () {
@@ -422,6 +421,12 @@ key.setEditKey("M-d",
                    goDoCommand('cmd_deleteWordForward');
                },
                "Delete forward word");
+key.setEditKey([["C-<backspace>"],
+                ["M-<delete>"]],
+               function () {
+                   goDoCommand('cmd_deleteWordBackward');
+               },
+               "Delete backward word");
 
 // -------------------- cut / paste --------------------
 
@@ -432,8 +437,7 @@ key.setEditKey("C-k",
                "Kill the rest of the line");
 key.setEditKey("C-y",
                function () { goDoCommand("cmd_paste"); },
-               "Paste (Yank)");
-
+               "Paste");
 key.setEditKey("C-w",
                function (aEvent) {
                    goDoCommand('cmd_copy');
@@ -442,7 +446,7 @@ key.setEditKey("C-w",
                },
                "Cut current region");
 
-// -------------------- selection --------------------
+// -------------------- selection -------------------- //
 
 key.setEditKey(["C-x", "h"],
                  function (aEvent) {
@@ -450,78 +454,129 @@ key.setEditKey(["C-x", "h"],
                  },
                  "Select whole text");
 
-// -------------------- walk through -------------------- //
+// -------------------- walk through elements -------------------- //
 
 key.setEditKey("M-n", function () {
                    command.walkInputElement(command.elementsRetrieverTextarea, true, true);
-               }, "Focus to the next textarea");
+               }, "Focus to the next text area");
 
 key.setEditKey("M-p", function () {
                    command.walkInputElement(command.elementsRetrieverTextarea, false, true);
-               }, "Focus to the previous textarea");
+               }, "Focus to the previous text area");
 
 // ==================== caret mode (press F7 to enter) ==================== //
 
 // copy view mode keymap to caret mode keymap
 key.copyKeyMap(key.modes.VIEW, key.modes.CARET);
 
-// remap h and l
-key.setCaretKey("h", function () {
-                    goDoCommand('cmd_scrollLeft');
-                }, "move caret left");
+key.setCaretKey([["C-SPC"],
+                 ["C-@"]],
+                function (aEvent) { command.setMark(aEvent); },
+                "Set mark");
 
-key.setCaretKey("l", function () {
-                    goDoCommand('cmd_scrollRight');
-                }, "move caret right");
+// key.setCaretKey(["C-l"],
+//                 function (aEvent) { 
+//                     // command.recenter(aEvent);
+//                     util.listProperty(Components.interfaces);
 
-// w3m like
+//                     // var docShell = document.commandDispatcher.focusedWindow
+// 	            //     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+// 	            //     .getInterface(Components.interfaces.nsIWebNavigation)
+// 	            //     .QueryInterface(Components.interfaces.nsIDocShell);
+
+//                     // var esm = docShell
+//                     //     .QueryInterface(Components.interfaces.nsIEventStateManager);
+//                     // display.prettyPrint(esm);
+//                     // util.listProperty(esm);
+//                 },
+//                 "Recenter");
+
+// -------------------- caret move -------------------- //
+
+key.setCaretKey([["C-a"],
+                 ["^"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectBeginLine') : goDoCommand('cmd_beginLine'); },
+                "Move caret to the beginning of the line");
+key.setCaretKey([["C-e"],
+                 ["$"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectEndLine') : goDoCommand('cmd_endLine'); },
+                "Move caret to the end of the line");
+
+key.setCaretKey([["C-f"],
+                 ["l"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectCharNext') : goDoCommand('cmd_scrollRight'); },
+                "Move caret to the right");
+key.setCaretKey([["C-b"],
+                 ["h"],
+                 ["C-h"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectCharPrevious') : goDoCommand('cmd_scrollLeft'); },
+                "Move caret to the left");
+
+key.setCaretKey([["M-f"],
+                 ["w"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectWordNext') : goDoCommand('cmd_wordNext'); },
+               "Move caret to the right by word");
+key.setCaretKey([["M-b"],
+                 ["W"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectWordPrevious') : goDoCommand('cmd_wordPrevious'); },
+                "Move caret to the left by word");
+
+key.setCaretKey([["C-n"],
+                ["j"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectLineNext') : goDoCommand('cmd_scrollLineDown'); },
+               "Move caret to the next line");
+key.setCaretKey([["C-p"],
+                ["k"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectLinePrevious') : goDoCommand('cmd_scrollLineUp'); },
+               "Move caret to the previous line");
+
+key.setCaretKey([["C-v"],
+                ["SPC"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectPageNext') : goDoCommand('cmd_movePageDown'); },
+               "Move caret down by page");
+key.setCaretKey([["M-v"],
+                ["b"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectPagePrevious') : goDoCommand('cmd_movePageUp'); },
+               "Move caret up by page");
+
+key.setCaretKey([["g"],
+                ["M-<"],
+                ["ESC", "<"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectTop') : goDoCommand('cmd_scrollTop'); },
+               "Move caret to the top of the page");
+key.setCaretKey([["G"],
+                ["M->"],
+                ["ESC", ">"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectBottom') : goDoCommand('cmd_scrollBottom'); },
+               "Move caret to the bottom of the page");
+
+// -------------------- scroll -------------------- //
+
 key.setCaretKey("J", function () {
                     util.getSelectionController().scrollLine(true);
-                }, "scroll line down");
+                }, "Scroll line down");
 
 key.setCaretKey("K", function () {
                     util.getSelectionController().scrollLine(false);
-                }, "scroll line up");
-
-key.setCaretKey("b", function () {
-                    util.getSelectionController().pageMove(false, false);
-                }, "page move up");
-
-key.setCaretKey("SPC", function () {
-                    util.getSelectionController().pageMove(true, false);
-                }, "page move down");
+                }, "Scroll line up");
 
 key.setCaretKey(",", function () {
                     util.getSelectionController().scrollHorizontal(true);
-                }, "scroll page left");
+                }, "Scroll left");
 
 key.setCaretKey(".", function () {
                     util.getSelectionController().scrollHorizontal(false);
-                }, "scroll page right");
+                }, "Scroll right");
 
-key.setCaretKey("w", function () {
-                    util.getSelectionController().wordMove(true, false);
-                }, "move caret right by word");
-
-key.setCaretKey("W", function () {
-                    util.getSelectionController().wordMove(false, false);
-                }, "move caret left by word");
-
-key.setCaretKey("M-f", function () {
-                    util.getSelectionController().wordMove(true, false);
-                }, "move caret right by word");
-
-key.setCaretKey("M-b", function () {
-                    util.getSelectionController().wordMove(false, false);
-                }, "move caret left by word");
+// -------------------- tab navigation -------------------- //
 
 key.setCaretKey("L", function () {
                     gBrowser.mTabContainer.advanceSelectedTab(1, true);
-                }, "select the right tab");
+                }, "Select next tab");
 
 key.setCaretKey("H", function () {
                     gBrowser.mTabContainer.advanceSelectedTab(-1, true);
-                }, "select the left tab");
+                }, "Select previous tab");
 
 // ==================== Define your function (if needed) ==================== //
 // You can create the module and define the funtions like below.
@@ -593,7 +648,7 @@ KeySnail.RC = {
             for (var i = 0; i < frameWindows.length; ++i) {
                 if (this.isFrameSetWindow(frameWindows[i])) {
                     var childWindows = this.getListFrameWindow(frameWindows[i]);
-                    // Append child frame
+                    // Append the child frame
                     listFrameWindow = listFrameWindow.concat(childWindows);
                 } else {
                     listFrameWindow.push(frameWindows[i]);

@@ -4,6 +4,9 @@ setopt extended_glob
 
 # content/resources/*.*~(*~|.svn/*) \
 
+./generate-init-file.py ja > ./content/resources/.keysnail.js.ja
+./generate-init-file.py en > ./content/resources/.keysnail.js.en
+
 rm -f chrome/keysnail.jar
 jar cvf0 chrome/keysnail.jar \
     content/*.*~(*~|.svn/*) \

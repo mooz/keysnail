@@ -164,7 +164,18 @@ KeySnail.Util = {
     },
 
     isCaretEnabled: function () {
-        return this.getSelectionController.getCaretEnabled();
+        return this.getSelectionController().getCaretEnabled();
+    },
+
+    getEventStateManager: function () {
+        this.listProperty(esm);
+        // var docShell = document.commandDispatcher.focusedWindow
+	//     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+	//     .getInterface(Components.interfaces.nsIWebNavigation)
+	//     .QueryInterface(Components.interfaces.nsIDocShell);
+
+        // return docShell
+        //     .QueryInterface(Components.interfaces.nsIEventStateManager);
     },
 
     getSelectionController: function () {

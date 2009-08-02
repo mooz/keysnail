@@ -123,7 +123,7 @@ KeySnail.Key = {
      * Note: this function is called implicitly
      * when the 'keypress' event occured
      * @param {event} aEvent event to handle
-     * 
+     *
      */
     handleEvent: function (aEvent) {
         if (aEvent.ksNoHandle) {
@@ -231,7 +231,7 @@ KeySnail.Key = {
             if (this.modules.util.isWritable()) {
                 modeName = this.modes.EDIT;
             } else {
-                modeName = nsPreferences.getBoolPref("accessibility.browsewithcaret") ? 
+                modeName = nsPreferences.getBoolPref("accessibility.browsewithcaret") ?
                     this.modes.CARET : this.modes.VIEW;
             }
 
@@ -577,8 +577,15 @@ KeySnail.Key = {
             addTo[aKeys] = aFunc;
             break;
         case "object":
-            // key sequence
-            this.registerKeySequence(aKeys, aFunc, addTo);
+            if (typeof(aKeys[0]) == "object") {
+                // multi registration
+                for (var i = 0; i < aKeys.length; ++i) {
+                    this.registerKeySequence(aKeys[i], aFunc, addTo);
+                }
+            } else {
+                // simple form
+                this.registerKeySequence(aKeys, aFunc, addTo);
+            }
             break;
         }
     },

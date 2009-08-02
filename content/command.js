@@ -208,12 +208,48 @@ KeySnail.Command = {
 
     // ==================== Editor Commands  ====================
 
-    recenter: function (aEvent) {
-        this.modules.util.listProperty(aEvent.target);
-        // var cursor = this.getPosition(aEvent.target);
-        this.message("Scroll Position : " + aEvent.target.scrollTop);
-        this.message("Cursor Position : " + cursor.x + ", " + cursor.y);
+    recenter: function () {
+        var frame = document.commandDispatcher.focusedWindow
+            || gBrowser.contentWindow;
+
+        var selection = frame.getSelection();
+        var range = frame.document.createRange();
+        var elem;
+
+        if (frame.document.foundEditable) {
+            elem = frame.document.foundEditable;
+
+            var box = elem.ownerDocument.getBoxObjectFor(elem);
+            frame.scrollTo(box.x - frame.innerWidth / 2, box.y - frame.innerHeight / 2);
+        }
+        else {
+            elem = frame.document.createElement('span');
+            range.setStart(selection.focusNode, selection.focusOffset);
+            range.setEnd(selection.focusNode, selection.focusOffset);
+            range.insertNode(elem);
+
+            var box = frame.document.getBoxObjectFor(elem);
+            if (!box.x && !box.y)
+                box = frame.document.getBoxObjectFor(elem.parentNode);
+
+            frame.scrollTo(box.x - frame.innerWidth / 2, box.y - frame.innerHeight / 2);
+
+            elem.parentNode.removeChild(elem);
+            range.detach();
+        }
     },
+
+    // recenter: function (aEvent) {
+    //     var selCon = this.modules.util.getSelectionController();
+    //     this.modules.util.listProperty(selCon);
+    //     // selCon.scrollSelectionIntoView(selCon.SELECTION_NORMAL,
+    //     //                                selCon.SELECTION_ANCHOR_REGION,
+    //     //                                true);
+    //     // this.modules.util.listProperty(aEvent.target);
+    //     // // var cursor = this.getPosition(aEvent.target);
+    //     // this.message("Scroll Position : " + aEvent.target.scrollTop);
+    //     // this.message("Cursor Position : " + cursor.x + ", " + cursor.y);
+    // },
 
     openLine: function (aEvent) {
         this.modules.key.generateKey(aEvent.target,
@@ -349,8 +385,8 @@ KeySnail.Command = {
         goDoCommand('cmd_moveBottom');
         goDoCommand('cmd_selectTop');
         orig.ksMarked = orig.selectionEnd;
-        this.modules.util.print(orig.selectionStart);
-        this.modules.util.print(orig.selectionEnd);
+        // this.modules.util.print(orig.selectionStart);
+        // this.modules.util.print(orig.selectionEnd);
     },
 
     // ==================== Mark ====================
@@ -360,15 +396,16 @@ KeySnail.Command = {
     // predicative
     marked: function (aEvent) {
         var orig = aEvent.originalTarget;
-        return (typeof(orig.ksMarked) == 'number'
-                || typeof(orig.ksMarked) == 'boolean');
+        return (typeof(orig.ksMarked) == 'number' || typeof(orig.ksMarked) == 'boolean');
     },
 
     setMark: function (aEvent) {
         var orig = aEvent.originalTarget;
         if (typeof(orig.selectionStart) == 'number') {
+            // this.modules.display.prettyPrint("selection : " + orig.selectionStart);
             orig.ksMarked = orig.selectionStart;
         } else {
+            // this.modules.display.prettyPrint("boooo!");
             orig.ksMarked = true;
         }
         this.modules.display.echoStatusBar('Mark set', 2000);
@@ -386,8 +423,7 @@ KeySnail.Command = {
         orig.ksMarked = null;
 
         try {
-            if (typeof(orig.selectionStart) == 'number' &&
-                orig.selectionStart >= 0) {
+            if (typeof(orig.selectionStart) == 'number' && orig.selectionStart >= 0) {
                 if (mark && (orig.selectionStart < mark)) {
                     // [cursor] <=========== [mark]
                     orig.selectionEnd = orig.selectionStart;

@@ -7,7 +7,7 @@
         <em:id>keysnail@mooz.github.com</em:id>
         <em:type>2</em:type> <!-- type of the addon, 2 means the extension -->
         <em:name>KeySnail</em:name>
-        <em:version>0.3.8</em:version>
+        <em:version>0.4.0</em:version>
         <em:description>bind function to the key sequence!</em:description>
         <em:creator>mooz</em:creator>
         <em:homepageURL>http://github.com/mooz/keysnail/</em:homepageURL>

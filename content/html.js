@@ -50,7 +50,7 @@ KeySnail.HTML = {
             .getService(Ci.nsIIOService);
         var xmlFilePath = ioService.newFileURI(tmpFile).spec;
 
-        if(tmpFile.exists()) {
+        if (tmpFile.exists()) {
             tmpFile.remove(true);
         }
         tmpFile.create(tmpFile.NORMAL_FILE_TYPE, 0666);

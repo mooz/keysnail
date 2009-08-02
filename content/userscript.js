@@ -93,6 +93,13 @@ KeySnail.UserScript = {
         return [pref, delimiter];
     },
 
+    reload: function () {
+        // clear current keymaps
+        this.modules.key.keyMapHolder = {};
+        this.modules.key.init();
+        this.load();
+    },
+
     load: function () {
         var loadStatus = -1;
 
