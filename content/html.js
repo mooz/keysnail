@@ -85,10 +85,7 @@ KeySnail.HTML = {
 
     escapeTag: function (aString) {
         for (var badStr in this.replacePair) {
-            // this.message(badStr);
-            // this.message(this.replacePair[badStr]);
-            // this.message(aString);
-            if (aString.search(badStr) != -1) {
+            while (aString.search(badStr) != -1) {
                 aString = aString.replace(badStr, this.replacePair[badStr]);
             }
         }

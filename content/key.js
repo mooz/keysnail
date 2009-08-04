@@ -792,8 +792,8 @@ KeySnail.Key = {
                 var pad = (aKeySequence.length  == 0) ? "" : " ";
                 aContentHolder.push("<tr><td>" +
                                     this.modules.html
-                                    .escapeTag(aKeySequence.join(" ")) +
-                                    " " + i + "</td>" + "<td>" +
+                                    .escapeTag(aKeySequence.join(" ") + pad + i) +
+                                    "</td>" + "<td>" +
                                     this.modules.html
                                     .escapeTag(aKeyMap[i].ksDescription) +
                                     "</td></tr>");
