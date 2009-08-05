@@ -4,44 +4,60 @@ KeySnail.UserScript = {
     // ==== user configuration file name ====
     // at first .keysnail.js is used. When the file not found,
     // then the _keysnail.js is used. (for Windows user)
-    defaultConfigFileNames: [".keysnail.js", "_keysnail.js"],
+    defaultInitFileNames: [".keysnail.js", "_keysnail.js"],
 
     directoryDelimiter: null,
+
+    // init file base
     prefDirectory: null,
     // if specified, use this path
     userPath: null,
 
     // may access from other modules
-    userScriptLoaded: false,
+    initFileLoaded: false,
 
     // line number of the Function() consctuctor
-    userScriptOffset: 26,
+    userScriptOffset: 33,
 
-    loadConfigFile: function (aConfigFilePath) {
-        var start = new Date();
+    // ==================== Loader ==================== //
 
+    /**
+     * load js file and execute its content under *KeySnail.modules* scope
+     * @param {String} aScriptPath
+     * @throw exception
+     */
+    jsFileLoader: function (aScriptPath) {
         try {
             var code = this.modules.util
-                .readTextFile(aConfigFilePath).value;
-            new Function("with (KeySnail.modules) {" + code + " }")();
+                .readTextFile(aScriptPath).value;
+            new Function("with (KeySnail.modules) {" + code + " }")();            
         } catch (e) {
-            // how awful ...
-            // this.message(e.fileName);
             if (e.fileName == "chrome://keysnail/content/userscript.js") {
-                e.fileName = aConfigFilePath;
+                e.fileName = aScriptPath;
                 e.lineNumber = e.lineNumber - this.userScriptOffset + 1;                
             }
             throw e;
         }
+    },
 
+    /**
+     * load initialization file (wrap jsFileLoader)
+     * @param {String} aInitFilePath
+     * @throw exception
+     */
+    initFileLoader: function (aInitFilePath) {
+        var start = new Date();
+        this.jsFileLoader(aInitFilePath);
         var end = new Date();
 
         this.modules.display
-            .echoStatusBar("KeySnail: [" + aConfigFilePath + "]: " +
-                           this.modules.util.getLocaleString("userScriptLoaded", [(end - start) / 1000]),
+            .echoStatusBar("KeySnail: [" + aInitFilePath + "]: " +
+                           this.modules.util
+                           .getLocaleString("initFileLoaded", [(end - start) / 1000]),
                            3000);
-        return true;
     },
+
+    // ======================================== //
 
     init: function () {
         // Note: Do *NOT* call this method before the "key" module initialization.
@@ -65,16 +81,96 @@ KeySnail.UserScript = {
         this.load();
     },
 
-    beginRcFileWizard: function () {
+    /**
+     * load init file
+     */
+    load: function () {
         var loadStatus = -1;
 
-        if (this.openDialog()) {
-            loadStatus = this.loadConfigFiles(this.userPath,
-                                              this.defaultConfigFileNames);
+        loadStatus = this.loadUserScript(this.initFileLoader,
+                                         this.userPath,
+                                         this.defaultInitFileNames);
+        
+        if (loadStatus == -1) {
+            // file not found.
+            // we need to create the new one
+            // or let user to select the init file place
+            loadStatus = this.beginRcFileWizard();
         }
 
-        return loadStatus;
+        if (loadStatus == 0) {
+            this.initFileLoaded = true;
+        } else {
+            // failed. disable the keysnail.
+            this.initFileLoaded = false;
+
+            this.modules.key.stop();
+            this.modules.key.updateMenu();
+            this.modules.key.updateStatusBar();
+        }
     },
+
+    /**
+     * reload the init file
+     */
+    reload: function () {
+        // clear current keymaps
+        this.modules.key.keyMapHolder = {};
+        this.modules.key.init();
+        this.load();
+    },
+
+    /**
+     * load user script (js file)
+     * @param {Function(String)} aLoader 
+     * @param {String} aBaseDir base directory of the js file (e.g. "/home/hoge")
+     * @param {[String]} aUserScriptNames script names to load
+     * @return {int} status
+     *  0: success
+     * -1: file not found
+     * -2: error occured in the js file
+     */
+    loadUserScript: function (aLoader, aBaseDir, aUserScriptNames) {
+        var prefix = aBaseDir + this.directoryDelimiter;
+        var filePath;
+
+        for (var i = 0; i < aUserScriptNames.length; ++i) {
+            filePath = prefix + aUserScriptNames[i];
+
+            if (!this.modules.util.openFile(filePath).exists()) {
+                // not exist. skip
+                continue;
+            }
+
+            try {
+                aLoader.call(this, filePath);
+                // success
+                this.message(filePath + " loaded");
+                return 0;
+            } catch (e) {
+                // userscript error
+                var msgstr = this.modules.util
+                    .getLocaleString("userScriptError", [e.fileName, e.lineNumber]);
+                msgstr += " [" + e.message + "]";
+                this.modules.display.prettyPrint(msgstr);
+                this.message(msgstr);
+                return -2;
+            }
+        }
+
+        // file not found
+        return -1;
+    },
+
+    require: function (aFileName, aBaseDir) {
+        var baseDir = aBaseDir || this.userPath;
+        if (baseDir[baseDir.length - 1] == this.directoryDelimiter) {
+            baseDir = baseDir.substr(0, baseDir.length - 2);
+        }
+        this.loadUserScript(this.jsFileLoader, baseDir, [aFileName]);
+    },
+
+    // ==================== util / wizard ==================== //
 
     getPrefDirectory: function () {
         var pref = null;
@@ -93,96 +189,15 @@ KeySnail.UserScript = {
         return [pref, delimiter];
     },
 
-    reload: function () {
-        // clear current keymaps
-        this.modules.key.keyMapHolder = {};
-        this.modules.key.init();
-        this.load();
-    },
-
-    load: function () {
+    beginRcFileWizard: function () {
         var loadStatus = -1;
 
-        if (this.userPath) {
-            // if user defined the script path
-            loadStatus = this.loadConfigFiles(this.userPath,
-                                              this.defaultConfigFileNames);
+        if (this.openDialog()) {
+            loadStatus = this.loadUserScript(this.userPath,
+                                             this.defaultInitFileNames);
         }
 
-        // if (loadStatus < 0 && this.userPath != this.prefDirectory) {
-        //     // check for the default path
-        //     loadStatus = this.loadDefaultConfigFile();
-        // }
-
-        if (loadStatus < 0) {
-            switch (loadStatus) {
-            case -1:
-                // file not found
-                // we need to create the new one
-                // or let user to select the userscript place
-                loadStatus = this.beginRcFileWizard();
-                break;
-            case -2:
-                // an error occured in the userscript file
-                break;
-            }
-        }
-
-        if (loadStatus == 0) {
-            this.userScriptLoaded = true;
-        } else {
-            // disable the keysnail
-            this.userScriptLoaded = false;
-
-            this.modules.key.stop();
-            this.modules.key.updateMenu();
-            this.modules.key.updateStatusBar();
-        }
-    },
-
-    // loadDefaultConfigFile: function () {
-    //     return this.loadConfigFiles(this.prefDirectory,
-    //                                 this.defaultConfigFileNames);
-    // },
-
-    loadUserConfigFile: function () {
-        return this.loadConfigFiles(this.userPath,
-                                    this.defaultConfigFileNames);
-    },
-
-    loadConfigFiles: function (aBaseDir, aConfigFileNames) {
-        var prefix = aBaseDir + this.directoryDelimiter;
-        var filePath;
-
-        for (var i = 0; i < aConfigFileNames.length; ++i) {
-            filePath = prefix + aConfigFileNames[i];
-
-            if (!this.modules.util.openFile(filePath).exists()) {
-                // skip
-                continue;
-            }
-
-            try {
-                if (this.loadConfigFile(filePath)) {
-                    this.message(filePath + " loaded");
-                    // success
-                    this.userScriptLoaded = true;
-                    return 0;
-                }
-            } catch (e) {
-                // userscript error
-                var msgstr = this.modules.util
-                    .getLocaleString("userScriptError", [e.fileName, e.lineNumber]);
-                msgstr += "\n [" + e.message + "]";
-                this.modules.display.prettyPrint(msgstr);
-                this.message(msgstr);
-                // this.modules.util.alert(window, "KeySnail", msgstr);
-                return -2;
-            }
-        }
-
-        // file not found
-        return -1;
+        return loadStatus;
     },
 
     openDialog: function () {
@@ -190,7 +205,7 @@ KeySnail.UserScript = {
             inn: {
                 util: this.modules.util,
                 prefDirectory: this.prefDirectory,
-                configFileNames: this.defaultConfigFileNames,
+                configFileNames: this.defaultInitFileNames,
                 directoryDelimiter: this.directoryDelimiter
             },
             out: null
@@ -219,9 +234,9 @@ KeySnail.UserScript = {
             // params.out.destinationPath means the destination directory
             // where default-userscript copied.
             // now copy default configuration file to there.
-            var configFileName = this.defaultConfigFileNames[params.out.configFileNameIndex];
+            var configFileName = this.defaultInitFileNames[params.out.configFileNameIndex];
 
-            var defaultConfigFileBase = "chrome://keysnail/content/resources/.keysnail.js.";
+            var defaultInitFileBase = "chrome://keysnail/content/resources/.keysnail.js.";
 
             // When I tried to get the userLocale via copyUnicharPref(), the function sometimes
             // returned the "property" file place, not the locale. So it's better to use
@@ -238,19 +253,19 @@ KeySnail.UserScript = {
                 "en-US": "en"
             }[userLocale] || userLocale;
 
-            var defaultConfigFile = this.modules.util.getContents(defaultConfigFileBase + userLocale);
+            var defaultInitFile = this.modules.util.getContents(defaultInitFileBase + userLocale);
 
-            if (!defaultConfigFile) {
-                defaultConfigFile = this.modules.util.getContents(defaultConfigFileBase + "en");
+            if (!defaultInitFile) {
+                defaultInitFile = this.modules.util.getContents(defaultInitFileBase + "en");
             }
 
-            if (!defaultConfigFile) {
+            if (!defaultInitFile) {
                 this.message("rc file wizard: failed to open the default .keysnail file");
                 return false;
             }
 
             try {
-                this.modules.util.writeText(defaultConfigFile,
+                this.modules.util.writeText(defaultInitFile,
                                             rcFilePlace + this.directoryDelimiter + configFileName);
             } catch (e) {
                 this.message("openDialog: " + e);

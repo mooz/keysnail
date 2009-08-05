@@ -11,15 +11,15 @@ KeySnail.Macro = {
         var doc;
 
         if (document) {
-            doc = (document.commandDispatcher.focusedWindow
-                   || gBrowser.contentWindow)
-            .document;
+            doc = (document.commandDispatcher.focusedWindow || gBrowser.contentWindow)
+                .document;
+            this.parent.message("document is not null");
         } else {
             doc = content.document;
+            this.parent.message("document is null");
         }
 
-        return (doc.commandDispatcher) ? doc.commandDispatcher.focusedElement
-            : doc;
+        return (doc.commandDispatcher) ? doc.commandDispatcher.focusedElement : doc;
     },
 
     doMacro: function (aEvents) {
@@ -31,6 +31,9 @@ KeySnail.Macro = {
         for (var i = 0; i < len; ++i) {
             event = aEvents[i];
             newEvent = document.createEvent('KeyboardEvent');
+            // newEvent.initKeyEvent('keypress', true, true, null,
+            //                       false, false, false, false,
+            //                       aKey, 0);
             newEvent.initKeyEvent('keypress', true, true, null,
                                   event.ctrlKey,
                                   event.altKey,
@@ -51,9 +54,10 @@ KeySnail.Macro = {
             timeup: false
         };
 
-        var interval = window.setInterval(function () { timer.timeup = true; }, aWait);
         var thread = Components.classes["@mozilla.org/thread-manager;1"]
             .getService().mainThread;
+
+        var interval = window.setInterval(function () { timer.timeup = true; }, aWait);
         while (!timer.timeup) {
             thread.processNextEvent(true);
         }

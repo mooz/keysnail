@@ -61,7 +61,6 @@ KeySnail.Key = {
         this.status = true;
         nsPreferences
             .setBoolPref("extensions.keysnail.keyhandler.status", true);
-        // window.addEventListener("keypress", this, true);
         window.addEventListener("keypress", this, true);
     },
 
@@ -75,7 +74,7 @@ KeySnail.Key = {
     toggleStatus: function () {
         if (this.status) {
             this.stop();
-        } else if (this.modules.userscript.userScriptLoaded) {
+        } else if (this.modules.userscript.initFileLoaded) {
             this.run();
         } else {
             // no initialization file is loaded
@@ -307,11 +306,11 @@ KeySnail.Key = {
     // ==================== magic key ==================== //
 
     isControlKey: function (aEvent) {
-        return aEvent.ctrlKey;
+        return aEvent.ctrlKey || aEvent.commandKey;
     },
 
     isMetaKey: function (aEvent) {
-        return aEvent.altKey || aEvent.commandKey;
+        return aEvent.altKey;
     },
 
     // ==================== key event => string ==================== //
@@ -628,8 +627,12 @@ KeySnail.Key = {
         this.escapeCurrentChar = false;
     },
 
-    // @return keyMap を keySequence だけたどった先のキーマップ
-    // たどれなかったら null
+    /**
+     * @param {keyMap} aKeyMap
+     * @param {[String]} aKeySequence
+     * @return {keyMap} keyMap を keySequence だけたどった先のキーマップ
+     *                  たどれなかったら null 
+     */
     trailByKeySequence: function (aKeyMap, aKeySequence) {
         var key;
         var to = aKeySequence.length;
@@ -648,12 +651,14 @@ KeySnail.Key = {
         return aKeyMap;
     },
 
-    // @param aKeySequence key sequence (array) to be parsed
-    // @return prefix argument (integer)
-    // examples)
-    // ["M--", "2", "1", "3"] => -213
-    // ["C-u", "C-u", "C-u"] => 64
-    // ["C-9", "2"] => 92
+    /**
+     * examples)
+     * ["M--", "2", "1", "3"] => -213
+     * ["C-u", "C-u", "C-u"] => 64
+     * ["C-9", "2"] => 92
+     * @param {[String]} aKeySequence key sequence (array) to be parsed
+     * @return {Integer} prefix argument
+     */
     parsePrefixArgument: function (aKeySequence) {
         if (!aKeySequence.length) {
             return null;
@@ -706,10 +711,12 @@ KeySnail.Key = {
         return coef * arg;
     },
 
-    // @param aKey   literal expression of the aEvent
-    // @param aEvent key event
-    // @return  true, is the key specified by aKey and aEvent
-    //          will be followed by prefix argument
+    /**
+     * @param {String} aKey literal expression of the aEvent
+     * @param {Event} aEvent key event
+     * @return {Boolean} true, is the key specified by aKey and aEvent
+     *         will be followed by prefix argument
+     */
     isPrefixArgumentKey: function (aKey, aEvent) {
         return (aKey == "C-u"   ||
                 // negative argument
@@ -763,8 +770,12 @@ KeySnail.Key = {
         aTarget.dispatchEvent(newEvent);
     },
 
-    // original code from Firemacs
-    // http://www.mew.org/~kazu/proj/firemacs/
+    /**
+     * original code from Firemacs            
+     * http://www.mew.org/~kazu/proj/firemacs/
+     * @param {String} text
+     * @return
+     */
     insertText: function (text) {
         var command = 'cmd_insertText';
         var controller = document.commandDispatcher.getControllerForCommand(command);
@@ -777,6 +788,13 @@ KeySnail.Key = {
         }
     },
 
+    /**
+     * 
+     * @param {} aContentHolder
+     * @param {} aKeyMap
+     * @param {} aKeySequence
+     * @return
+     */
     generateKeyBindingRows: function (aContentHolder, aKeyMap, aKeySequence) {
         if (!aKeyMap) {
             return;
@@ -807,6 +825,15 @@ KeySnail.Key = {
         }
     },
 
+    /**
+     * 
+     * @param {} aContentHolder
+     * @param {} aH2
+     * @param {} aAnchor
+     * @param {} aKeyMap
+     * @param {} aKeySequence
+     * @return
+     */
     generateKeyBindingTable: function (aContentHolder, aH2, aAnchor, aKeyMap, aKeySequence) {
         if (aKeyMap) {
             aContentHolder.push("<h2 id='" + aAnchor + "'>" + aH2 + "</h2>");
