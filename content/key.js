@@ -57,6 +57,9 @@ KeySnail.Key = {
 
     // ==================== Run / Stop ====================
 
+    /**
+     * start key handler
+     */
     run: function () {
         this.status = true;
         nsPreferences
@@ -64,6 +67,9 @@ KeySnail.Key = {
         window.addEventListener("keypress", this, true);
     },
 
+    /**
+     * stop key handler
+     */
     stop: function () {
         this.status = false;
         nsPreferences
@@ -71,6 +77,10 @@ KeySnail.Key = {
         window.removeEventListener("keypress", this, true);
     },
 
+    /**
+     * toggle current keyhandler status
+     * when init file is not loaded, reject
+     */
     toggleStatus: function () {
         if (this.status) {
             this.stop();
@@ -87,6 +97,9 @@ KeySnail.Key = {
         this.updateStatusBar();
     },
 
+    /**
+     * update the status bar icon
+     */
     updateStatusBar: function () {
         var icon = document.getElementById("keysnail-statusbar-icon");
         if (!icon) {
@@ -105,6 +118,9 @@ KeySnail.Key = {
         }
     },
 
+    /**
+     * update the status bar menu
+     */
     updateMenu: function () {
         var checkbox = document.getElementById("keysnail-menu-status");
         if (!checkbox) {
@@ -121,8 +137,7 @@ KeySnail.Key = {
      * and if does not found, seek for global-key-map
      * Note: this function is called implicitly
      * when the 'keypress' event occured
-     * @param {event} aEvent event to handle
-     *
+     * @param {KeyboardEvent} aEvent event to handle
      */
     handleEvent: function (aEvent) {
         if (aEvent.ksNoHandle) {
@@ -305,16 +320,31 @@ KeySnail.Key = {
 
     // ==================== magic key ==================== //
 
+    /**
+     * check if the key event is ctrl key (predicative)
+     * @param {KeyboardEvent} aEvent
+     * @return true when {aEvent} is control key
+     */
     isControlKey: function (aEvent) {
         return aEvent.ctrlKey || aEvent.commandKey;
     },
 
+    /**
+     * check if the key event is meta key (predicative)
+     * @param {KeyboardEvent} aEvent
+     * @return true when <aEvent> is meta key
+     */
     isMetaKey: function (aEvent) {
         return aEvent.altKey;
     },
 
     // ==================== key event => string ==================== //
 
+    /**
+     * convert key event to string expression
+     * @param {KeyboardEvent} aEvent
+     * @return {String} string expression of <aEvent>
+     */
     keyEventToString: function (aEvent) {
         var key;
 
@@ -460,11 +490,15 @@ KeySnail.Key = {
         return key;
     },
 
-    // @return true if aEvent is the event of the number key
-    //         e.g. 0, 1, 2, 3, 4 ,5, 6, 7, 8, 9
-    isKeyEventNum: function (event) {
-        return (event.charCode >= 0x30 &&
-                event.charCode <= 0x39);
+    /**
+     * check if the key event is number
+     * @param {KeyboardEvent} aEvent
+     * @return {bool} true when <aEvent> is the event of the number key
+     * e.g. 0, 1, 2, 3, 4 ,5, 6, 7, 8, 9
+     */
+    isKeyEventNum: function (aEvent) {
+        return (aEvent.charCode >= 0x30 &&
+                aEvent.charCode <= 0x39);
     },
 
     // @return true if aKey is the valid literal key expression
@@ -790,9 +824,9 @@ KeySnail.Key = {
 
     /**
      * 
-     * @param {} aContentHolder
-     * @param {} aKeyMap
-     * @param {} aKeySequence
+     * @param {[String]} aContentHolder
+     * @param {[String]} aKeyMap
+     * @param {[String]} aKeySequence
      * @return
      */
     generateKeyBindingRows: function (aContentHolder, aKeyMap, aKeySequence) {

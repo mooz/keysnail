@@ -12,12 +12,14 @@ KeySnail.UserScript = {
     prefDirectory: null,
     // if specified, use this path
     userPath: null,
+    // pathes user script loaded from
+    loadPath: [],
 
     // may access from other modules
     initFileLoaded: false,
 
     // line number of the Function() consctuctor
-    userScriptOffset: 33,
+    userScriptOffset: 35,
 
     // ==================== Loader ==================== //
 
@@ -162,12 +164,42 @@ KeySnail.UserScript = {
         return -1;
     },
 
-    require: function (aFileName, aBaseDir) {
-        var baseDir = aBaseDir || this.userPath;
-        if (baseDir[baseDir.length - 1] == this.directoryDelimiter) {
-            baseDir = baseDir.substr(0, baseDir.length - 2);
+    /**
+     * load script specified by <aFileName> in the load path
+     * scrips are executed under the KeySnail.modules scope
+     * @param {String} aFileName
+     */
+    require: function (aFileName) {
+        var baseDir;
+        for (var i = 0; i < this.loadPath.length; ++i) {
+            baseDir = this.loadPath[i];
+            if (!baseDir)
+                continue;
+
+            // loadUserScript return -1 when file not found
+            if (this.loadUserScript(this.jsFileLoader,
+                                    baseDir, [aFileName]) != -1)
+                break;
         }
-        this.loadUserScript(this.jsFileLoader, baseDir, [aFileName]);
+    },
+
+    /**
+     * add load path.
+     * ~ in the head of path will be expanded to $HOME or $USERPROFILE
+     * @param {String} aPath
+     */
+    addLoadPath: function (aPath) {
+        // sh-like expansion
+        aPath = aPath.replace(/^~/, this.prefDirectory);
+
+        if (aPath[aPath.length - 1] == this.directoryDelimiter) {
+            aPath = aPath.substr(0, aPath.length - 1);
+        }
+
+        // avoid duplication
+        if (!this.loadPath.some(function (aContained) aContained == aPath)) {
+            this.loadPath.push(aPath);
+        }
     },
 
     // ==================== util / wizard ==================== //
