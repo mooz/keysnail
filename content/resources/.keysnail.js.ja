@@ -44,6 +44,11 @@
 // 関数が呼ばれる.
 // ユーザはここに「検索のキャンセル」, 「選択の解除」などの関数を登録することができる
 
+// ==================== load modules (example) ==================== //
+// userscript.addLoadPath("~/.keysnail.d");
+// userscript.require("module1.js");
+// userscript.require("module2.js");
+
 // ==================== misc settings ==================== //
 // key.quitKey : キーシーケンス入力のキャンセルに用いられる.
 //               KeyBoardQuit フックを呼ぶので, 検索バーを閉じる等の動作をそこに登録しておくことも出来る.
@@ -86,21 +91,16 @@ key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
                 // 検索バーが開いていたら閉じる
-                command.gFindBar.close();
+                command.closeFindBar();
                 if (util.isCaretEnabled()) {
                     // 編集エリア / キャレットブラウジングモードならマークをリセット
                     command.resetMark(aEvent);
                 } else {
-                    // ビューモードなら選択を解除 & 汎用的なキャンセルイベントを生成
+                    // ビューモードなら選択を解除
                     goDoCommand('cmd_selectNone');
-                    key.generateKey(aEvent.target,
-                                    KeyEvent.DOM_VK_ESCAPE, true);
                 }
-                if (util.isMenu()) {
-                    // 補完メニュー内ならポップアップなどを閉じる
-                    key.generateKey(aEvent.originalTarget,
-                                    KeyEvent.DOM_VK_ESCAPE, true);
-                }
+                // 汎用的なキャンセルイベントを生成
+                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
             });
 
 // ==================== set global keys ==================== //
@@ -470,23 +470,6 @@ key.setCaretKey([["C-SPC"],
                  ["C-@"]],
                 function (aEvent) { command.setMark(aEvent); },
                 "マークをセット");
-
-// key.setCaretKey(["C-l"],
-//                 function (aEvent) { 
-//                     // command.recenter(aEvent);
-//                     util.listProperty(Components.interfaces);
-
-//                     // var docShell = document.commandDispatcher.focusedWindow
-// 	            //     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-// 	            //     .getInterface(Components.interfaces.nsIWebNavigation)
-// 	            //     .QueryInterface(Components.interfaces.nsIDocShell);
-
-//                     // var esm = docShell
-//                     //     .QueryInterface(Components.interfaces.nsIEventStateManager);
-//                     // display.prettyPrint(esm);
-//                     // util.listProperty(esm);
-//                 },
-//                 "キャレットが画面中央へ来るようスクロール");
 
 // -------------------- caret move -------------------- //
 

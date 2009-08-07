@@ -166,7 +166,7 @@ KeySnail.UserScript = {
 
     /**
      * load script specified by <aFileName> in the load path
-     * scrips are executed under the KeySnail.modules scope
+     * scripts are executed under the KeySnail.modules scope
      * @param {String} aFileName
      */
     require: function (aFileName) {
@@ -197,7 +197,8 @@ KeySnail.UserScript = {
         }
 
         // avoid duplication
-        if (!this.loadPath.some(function (aContained) aContained == aPath)) {
+        if (!this.loadPath.some(function (aContained) aContained == aPath)
+            && this.modules.util.openFile(aPath).exists()) {
             this.loadPath.push(aPath);
         }
     },

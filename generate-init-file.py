@@ -94,6 +94,11 @@ print """// ==================== KeySnail configuration file ===================
 // functions set to KeyBoardQuit are called.
 // You can bind "Cancell isearch", "Deselect the text", and so forth."""}[l] + """
 
+// ==================== load modules (example) ==================== //
+// userscript.addLoadPath("~/.keysnail.d");
+// userscript.require("module1.js");
+// userscript.require("module2.js");
+
 // ==================== misc settings ==================== //
 """ + {ja: """// key.quitKey : キーシーケンス入力のキャンセルに用いられる.
 //               KeyBoardQuit フックを呼ぶので, 検索バーを閉じる等の動作をそこに登録しておくことも出来る.
@@ -148,24 +153,19 @@ hook.setHook("KeyBoardQuit",
             function (aEvent) {
                 // """ + {ja: "検索バーが開いていたら閉じる",
                           en: "Close the find bar if opened"}[l] + """
-                command.gFindBar.close();
+                command.closeFindBar();
                 if (util.isCaretEnabled()) {
                     // """ + {ja: "編集エリア / キャレットブラウジングモードならマークをリセット",
                               en: "in edit area or caret browsing mode, reset the mark"}[l] + """
                     command.resetMark(aEvent);
                 } else {
-                    // """ + {ja: "ビューモードなら選択を解除 & 汎用的なキャンセルイベントを生成",
-                              en: "in view mode, deselect all & generate cancell event"}[l] + """
+                    // """ + {ja: "ビューモードなら選択を解除",
+                              en: "in view mode, deselect all"}[l] + """
                     goDoCommand('cmd_selectNone');
-                    key.generateKey(aEvent.target,
-                                    KeyEvent.DOM_VK_ESCAPE, true);
                 }
-                if (util.isMenu()) {
-                    // """ + {ja: "補完メニュー内ならポップアップなどを閉じる",
-                              en: "in autocomplete menu, close the popup"}[l] + """
-                    key.generateKey(aEvent.originalTarget,
-                                    KeyEvent.DOM_VK_ESCAPE, true);
-                }
+                // """ + {ja: "汎用的なキャンセルイベントを生成",
+                          en: "generate general cancell event"}[l] + """
+                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
             });
 
 // ==================== set global keys ==================== //
@@ -609,24 +609,6 @@ key.setCaretKey([["C-SPC"],
                 function (aEvent) { command.setMark(aEvent); },
                 """ + {ja: '"マークをセット"',
                        en: '"Set mark"'}[l] + """);
-
-// key.setCaretKey(["C-l"],
-//                 function (aEvent) { 
-//                     // command.recenter(aEvent);
-//                     util.listProperty(Components.interfaces);
-
-//                     // var docShell = document.commandDispatcher.focusedWindow
-// 	            //     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-// 	            //     .getInterface(Components.interfaces.nsIWebNavigation)
-// 	            //     .QueryInterface(Components.interfaces.nsIDocShell);
-
-//                     // var esm = docShell
-//                     //     .QueryInterface(Components.interfaces.nsIEventStateManager);
-//                     // display.prettyPrint(esm);
-//                     // util.listProperty(esm);
-//                 },
-//                 """ + {ja: '"キャレットが画面中央へ来るようスクロール"',
-                          en: '"Recenter"'}[l] + """);
 
 // -------------------- caret move -------------------- //
 

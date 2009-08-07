@@ -1,14 +1,28 @@
 KeySnail.Command = {
     modules: null,
-    gFindBar: null,
-    autoCompleteController: null,
+    get gFindBar() {
+        return typeof(gFindBar) == 'undefined' ?
+            document.getElementById('FindToolbar') : gFindBar;
+    },
+    get autoCompleteController() {
+        return Components.classes['@mozilla.org/autocomplete/controller;1']
+            .getService(Components.interfaces.nsIAutoCompleteController);
+    },
 
     init: function () {
-        this.gFindBar = gFindBar ? gFindBar :
-            document.getElementById('FindToolbar');
-        this.autoCompleteController =
-            Components.classes['@mozilla.org/autocomplete/controller;1']
-            .getService(Components.interfaces.nsIAutoCompleteController);
+        if (typeof(goDoCommand) == 'undefined') {
+            goDoCommand = function(aCommand) {
+                try {
+                    var controller = 
+                        top.document.commandDispatcher.getControllerForCommand(aCommand);
+                    if (controller && controller.isCommandEnabled(aCommand))
+                        controller.doCommand(aCommand);
+                }
+                catch(e) {
+                    this.message("An error "+e+" occurred executing the "+aCommand+" command\n");
+                }
+            };
+        }
     },
 
     // ==================== Walk through elements  ====================
@@ -31,16 +45,18 @@ KeySnail.Command = {
         return aDocument.evaluate(xPathExp, aDocument, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     },
 
-    isSkippable: function (aElement) {
+    isSkippable: function (aElement, aDoc) {
         return (aElement.style.display === 'none')
             || (aElement.style.visibility === 'hidden')
-            || (aElement.readOnly);
-        // 'readonly' in aElement
+            || (aElement.readOnly)
+            || aDoc.defaultView.getComputedStyle(aElement, null).width[0] == '0'
+            || aDoc.defaultView.getComputedStyle(aElement, null).height[0] == '0';
     },
 
     focusElement: function (aElementsRetriever, aNum) {
-        var xPathResults = aElementsRetriever(document.commandDispatcher.focusedWindow.document
-                                              || gBrowser.contentWindow.document);
+        var doc = document.commandDispatcher.focusedWindow.document
+            || gBrowser.contentWindow.document;
+        var xPathResults = aElementsRetriever(doc);
 
         if (xPathResults.snapshotLength == 0) {
             return;
@@ -51,7 +67,7 @@ KeySnail.Command = {
         }
 
         var item = xPathResults.snapshotItem(aNum);
-        while (this.isSkippable(item)) {
+        while (this.isSkippable(item, doc)) {
             if (aNum == xPathResults.snapshotLength - 1) {
                 return;
             }
@@ -62,8 +78,9 @@ KeySnail.Command = {
     },
 
     walkInputElement: function (aElementsRetriever, aForward, aCycle) {
-        var xPathResults = aElementsRetriever(document.commandDispatcher.focusedWindow.document
-                                              || gBrowser.contentWindow.document);
+        var doc = document.commandDispatcher.focusedWindow.document
+            || gBrowser.contentWindow.document;
+        var xPathResults = aElementsRetriever(doc);
         var focused = document.commandDispatcher.focusedElement;
 
         var elemCount = xPathResults.snapshotLength;
@@ -87,7 +104,7 @@ KeySnail.Command = {
             return;
         }
 
-        while (this.isSkippable(xPathResults.snapshotItem(next))) {
+        while (this.isSkippable(xPathResults.snapshotItem(next), doc)) {
             next = this.getNextIndex(next, elemCount, aForward, aCycle);
             if (next < 0) {
                 return;
@@ -134,6 +151,12 @@ KeySnail.Command = {
     },
 
     // ==================== incremental search ==================== //
+
+    closeFindBar: function () {
+        if (this.gFindBar && !this.gFindBar.hidden) {
+            this.gFindBar.close();
+        }
+    },
 
     iSearchForward: function () {
         if (this.gFindBar.hidden) {
@@ -188,26 +211,9 @@ KeySnail.Command = {
         this.autoCompleteController.handleKeyNavigation(aKeyEvent);
     },
 
-    getPosition: function (e) {
-        e = e || window.event;
-        var cursor = {x:0, y:0};
-        if (e.pageX || e.pageY) {
-            cursor.x = e.pageX;
-            cursor.y = e.pageY;
-        }
-        else {
-            var de = content.document.documentElement;
-            var b = content.document.body;
-            cursor.x = e.clientX +
-                (de.scrollLeft || b.scrollLeft) - (de.clientLeft || 0);
-            cursor.y = e.clientY +
-                (de.scrollTop || b.scrollTop) - (de.clientTop || 0);
-        }
-        return cursor;
-    },
-
     // ==================== Editor Commands  ====================
 
+    // from XUL/Migemo
     recenter: function () {
         var frame = document.commandDispatcher.focusedWindow
             || gBrowser.contentWindow;
@@ -275,28 +281,32 @@ KeySnail.Command = {
     },
 
     previousLine: function (aEvent) {
-        if (this.modules.util.isMenu()) {
-            this.autoCompleteHandleKey(KeyEvent.DOM_VK_UP);
-        } else {
-            // editable and not on autocomplete widget
+        if (aEvent.target.localName == 'TEXTAREA') {
             if (this.marked(aEvent)) {
                 goDoCommand('cmd_selectLinePrevious');
             } else {
                 goDoCommand('cmd_linePrevious');
             }
+        } else if (this.modules.util.isMenu()) {
+            this.autoCompleteHandleKey(KeyEvent.DOM_VK_UP);
+        } else {
+            this.modules.key
+                .generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_UP, true);
         }
     },
 
     nextLine: function (aEvent) {
-        if (this.modules.util.isMenu()) {
-            this.autoCompleteHandleKey(KeyEvent.DOM_VK_DOWN);
-        } else {
-            // editable and not on autocomplete widget
+        if (aEvent.target.localName == 'TEXTAREA') {
             if (this.marked(aEvent)) {
                 goDoCommand('cmd_selectLineNext');
             } else {
                 goDoCommand('cmd_lineNext');
             }
+        } else if (this.modules.util.isMenu()) {
+            this.autoCompleteHandleKey(KeyEvent.DOM_VK_DOWN);
+        } else {
+            this.modules.key
+                .generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_DOWN, true);
         }
     },
 
@@ -402,10 +412,8 @@ KeySnail.Command = {
     setMark: function (aEvent) {
         var orig = aEvent.originalTarget;
         if (typeof(orig.selectionStart) == 'number') {
-            // this.modules.display.prettyPrint("selection : " + orig.selectionStart);
             orig.ksMarked = orig.selectionStart;
         } else {
-            // this.modules.display.prettyPrint("boooo!");
             orig.ksMarked = true;
         }
         this.modules.display.echoStatusBar('Mark set', 2000);

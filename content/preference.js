@@ -1,11 +1,4 @@
 var ksPreference = {
-    updateStatus: function () {
-        var status = nsPreferences
-            .getBoolPref("extensions.keysnail.keyhandler.status", false);
-        var statusCheckbox = document.getElementById("keysnailStatus");
-        statusCheckbox.checked = status;
-    },
-
     updateRcFileLocation: function () {
         var location = nsPreferences
             .getLocalizedUnicharPref("extensions.keysnail.userscript.location")
@@ -16,7 +9,7 @@ var ksPreference = {
 
         Application.console.log(location);
 
-        var file = this.pathToLocalFile(location);
+        var file = this.openFile(location);
 
         if (file) {
             fileField.file = file;
@@ -27,7 +20,7 @@ var ksPreference = {
         }
     },
 
-    pathToLocalFile: function (aPath) {
+    openFile: function (aPath) {
         var file = Components.classes["@mozilla.org/file/local;1"]
             .createInstance();
         var localFile = file
@@ -50,7 +43,7 @@ var ksPreference = {
             .getLocalizedUnicharPref("extensions.keysnail.userscript.location");
 
         fp.init(window, "Select a directory", nsIFilePicker.modeGetFolder);
-        fp.displayDirectory = this.pathToLocalFile(location);
+        fp.displayDirectory = this.openFile(location);
 
         var response = fp.show();
         if (response == nsIFilePicker.returnOK) {

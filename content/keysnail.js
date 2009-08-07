@@ -32,6 +32,7 @@ var KeySnail = {
         }
 
         this.modules.key.updateStatusBar();
+        this.message("KeySnail started");
     },
 
     registerModule: function (aModuleName) {
@@ -51,7 +52,7 @@ var KeySnail = {
         this[aModuleName].parent = this;
         // initialize module
         this[aModuleName].init();
-        this.message('initModule: module "' + aModuleName + '" initialized.');
+        // this.message('initModule: module "' + aModuleName + '" initialized.');
     },
 
     openPreference: function () {

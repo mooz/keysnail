@@ -15,6 +15,10 @@ jar cvf0 chrome/keysnail.jar \
     skin/**/*.*~(*~|*.svg|.svn/*)
 
 rm -f keysnail.xpi
-zip -r -9 keysnail.xpi chrome/keysnail.jar defaults/**/*.*~(*~|.svn/*) install.rdf
+zip -r -9 keysnail.xpi \
+    chrome/keysnail.jar \
+    defaults/**/*.*~(*~|.svn/*) \
+    install.rdf \
+    components/*.js~*~
 cp chrome.manifest.pack /tmp/chrome.manifest
 zip -j -9 keysnail.xpi /tmp/chrome.manifest

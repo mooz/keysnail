@@ -245,7 +245,8 @@ KeySnail.Key = {
             if (this.modules.util.isWritable()) {
                 modeName = this.modes.EDIT;
             } else {
-                modeName = nsPreferences.getBoolPref("accessibility.browsewithcaret") ?
+                modeName = this.modules.util.isCaretEnabled()
+                    || nsPreferences.getBoolPref("accessibility.browsewithcaret") ?
                     this.modes.CARET : this.modes.VIEW;
             }
 

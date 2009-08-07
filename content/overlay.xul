@@ -6,45 +6,6 @@
 <!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/statusbar.dtd">
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-    <!-- load preference manipulating library -->
-    <script type="application/x-javascript" src="chrome://global/content/nsUserSettings.js"/>
-
-    <!-- load main extension object -->
-    <script type="application/x-javascript" src="chrome://keysnail/content/keysnail.js" />
-
-    <!-- load modules -->
-    <script type="application/x-javascript" src="chrome://keysnail/content/util.js" />
-    <script type="application/x-javascript" src="chrome://keysnail/content/html.js" />
-    <script type="application/x-javascript" src="chrome://keysnail/content/display.js" />
-    <script type="application/x-javascript" src="chrome://keysnail/content/command.js" />
-    <script type="application/x-javascript" src="chrome://keysnail/content/key.js" />
-    <script type="application/x-javascript" src="chrome://keysnail/content/hook.js" />
-    <script type="application/x-javascript" src="chrome://keysnail/content/macro.js" />
-    <script type="application/x-javascript" src="chrome://keysnail/content/userscript.js" />
-
-    <script type="application/x-javascript">
-        window.addEventListener("load",
-        function() { KeySnail.init(); },
-        false);
-        window.addEventListener("unload",
-        function() { KeySnail.uninit(); },
-        false);
-    </script>
-
-    <!-- <vbox id="browser-bottombox"> -->
-    <!--     <hbox id="keysnail-minibuffer" insertbefore="status-bar" -->
-    <!--           hidden="false"> -->
-    <!--         <label id="keysnail-minibuffer-modeline" value="" -->
-    <!--                flex="1" /> -->
-    <!--         <label id="keysnail-minibuffer-label" value="" -->
-    <!--                control="keysnail-minibuffer-input"/> -->
-    <!--         <textbox id="keysnail-minibuffer-input" type="autocomplete" -->
-    <!--                  autocompletesearch="history" flex="1" -->
-    <!--                  onkeypress="KeySnail.Prompt.onKeyPress;" -->
-    <!--                  /> -->
-    <!--     </hbox> -->
-    <!-- </vbox> -->
-
     <statusbar id="status-bar">
         <statusbarpanel id="keysnail-status" context="keysnail-menu">
             <image id="keysnail-statusbar-icon"

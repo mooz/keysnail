@@ -9,6 +9,7 @@
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "Key Handler">
 <!ENTITY keySnail.preference.keyhandler.enabled "Enabled">
+<!ENTITY keySnail.preference.keyhandler.globalEnabled "Enable KeyHandler outside the browse window">
 
 <!-- ABOUT -->
 <!ENTITY keySnail.preference.about "About">

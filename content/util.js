@@ -216,8 +216,8 @@ KeySnail.Util = {
     getLocaleString: function(aStringKey, aReplacements) {
         if (!this._stringBundle) {
             const kBundleURI = "chrome://keysnail/locale/keysnail.properties";
-            var bundleSvc = Cc["@mozilla.org/intl/stringbundle;1"]
-                .getService(Ci.nsIStringBundleService);
+            var bundleSvc = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                .getService(Components.interfaces.nsIStringBundleService);
             this._stringBundle = bundleSvc.createBundle(kBundleURI);
         }
         try {

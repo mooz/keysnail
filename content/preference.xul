@@ -19,20 +19,25 @@
               onpaneload="ksPreference.updateRcFileLocation();">
         <preferences>
             <preference
+                 id="extensions.keysnail.keyhandler.globalEnabled"
+                 name="extensions.keysnail.keyhandler.globalEnabled"
+                 type="bool"/>
+            <preference
                  id="extensions.keysnail.userscript.location"
                  name="extensions.keysnail.userscript.location"
                  type="file"/>
         </preferences>
         <vbox>
             <!-- Status -->
-            <!-- <groupbox orient="vertical"> -->
-            <!--     <caption label="&keySnail.preference.keyhandler;" /> -->
-            <!--     <vbox flex="1"> -->
-            <!--         <hbox > -->
-            <!--             <checkbox label="&keySnail.preference.keyhandler.enabled;"/> -->
-            <!--         </hbox> -->
-            <!--     </vbox> -->
-            <!-- </groupbox> -->
+            <groupbox orient="vertical">
+                <caption label="&keySnail.preference.keyhandler;" />
+                <vbox flex="1">
+                    <hbox >
+                        <checkbox label="&keySnail.preference.keyhandler.globalEnabled;"
+                                  preference="extensions.keysnail.keyhandler.globalEnabled" />
+                    </hbox>
+                </vbox>
+            </groupbox>
 
             <!-- RC File Settings -->
             <groupbox orient="vertical">

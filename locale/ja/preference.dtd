@@ -9,6 +9,7 @@
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "キーハンドラ">
 <!ENTITY keySnail.preference.keyhandler.enabled "有効">
+<!ENTITY keySnail.preference.keyhandler.globalEnabled "ブラウズ画面以外でもキーハンドラを有効にする">
 
 <!-- ABOUT -->
 <!ENTITY keySnail.preference.about "情報">

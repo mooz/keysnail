@@ -10,12 +10,14 @@ KeySnail.Display = {
     init: function () {
         // this.modules = aModules;
         this.statusBar = document.getElementById('statusbar-display');
-        this.modeLine = document.getElementById('keysnail-minibuffer-modeline');
+        // this.modeLine = document.getElementById('keysnail-minibuffer-modeline');
     },
 
     // ==================== Display ====================
 
     echoStatusBar: function (msg, time) {
+        if (!this.statusBar) return;
+
         if (this.msgTimeOut) {
             // 既にタイムアウトが設定されている場合はキャンセル
             clearTimeout(this.msgTimeOut);

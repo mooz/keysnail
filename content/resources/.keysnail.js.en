@@ -47,6 +47,11 @@
 // functions set to KeyBoardQuit are called.
 // You can bind "Cancell isearch", "Deselect the text", and so forth.
 
+// ==================== load modules (example) ==================== //
+// userscript.addLoadPath("~/.keysnail.d");
+// userscript.require("module1.js");
+// userscript.require("module2.js");
+
 // ==================== misc settings ==================== //
 // key.quitKey : Cancel the current input.
 //               This key event calls the KeyBoardQuit hook.
@@ -89,21 +94,16 @@ key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
                 // Close the find bar if opened
-                command.gFindBar.close();
+                command.closeFindBar();
                 if (util.isCaretEnabled()) {
                     // in edit area or caret browsing mode, reset the mark
                     command.resetMark(aEvent);
                 } else {
-                    // in view mode, deselect all & generate cancell event
+                    // in view mode, deselect all
                     goDoCommand('cmd_selectNone');
-                    key.generateKey(aEvent.target,
-                                    KeyEvent.DOM_VK_ESCAPE, true);
                 }
-                if (util.isMenu()) {
-                    // in autocomplete menu, close the popup
-                    key.generateKey(aEvent.originalTarget,
-                                    KeyEvent.DOM_VK_ESCAPE, true);
-                }
+                // generate general cancell event
+                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
             });
 
 // ==================== set global keys ==================== //
@@ -473,23 +473,6 @@ key.setCaretKey([["C-SPC"],
                  ["C-@"]],
                 function (aEvent) { command.setMark(aEvent); },
                 "Set mark");
-
-// key.setCaretKey(["C-l"],
-//                 function (aEvent) { 
-//                     // command.recenter(aEvent);
-//                     util.listProperty(Components.interfaces);
-
-//                     // var docShell = document.commandDispatcher.focusedWindow
-// 	            //     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-// 	            //     .getInterface(Components.interfaces.nsIWebNavigation)
-// 	            //     .QueryInterface(Components.interfaces.nsIDocShell);
-
-//                     // var esm = docShell
-//                     //     .QueryInterface(Components.interfaces.nsIEventStateManager);
-//                     // display.prettyPrint(esm);
-//                     // util.listProperty(esm);
-//                 },
-//                 "Recenter");
 
 // -------------------- caret move -------------------- //
 
