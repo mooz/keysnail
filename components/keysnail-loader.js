@@ -29,11 +29,18 @@ KeySnailLoader.prototype = {
     handleEvent: function (aEvent) {
         aEvent.currentTarget.removeEventListener('load', this, false);
         var windowType = aEvent.target.documentElement.getAttribute("windowtype");
-        // this.message(windowtype);
-        // this.listProperty(aEvent.target);
+        // if (!windowType) {
+        //     this.listProperty(aEvent.target);
+        // }
+        // this.message(aEvent.target.name);
+        // this.message(windowType);
         if (prefService.getBoolPref('extensions.keysnail.keyhandler.globalEnabled')
             || windowType == "navigator:browser") {
-            aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
+            // if the window is not the init file wizard
+            if (aEvent.target.documentURI != "chrome://keysnail/content/rcwizard.xul") {
+                // this.message("#################### " + windowType + " => OVERLAY ####################");
+                aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);                
+            }
         }
     },
 
@@ -44,10 +51,8 @@ KeySnailLoader.prototype = {
             this.message("listProperty: undefined object passed");
         } else {
             for (var property in aObject) {
-                this.message(property);
-                // this.message(aObject.toString()
-                //              + "[" + property + "] = "
-                //              + aObject[property]);
+                // this.message(property);
+                this.message("[" + property + "] = " + aObject[property]);
             }
         }
     },

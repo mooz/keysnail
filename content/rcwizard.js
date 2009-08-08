@@ -2,7 +2,7 @@ var rcWizard = {
     util: null,
 
     prefDirectory: null,
-    configFileNames: null,
+    defaultInitFileNames: null,
     directoryDelimiter: null,
 
     rcFilePath: null,
@@ -13,11 +13,13 @@ var rcWizard = {
         this.util = window.arguments[0].inn.util;
 
         this.prefDirectory = window.arguments[0].inn.prefDirectory;
-        this.configFileNames = window.arguments[0].inn.configFileNames;
+        this.defaultInitFileNames = window.arguments[0].inn.defaultInitFileNames;
         this.directoryDelimiter = window.arguments[0].inn.directoryDelimiter;
 
         this.rcFilePath = this.prefDirectory;
         this.rcFileObject = this.pathToLocalFile(this.prefDirectory);
+
+        window.document.documentElement.setAttribute("windowtype", window.name);
     },
 
     selectMethod: function () {
@@ -98,7 +100,7 @@ var rcWizard = {
         if (selectedMethod == "select-rcfile"
             && !this.util.isDirHasFiles(this.rcFilePath,
                                         this.directoryDelimiter,
-                                        this.configFileNames)) {
+                                        this.defaultInitFileNames)) {
             // directory has no rc file.
             this.util.alert(window, "KeySnail",
                             this.util.getLocaleString("noUserScriptFound",
@@ -124,6 +126,7 @@ var rcWizard = {
     onCancel: function () {
         // ユーザが cancel をクリックした時は、window.arguments[0].out は null のまま
         // window.arguments[0].out is null
+        window.arguments[0].out = null;
 
         return true;
     }

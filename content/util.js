@@ -212,6 +212,25 @@ KeySnail.Util = {
     },
 
     // ==================== pref ==================== //
+
+    setPrefs: function (aPrefList) {
+        var value;
+        for (var prefKey in aPrefList) {
+            value = aPrefList[prefKey];
+            switch (typeof(value)) {
+                case 'string':
+                nsPreferences.setUnicharPref(prefKey, value);
+                break;
+                case 'number':
+                nsPreferences.setIntPref(prefKey, value);
+                break;
+                case 'boolean':
+                nsPreferences.setBoolPref(prefKey, value);
+                break;
+            }
+        }
+    },
+
     getUnicharPref: function (aStringKey) {
         return nsPreferences.getLocalizedUnicharPref(aStringKey)
             || nsPreferences.copyUnicharPref(aStringKey);

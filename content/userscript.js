@@ -95,7 +95,10 @@ KeySnail.UserScript = {
             // file not found.
             // we need to create the new one
             // or let user to select the init file place
-            loadStatus = this.beginRcFileWizard();
+            if (window.document.documentElement.getAttribute("windowtype")
+                == "navigator:browser") {
+                loadStatus = this.beginRcFileWizard();                
+            }
         }
 
         if (loadStatus == 0) {
@@ -262,7 +265,8 @@ KeySnail.UserScript = {
         var loadStatus = -1;
 
         if (this.openDialog()) {
-            loadStatus = this.loadUserScript(this.userPath,
+            loadStatus = this.loadUserScript(this.initFileLoader,
+                                             this.userPath,
                                              this.defaultInitFileNames);
         }
 
@@ -274,16 +278,19 @@ KeySnail.UserScript = {
             inn: {
                 util: this.modules.util,
                 prefDirectory: this.prefDirectory,
-                configFileNames: this.defaultInitFileNames,
+                defaultInitFileNames: this.defaultInitFileNames,
                 directoryDelimiter: this.directoryDelimiter
             },
             out: null
         };
 
+        // chrome,dialog,modal,centerscreen,dependent
         window.openDialog("chrome://keysnail/content/rcwizard.xul",
-                          "KeySnail",
-                          "chrome, dialog, modal, resizable=no, top=300,left=300",
-                          params).focus();
+                          "keysnail:initFileWizard",
+                          "chrome,dialog,modal,centerscreen,dependent",
+                          params);
+
+        this.modules.util.listProperty(params.out);
 
         if (!params.out) {
             this.message("Not params out!");
@@ -306,15 +313,7 @@ KeySnail.UserScript = {
             var configFileName = this.defaultInitFileNames[params.out.configFileNameIndex];
 
             var defaultInitFileBase = "chrome://keysnail/content/resources/.keysnail.js.";
-
-            // When I tried to get the userLocale via copyUnicharPref(), the function sometimes
-            // returned the "property" file place, not the locale. So it's better to use
-            // getLocalizedUnicharPref()
-            // and getLocalizedUnicharPref() sometimes return null :<
-            // so I have to check whether it is null or not.
-            // util.getUnicharPref() does them all
-            var userLocale = this.modules.util.
-                getUnicharPref("general.useragent.locale");
+            var userLocale = this.modules.util.getUnicharPref("general.useragent.locale");
 
             userLocale = {
                 "ja-JP": "ja",
@@ -333,6 +332,8 @@ KeySnail.UserScript = {
                 this.message("rc file wizard: failed to open the default .keysnail file");
                 return false;
             }
+
+            // replace content with the selected key.
 
             try {
                 this.modules.util.writeText(defaultInitFile,

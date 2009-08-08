@@ -144,12 +144,16 @@ print """// ==================== KeySnail configuration file ===================
 // the prefix key C-z."""}[l] + """
 key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
-// ==================== access key ==================== //
-// """ + {ja: "Mac ユーザで Ctrl キーを使いたい場合はアンコメント.",
-          en: "// If you are Mac user and want to use Ctrl key, uncomment."}[l] + """
-// nsPreferences.setIntPref("ui.key.generalAccessKey", 0);
-
-// ==================== set hooks ==================== //
+// ==================== set about:config value ==================== //
+// util.setPrefs(
+//     {
+//         "ui.key.generalAccessKey": 0, // kill access key (for Mac User)
+//         "ui.caretWidth": 5,           // Make caret bolder
+//         "ui.caretBlinkTime": 0,       // Stop caret blink
+//         "accessibility.typeaheadfind": true, // Enable "Find As You Type"
+//         "accessibility.typeaheadfind.linksonly": true // Only for links
+//     }
+// );
 
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
@@ -395,14 +399,12 @@ key.setViewKey("C-v",
                       en: '"Scroll page down"'}[l] + """);
 
 key.setViewKey([["g"],
-                ["M-<"],
-                ["ESC", "<"]],
+                ["M-<"]],
                function () { goDoCommand('cmd_scrollTop'); },
                """ + {ja: '"ページ先頭へ移動"',
                       en: '"Scroll to the top of the page"'}[l] + """);
 key.setViewKey([["G"],
-                ["M->"],
-                ["ESC", ">"]],
+                ["M->"]],
                function () { goDoCommand('cmd_scrollBottom'); },
                """ + {ja: '"ページ末尾へ移動"',
                       en: '"Scroll to the bottom of the page"'}[l] + """);
@@ -520,13 +522,11 @@ key.setEditKey("M-v",
 
 // -------------------- absolute --------------------
 
-key.setEditKey([["M-<"],
-                ["ESC", "<"]],
+key.setEditKey(["M-<"],
                function (aEvent) { command.moveTop(aEvent); },
                """ + {ja: '"テキストエリア先頭へ"',
                       en: '"Beginning of the text area"'}[l] + """);
-key.setEditKey([["M->"],
-                ["ESC", ">"]],
+key.setEditKey(["M->"],
                function (aEvent) { command.moveBottom(aEvent); },
                """ + {ja: '"テキストエリア末尾へ"',
                       en: '"End of the text area"'}[l] + """);
@@ -558,6 +558,26 @@ key.setEditKey([["C-<backspace>"],
                },
                """ + {ja: '"前の一単語を削除"',
                       en: '"Delete backward word"'}[l] + """);
+
+// -------------------- transformation -------------------- //
+
+key.setEditKey([["M-u"]], function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, function (aString) aString.toUpperCase());
+               },
+               """ + {ja: '"次の一単語を全て大文字に (Upper case)"',
+                      en: '"Convert following word to upper case"'}[l] + """);
+
+key.setEditKey([["M-l"]], function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, function (aString) aString.toLowerCase());
+               },
+               """ + {ja: '"次の一単語を全て小文字に (Lower case)"',
+                      en: '""Convert following word to lower case"'}[l] + """);
+
+key.setEditKey([["M-c"]], function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, util.capitalizeWord);
+               },
+               """ + {ja: '"次の一単語をキャピタライズ"',
+                      en: '""Capitalize the follwing word"'}[l] + """);
 
 // -------------------- cut / paste --------------------
 
@@ -671,14 +691,12 @@ key.setCaretKey([["M-v"],
                       en: '"Move caret up by page"'}[l] + """);
 
 key.setCaretKey([["g"],
-                ["M-<"],
-                ["ESC", "<"]],
+                ["M-<"]],
                 function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectTop') : goDoCommand('cmd_scrollTop'); },
                """ + {ja: '"ページ先頭へ移動"',
                       en: '"Move caret to the top of the page"'}[l] + """);
 key.setCaretKey([["G"],
-                ["M->"],
-                ["ESC", ">"]],
+                ["M->"]],
                 function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectBottom') : goDoCommand('cmd_scrollBottom'); },
                """ + {ja: '"ページ末尾へ移動"',
                       en: '"Move caret to the bottom of the page"'}[l] + """);

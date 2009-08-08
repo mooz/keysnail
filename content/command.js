@@ -342,6 +342,42 @@ KeySnail.Command = {
         }
     },
 
+    processBackwardWord: function (aInput, aFilter) {
+        var begin = aInput.selectionStart;
+        var end   = aInput.selectionEnd;
+        var text  = aInput.value;
+        var subword = text.slice(0, end).match(/[a-zA-Z0-9]+\s*$/);
+
+        var wordBegin = !!subword ? end - subword[0].length : end;
+
+        subword[0] = aFilter(subword[0]);
+
+        aInput.value = text.slice(0, wordBegin) + subword[0] + text.slice(end);
+        aInput.setSelectionRange(wordBegin, wordBegin);
+    },
+
+    processForwardWord: function (aInput, aFilter) {
+        var begin = aInput.selectionStart;
+        var end   = aInput.selectionEnd;
+        var text  = aInput.value;
+        var subword = text.slice(end).match(/\s*[a-zA-Z0-9]+|[^a-zA-Z0-9]+/);
+
+        var wordEnd = !!subword ? end + subword[0].length : end;
+
+        subword[0] = aFilter(subword[0]);
+
+        aInput.value = text.slice(0, begin) + subword[0] + text.slice(wordEnd);
+        aInput.setSelectionRange(wordEnd, wordEnd);        
+    },
+
+    capitalizeWord: function (aString) {
+        var spaces = aString.match(/^\s*/);
+        var wordBegin = !!spaces ? spaces[0].length : 0;
+        return aString.slice(0, wordBegin)
+            + aString.charAt(wordBegin).toUpperCase()
+            + aString.slice(wordBegin + 1).toLowerCase();
+    },
+
     beginLine: function (aEvent) {
         if (this.marked(aEvent)) {
             goDoCommand('cmd_selectBeginLine');

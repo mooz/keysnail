@@ -83,11 +83,16 @@
 // エディットモードで C-z を入力すると, ビューモードのキーバインドが使える
 key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
-// ==================== access key ==================== //
-// Mac ユーザで Ctrl キーを使いたい場合はアンコメント.
-// nsPreferences.setIntPref("ui.key.generalAccessKey", 0);
-
-// ==================== set hooks ==================== //
+// ==================== set about:config value ==================== //
+// util.setPrefs(
+//     {
+//         "ui.key.generalAccessKey": 0, // kill access key (for Mac User)
+//         "ui.caretWidth": 5,           // Make caret bolder
+//         "ui.caretBlinkTime": 0,       // Stop caret blink
+//         "accessibility.typeaheadfind": true, // Enable "Find As You Type"
+//         "accessibility.typeaheadfind.linksonly": true // Only for links
+//     }
+// );
 
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
@@ -291,13 +296,11 @@ key.setViewKey("C-v",
                "一画面スクロールダウン");
 
 key.setViewKey([["g"],
-                ["M-<"],
-                ["ESC", "<"]],
+                ["M-<"]],
                function () { goDoCommand('cmd_scrollTop'); },
                "ページ先頭へ移動");
 key.setViewKey([["G"],
-                ["M->"],
-                ["ESC", ">"]],
+                ["M->"]],
                function () { goDoCommand('cmd_scrollBottom'); },
                "ページ末尾へ移動");
 
@@ -393,12 +396,10 @@ key.setEditKey("M-v",
 
 // -------------------- absolute --------------------
 
-key.setEditKey([["M-<"],
-                ["ESC", "<"]],
+key.setEditKey(["M-<"],
                function (aEvent) { command.moveTop(aEvent); },
                "テキストエリア先頭へ");
-key.setEditKey([["M->"],
-                ["ESC", ">"]],
+key.setEditKey(["M->"],
                function (aEvent) { command.moveBottom(aEvent); },
                "テキストエリア末尾へ");
 
@@ -425,6 +426,23 @@ key.setEditKey([["C-<backspace>"],
                    goDoCommand('cmd_deleteWordBackward');
                },
                "前の一単語を削除");
+
+// -------------------- transformation -------------------- //
+
+key.setEditKey([["M-u"]], function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, function (aString) aString.toUpperCase());
+               },
+               "次の一単語を全て大文字に (Upper case)");
+
+key.setEditKey([["M-l"]], function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, function (aString) aString.toLowerCase());
+               },
+               "次の一単語を全て小文字に (Lower case)");
+
+key.setEditKey([["M-c"]], function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, util.capitalizeWord);
+               },
+               "次の一単語をキャピタライズ");
 
 // -------------------- cut / paste --------------------
 
@@ -521,13 +539,11 @@ key.setCaretKey([["M-v"],
                "一画面分上へ");
 
 key.setCaretKey([["g"],
-                ["M-<"],
-                ["ESC", "<"]],
+                ["M-<"]],
                 function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectTop') : goDoCommand('cmd_scrollTop'); },
                "ページ先頭へ移動");
 key.setCaretKey([["G"],
-                ["M->"],
-                ["ESC", ">"]],
+                ["M->"]],
                 function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectBottom') : goDoCommand('cmd_scrollBottom'); },
                "ページ末尾へ移動");
 

@@ -88,8 +88,10 @@ KeySnail.Key = {
             this.run();
         } else {
             // no initialization file is loaded
-            window.alert(this.modules.util.
-                         getLocaleString("noUserScriptLoaded"));
+            this.modules.display.prettyPrint(this.modules.util
+                                             .getLocaleString("noUserScriptLoaded"));
+            // window.alert(this.modules.util.
+            //              getLocaleString("noUserScriptLoaded"));
             this.status = false;
         }
 
