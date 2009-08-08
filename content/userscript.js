@@ -5,6 +5,7 @@ KeySnail.UserScript = {
     // at first .keysnail.js is used. When the file not found,
     // then the _keysnail.js is used. (for Windows user)
     defaultInitFileNames: [".keysnail.js", "_keysnail.js"],
+    initFilePath: null,
 
     directoryDelimiter: null,
 
@@ -19,7 +20,7 @@ KeySnail.UserScript = {
     initFileLoaded: false,
 
     // line number of the Function() consctuctor
-    userScriptOffset: 35,
+    userScriptOffset: 34,
 
     // ==================== Loader ==================== //
 
@@ -29,17 +30,8 @@ KeySnail.UserScript = {
      * @throw exception
      */
     jsFileLoader: function (aScriptPath) {
-        try {
-            var code = this.modules.util
-                .readTextFile(aScriptPath).value;
-            new Function("with (KeySnail.modules) {" + code + " }")();            
-        } catch (e) {
-            if (e.fileName == "chrome://keysnail/content/userscript.js") {
-                e.fileName = aScriptPath;
-                e.lineNumber = e.lineNumber - this.userScriptOffset + 1;                
-            }
-            throw e;
-        }
+        var code = this.modules.util.readTextFile(aScriptPath).value;
+        new Function("with (KeySnail.modules) {" + code + " }")();            
     },
 
     /**
@@ -48,9 +40,17 @@ KeySnail.UserScript = {
      * @throw exception
      */
     initFileLoader: function (aInitFilePath) {
-        var start = new Date();
-        this.jsFileLoader(aInitFilePath);
-        var end = new Date();
+        try {
+            var start = new Date();
+            this.jsFileLoader(aInitFilePath);
+            var end = new Date();
+        } catch (e) {
+            e.fileName = aInitFilePath;
+            e.lineNumber -= (this.userScriptOffset + 1);
+            throw e;
+        }
+
+        this.initFilePath = aInitFilePath;
 
         this.modules.display
             .echoStatusBar("KeySnail: [" + aInitFilePath + "]: " +
@@ -70,10 +70,8 @@ KeySnail.UserScript = {
         [this.prefDirectory, this.directoryDelimiter]
             = this.getPrefDirectory();
 
-        this.userPath = nsPreferences
-            .getLocalizedUnicharPref("extensions.keysnail.userscript.location")
-            || nsPreferences
-            .copyUnicharPref("extensions.keysnail.userscript.location");
+        this.userPath = this.modules.util
+            .getUnicharPref("extensions.keysnail.userscript.location");
 
         if (!this.userPath) {
             this.userPath = this.prefDirectory;
@@ -147,7 +145,7 @@ KeySnail.UserScript = {
             try {
                 aLoader.call(this, filePath);
                 // success
-                this.message(filePath + " loaded");
+                // this.message(filePath + " loaded");
                 return 0;
             } catch (e) {
                 // userscript error
@@ -196,11 +194,49 @@ KeySnail.UserScript = {
             aPath = aPath.substr(0, aPath.length - 1);
         }
 
-        // avoid duplication
+        // avoid duplication / not existing directory
         if (!this.loadPath.some(function (aContained) aContained == aPath)
             && this.modules.util.openFile(aPath).exists()) {
             this.loadPath.push(aPath);
         }
+    },
+
+    // ==================== edit ==================== //
+
+    editInitFile: function (aLineNum) {
+        this.editFile(this.initFilePath, aLineNum);
+    },
+    
+    editFile: function (aFilePath, aLineNum) {
+        if (!aFilePath) {
+            this.modules.display.prettyPrint("editor: invalid file path");
+            return;
+        }
+
+        var editorPath = this.modules.util
+            .getUnicharPref("extensions.keysnail.userscript.editor");
+
+        try {
+            var file = this.modules.util.openFile(editorPath);
+        } catch (e) {
+            this.modules.display.prettyPrint("editor: no editor specified or error occured");
+            return;
+        }
+
+        if (!file.exists()) {
+            this.modules.display.prettyPrint("editor: " + file.path
+                                             + " not found. Please select the valid editor");
+            return;
+        }
+
+        var process = Components.classes["@mozilla.org/process/util;1"]
+            .createInstance(Components.interfaces.nsIProcess);
+        process.init(file);
+
+        var args = [aFilePath];
+        if (typeof(aLineNum) == 'number')
+            args.push("+" + aLineNum.toString());
+        process.run(false, args, args.length);
     },
 
     // ==================== util / wizard ==================== //
@@ -276,8 +312,9 @@ KeySnail.UserScript = {
             // getLocalizedUnicharPref()
             // and getLocalizedUnicharPref() sometimes return null :<
             // so I have to check whether it is null or not.
-            var userLocale = nsPreferences.getLocalizedUnicharPref("general.useragent.locale")
-                || nsPreferences.copyUnicharPref("general.useragent.locale");
+            // util.getUnicharPref() does them all
+            var userLocale = this.modules.util.
+                getUnicharPref("general.useragent.locale");
 
             userLocale = {
                 "ja-JP": "ja",

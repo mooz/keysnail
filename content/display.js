@@ -45,9 +45,9 @@ KeySnail.Display = {
 
     prettyPrint: function (msg) {
         var dBody = content.document.body;
-        if (!dBody) {
-            dBody = document.body;
-        }
+
+        if (this.modules.util.isFrameSetWindow(content))
+            dBody = null;
 
         if (dBody) {
             var ksMessageId = "_ks_message";
@@ -80,7 +80,7 @@ KeySnail.Display = {
 
             span.style.display = 'inline';
         } else {
-            this.message("failed to find dBody");
+            this.echoStatusBar(msg);
         }
     },
 

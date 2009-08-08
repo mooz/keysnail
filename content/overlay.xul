@@ -22,16 +22,19 @@
 	    <menuitem id="keysnail-menu-list-keybinds"
 		      label="&keySnail.statusbar.listKeyBindings;"
 		      oncommand="KeySnail.Key.listKeyBindings();"/>
-            <menu id="keysnail-menu-settings" label="&keySnail.statusbar.settings;">
+            <menu id="keysnail-menu-init-file" label="&keySnail.statusbar.initFile;">
                 <menupopup id="keysnail-menu-settings-submenu">
-	            <menuitem id="keysnail-menu-open-preference"
-	                      label="&keySnail.statusbar.openPreference;"
-	                      oncommand="KeySnail.openPreference();"/>
+	            <menuitem id="keysnail-menu-edit-init-file"
+	                      label="&keySnail.statusbar.editInitFile;"
+	                      oncommand="KeySnail.UserScript.editInitFile();"/>
 	            <menuitem id="keysnail-menu-open-wizard"
 	                      label="&keySnail.statusbar.wizard;"
 	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"/>
                 </menupopup>
             </menu>
+	    <menuitem id="keysnail-menu-open-preference"
+	              label="&keySnail.statusbar.openPreference;"
+	              oncommand="KeySnail.openPreference();"/>
             <menuseparator/>
 	    <menuitem id="keysnail-menu-status"
                       label="&keySnail.statusbar.isEnabled;"

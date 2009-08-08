@@ -4,12 +4,14 @@
 <!ENTITY keySnail.preference.userscript "Initialization file">
 <!ENTITY keySnail.preference.userscript.settings "UserScript Settings">
 <!ENTITY keySnail.preference.userscript.location "Location: ">
+<!ENTITY keySnail.preference.userscript.editor "Editor: ">
+
 <!ENTITY keySnail.preference.userscript.reference "Change">
 
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "Key Handler">
 <!ENTITY keySnail.preference.keyhandler.enabled "Enabled">
-<!ENTITY keySnail.preference.keyhandler.globalEnabled "Enable KeyHandler outside the browse window">
+<!ENTITY keySnail.preference.keyhandler.globalEnabled "Enable KeySnail outside the browse window">
 
 <!-- ABOUT -->
 <!ENTITY keySnail.preference.about "About">

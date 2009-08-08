@@ -1,3 +1,4 @@
+// var _ksFrom = new Date();
 var KeySnail = {
     modules: {},
 
@@ -32,7 +33,8 @@ var KeySnail = {
         }
 
         this.modules.key.updateStatusBar();
-        this.message("KeySnail started");
+
+        // this.message("KeySnail started : " + (new Date() - _ksFrom) + " [msec]");
     },
 
     registerModule: function (aModuleName) {

@@ -16,7 +16,7 @@
             style="min-width: 41em;"
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;" flex="1"
-              onpaneload="ksPreference.updateRcFileLocation();">
+              onpaneload="ksPreference.updateAllFileFields();">
         <preferences>
             <preference
                  id="extensions.keysnail.keyhandler.globalEnabled"
@@ -25,6 +25,10 @@
             <preference
                  id="extensions.keysnail.userscript.location"
                  name="extensions.keysnail.userscript.location"
+                 type="file"/>
+            <preference
+                 id="extensions.keysnail.userscript.editor"
+                 name="extensions.keysnail.userscript.editor"
                  type="file"/>
         </preferences>
         <vbox>
@@ -39,10 +43,11 @@
                 </vbox>
             </groupbox>
 
-            <!-- RC File Settings -->
+            <!-- Init File Settings -->
             <groupbox orient="vertical">
                 <caption label="&keySnail.preference.userscript.settings;" />
                 <vbox flex="1">
+                    <!-- init file path -->
                     <hbox>
                         <label value="&keySnail.preference.userscript.location;"
                                control="userScriptLocation"/>
@@ -51,7 +56,21 @@
                                    preference="extensions.keysnail.userscript.location"
                                    type="file"/>
                         <button label="&keySnail.preference.userscript.reference;"
-                                oncommand="ksPreference.changePathClicked();" />
+                                oncommand="ksPreference.changePathClicked('INITFILE');" />
+                    </hbox>
+
+                    <spacer height="5px" />
+
+                    <!-- editor path -->
+                    <hbox>
+                        <label value="&keySnail.preference.userscript.editor;"
+                               control="userScriptLocation"/>
+                        <filefield id="keysnail.preference.userscript.editor" flex="2"
+                                   style="width: 25em;"
+                                   preference="extensions.keysnail.userscript.editor"
+                                   type="file"/>
+                        <button label="&keySnail.preference.userscript.reference;"
+                                oncommand="ksPreference.changePathClicked('EDITOR');" />
                     </hbox>
                 </vbox>
             </groupbox>

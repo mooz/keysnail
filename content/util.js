@@ -167,6 +167,19 @@ KeySnail.Util = {
         return this.getSelectionController().getCaretEnabled();
     },
 
+    isFrameSetWindow: function (aFrameWindow) {
+        if (!aFrameWindow) {
+            return false;
+        }
+
+        var listElem = aFrameWindow.document.documentElement
+            .getElementsByTagName('frameset');
+
+        return (listElem && listElem.length > 0);
+    },
+
+    // ==================== nsI ==================== //
+
     getEventStateManager: function () {
         this.listProperty(esm);
         // var docShell = document.commandDispatcher.focusedWindow
@@ -190,20 +203,7 @@ KeySnail.Util = {
             .QueryInterface(Components.interfaces.nsISelectionController);        
     },
 
-    stirngRepeat: function (s, n) {
-        var r = '';
-
-        while (n > 0) {
-            if (n & 1)
-                r += s;
-            s += s;
-            n >>= 1;
-        }
-
-        return r;
-    },
-
-    // ==================== ==================== //
+    // ==================== event ==================== //
 
     stopEventPropagation: function (aEvent) {
         // event の伝搬をキャンセル
@@ -211,9 +211,15 @@ KeySnail.Util = {
         aEvent.preventDefault();
     },
 
+    // ==================== pref ==================== //
+    getUnicharPref: function (aStringKey) {
+        return nsPreferences.getLocalizedUnicharPref(aStringKey)
+            || nsPreferences.copyUnicharPref(aStringKey);
+    },
+
     // original code from Firegestures
     // http://www.xuldev.org/firegestures/
-    getLocaleString: function(aStringKey, aReplacements) {
+    getLocaleString: function (aStringKey, aReplacements) {
         if (!this._stringBundle) {
             const kBundleURI = "chrome://keysnail/locale/keysnail.properties";
             var bundleSvc = Components.classes["@mozilla.org/intl/stringbundle;1"]

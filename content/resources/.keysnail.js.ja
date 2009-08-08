@@ -45,6 +45,7 @@
 // ユーザはここに「検索のキャンセル」, 「選択の解除」などの関数を登録することができる
 
 // ==================== load modules (example) ==================== //
+// 初期化ファイルを複数のファイルに分割し, 読み込むことが出来る.
 // userscript.addLoadPath("~/.keysnail.d");
 // userscript.require("module1.js");
 // userscript.require("module2.js");
@@ -73,7 +74,7 @@
 // };
 
 // ----------------------------------------
-// キーマクロ機能
+// キーマクロ機能 (使用したい場合はアンコメント)
 // key.macroStartKey = "<f3>";
 // key.macroEndKey   = "<f4>";
 // macro.setSleepTime(100);
@@ -115,7 +116,7 @@ key.setGlobalKey([key.helpKey, "b"], function () {
                      key.listKeyBindings();
                  }, "キーバインド一覧を表示");
 
-key.setGlobalKey([key.helpKey, "F"], function (aEvent) {
+key.setGlobalKey([key.helpKey, "F"], function () {
                      openHelpLink('firefox-help');
                  }, "Firefox のヘルプを表示");
 

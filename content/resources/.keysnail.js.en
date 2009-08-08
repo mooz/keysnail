@@ -48,6 +48,7 @@
 // You can bind "Cancell isearch", "Deselect the text", and so forth.
 
 // ==================== load modules (example) ==================== //
+// You can split the init file into mutliple files.
 // userscript.addLoadPath("~/.keysnail.d");
 // userscript.require("module1.js");
 // userscript.require("module2.js");
@@ -64,7 +65,7 @@
 // key.helpKey = "<f1>";
 
 // ----------------------------------------
-// // If you want to change the Ctrl key and Meta key, modify two functions below.
+// If you want to change the Ctrl key and Meta key, modify two functions below.
 
 // key.isControlKey = function (aEvent) {
 //     return aEvent.ctrlKey;
@@ -75,7 +76,7 @@
 // };
 
 // ----------------------------------------
-// key macro
+// key macro (if you want to use this feature, uncomment the lines below)
 // key.macroStartKey = "<f3>";
 // key.macroEndKey   = "<f4>";
 // macro.setSleepTime(100);
@@ -118,7 +119,7 @@ key.setGlobalKey([key.helpKey, "b"], function () {
                      key.listKeyBindings();
                  }, "List all keybindings");
 
-key.setGlobalKey([key.helpKey, "F"], function (aEvent) {
+key.setGlobalKey([key.helpKey, "F"], function () {
                      openHelpLink('firefox-help');
                  }, "Display Firefox help");
 

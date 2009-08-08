@@ -27,8 +27,8 @@ KeySnail.Key = {
     escapeKey: "C-q",
 
     // ==== keyboard macro ====
-    macroStartKey: "<f3>",
-    macroEndKey: "<f4>",
+    macroStartKey: "Not defined",
+    macroEndKey: "Not defined",
     currentMacro: [],
     inputtingMacro: false,
 

@@ -95,6 +95,8 @@ print """// ==================== KeySnail configuration file ===================
 // You can bind "Cancell isearch", "Deselect the text", and so forth."""}[l] + """
 
 // ==================== load modules (example) ==================== //
+// """ + {ja: "初期化ファイルを複数のファイルに分割し, 読み込むことが出来る.",
+          en: "You can split the init file into mutliple files."}[l] + """
 // userscript.addLoadPath("~/.keysnail.d");
 // userscript.require("module1.js");
 // userscript.require("module2.js");
@@ -119,7 +121,7 @@ print """// ==================== KeySnail configuration file ===================
 
 // ----------------------------------------
 // """ + {ja: "コントロールキー / メタキーとして解釈させたいキーを変更したい場合は\n// 次に示す二つの関数を変更する.",
-          en: "// If you want to change the Ctrl key and Meta key, modify two functions below."}[l] + """
+          en: "If you want to change the Ctrl key and Meta key, modify two functions below."}[l] + """
 
 // key.isControlKey = function (aEvent) {
 //     return aEvent.ctrlKey;
@@ -130,8 +132,8 @@ print """// ==================== KeySnail configuration file ===================
 // };
 
 // ----------------------------------------
-// """ + {ja: "キーマクロ機能",
-          en: "key macro"}[l] + """
+// """ + {ja: "キーマクロ機能 (使用したい場合はアンコメント)",
+          en: "key macro (if you want to use this feature, uncomment the lines below)"}[l] + """
 // key.macroStartKey = "<f3>";
 // key.macroEndKey   = "<f4>";
 // macro.setSleepTime(100);
@@ -182,7 +184,7 @@ key.setGlobalKey([key.helpKey, "b"], function () {
                  }, """ + {ja: '"キーバインド一覧を表示"',
                            en: '"List all keybindings"'}[l] + """);
 
-key.setGlobalKey([key.helpKey, "F"], function (aEvent) {
+key.setGlobalKey([key.helpKey, "F"], function () {
                      openHelpLink('firefox-help');
                  }, """ + {ja: '"Firefox のヘルプを表示"',
                            en: '"Display Firefox help"'}[l] + """);

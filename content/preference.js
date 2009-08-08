@@ -1,13 +1,11 @@
 var ksPreference = {
-    updateRcFileLocation: function () {
-        var location = nsPreferences
-            .getLocalizedUnicharPref("extensions.keysnail.userscript.location")
-            || nsPreferences
-            .copyUnicharPref("extensions.keysnail.userscript.location");
-        var fileField =
-            document.getElementById("keysnail.preference.userscript.location");
+    initFileKey: "extensions.keysnail.userscript.location",
+    editorKey: "extensions.keysnail.userscript.editor",
 
-        Application.console.log(location);
+    updateFileField: function (aPrefKey, aID) {
+        var location = nsPreferences.getLocalizedUnicharPref(aPrefKey)
+            || nsPreferences.copyUnicharPref(aPrefKey);
+        var fileField = document.getElementById(aID);
 
         var file = this.openFile(location);
 
@@ -18,6 +16,11 @@ var ksPreference = {
             fileField.file = null;
             fileField.label = "No path specified";
         }
+    },
+
+    updateAllFileFields: function () {
+        this.updateFileField(this.initFileKey, "keysnail.preference.userscript.location");
+        this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");
     },
 
     openFile: function (aPath) {
@@ -35,21 +38,37 @@ var ksPreference = {
         return localFile;
     },
 
-    changePathClicked: function () {
+    changePathClicked: function (aType) {
         var nsIFilePicker = Components.interfaces.nsIFilePicker;
         var fp = Components.classes["@mozilla.org/filepicker;1"]
             .createInstance(nsIFilePicker);
-        var location = nsPreferences
-            .getLocalizedUnicharPref("extensions.keysnail.userscript.location");
+        var response;
+        var prefKey;
 
-        fp.init(window, "Select a directory", nsIFilePicker.modeGetFolder);
-        fp.displayDirectory = this.openFile(location);
+        switch (aType) {
+        case 'INITFILE':
+            var initFileLocation = nsPreferences
+                .getLocalizedUnicharPref(this.initFileKey)
+                || nsPreferences
+                .copyUnicharPref(this.initFileKey);
 
-        var response = fp.show();
+            fp.init(window, "Select a directory", nsIFilePicker.modeGetFolder);
+            fp.displayDirectory = this.openFile(initFileLocation);
+            prefKey = this.initFileKey;
+            break;
+        case 'EDITOR':
+            fp.init(window, "Select Editor", nsIFilePicker.modeOpen);
+            fp.appendFilters(Components.interfaces.nsIFilePicker.filterApps);
+            prefKey = this.editorKey;
+            break;
+        }
+
+        response = fp.show();
         if (response == nsIFilePicker.returnOK) {
             nsPreferences
-                .setUnicharPref("extensions.keysnail.userscript.location", fp.file.path);
-            this.updateRcFileLocation();
+                .setUnicharPref(prefKey, fp.file.path);
+            this.updateAllFileFields();
         }
     }
 };
+
