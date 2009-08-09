@@ -440,12 +440,12 @@ key.setEditKey([["M-u"]], function (aEvent) {
 key.setEditKey([["M-l"]], function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, function (aString) aString.toLowerCase());
                },
-               ""Convert following word to lower case");
+               "Convert following word to lower case");
 
 key.setEditKey([["M-c"]], function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, util.capitalizeWord);
                },
-               ""Capitalize the follwing word");
+               "Capitalize the follwing word");
 
 // -------------------- cut / paste --------------------
 

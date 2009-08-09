@@ -923,7 +923,7 @@ KeySnail.Key = {
         var contentPath = this.modules.html
             .createHTML(contentSource);
 
-        gBrowser.loadOneTab(contentPath, null, null, null, false, false);
+        this.viewURI(contentPath);
     },
 
     // 全てのキーバインドを一覧
@@ -974,7 +974,15 @@ KeySnail.Key = {
         var contentPath = this.modules.html
             .createHTML(contentSource);
 
-        gBrowser.loadOneTab(contentPath, null, null, null, false, false);
+        this.viewURI(contentPath);
+    },
+
+    viewURI: function (aURI) {
+        var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+            .getService(Components.interfaces.nsIWindowMediator);
+        var mainWindow = wm.getMostRecentWindow("navigator:browser");
+
+        mainWindow.getBrowser().loadOneTab(aURI, null, null, null, false, false);
     },
 
     message: KeySnail.message

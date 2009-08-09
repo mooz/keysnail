@@ -571,13 +571,13 @@ key.setEditKey([["M-l"]], function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, function (aString) aString.toLowerCase());
                },
                """ + {ja: '"次の一単語を全て小文字に (Lower case)"',
-                      en: '""Convert following word to lower case"'}[l] + """);
+                      en: '"Convert following word to lower case"'}[l] + """);
 
 key.setEditKey([["M-c"]], function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, util.capitalizeWord);
                },
                """ + {ja: '"次の一単語をキャピタライズ"',
-                      en: '""Capitalize the follwing word"'}[l] + """);
+                      en: '"Capitalize the follwing word"'}[l] + """);
 
 // -------------------- cut / paste --------------------
 

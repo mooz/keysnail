@@ -11,6 +11,8 @@ function KeySnailLoader() {
 }
 
 KeySnailLoader.prototype = {
+    browserWindow: null,
+
     observe: function (aSubject, aTopic, aData) {
         switch (aTopic) {
         case 'app-startup':
@@ -34,12 +36,19 @@ KeySnailLoader.prototype = {
         // }
         // this.message(aEvent.target.name);
         // this.message(windowType);
-        if (prefService.getBoolPref('extensions.keysnail.keyhandler.globalEnabled')
-            || windowType == "navigator:browser") {
-            // if the window is not the init file wizard
-            if (aEvent.target.documentURI != "chrome://keysnail/content/rcwizard.xul") {
-                // this.message("#################### " + windowType + " => OVERLAY ####################");
-                aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);                
+
+        if (windowType == "navigator:browser") {
+            aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
+            this.browserWindow = aEvent.target;
+
+            // this.listProperty(this.browserWindow);
+            // this.listProperty(this.browserWindow.defaultView);
+        } else {
+            // aEvent.target.defaultView.KeySnail = this.browserWindow.defaultView.KeySnail;
+            // aEvent.target.defaultView.addEventListener("keypress", aEvent.target.defaultView.KeySnail.Key, true);
+            if (prefService.getBoolPref('extensions.keysnail.keyhandler.globalEnabled')
+                && aEvent.target.documentURI != "chrome://keysnail/content/rcwizard.xul") {
+                aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
             }
         }
     },
@@ -52,7 +61,13 @@ KeySnailLoader.prototype = {
         } else {
             for (var property in aObject) {
                 // this.message(property);
-                this.message("[" + property + "] = " + aObject[property]);
+                try {
+                    this.message("[" + property + "] = "
+                                 + aObject[property]
+                                );
+                } catch (x) {
+                    this.message(x);
+                }
             }
         }
     },
@@ -60,7 +75,11 @@ KeySnailLoader.prototype = {
     message: function (aMsg) {
         var logs = Components.classes["@mozilla.org/consoleservice;1"]
             .getService(Components.interfaces.nsIConsoleService);
-        logs.logStringMessage(aMsg);
+        try {
+            logs.logStringMessage(aMsg);
+        } catch (x) {
+            log.logStringMessage(x);
+        }
     },
 
     QueryInterface: function (aIID) {

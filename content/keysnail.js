@@ -1,8 +1,12 @@
-// var _ksFrom = new Date();
+var _ksFrom = new Date();
+var _ksLast = _ksFrom;
+
 var KeySnail = {
     modules: {},
 
     init: function () {
+        this.showElapsedTime("load module time");
+        
         // unfortunately, changes in this order
         // may cause the undefined error
         // Added (07/10 09)
@@ -23,8 +27,10 @@ var KeySnail = {
         for (i = 0; i < len; ++i) {
             this.registerModule.call(this, moduleObjects[i]);
         }
+        this.showElapsedTime("register module time");
         for (i = 0; i < len; ++i) {
             this.initModule.call(this, moduleObjects[i]);
+            this.showElapsedTime("init module (" + moduleObjects[i] + ") time");
         }
 
         // now, run the keyhandler
@@ -34,7 +40,8 @@ var KeySnail = {
 
         this.modules.key.updateStatusBar();
 
-        // this.message("KeySnail started : " + (new Date() - _ksFrom) + " [msec]");
+        _ksLast = _ksFrom;
+        this.showElapsedTime("keysnail initialization end. total");
     },
 
     registerModule: function (aModuleName) {
@@ -64,6 +71,12 @@ var KeySnail = {
 
     uninit: function () {
         // this.message("Bye!");
+    },
+
+    showElapsedTime: function (aTag) {
+        var now = new Date();
+        this.message(aTag + " :: " + (now - _ksLast));
+        _ksLast = now;
     },
 
     message: function (msg) {

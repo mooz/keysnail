@@ -8,15 +8,16 @@
   <script type="application/x-javascript" src="chrome://keysnail/content/keysnail.js" />
 
   <!-- load modules -->
-  <script type="application/x-javascript" src="chrome://keysnail/content/util.js" />
-  <script type="application/x-javascript" src="chrome://keysnail/content/html.js" />
-  <script type="application/x-javascript" src="chrome://keysnail/content/display.js" />
-  <script type="application/x-javascript" src="chrome://keysnail/content/command.js" />
-  <script type="application/x-javascript" src="chrome://keysnail/content/key.js" />
-  <script type="application/x-javascript" src="chrome://keysnail/content/hook.js" />
-  <script type="application/x-javascript" src="chrome://keysnail/content/macro.js" />
-  <script type="application/x-javascript" src="chrome://keysnail/content/userscript.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/util.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/html.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/display.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/command.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/key.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/hook.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/macro.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/userscript.js" />
 
+  <!-- initialization -->
   <script type="application/x-javascript">
     KeySnail.init();
   </script>

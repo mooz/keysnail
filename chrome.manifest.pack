@@ -2,5 +2,6 @@ content keysnail                                jar:chrome/keysnail.jar!/content
 skin	keysnail	        classic/1.0     jar:chrome/keysnail.jar!/skin/classic/keysnail/
 locale	keysnail                   en-US        jar:chrome/keysnail.jar!/locale/en-US/
 locale	keysnail                   ja           jar:chrome/keysnail.jar!/locale/ja/
+resource	keysnail	modules/
 
 overlay chrome://browser/content/browser.xul    chrome://keysnail/content/overlay.xul

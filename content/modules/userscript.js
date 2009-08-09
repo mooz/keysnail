@@ -103,6 +103,7 @@ KeySnail.UserScript = {
 
         if (loadStatus == 0) {
             this.initFileLoaded = true;
+            this.keymapNeedRegen = true;
         } else {
             // failed. disable the keysnail.
             this.initFileLoaded = false;
