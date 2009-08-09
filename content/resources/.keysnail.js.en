@@ -399,10 +399,10 @@ key.setEditKey("M-v",
 
 // -------------------- absolute --------------------
 
-key.setEditKey(["M-<"],
+key.setEditKey("M-<",
                function (aEvent) { command.moveTop(aEvent); },
                "Beginning of the text area");
-key.setEditKey(["M->"],
+key.setEditKey("M->",
                function (aEvent) { command.moveBottom(aEvent); },
                "End of the text area");
 
@@ -432,18 +432,18 @@ key.setEditKey([["C-<backspace>"],
 
 // -------------------- transformation -------------------- //
 
-key.setEditKey([["M-u"]], function (aEvent) {
+key.setEditKey("M-u", function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, function (aString) aString.toUpperCase());
                },
                "Convert following word to upper case");
 
-key.setEditKey([["M-l"]], function (aEvent) {
+key.setEditKey("M-l", function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, function (aString) aString.toLowerCase());
                },
                "Convert following word to lower case");
 
-key.setEditKey([["M-c"]], function (aEvent) {
-                   command.processForwardWord(aEvent.originalTarget, util.capitalizeWord);
+key.setEditKey("M-c", function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, command.capitalizeWord);
                },
                "Capitalize the follwing word");
 

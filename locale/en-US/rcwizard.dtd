@@ -1,17 +1,17 @@
-<!ENTITY keySnail.rcWizard.title "Keysnail Create / Select the initialization file">
+<!ENTITY keySnail.rcWizard.title "Keysnail :: Create / Select the initialization file">
 
 <!-- PAGE 1 -->
 
-<!ENTITY keySnail.rcWizard.selectMethodDescription "This wizard create the initialization file.
-                                                    If you want to use the file already exists, choose 'Select initialization file place'">
+<!ENTITY keySnail.rcWizard.selectMethodDescription "This wizard will create the init file.
+                                                    If you want to use the file already exists, choose 'Select init file place'">
 
-<!ENTITY keySnail.userscript.dialog.description1 "No initialization file are found.">
-<!ENTITY keySnail.userscript.dialog.description2 "Initialization file is automatically created with the settings below.">
+<!ENTITY keySnail.userscript.dialog.description1 "No init file are found.">
+<!ENTITY keySnail.userscript.dialog.description2 "init file is automatically created with the settings below.">
 
 <!-- menuitem -->
 
-<!ENTITY keySnail.rcWizard.createRcFile "Create the new one">
-<!ENTITY keySnail.rcWizard.selectRcFile "Select initialization file place">
+<!ENTITY keySnail.rcWizard.createRcFile "Create a new one">
+<!ENTITY keySnail.rcWizard.selectRcFile "Select init file place">
 
 <!-- PAGE 2 -->
 
@@ -22,7 +22,7 @@
 
 <!-- PAGE 3 -->
 
-<!ENTITY keySnail.rcWizard.selectRcFileDescription "Select the path where initialization file is stored">
+<!ENTITY keySnail.rcWizard.selectRcFileDescription "Select the directory where init file exists">
 <!ENTITY keySnail.rcWizard.rcFilePlace "Place: ">
 
 <!-- common -->

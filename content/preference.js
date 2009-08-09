@@ -65,10 +65,27 @@ var ksPreference = {
 
         response = fp.show();
         if (response == nsIFilePicker.returnOK) {
-            nsPreferences
-                .setUnicharPref(prefKey, fp.file.path);
+            if (aType == 'INITFILE') {
+                if (!this.modules.util.isDirHasFiles(fp.file.path,
+                                                     this.modules.userscript.directoryDelimiter,
+                                                     this.modules.userscript.defaultInitFileNames)) {
+                    // directory has no rc file.
+                    this.modules.util.alert(window, "keysnail:dialog",
+                                            this.modules.util.getLocaleString("selectDirectoryContainsInitFile",
+                                                                              [fp.file.path]));
+                    return;
+                }
+            }
+
+            nsPreferences.setUnicharPref(prefKey, fp.file.path);
             this.updateAllFileFields();
         }
     }
 };
 
+(function () {
+     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+         .getService(Components.interfaces.nsIWindowMediator);
+     var browserWindow = wm.getMostRecentWindow("navigator:browser");
+     ksPreference.modules = browserWindow.KeySnail.modules;
+ })();

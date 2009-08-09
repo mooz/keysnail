@@ -69,10 +69,6 @@ var KeySnail = {
                           "chrome,titlebar,toolbar,centerscreen", "prefpane-rcfile");
     },
 
-    uninit: function () {
-        // this.message("Bye!");
-    },
-
     showElapsedTime: function (aTag) {
         var now = new Date();
         this.message(aTag + " :: " + (now - _ksLast));

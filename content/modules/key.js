@@ -357,6 +357,13 @@ KeySnail.Key = {
             if (aEvent.charCode == 0x20) {
                 key = "SPC";
             }
+        } else if (aEvent.keyCode >= KeyEvent.DOM_VK_F1 &&
+                   aEvent.keyCode <= KeyEvent.DOM_VK_F24) {
+            // function keys
+            key = "<f"
+                + (aEvent.keyCode - KeyEvent.DOM_VK_F1 + 1)
+                + ">";
+            this.message(key);
         } else {
             // special charactors
             switch (aEvent.keyCode) {
@@ -406,78 +413,6 @@ KeySnail.Key = {
             case KeyEvent.DOM_VK_DELETE:
                 key = "<delete>";
                 break;
-            case KeyEvent.DOM_VK_F1:
-                key = "<f1>";
-                break;
-            case KeyEvent.DOM_VK_F2:
-                key = "<f2>";
-                break;
-            case KeyEvent.DOM_VK_F3:
-                key = "<f3>";
-                break;
-            case KeyEvent.DOM_VK_F4:
-                key = "<f4>";
-                break;
-            case KeyEvent.DOM_VK_F5:
-                key = "<f5>";
-                break;
-            case KeyEvent.DOM_VK_F6:
-                key = "<f6>";
-                break;
-            case KeyEvent.DOM_VK_F7:
-                key = "<f7>";
-                break;
-            case KeyEvent.DOM_VK_F8:
-                key = "<f8>";
-                break;
-            case KeyEvent.DOM_VK_F9:
-                key = "<f9>";
-                break;
-            case KeyEvent.DOM_VK_F10:
-                key = "<f10>";
-                break;
-            case KeyEvent.DOM_VK_F11:
-                key = "<f11>";
-                break;
-            case KeyEvent.DOM_VK_F12:
-                key = "<f12>";
-                break;
-            case KeyEvent.DOM_VK_F13:
-                key = "<f13>";
-                break;
-            case KeyEvent.DOM_VK_F14:
-                key = "<f14>";
-                break;
-            case KeyEvent.DOM_VK_F15:
-                key = "<f15>";
-                break;
-            case KeyEvent.DOM_VK_F16:
-                key = "<f16>";
-                break;
-            case KeyEvent.DOM_VK_F17:
-                key = "<f17>";
-                break;
-            case KeyEvent.DOM_VK_F18:
-                key = "<f18>";
-                break;
-            case KeyEvent.DOM_VK_F19:
-                key = "<f19>";
-                break;
-            case KeyEvent.DOM_VK_F20:
-                key = "<f20>";
-                break;
-            case KeyEvent.DOM_VK_F21:
-                key = "<f21>";
-                break;
-            case KeyEvent.DOM_VK_F22:
-                key = "<f22>";
-                break;
-            case KeyEvent.DOM_VK_F23:
-                key = "<f23>";
-                break;
-            case KeyEvent.DOM_VK_F24:
-                key = "<f24>";
-                break;
             }
         }
 
@@ -491,6 +426,114 @@ KeySnail.Key = {
         }
 
         return key;
+    },
+
+    /**
+     * convert key event to string expression
+     * @param {String} aKey string expression
+     * @return {KeyboardEvent} 
+     */
+    stringToKeyEvent: function (aKey) {
+        var newEvent = document.createEvent('KeyboardEvent');
+        var ctrlKey = false;
+        var altKey = false;
+        var keyCode = 0;
+        var charCode = 0;
+
+        // process modifier
+        if (aKey.length > 1 && aKey.charAt(1) == '-') {
+            while (aKey.charAt(0) == 'C' || aKey.charAt(0) == 'M') {
+                switch (aKey.charAt(0)) {
+                case 'C':
+                    ctrlKey = true;
+                    break;
+                case 'M':
+                    altKey = true;
+                    break;
+                }
+                aKey = aKey.slice(2);
+            }
+            // has modifier
+        }
+
+        if (aKey.charAt(0) == '<') {
+            // special key
+            if (aKey.charAt(1).toLowerCase() == 'f') {
+                // <f
+                // function key
+                var num = aKey.match("<f(\d+\)>");
+                num = !!num ? parseInt(num[0]) : 0;
+
+                if (num > 0 && num < 25) {
+                    keyCode = KeyEvent.DOM_VK_F1 + num - 1;
+                }
+            } else {
+                switch (aKey) {
+                case "<right>":
+                    keyCode = KeyEvent.DOM_VK_RIGHT;
+                    break;
+                case "<left>":
+                    keyCode = KeyEvent.DOM_VK_LEFT;
+                    break;
+                case "<up>":
+                    keyCode = KeyEvent.DOM_VK_UP;
+                    break;
+                case "<down>":
+                    keyCode = KeyEvent.DOM_VK_DOWN;
+                    break;
+                case "<prior>":
+                    keyCode = KeyEvent.DOM_VK_PAGE_UP;
+                    break;
+                case "<next>":
+                    keyCode = KeyEvent.DOM_VK_PAGE_DOWN;
+                    break;
+                case "<end>":
+                    keyCode = KeyEvent.DOM_VK_END;
+                    break;
+                case "<home>":
+                    keyCode = KeyEvent.DOM_VK_HOME;
+                    break;
+                case "<tab>":
+                    keyCode = KeyEvent.DOM_VK_TAB;
+                    break;
+                case "<backspace>":
+                    keyCode = KeyEvent.DOM_VK_BACK_SPACE;
+                    break;
+                case "<print>":
+                    keyCode = KeyEvent.DOM_VK_PRINTSCREEN;
+                    break;
+                case "<insert>":
+                    keyCode = KeyEvent.DOM_VK_INSERT;
+                    break;
+                case "<delete>":
+                    keyCode = KeyEvent.DOM_VK_DELETE;
+                    break;
+                }
+            }
+        } else {
+            if (aKey.length == 1) {
+                // ascii char
+                charCode = aKey.charCodeAt(0); 
+            } else {
+                switch (aKey) {
+                case "ESC":
+                    keyCode = KeyEvent.DOM_VK_ESCAPE;
+                    break;
+                case "RET":
+                    keyCode = KeyEvent.DOM_VK_ENTER;
+                    break;
+                case "SPC":
+                    charCode = 0x20;
+                    break;
+                }
+            }
+        }
+
+        newEvent.initKeyEvent('keypress', true, true, null,
+                              ctrlKey, altKey, false, false,
+                              keyCode, charCode);
+        
+        return newEvent;
     },
 
     /**

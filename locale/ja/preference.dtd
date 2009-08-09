@@ -1,8 +1,8 @@
 <!ENTITY keySnail.preference.title "KeySnail の設定">
 
 <!-- User Script -->
-<!ENTITY keySnail.preference.userscript "設定ファイル">
-<!ENTITY keySnail.preference.userscript.settings "設定ファイル">
+<!ENTITY keySnail.preference.userscript "設定">
+<!ENTITY keySnail.preference.userscript.settings "初期化ファイル">
 <!ENTITY keySnail.preference.userscript.location "読み込み元: ">
 <!ENTITY keySnail.preference.userscript.editor "エディタ: ">
 

@@ -27,11 +27,6 @@ KeySnail.Command = {
 
     // ==================== Walk through elements  ====================
 
-    elementsRetriever: function (aXPath) {
-        var document = document.commandDispatcher.focusedWindow;// gBrowser.contentWindow.document;
-        return document.evaluate(aXPath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-    },
-
     elementsRetrieverTextarea: function (aDocument) {
         // var document = gBrowser.contentWindow.document;
         // Note: type="search" is Safari specific
@@ -360,18 +355,18 @@ KeySnail.Command = {
         var begin = aInput.selectionStart;
         var end   = aInput.selectionEnd;
         var text  = aInput.value;
-        var subword = text.slice(end).match(/\s*[a-zA-Z0-9]+|[^a-zA-Z0-9]+/);
+        var subword = text.slice(end).match(/[^a-zA-Z0-9]*[a-zA-Z0-9]+|[^a-zA-Z0-9]+/);
 
-        var wordEnd = !!subword ? end + subword[0].length : end;
-
-        subword[0] = aFilter(subword[0]);
-
-        aInput.value = text.slice(0, begin) + subword[0] + text.slice(wordEnd);
-        aInput.setSelectionRange(wordEnd, wordEnd);        
+        if (!!subword) {
+            var wordEnd = end + subword[0].length;
+            subword[0] = aFilter(subword[0]);
+            aInput.value = text.slice(0, begin) + subword[0] + text.slice(wordEnd);
+            aInput.setSelectionRange(wordEnd, wordEnd);
+        }
     },
 
     capitalizeWord: function (aString) {
-        var spaces = aString.match(/^\s*/);
+        var spaces = aString.match(/^[^a-zA-Z0-9]*/);
         var wordBegin = !!spaces ? spaces[0].length : 0;
         return aString.slice(0, wordBegin)
             + aString.charAt(wordBegin).toUpperCase()

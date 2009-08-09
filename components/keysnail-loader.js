@@ -11,7 +11,10 @@ function KeySnailLoader() {
 }
 
 KeySnailLoader.prototype = {
-    browserWindow: null,
+    // browserWindow: null,
+    // blackList: [
+    //     "chrome://keysnail/content/rcwizard.xul"
+    // ],
 
     observe: function (aSubject, aTopic, aData) {
         switch (aTopic) {
@@ -30,28 +33,66 @@ KeySnailLoader.prototype = {
 
     handleEvent: function (aEvent) {
         aEvent.currentTarget.removeEventListener('load', this, false);
-        var windowType = aEvent.target.documentElement.getAttribute("windowtype");
+        // var windowType = aEvent.target.documentElement.getAttribute("windowtype");
+
         // if (!windowType) {
-        //     this.listProperty(aEvent.target);
+        //     // this.message(windowType);
+        //     // this.listProperty(aEvent.target);
         // }
         // this.message(aEvent.target.name);
         // this.message(windowType);
 
-        if (windowType == "navigator:browser") {
-            aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
-            this.browserWindow = aEvent.target;
+        this.message(aEvent.target.documentURI);
 
-            // this.listProperty(this.browserWindow);
-            // this.listProperty(this.browserWindow.defaultView);
-        } else {
-            // aEvent.target.defaultView.KeySnail = this.browserWindow.defaultView.KeySnail;
-            // aEvent.target.defaultView.addEventListener("keypress", aEvent.target.defaultView.KeySnail.Key, true);
-            if (prefService.getBoolPref('extensions.keysnail.keyhandler.globalEnabled')
-                && aEvent.target.documentURI != "chrome://keysnail/content/rcwizard.xul") {
-                aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
-            }
+        switch (aEvent.target.documentURI) {
+            // while list
+        case 'chrome://browser/content/browser.xul':
+            aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
+            return;
+            break;
+            // black list
+        case 'chrome://keysnail/content/rcwizard.xul':
+        case 'chrome://keysnail/content/preference.xul':
+        case 'chrome://browser/content/aboutDialog.xul':
+            return;
+            break;
+            // special case
+        // case 'chrome://global/content/commonDialog.xul':
+        //     // this.listProperty(aEvent.target.defaultView.document);
+        //     // this.listProperty(aEvent.target);
+        //     // this.listProperty(aEvent.target.document);
+        //     if (this.hasInput(aEvent.target.defaultView.window)) {
+        //         aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
+        //     }
+        //     return;
+        //     break;
         }
+
+        // when keysail is enabled globally
+        if (prefService.getBoolPref('extensions.keysnail.keyhandler.globalEnabled')) {
+            aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
+            // this.message(aEvent.target.documentURI + " => Enabled");
+        }
+
+        // windowType == "navigator:browser"
+        // this.browserWindow = aEvent.target;
+        // this.listProperty(this.browserWindow);
+        // this.listProperty(this.browserWindow.defaultView);
+        // aEvent.target.defaultView.KeySnail = this.browserWindow.defaultView.KeySnail;
+        // aEvent.target.defaultView.addEventListener("keypress", aEvent.target.defaultView.KeySnail.Key, true);
     },
+
+    // hasInput: function (aDocument) {
+    //     var xPathExp = '//textbox';
+    //     var xPathResults = aDocument.evaluate(xPathExp, aDocument,
+    //                                           null,
+    //                                           7,
+    //                                           null);
+        
+    //     this.message((xPathResults || []).length);
+
+    //     return (xPathResults.snapshotLength > 0);
+    // },
 
     // list all the properties of the aObject
     // @param aObject

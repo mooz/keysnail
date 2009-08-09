@@ -396,10 +396,10 @@ key.setEditKey("M-v",
 
 // -------------------- absolute --------------------
 
-key.setEditKey(["M-<"],
+key.setEditKey("M-<",
                function (aEvent) { command.moveTop(aEvent); },
                "テキストエリア先頭へ");
-key.setEditKey(["M->"],
+key.setEditKey("M->",
                function (aEvent) { command.moveBottom(aEvent); },
                "テキストエリア末尾へ");
 
@@ -429,18 +429,18 @@ key.setEditKey([["C-<backspace>"],
 
 // -------------------- transformation -------------------- //
 
-key.setEditKey([["M-u"]], function (aEvent) {
+key.setEditKey("M-u", function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, function (aString) aString.toUpperCase());
                },
                "次の一単語を全て大文字に (Upper case)");
 
-key.setEditKey([["M-l"]], function (aEvent) {
+key.setEditKey("M-l", function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, function (aString) aString.toLowerCase());
                },
                "次の一単語を全て小文字に (Lower case)");
 
-key.setEditKey([["M-c"]], function (aEvent) {
-                   command.processForwardWord(aEvent.originalTarget, util.capitalizeWord);
+key.setEditKey("M-c", function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, command.capitalizeWord);
                },
                "次の一単語をキャピタライズ");
 

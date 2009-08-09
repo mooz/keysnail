@@ -5,6 +5,7 @@
 <!-- for findfiled -->
 <?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
 <?xml-stylesheet href="chrome://browser/skin/preferences/preferences.css"?>
+<?xml-stylesheet href="chrome://keysnail/skin/menuitem-icon.css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/rcwizard.dtd">
 
@@ -27,9 +28,13 @@
         <menulist id="keysnail-rcwizard-selectmethod">
             <menupopup>
                 <menuitem label="&keySnail.rcWizard.createRcFile;"
-                          name="create-rcfile"/>
+                          name="create-rcfile"
+                          class="menuitem-iconic"
+                          image="chrome://keysnail/skin/icon/create.png"/>
                 <menuitem label="&keySnail.rcWizard.selectRcFile;"
-                          name="select-rcfile"/>
+                          name="select-rcfile"
+                          class="menuitem-iconic"
+                          image="chrome://keysnail/skin/icon/select.png"/>
             </menupopup>
         </menulist>
     </wizardpage>

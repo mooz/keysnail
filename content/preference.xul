@@ -50,7 +50,7 @@
                     <!-- init file path -->
                     <hbox>
                         <label value="&keySnail.preference.userscript.location;"
-                               control="userScriptLocation"/>
+                               control="userScriptLocation" flex="1"/>
                         <filefield id="keysnail.preference.userscript.location" flex="2"
                                    style="width: 25em;"
                                    preference="extensions.keysnail.userscript.location"
@@ -64,7 +64,7 @@
                     <!-- editor path -->
                     <hbox>
                         <label value="&keySnail.preference.userscript.editor;"
-                               control="userScriptLocation"/>
+                               control="userScriptLocation" flex="1"/>
                         <filefield id="keysnail.preference.userscript.editor" flex="2"
                                    style="width: 25em;"
                                    preference="extensions.keysnail.userscript.editor"

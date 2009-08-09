@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-<?xml-stylesheet href="chrome://keysnail/skin/minibuffer.css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/statusbar.dtd">
 
@@ -17,7 +16,9 @@
                    onpopupshowing="KeySnail.Key.updateMenu();">
 	    <menuitem id="keysnail-menu-reload-userscript"
 		      label="&keySnail.statusbar.reloadUserScript;"
-		      oncommand="KeySnail.UserScript.reload();"/>
+		      oncommand="KeySnail.UserScript.reload();"
+                      class="menuitem-iconic"
+                      src="chrome://keysnail/skin/icon/reload.png"/>
             <menuseparator/>
 	    <menuitem id="keysnail-menu-list-keybinds"
 		      label="&keySnail.statusbar.listKeyBindings;"
@@ -26,7 +27,9 @@
                 <menupopup id="keysnail-menu-settings-submenu">
 	            <menuitem id="keysnail-menu-edit-init-file"
 	                      label="&keySnail.statusbar.editInitFile;"
-	                      oncommand="KeySnail.UserScript.editInitFile();"/>
+	                      oncommand="KeySnail.UserScript.editInitFile();"
+                              class="menuitem-iconic"
+                              src="chrome://keysnail/skin/icon/edit.png"/>
 	            <menuitem id="keysnail-menu-open-wizard"
 	                      label="&keySnail.statusbar.wizard;"
 	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"/>
@@ -34,7 +37,9 @@
             </menu>
 	    <menuitem id="keysnail-menu-open-preference"
 	              label="&keySnail.statusbar.openPreference;"
-	              oncommand="KeySnail.openPreference();"/>
+	              oncommand="KeySnail.openPreference();"
+                      class="menuitem-iconic"
+                      src="chrome://keysnail/skin/icon/preference.png"/>
             <menuseparator/>
 	    <menuitem id="keysnail-menu-status"
                       label="&keySnail.statusbar.isEnabled;"
