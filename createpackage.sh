@@ -11,6 +11,7 @@ rm -f chrome/keysnail.jar
 jar cvf0 chrome/keysnail.jar \
     content/*.*~(*~|.svn/*) \
     content/resources/{.*~*~,*~*~} \
+    content/modules/*.js~(*~|.svn/*) \
     locale/**/*.*~(*~|.svn/*) \
     skin/**/*.*~(*~|*.svg|.svn/*)
 
