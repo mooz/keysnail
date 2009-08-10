@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- base code from XUL/Migemo -->
+
+<!--
+
+     入力キー検出用ダイアログ
+
+     window.openDialog(
+     'chrome://***/content/keyDetecter.xul',
+     '',
+     'chrome,modal,resizable=no,titlebar=no,centerscreen',
+     keyData,
+     descriptionLabel,
+     cancelButtonLabel
+     );
+
+     という具合で、入力されたキーの情報を格納するオブジェクトと、表示するメッセージとを引数として渡す。
+
+  -->
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	orient="vertical"
+	onkeypress="keyDetector.onKeyPress.call(keyDetector,event);">
+
+    <script type="application/x-javascript"><![CDATA[
+var keyDetector = {
+    modules: null,
+
+    onKeyPress: function (aEvent) {
+        var str = this.modules.key.keyEventToString(aEvent);
+        this.modules.key.message(str);
+    }
+};
+
+(function () {
+     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+         .getService(Components.interfaces.nsIWindowMediator);
+     var browserWindow = wm.getMostRecentWindow("navigator:browser");
+     keyDetector.modules = browserWindow.KeySnail.modules;
+ })();
+]]></script>
+
+    <vbox style="margin: 10px;">
+        <box orient="horizontal">
+	    <spacer flex="1"/>
+	    <description id="description"/>
+	    <script type="application/x-javascript"><![CDATA[
+		document.getElementById('description').setAttribute('value', window.arguments[1] || '');
+	]]></script>
+	    <spacer flex="1"/>
+        </box>
+        <box orient="horizontal" height="26px">
+	    <spacer flex="1"/>
+	    <button id="cancelButton" oncommand="window.close();"/>
+	    <script type="application/x-javascript"><![CDATA[
+		document.getElementById('cancelButton').setAttribute('label', window.arguments[2] || '');
+	]]></script>
+	    <spacer flex="1"/>
+        </box>
+    </vbox>
+    <spacer flex="1"/>
+
+</window>

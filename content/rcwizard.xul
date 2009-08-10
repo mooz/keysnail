@@ -39,11 +39,12 @@
         </menulist>
     </wizardpage>
 
-    <!-- ==================== CREATE ==================== -->
+    <!-- ==================== CREATE : select path ==================== -->
 
     <wizardpage pageid="create-rcfile"
                 onpageshow="rcWizard.updatePageCreate();"
-                description="&keySnail.rcWizard.createRcFile;">
+                description="&keySnail.rcWizard.createRcFile;"
+                next="rcfile-settings">
         <description>
             &keySnail.rcWizard.createRcFileDescription;
         </description>
@@ -79,6 +80,94 @@
             </rows>
         </grid>
     </wizardpage>
+
+    <!-- ==================== CREATE : settings (select special keys) ==================== -->
+
+    <wizardpage pageid="rcfile-settings"
+                description="&keySnail.rcWizard.settingRcFile;"
+                onpageshow="keyCustomizer.initPane();"
+                >
+        <description>&keySnail.rcWizard.settingRcFileDescription;</description>
+        <separator />
+        <!-- original code from XUL/Migemo -->
+        <!-- quit key -->
+        <vbox>
+            <groupbox orient="vertical">
+                <caption label="&keySnail.rcWizard.key.quit;"/>
+                <description>&keySnail.rcWizard.key.quit.description;</description>
+                <hbox>
+                    <textbox id="keysnail-userscript-key-quit"
+                             onclick="keyCustomizer.set(keyCustomizer.keys.quit);"
+                             readonly="true"
+                             />
+                    <button label="&keySnail.rcWizard.changeKey;"
+                            oncommand="keyCustomizer.set(keyCustomizer.keys.quit);"/>
+                </hbox>
+            </groupbox>
+        </vbox>
+        <!-- help key -->
+        <vbox>
+            <groupbox orient="vertical">
+                <caption label="&keySnail.rcWizard.key.help;"/>
+                <description>&keySnail.rcWizard.key.help.description;</description>
+                <hbox>
+                    <textbox id="keysnail-userscript-key-help"
+                             onclick="keyCustomizer.set(keyCustomizer.keys.help);"
+                             readonly="true"
+                             />
+                    <button label="&keySnail.rcWizard.changeKey;"
+                            oncommand="keyCustomizer.set(keyCustomizer.keys.help);"/>
+                </hbox>
+            </groupbox>
+        </vbox>
+        <!-- escape key -->
+        <vbox>
+            <groupbox orient="vertical">
+                <caption label="&keySnail.rcWizard.key.escape;"/>
+                <description>&keySnail.rcWizard.key.escape.description;</description>
+                <hbox>
+                    <textbox id="keysnail-userscript-key-escape"
+                             onclick="keyCustomizer.set(keyCustomizer.keys.escape);"
+                             readonly="true"
+                             />
+                    <button label="&keySnail.rcWizard.changeKey;"
+                            oncommand="keyCustomizer.set(keyCustomizer.keys.escape);"/>
+                </hbox>
+            </groupbox>
+        </vbox>
+        <!-- macroStart key -->
+        <vbox>
+            <groupbox orient="vertical">
+                <caption label="&keySnail.rcWizard.key.macroStart;"/>
+                <description>&keySnail.rcWizard.key.macroStart.description;</description>
+                <hbox>
+                    <textbox id="keysnail-userscript-key-macroStart"
+                             onclick="keyCustomizer.set(keyCustomizer.keys.macroStart);"
+                             readonly="true"
+                             />
+                    <button label="&keySnail.rcWizard.changeKey;"
+                            oncommand="keyCustomizer.set(keyCustomizer.keys.macroStart);"/>
+                </hbox>
+            </groupbox>
+        </vbox>
+        <!-- macroEnd key -->
+        <vbox>
+            <groupbox orient="vertical">
+                <caption label="&keySnail.rcWizard.key.macroEnd;"/>
+                <description>&keySnail.rcWizard.key.macroEnd.description;</description>
+                <hbox>
+                    <textbox id="keysnail-userscript-key-macroEnd"
+                             onclick="keyCustomizer.set(keyCustomizer.keys.macroEnd);"
+                             readonly="true"
+                             />
+                    <button label="&keySnail.rcWizard.changeKey;"
+                            oncommand="keyCustomizer.set(keyCustomizer.keys.macroEnd);"/>
+                </hbox>
+            </groupbox>
+        </vbox>
+    </wizardpage>
+
+    <!-- ==================== SELECT ==================== -->
 
     <wizardpage pageid="select-rcfile"
                 onpageshow="rcWizard.updatePageSelect();"

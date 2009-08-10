@@ -12,14 +12,32 @@
 <!ENTITY keySnail.rcWizard.createRcFile "初期化ファイルを新しく作成する">
 <!ENTITY keySnail.rcWizard.selectRcFile "初期化ファイルの場所を選ぶ">
 
-<!-- PAGE 2 -->
+<!-- PAGE a-1 -->
 
 <!ENTITY keySnail.rcWizard.createRcFileDescription "初期化ファイルの名前と作成先を選んでください">
 <!ENTITY keySnail.rcWizard.rcFileDestination "作成先: ">
 <!ENTITY keySnail.rcWizard.filenameDotDiscription "UNIX 等で一般的なドットファイルです">
 <!ENTITY keySnail.rcWizard.filenameUBDiscription "ドットの代わりにアンダーバーを使ったタイプのものです">
 
-<!-- PAGE 3 -->
+<!-- PAGE a-2 -->
+
+<!ENTITY keySnail.rcWizard.settingRcFile "作成する初期化ファイルの設定">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription "作成する初期化ファイルの設定を行います">
+<!ENTITY keySnail.rcWizard.changeKey "変更">
+
+<!ENTITY keySnail.rcWizard.key.quit "Quit key">
+<!ENTITY keySnail.rcWizard.key.help "Help key">
+<!ENTITY keySnail.rcWizard.key.escape "Escape key">
+<!ENTITY keySnail.rcWizard.key.macroStart "Macro Start key">
+<!ENTITY keySnail.rcWizard.key.macroEnd "Macro End / Play key">
+
+<!ENTITY keySnail.rcWizard.key.quit.description "キー入力のキャンセル等に用いられます">
+<!ENTITY keySnail.rcWizard.key.help.description "キーバインドの一覧表示等に用いられます">
+<!ENTITY keySnail.rcWizard.key.escape.description "このキーの後に続けて入力されたキーは Firefox に直接送られます">
+<!ENTITY keySnail.rcWizard.key.macroStart.description "キーマクロの定義を開始します">
+<!ENTITY keySnail.rcWizard.key.macroEnd.description "キーマクロの定義を終了, 定義されたキーマクロの再生を行います">
+
+<!-- PAGE b-1 -->
 
 <!ENTITY keySnail.rcWizard.selectRcFileDescription "初期化ファイルの場所を選んでください">
 <!ENTITY keySnail.rcWizard.rcFilePlace "読み込み元: ">

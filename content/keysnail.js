@@ -34,7 +34,8 @@ var KeySnail = {
         }
 
         // now, run the keyhandler
-        if (this.modules.key.status) {
+        if (this.modules.key.status &&
+            this.modules.userscript.initFileLoaded) {
             this.modules.key.run();
         }
 

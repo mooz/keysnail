@@ -1,5 +1,5 @@
 var rcWizard = {
-    util: null,
+    modules: null,
 
     prefDirectory: null,
     defaultInitFileNames: null,
@@ -10,14 +10,14 @@ var rcWizard = {
 
     onLoad: function () {
         // to access the utility
-        this.util = window.arguments[0].inn.util;
+        this.modules = window.arguments[0].inn.modules;
 
-        this.prefDirectory = window.arguments[0].inn.prefDirectory;
-        this.defaultInitFileNames = window.arguments[0].inn.defaultInitFileNames;
-        this.directoryDelimiter = window.arguments[0].inn.directoryDelimiter;
+        this.prefDirectory = this.modules.userscript.prefDirectory;
+        this.defaultInitFileNames = this.modules.userscript.defaultInitFileNames;
+        this.directoryDelimiter = this.modules.userscript.directoryDelimiter;
 
         this.rcFilePath = this.prefDirectory;
-        this.rcFileObject = this.pathToLocalFile(this.prefDirectory);
+        this.rcFileObject = this.modules.util.openFile(this.prefDirectory);
 
         window.document.documentElement.setAttribute("windowtype", window.name);
     },
@@ -76,10 +76,21 @@ var rcWizard = {
 
         fp.init(window, "Select a directory", nsIFilePicker.modeGetFolder);
         // set default directory
-        fp.displayDirectory = this.pathToLocalFile(this.prefDirectory);
+        fp.displayDirectory = this.modules.util.openFile(this.prefDirectory);
 
         var response = fp.show();
         if (response == nsIFilePicker.returnOK) {
+            if (aUpdateFunction == this.updatePageSelect &&
+                !this.modules.util.isDirHasFiles(fp.file.path,
+                                                 this.directoryDelimiter,
+                                                 this.defaultInitFileNames)) {
+                // directory has no rc file.
+                this.modules.util.alert(window, "KeySnail",
+                                        this.modules.util.getLocaleString("noUserScriptFound",
+                                                                          [fp.file.path]));
+                return;
+            }
+
             this.rcFileObject = fp.file;
             this.rcFilePath = fp.file.path;
             // aUpdateFunction() does not works well
@@ -97,37 +108,86 @@ var rcWizard = {
 
         var selectedMethod = document.getElementById("keysnail-rcwizard-startpage").next;
 
-        if (selectedMethod == "select-rcfile"
-            && !this.util.isDirHasFiles(this.rcFilePath,
-                                        this.directoryDelimiter,
-                                        this.defaultInitFileNames)) {
-            // directory has no rc file.
-            this.util.alert(window, "KeySnail",
-                            this.util.getLocaleString("noUserScriptFound",
-                                                      [this.rcFilePath]));
-            return false;
-        }
-
-        // 変更した引数を返す
+        // return changed arguments
         window.arguments[0].out = {};
 
-        window.arguments[0].out.rcFilePath
-            = this.rcFilePath;
+        window.arguments[0].out.rcFilePath = this.rcFilePath;
 
         window.arguments[0].out.configFileNameIndex
-            = document.getElementById("keysnail-userscript-filename-candidates")
-            .selectedIndex;
+            = document.getElementById("keysnail-userscript-filename-candidates").selectedIndex;
 
         window.arguments[0].out.selectedMethod = selectedMethod;
+
+        // set special keys
+        window.arguments[0].keys = {};
 
         return true;
     },
 
     onCancel: function () {
-        // ユーザが cancel をクリックした時は、window.arguments[0].out は null のまま
-        // window.arguments[0].out is null
+        // When user clicked "cancel" button, window.arguments[0].out is left to null.
         window.arguments[0].out = null;
 
         return true;
     }
 };
+
+var keyCustomizer = {
+    prefPrefix: 'keysnail-userscript-key-',
+    keys: ['quit',
+           'help',
+           'escape',
+           'macroStart',
+           'macroEnd'],
+
+    initPane: function () {
+        var self = this;
+        this.KEYS.forEach(function (aKey) {
+                              let k = document.getElementById(self.prefPrefix + aKey);
+                              k.keyData = parseShortcut(k.value);
+                              self.keys[aKey] = k;
+                          });
+    },
+
+    set: function (aNode) {
+        let keyData = {};
+
+        window.openDialog(
+            'chrome://keysnail/content/keyDetector.xul',
+            '_blank',
+            'chrome,modal,resizable=no,titlebar=no,centerscreen',
+            keyData,
+            keyCustomizer.modules.util.getLocaleString('setKey'),
+            keyCustomizer.modules.util.getLocaleString('cancel')
+        );
+
+        if (keyData.modified) {
+            aNode.value = keyData.string;
+            var event = document.createEvent('UIEvents');
+            event.initUIEvent('input', true, false, window, 0);
+            aNode.dispatchEvent(event);
+        }
+    },
+
+    clear: function (aNode) {
+        aNode.value = '';
+        aNode.keyData = parseShortcut(aNode.value);
+        aNode.keyData.modified = true;
+
+        fireInputEvent(aNode);
+    }
+};
+
+function fireInputEvent(aNode)
+{
+    var event = document.createEvent('UIEvents');
+    event.initUIEvent('input', true, false, window, 0);
+    aNode.dispatchEvent(event);
+}
+
+(function () {
+     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+         .getService(Components.interfaces.nsIWindowMediator);
+     var browserWindow = wm.getMostRecentWindow("navigator:browser");
+     rcWizard.modules = keyCustomizer.modules = browserWindow.KeySnail.modules;
+ })();

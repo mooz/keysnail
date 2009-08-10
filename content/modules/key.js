@@ -25,10 +25,10 @@ KeySnail.Key = {
     quitKey: "C-g",
     helpKey: "<f1>",
     escapeKey: "C-q",
-
-    // ==== keyboard macro ====
     macroStartKey: "Not defined",
     macroEndKey: "Not defined",
+
+    // ==== keyboard macro ====
     currentMacro: [],
     inputtingMacro: false,
 
@@ -363,7 +363,6 @@ KeySnail.Key = {
             key = "<f"
                 + (aEvent.keyCode - KeyEvent.DOM_VK_F1 + 1)
                 + ">";
-            this.message(key);
         } else {
             // special charactors
             switch (aEvent.keyCode) {
@@ -814,16 +813,21 @@ KeySnail.Key = {
      * @param aArg   prefix argument to be passed    
      */
     executeFunction: function (aFunc, aEvent, aArg) {
+        this.message(aEvent.target);
+        this.message(aFunc);
+
         if (!aFunc.ksNoRepeat && aArg) {
             // iterate
             for (var i = 0; i < aArg; ++i) {
                 // func(event, arg); => this がグローバルになる
-                aFunc.apply(this.modules, [aEvent, aArg]);
+                // aFunc.apply(this.modules, [aEvent, aArg]);
+                aFunc.apply(KeySnail, [aEvent, aArg]);
             }
         } else {
             // one time
             // func(event, arg); => this がグローバルになる
-            aFunc.apply(this.modules, [aEvent, aArg]);
+            aFunc.apply(KeySnail, [aEvent, aArg]);
+            // aFunc.apply(this.modules, [aEvent, aArg]);
         }
     },
 

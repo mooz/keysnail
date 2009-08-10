@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
+<?xml-stylesheet href="chrome://browser/skin/preferences/preferences.css"?>
+<?xml-stylesheet href="chrome://hatenabookmark/skin/config.css"?>
+<?xml-stylesheet type="text/css" href="chrome://hatenabookmark/content/widgets.css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://hatenabookmark/locale/config.dtd">
+<prefwindow id="hBookmark-config"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    xmlns:html="http://www.w3.org/1999/xhtml"
+    title="&hBookmark.config.title;"
+    >
+
+<prefpane 
+    image="chrome://hatenabookmark/skin/images/transparent.png"
+    id="prefpane-locationbar" label="&hBookmark.config.general;" flex="1">
+    <preferences>
+        <preference 
+            id="extensions.hatenabookmark.locationbar.searchToggle"
+            name="extensions.hatenabookmark.locationbar.searchToggle"
+            type="bool"/>
+        <preference 
+            id="extensions.hatenabookmark.locationbar.search"
+            name="extensions.hatenabookmark.locationbar.search"
+            type="bool"/>
+        <preference 
+            id="extensions.hatenabookmark.contextmenu.enabled"
+            name="extensions.hatenabookmark.contextmenu.enabled"
+            type="bool"/>
+        <preference 
+            id="extensions.hatenabookmark.sidebar.reverseDirection"
+            name="extensions.hatenabookmark.sidebar.reverseDirection"
+            type="bool"/>
+        <preference 
+            id="extensions.hatenabookmark.recentItemCount"
+            name="extensions.hatenabookmark.recentItemCount"
+            type="int"/>
+        <preference 
+            id="extensions.hatenabookmark.link.openInNewTab"
+            name="extensions.hatenabookmark.link.openInNewTab"
+            type="bool"/>
+        <preference 
+            id="extensions.hatenabookmark.link.linkOverlay"
+            name="extensions.hatenabookmark.link.linkOverlay"
+            type="bool"/>
+    </preferences>
+
+<prefpane 
+    image="chrome://hatenabookmark/skin/images/transparent.png"
+    onpaneload="hBookmark.Config.ShortCut.initPane();"
+    id="prefpane-shortcut" label="&hBookmark.config.shortcut;" flex="1">
+
+    <preferences>
+        <preference 
+            id="extensions.hatenabookmark.shortcut.keys.add"
+            name="extensions.hatenabookmark.shortcut.keys.add"
+            type="string"/>
+        <preference 
+            id="extensions.hatenabookmark.shortcut.keys.comment"
+            name="extensions.hatenabookmark.shortcut.keys.comment"
+            type="string"/>
+        <preference 
+            id="extensions.hatenabookmark.shortcut.keys.sidebar"
+            name="extensions.hatenabookmark.shortcut.keys.sidebar"
+            type="string"/>
+    </preferences>
+
+</prefpane>
+
+<script type="application/x-javascript" src="chrome://browser/content/utilityOverlay.js"></script>
+<script type="application/javascript; version=1.8" charset="utf-8" src="chrome://hatenabookmark/content/autoloader.js" />
+</prefwindow>
+

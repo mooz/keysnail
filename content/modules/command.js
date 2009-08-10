@@ -12,14 +12,15 @@ KeySnail.Command = {
     init: function () {
         if (typeof(goDoCommand) == 'undefined') {
             goDoCommand = function(aCommand) {
+                Application.console.log("goDoCommand called!");
                 try {
                     var controller = 
-                        top.document.commandDispatcher.getControllerForCommand(aCommand);
+                        document.commandDispatcher.getControllerForCommand(aCommand);
                     if (controller && controller.isCommandEnabled(aCommand))
                         controller.doCommand(aCommand);
                 }
                 catch(e) {
-                    this.message("An error "+e+" occurred executing the "+aCommand+" command\n");
+                    this.message("An error " + e + " occurred executing the " + aCommand + " command\n");
                 }
             };
         }

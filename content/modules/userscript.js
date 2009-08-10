@@ -31,7 +31,7 @@ KeySnail.UserScript = {
      */
     jsFileLoader: function (aScriptPath) {
         var code = this.modules.util.readTextFile(aScriptPath).value;
-        new Function("with (KeySnail.modules) {" + code + " }")();            
+        new Function("with (KeySnail.modules) {" + code + " }")();
     },
 
     /**
@@ -56,7 +56,7 @@ KeySnail.UserScript = {
         this.initFilePath = aInitFilePath;
 
         this.modules.display
-            .echoStatusBar("KeySnail: [" + aInitFilePath + "]: " +
+            .echoStatusBar("KeySnail :: [" + aInitFilePath + "] :: " +
                            this.modules.util
                            .getLocaleString("initFileLoaded", [(end - start) / 1000]),
                            3000);
@@ -84,29 +84,79 @@ KeySnail.UserScript = {
         this.load();
     },
 
+    linkMembers: function (aFrom, aTo, aMembers) {
+        for (var i = 0; i < aMembers.length; ++i) {
+            aTo[aMembers[i]] = aFrom[aMembers[i]];
+        }
+    },
+
     /**
      * load init file
      */
     load: function () {
         var loadStatus = -1;
 
+        /**
+         * The cheat commented out below does *NOT* work.
+         * Because the context of function bound to key sequence is "static"
+         * i.e. the 'top', 'window', 'gBrowser' and other objects in function
+         * is eternally the member of the context of keybind definition.
+         * So we need to call loadUserScript every time when any new window opened
+         * (even in simple window.alert()! that a huge bottleneck)
+         */
+
+        // if (window.document.documentElement.getAttribute("windowtype") != "navigator:browser") {
+        //     // cheat
+        //     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+        //         .getService(Components.interfaces.nsIWindowMediator);
+        //     var browserWindow = wm.getMostRecentWindow("navigator:browser");
+
+        //     if (!browserWindow.KeySnail.modules.userscript.initFileLoaded) {
+        //         this.initFileLoaded = false;
+        //         return;
+        //     }
+
+        //     this.linkMembers(browserWindow.KeySnail.modules.key,
+        //                      this.modules.key,
+        //                      ["keyMapHolder",
+        //                       "quitKey",
+        //                       "helpKey",
+        //                       "escapeKey",
+        //                       "macroStartKey",
+        //                       "macroEndKey"]);
+
+        //     goDoCommand = function (aCommand) {
+        //         this.message("goDoCommand called!");
+        //         try {
+        //             var controller = 
+        //                 document.commandDispatcher.getControllerForCommand(aCommand);
+        //             if (controller && controller.isCommandEnabled(aCommand))
+        //                 controller.doCommand(aCommand);
+        //         }
+        //         catch(e) {
+        //             this.message("An error " + e + " occurred executing the " + aCommand + " command\n");
+        //         }
+        //     };
+
+        //     this.initFileLoaded = true;
+        //     return;
+        // }
+
         loadStatus = this.loadUserScript(this.initFileLoader,
                                          this.userPath,
                                          this.defaultInitFileNames);
-        
+
         if (loadStatus == -1) {
             // file not found.
             // we need to create the new one
             // or let user to select the init file place
-            if (window.document.documentElement.getAttribute("windowtype")
-                == "navigator:browser") {
-                loadStatus = this.beginRcFileWizard();                
+            if (window.document.documentElement.getAttribute("windowtype") == "navigator:browser") {
+                loadStatus = this.beginRcFileWizard();
             }
         }
 
         if (loadStatus == 0) {
             this.initFileLoaded = true;
-            this.keymapNeedRegen = true;
         } else {
             // failed. disable the keysnail.
             this.initFileLoaded = false;
@@ -129,7 +179,7 @@ KeySnail.UserScript = {
 
     /**
      * load user script (js file)
-     * @param {Function(String)} aLoader 
+     * @param {Function(String)} aLoader
      * @param {String} aBaseDir base directory of the js file (e.g. "/home/hoge")
      * @param {[String]} aUserScriptNames script names to load
      * @return {int} status
@@ -183,7 +233,8 @@ KeySnail.UserScript = {
 
             // loadUserScript return -1 when file not found
             if (this.loadUserScript(this.jsFileLoader,
-                                    baseDir, [aFileName]) != -1)
+                                    baseDir,
+                                    [aFileName]) != -1)
                 break;
         }
     },
@@ -213,7 +264,7 @@ KeySnail.UserScript = {
     editInitFile: function (aLineNum) {
         this.editFile(this.initFilePath, aLineNum);
     },
-    
+
     editFile: function (aFilePath, aLineNum) {
         if (!aFilePath) {
             this.modules.display.prettyPrint("editor: invalid file path");
@@ -280,10 +331,7 @@ KeySnail.UserScript = {
     openDialog: function () {
         var params = {
             inn: {
-                util: this.modules.util,
-                prefDirectory: this.prefDirectory,
-                defaultInitFileNames: this.defaultInitFileNames,
-                directoryDelimiter: this.directoryDelimiter
+                modules: this.modules
             },
             out: null
         };

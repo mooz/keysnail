@@ -24,7 +24,7 @@ KeySnail.Hook = {
         if (this.hookList[aHookName]) {
             var hook = this.hookList[aHookName];
             for (var i = 0; i < hook.length; ++i) {
-                hook[i].apply(this.modules, [aEvent]);
+                hook[i].apply(KeySnail, [aEvent]);
             }
         }
     }
