@@ -67,18 +67,28 @@
 // macro.setSleepTime(100);
 
 // ----------------------------------------
-// If you want to change the Ctrl key and Meta key, modify two functions below.
+// If you want to change the Ctrl key and Meta key, uncomment two functions below and modify them.
 
+/**
+ * check if the key event is ctrl key (predicative)
+ * @param {KeyboardEvent} aEvent
+ * @return true when {aEvent} is control key
+ */
 // key.isControlKey = function (aEvent) {
-//     return aEvent.ctrlKey;
-// };
+//     return aEvent.ctrlKey || aEvent.commandKey;
+// }
 
-// key.isMetaKey = function (aEvent) {
-//     return aEvent.altKey || aEvent.commandKey;
-// };
+/**
+ * check if the key event is meta key (predicative)
+ * @param {KeyboardEvent} aEvent
+ * @return true when <aEvent> is meta key
+ */
+// isMetaKey = function (aEvent) {
+//     return aEvent.altKey;
+// }
 
 // ==================== remap ==================== //
-// // you can use view-mode keybindings in edit-mode adding
+// You can use view-mode keybindings in edit-mode by adding
 // the prefix key C-z.
 // key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
@@ -343,7 +353,7 @@ key.setViewKey("f", function () {
 key.setEditKey([["C-SPC"],
                 ["C-@"]],
                function (aEvent) { command.setMark(aEvent); },
-               "Reset the mark");
+               "Set the mark");
 
 key.setEditKey("C-o",
                function (aEvent) { command.openLine(aEvent); },
@@ -372,14 +382,14 @@ key.setEditKey("C-f",
                "Forward char");
 key.setEditKey("C-b",
                function (aEvent) { command.previousChar(aEvent); },
-               "Previous char");
+               "Backward char");
 
 key.setEditKey("M-f",
                function (aEvent) { command.nextWord(aEvent); },
                "Next word");
 key.setEditKey("M-b",
                function (aEvent) { command.previousWord(aEvent); },
-               "previous word");
+               "Previous word");
 
 // -------------------- by line --------------------
 
@@ -447,7 +457,7 @@ key.setEditKey("M-l", function (aEvent) {
 key.setEditKey("M-c", function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, command.capitalizeWord);
                },
-               "Capitalize the follwing word");
+               "Capitalize the following word");
 
 // -------------------- cut / paste --------------------
 

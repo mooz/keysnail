@@ -1,9 +1,0 @@
-/* -moz-image-region: rect(top, right, bottom, left); */
-
-radio[pane="prefpane-rcfile"] {
-    list-style-image: url("chrome://keysnail/skin/script.png");
-}
-
-radio[pane="prefpane-about"] {
-    list-style-image: url("chrome://keysnail/skin/about.png");
-}

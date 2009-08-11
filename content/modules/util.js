@@ -61,8 +61,9 @@ KeySnail.Util = {
         // ファイルインスタンス作成
         var file = this.openFile(aPath);
 
-        if (file.exists() && !aForce
-            && !window.confirm(aPath + this.getLocaleString("overWriteConfirmation")))
+        if (file.exists() &&
+            !aForce &&
+            !window.confirm(aPath + ' ' + this.getLocaleString("overWriteConfirmation")))
             throw "Cancelled by user";
 
         // テキスト読み込み用にストリームをつくる

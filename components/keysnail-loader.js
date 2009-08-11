@@ -7,6 +7,8 @@ const CID = Components.ID('{ed3f874d-1b4d-40f2-a19a-e424156ac49b}');
 const CONTRACT_ID = '@github.com/mooz/keysnail/loader;1';
 const CLASS_NAME = 'KeySnail Loader';
 
+const STARTUP_TOPIC = 'app-startup';
+
 function KeySnailLoader() {
 }
 
@@ -18,7 +20,7 @@ KeySnailLoader.prototype = {
 
     observe: function (aSubject, aTopic, aData) {
         switch (aTopic) {
-        case 'app-startup':
+        case STARTUP_TOPIC:
             // watch all newly opened window from now on
             Components.classes['@mozilla.org/embedcomp/window-watcher;1']
                 .getService(Components.interfaces.nsIWindowWatcher)
@@ -45,7 +47,7 @@ KeySnailLoader.prototype = {
         // this.message(aEvent.target.documentURI);
 
         switch (aEvent.target.documentURI) {
-            // while list
+            // white list
         case 'chrome://browser/content/browser.xul':
             aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
             return;
@@ -70,7 +72,7 @@ KeySnailLoader.prototype = {
         }
 
         // when keysail is enabled globally
-        if (prefService.getBoolPref('extensions.keysnail.keyhandler.globalEnabled')) {
+        if (prefService.getBoolPref('extensions.keysnail.keyhandler.global_enabled')) {
             aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
             // this.message(aEvent.target.documentURI + " => Enabled");
         }
@@ -145,7 +147,7 @@ var module = {
                                          aType);
         var catMgr = Components.classes['@mozilla.org/categorymanager;1']
             .getService(Components.interfaces.nsICategoryManager);
-        catMgr.addCategoryEntry('app-startup', CLASS_NAME, CONTRACT_ID, true, true, null);
+        catMgr.addCategoryEntry(STARTUP_TOPIC, CLASS_NAME, CONTRACT_ID, true, true, null);
     },
     
     unregisterSelf: function (aCompMgr, aLocation, aType) {

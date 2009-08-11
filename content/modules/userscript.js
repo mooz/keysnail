@@ -32,6 +32,10 @@ KeySnail.UserScript = {
     jsFileLoader: function (aScriptPath) {
         var code = this.modules.util.readTextFile(aScriptPath).value;
         new Function("with (KeySnail.modules) {" + code + " }")();
+        // var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+        //     .getService(Components.interfaces.mozIJSSubScriptLoader);
+        // loader.loadSubScript(this.modules.util.pathToURL(aScriptPath),
+        //                      KeySnail.modules);
     },
 
     /**
@@ -128,7 +132,7 @@ KeySnail.UserScript = {
         //     goDoCommand = function (aCommand) {
         //         this.message("goDoCommand called!");
         //         try {
-        //             var controller = 
+        //             var controller =
         //                 document.commandDispatcher.getControllerForCommand(aCommand);
         //             if (controller && controller.isCommandEnabled(aCommand))
         //                 controller.doCommand(aCommand);
@@ -274,6 +278,14 @@ KeySnail.UserScript = {
         var editorPath = this.modules.util
             .getUnicharPref("extensions.keysnail.userscript.editor");
 
+        if (!editorPath) {
+            var gmEditor = this.modules.util.getUnicharPref("greasemonkey.editor");
+            if (gmEditor) {
+                nsPreferences.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
+                editorPath = gmEditor;
+            }
+        }
+
         try {
             var file = this.modules.util.openFile(editorPath);
         } catch (e) {
@@ -393,12 +405,12 @@ KeySnail.UserScript = {
             // replace content with the selected key.
             var keys = params.out.keys;
             var specialKeySettings =
-                'key.quitKey = "' + keys.quitKey + '";\n' + 
-                'key.helpKey = "' + keys.helpKey + '";\n' + 
-                'key.escapeKey = "' + keys.escapeKey + '";\n' + 
-                'key.macroStartKey = "' + keys.macroStartKey + '";\n' + 
+                'key.quitKey = "' + keys.quitKey + '";\n' +
+                'key.helpKey = "' + keys.helpKey + '";\n' +
+                'key.escapeKey = "' + keys.escapeKey + '";\n' +
+                'key.macroStartKey = "' + keys.macroStartKey + '";\n' +
                 'key.macroEndKey = "' + keys.macroEndKey + '";';
-                
+
             defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_SPECIAL_KEYS####',
                                                       specialKeySettings);
 

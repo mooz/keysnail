@@ -205,12 +205,16 @@ KeySnail.Key = {
         }
 
         if (this.inputtingPrefixArgument) {
-            if (this.isKeyEventNum(aEvent) || key == "C-u") {
+            if (this.isKeyEventNum(aEvent) ||
+                key == "C-u" ||
+                ((this.currentKeySequence[this.currentKeySequence.length - 1] == "C-u") &&
+                 (key == '-'))) {
                 // append to currentKeySequence, while the key event is number value.
                 // sequencial C-u like C-u C-u => 4 * 4 = 16 is also supported.
+                // sequencial C-u - begins negative prefix argument 
                 this.modules.util.stopEventPropagation(aEvent);
                 this.currentKeySequence.push(key);
-                this.modules.display.echoStatusBar(this.currentKeySequence.join(" "));
+                this.modules.display.echoStatusBar(this.currentKeySequence.join(" ") + " [prefix argument]");
                 // do nothing and return
                 return;
             }
@@ -235,12 +239,15 @@ KeySnail.Key = {
         } else {
             // first stroke
             if (this.isPrefixArgumentKey(key, aEvent)) {
-                // transit state: to inputting prefix argument
-                this.modules.util.stopEventPropagation(aEvent);
-                this.currentKeySequence.push(key);
-                this.modules.display.echoStatusBar(key);
-                this.inputtingPrefixArgument = true;
-                return;
+                // user can disable the prefix argument feature
+                if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true)) {
+                    // transit state: to inputting prefix argument
+                    this.modules.util.stopEventPropagation(aEvent);
+                    this.currentKeySequence.push(key);
+                    this.modules.display.echoStatusBar(key + " [prefix argument]");
+                    this.inputtingPrefixArgument = true;
+                    return;                    
+                }
             }
 
             // decide which keymap to use
@@ -328,7 +335,7 @@ KeySnail.Key = {
     /**
      * check if the key event is ctrl key (predicative)
      * @param {KeyboardEvent} aEvent
-     * @return true when {aEvent} is control key
+     * @return true when <aEvent> is control key
      */
     isControlKey: function (aEvent) {
         return aEvent.ctrlKey || aEvent.commandKey;
@@ -340,7 +347,7 @@ KeySnail.Key = {
      * @return true when <aEvent> is meta key
      */
     isMetaKey: function (aEvent) {
-        return aEvent.altKey;
+        return aEvent.altKey || aEvent.metaKey;
     },
 
     // ==================== key event => string ==================== //
@@ -762,6 +769,11 @@ KeySnail.Key = {
             if (i != aKeySequence.length) {
                 // followed by non C-u key
                 arg = 0;
+                if (aKeySequence[1] == '-') {
+                    // C-u -
+                    coef = -1;
+                    i = 2;
+                }
             }
             break;
         case "C--":
@@ -787,7 +799,7 @@ KeySnail.Key = {
             arg += (numSequence[i] * base);
         }
 
-        // this.message("prefix : " + coef * arg);
+        // this.modules.display.prettyPrint("prefix : " + coef * arg);
 
         return coef * arg;
     },
@@ -977,22 +989,40 @@ KeySnail.Key = {
         var contentHolder = ['<h1>All key bindings</h1><hr />',
                              '<ul>',
                              '<li><a href="#special">Special Keys</a></li>',
+                             '<li><a href="#parg">Prefix Argument Keys</a></li>',
                              '<li><a href="#global">Global Bindings</a></li>',
                              '<li><a href="#view">View mode Bindings</a></li>',
                              '<li><a href="#edit">Edit mode Bindings</a></li>',
                              '<li><a href="#caret">Caret mode Bindings</a></li>',
                              '</ul>'];
 
-        with (this.modules.html) {
+        with (this.modules) {
             contentHolder.push("<h2 id='special'>Special Keys</h2>");
             contentHolder.push("<table class='table-keybindings'>");
             contentHolder.push("<tr><th>Role</th><th>Key</th></tr>");
-            contentHolder.push("<tr><td>Quit key</td><td>" + escapeTag(this.quitKey) + "</td></tr>");
-            contentHolder.push("<tr><td>Help key</td><td>" + escapeTag(this.helpKey) + "</td></tr>");
-            contentHolder.push("<tr><td>Escape key</td><td>" + escapeTag(this.escapeKey) + "</td></tr>");
-            contentHolder.push("<tr><td>Start key macro recording</td><td>" + escapeTag(this.macroStartKey) + "</td></tr>");
-            contentHolder.push("<tr><td>End key macro recording / Play key macro</td><td>" + escapeTag(this.macroEndKey) + "</td></tr>");
+            contentHolder.push("<tr><td>Quit key</td><td>" + html.escapeTag(this.quitKey) + "</td></tr>");
+            contentHolder.push("<tr><td>Help key</td><td>" + html.escapeTag(this.helpKey) + "</td></tr>");
+            contentHolder.push("<tr><td>Escape key</td><td>" + html.escapeTag(this.escapeKey) + "</td></tr>");
+            contentHolder.push("<tr><td>Start key macro recording</td><td>" + html.escapeTag(this.macroStartKey) + "</td></tr>");
+            contentHolder.push("<tr><td>End key macro recording / Play key macro</td><td>" + html.escapeTag(this.macroEndKey) + "</td></tr>");
             contentHolder.push("</table>\n");
+
+            contentHolder.push("<h2 id='parg'>Prefix Argument Keys</h2>");
+            if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true)) {
+                contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanDisable") + "</p>\n");
+
+                var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";
+                contentHolder.push("<table class='table-keybindings'>");
+                contentHolder.push("<tr><th>Key</th><th>Description</th></tr>");
+                contentHolder.push("<tr><td>C-u</td><td>" + util.getLocaleString("prefixArgumentCu") + "</td></tr>");
+                contentHolder.push("<tr><td>C-[0-9]</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
+                contentHolder.push("<tr><td>M--</td><td>" + paNegDesc);
+                contentHolder.push("<tr><td>C--</td><td>" + paNegDesc);
+                contentHolder.push("<tr><td>C-M--</td><td>" + paNegDesc);
+                contentHolder.push("</table>\n");
+            } else {
+                contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanEnable") + "</p>\n");
+            }
         }
 
         this.generateKeyBindingTable(contentHolder,

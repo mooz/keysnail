@@ -123,19 +123,29 @@ print """// ==================== KeySnail configuration file ===================
 
 // ----------------------------------------
 // """ + {ja: "コントロールキー / メタキーとして解釈させたいキーを変更したい場合は\n// 次に示す二つの関数を変更する.",
-          en: "If you want to change the Ctrl key and Meta key, modify two functions below."}[l] + """
+          en: "If you want to change the Ctrl key and Meta key, uncomment two functions below and modify them."}[l] + """
 
+/**
+ * check if the key event is ctrl key (predicative)
+ * @param {KeyboardEvent} aEvent
+ * @return true when {aEvent} is control key
+ */
 // key.isControlKey = function (aEvent) {
-//     return aEvent.ctrlKey;
-// };
+//     return aEvent.ctrlKey || aEvent.commandKey;
+// }
 
-// key.isMetaKey = function (aEvent) {
-//     return aEvent.altKey || aEvent.commandKey;
-// };
+/**
+ * check if the key event is meta key (predicative)
+ * @param {KeyboardEvent} aEvent
+ * @return true when <aEvent> is meta key
+ */
+// isMetaKey = function (aEvent) {
+//     return aEvent.altKey;
+// }
 
 // ==================== remap ==================== //
 // """ + {ja: "エディットモードで C-z を入力すると, ビューモードのキーバインドが使える",
-          en: """// you can use view-mode keybindings in edit-mode adding
+          en: """You can use view-mode keybindings in edit-mode by adding
 // the prefix key C-z."""}[l] + """
 // key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
@@ -454,7 +464,7 @@ key.setEditKey([["C-SPC"],
                 ["C-@"]],
                function (aEvent) { command.setMark(aEvent); },
                """ + {ja: '"マークをセット"',
-                      en: '"Reset the mark"'}[l] + """);
+                      en: '"Set the mark"'}[l] + """);
 
 key.setEditKey("C-o",
                function (aEvent) { command.openLine(aEvent); },
@@ -489,7 +499,7 @@ key.setEditKey("C-f",
 key.setEditKey("C-b",
                function (aEvent) { command.previousChar(aEvent); },
                """ + {ja: '"一文字左へ移動"',
-                      en: '"Previous char"'}[l] + """);
+                      en: '"Backward char"'}[l] + """);
 
 key.setEditKey("M-f",
                function (aEvent) { command.nextWord(aEvent); },
@@ -498,7 +508,7 @@ key.setEditKey("M-f",
 key.setEditKey("M-b",
                function (aEvent) { command.previousWord(aEvent); },
                """ + {ja: '"一単語左へ移動"',
-                      en: '"previous word"'}[l] + """);
+                      en: '"Previous word"'}[l] + """);
 
 // -------------------- by line --------------------
 
@@ -579,7 +589,7 @@ key.setEditKey("M-c", function (aEvent) {
                    command.processForwardWord(aEvent.originalTarget, command.capitalizeWord);
                },
                """ + {ja: '"次の一単語をキャピタライズ"',
-                      en: '"Capitalize the follwing word"'}[l] + """);
+                      en: '"Capitalize the following word"'}[l] + """);
 
 // -------------------- cut / paste --------------------
 

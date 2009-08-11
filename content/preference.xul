@@ -19,8 +19,12 @@
               onpaneload="ksPreference.updateAllFileFields();">
         <preferences>
             <preference
-                 id="extensions.keysnail.keyhandler.globalEnabled"
-                 name="extensions.keysnail.keyhandler.globalEnabled"
+                 id="extensions.keysnail.keyhandler.global_enabled"
+                 name="extensions.keysnail.keyhandler.global_enabled"
+                 type="bool"/>
+            <preference
+                 id="extensions.keysnail.keyhandler.use_prefix_argument"
+                 name="extensions.keysnail.keyhandler.use_prefix_argument"
                  type="bool"/>
             <preference
                  id="extensions.keysnail.userscript.location"
@@ -36,10 +40,10 @@
             <groupbox orient="vertical">
                 <caption label="&keySnail.preference.keyhandler;" />
                 <vbox flex="1">
-                    <hbox >
-                        <checkbox label="&keySnail.preference.keyhandler.globalEnabled;"
-                                  preference="extensions.keysnail.keyhandler.globalEnabled" />
-                    </hbox>
+                    <checkbox label="&keySnail.preference.keyhandler.globalEnabled;"
+                              preference="extensions.keysnail.keyhandler.global_enabled" />
+                    <checkbox label="&keySnail.preference.keyhandler.usePrefixArgument;"
+                              preference="extensions.keysnail.keyhandler.use_prefix_argument" />
                 </vbox>
             </groupbox>
 
@@ -51,7 +55,7 @@
                     <hbox>
                         <label value="&keySnail.preference.userscript.location;"
                                control="userScriptLocation" flex="1"/>
-                        <filefield id="keysnail.preference.userscript.location" flex="2"
+                        <filefield id="keysnail.preference.userscript.location"
                                    style="width: 25em;"
                                    preference="extensions.keysnail.userscript.location"
                                    type="file"/>
@@ -65,7 +69,7 @@
                     <hbox>
                         <label value="&keySnail.preference.userscript.editor;"
                                control="userScriptLocation" flex="1"/>
-                        <filefield id="keysnail.preference.userscript.editor" flex="2"
+                        <filefield id="keysnail.preference.userscript.editor"
                                    style="width: 25em;"
                                    preference="extensions.keysnail.userscript.editor"
                                    type="file"/>

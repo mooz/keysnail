@@ -11,8 +11,7 @@ KeySnail.Command = {
 
     init: function () {
         if (typeof(goDoCommand) == 'undefined') {
-            goDoCommand = function(aCommand) {
-                Application.console.log("goDoCommand called!");
+            document.defaultView.goDoCommand = function(aCommand) {
                 try {
                     var controller = 
                         top.document.commandDispatcher.getControllerForCommand(aCommand);
@@ -342,7 +341,7 @@ KeySnail.Command = {
         var begin = aInput.selectionStart;
         var end   = aInput.selectionEnd;
         var text  = aInput.value;
-        var subword = text.slice(0, end).match(/[a-zA-Z0-9]+\s*$/);
+        var subword = text.slice(0, end).match(/[a-zA-Z]+\s*$/);
 
         var wordBegin = !!subword ? end - subword[0].length : end;
 
@@ -356,7 +355,7 @@ KeySnail.Command = {
         var begin = aInput.selectionStart;
         var end   = aInput.selectionEnd;
         var text  = aInput.value;
-        var subword = text.slice(end).match(/[^a-zA-Z0-9]*[a-zA-Z0-9]+|[^a-zA-Z0-9]+/);
+        var subword = text.slice(end).match(/[^a-zA-Z]*[a-zA-Z]+|[^a-zA-Z]+/);
 
         if (!!subword) {
             var wordEnd = end + subword[0].length;
@@ -367,7 +366,7 @@ KeySnail.Command = {
     },
 
     capitalizeWord: function (aString) {
-        var spaces = aString.match(/^[^a-zA-Z0-9]*/);
+        var spaces = aString.match(/^[^a-zA-Z]*/);
         var wordBegin = !!spaces ? spaces[0].length : 0;
         return aString.slice(0, wordBegin)
             + aString.charAt(wordBegin).toUpperCase()
