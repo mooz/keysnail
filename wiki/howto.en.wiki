@@ -1,0 +1,219 @@
+* "Usage":#usage
+** "About mode":#mode
+** "About keymap":#keymap
+** "How to bind JavaScript function to key sequence":#bind-howto
+** "Introduction":#bind-intro
+** "Using prefix argument":#using-pa
+** "Bind an function to the multiple key sequences at once":#bind-muiti
+* "Key settings":#key
+** "Special key settings":#special-key
+** "Changing the C-, M- key":#key-cm
+
+h1(#usage). Usage
+
+h2(#mode). About mode
+
+If you installed the KeySnail and restart the Firefox, the small purple icon will be appeared on the status bar like the screenshot below.
+
+!=http://github.com/mooz/keysnail/tree/master/wiki/image/screenshot1.png?raw=true(Icon on the status bar)!
+
+OK, so let's right click on this icon and the menu will be appeared.
+
+Now, select 'Display all Keybindings' and left click it. The new tab will open and the page like the screenshot below will be displayed.
+
+!=http://github.com/mooz/keysnail/tree/master/wiki/image/bindings.png?raw=true(Keybindings)!
+
+This page describes 'In certain situation', 'certain function' is bound to 'certain combination of keys'. This is called 'keybinding'.
+
+In this extension, 'certain situation' is called 'mode'. There are currently 3 modes available listed below.
+
+| _. Mode name | _. Description                                                                      |
+| View mode    | Normal browsing mode                                                                |
+| Caret mode   | By pressing F7 key, you can see the caret on browsing area. This is the caret-mode. |
+| Edit mode    | The caret is on the textbox, input area, that is, editing the text.                 |
+
+h2(#keymap). About keymap
+
+Keymap is the the set of keybindings. For example, If you bind the 'Ctrl + a' to 'Move point to beginning of current line' and
+'Ctrl + e' to 'Move point to beginning of current line' in certain mode, this set is called the keymap.
+
+Each mode showed above has an 'local-keymap' which contains the set of keybindings. This means that you can bind multiple function
+to the one 'key combination' depending on the each mode.
+
+In addition, the upper keymap named 'global-keymap' is also availabe.
+
+KeySnail seek for the key sequence user entered in order to ...
+
+# Current mode's local-keymap
+# (If not found in step 1.) global-keymap
+
+h2(#bind-howto1). How to bind JavaScript function to key sequence
+
+You need to edit the setting file. 
+
+まず初めに知っておかなければならないのは、「この拡張機能はカスタマイズの大半を設定ファイル経由で行う」ということです。他の親切な拡張機能のように分かりやすい GUI の設定画面は用意されていません。ゆえにカスタマイズの手順は、
+
+# 設定ファイルをエディタで編集
+# ステータスバーのメニューなどから、設定ファイルを再読み込みする
+
+といったものとなります。
+
+この設定ファイルはデフォルトでユーザのホームディレクトリ以下に作られます。 Windows ユーザの方は C:\Documents and Settings\ユーザ名 のようなプロファイルディレクトリ以下に作成されるはずです。
+
+設定ファイルはインストール時に開いたウィザードですでに作成しているはずですが、もしウィザードをスキップしてしまったという方は、ステータスバーのメニューから「設定」を選び、「設定ファイルの作成 / 選択」からもう一度ウィザードをやり直してみて下さい。
+
+それでは、まずは設定ファイルを覗いてみることにしましょう。お好みのエディタで前述のディレクトリから .keysnail.js もしくは _keysnail.js というファイルを開きます。
+
+この設定ファイルは Javascript の形式で記述されているので Emacs や Vim, gedit などシンタックスハイライトが効くエディタを使用して見ていくのが良いかと思います。 (個人的には Emacs で　js2-mode を使用するのがオススメです)
+
+さて、中身の説明に移りましょう。なにらやずらずらと説明が書かれていますね。この辺りは全て行頭が // で始まった、 Javascript でのコメントとなっています。初めの 80 行ほどは説明となっているので、この辺りを読んで関数割り当ての方法を知るか、もしくは 110 行目辺りまでスキップしてしまい実際の関数割り当てを覗いてみても良いでしょう。
+
+110 行目辺りまでくると、次のような記述が確認できるかと思います。
+
+<script src="http://gist.github.com/160278.js"></script>
+
+この拡張機能では各モードに対し「キーの組み合わせ」と「呼び出される機能」を割り当てることが可能です。この割り当てを行うのが、上に示した key.set*Key() という関数の呼び出しです。
+
+各関数の定義は次のようになっており、全く同じ引数を取ることが分かります。
+
+<pre>
+<code>
+key.setEditKey(keys, func, ksDescription, ksNoRepeat);
+key.setViewKey(keys, func, ksDescription, ksNoRepeat);
+key.setCaretKey(keys, func, ksDescription, ksNoRepeat);
+key.setGlobalKey(keys, func, ksDescription, ksNoRepeat);
+</code>
+</pre>
+
+各引数の説明は以下の通りです。この辺りは設定ファイル内がより詳しいです。
+
+|_.引数名          |_. 説明                                                       |
+| keys          | キー (文字列) か キーシーケンス (文字列の配列) を指定する    |
+| func          | キー入力があった場合に呼び出したい無名関数を指定する         |
+| ksDescription | 関数の説明                                                   |
+| ksNoRepeat    | 前置引数が与えられたときコマンドの繰り返しを抑制するかどうか |
+
+次の節では、実際にオリジナルのキーバインドを定義してみることにしましょう。
+
+h2(#bind-intro). はじめてのキーバインド定義
+
+では、ここで試しに次のようなコードを設定ファイルに記述してみましょう。
+
+<script src="http://gist.github.com/160282.js"></script>
+
+ファイルを保存したら、ステータスバーのメニューから設定ファイルを再読み込みさせます。
+
+設定ファイルは読み込まれましたか？　そうしたら Ctrl + c, Ctrl + w, Ctrl + a と順番に打ち込んでみましょう。間違えた場合は Ctrl + g でキャンセルして初めからやり直しが出来ます。
+
+どうですか、うまくいけば次のようなダイアログが表示されるはずです。
+
+!=http://github.com/mooz/keysnail/tree/master/wiki/image/screenshot2.png?raw=true(hello dialog)!
+
+h2(#using-pa). 前置引数を使う
+
+Emacs ユーザの方は、前置引数をご存知かと思います。通常のキーシーケンスを打ち込む前に、 C-u や C-- の後に続けて数字を入力しておくと、その数字がコマンドへ渡される、というものです。
+
+この拡張機能でも同様にして、前置引数を使うことが出来ます。先程の設定を次のように変更してみてください。
+
+<script src="http://gist.github.com/160283.js"></script>
+
+そして先程のようにして Ctrl + c, Ctrl + w, Ctrl + a と順に打ち込みます。すると次のようなダイアログが表示されることでしょう。
+
+!=http://github.com/mooz/keysnail/tree/master/wiki/image/screenshot3.png?raw=true(hello dialog with no prefix argument)!
+
+前置引数の入力を行わずに関数を呼び出したので、 null となっていますね。では次に C-u 3 と入力してから C-c C-w C-a と続けてみてください。ダイアログの表記が次のように変わるはずです。
+
+!=http://github.com/mooz/keysnail/tree/master/wiki/image/screenshot4.png?raw=true(hello dialog with prefix argument 3)!
+
+前置引数として 3 を指定したので、その値がしっかり表示されていますね。
+
+それでは、ダイアログを閉じてみてください。すると、ダイアログを閉じたにも関わらず、先程と同じダイアログが現れました。もう一度ダイアログを閉じます。また、同じダイアログが現れます。ダイアログを閉じます……安心して下さい。これで終わりです。
+
+どうしてこんなことが起こったのでしょう。少し戻って、何度ダイアログが開いたかを数えてみてください。　3 回ですね。そう、これは前置引数の値と一致します。言い換えれば、「前置引数で指定した数だけ、コマンドが繰り返された」ということになります。
+
+前置引数が与えられたとき、特に指定がなければこの拡張機能はコマンドを前置引数の回数分繰り返し実行します。例えばテキストエリアで C-u 20 * と入力してみてください。 ******************* という具合に、 * が 20 個入力されるのが確認出来ることでしょう。
+
+しかし、今回のように「コマンドを繰り返してほしくない」場合も多々あります。そんなときは関数説明の後、つまりキーバインド定義関数の第四引数へ true を指定して下さい。先程の例だと次のようになります。
+
+<script src="http://gist.github.com/160284.js"></script>
+
+設定ファイルを保存して、再読み込みしてから C-u 3 C-c C-w C-a と入力してみましょう。先程同様にダイアログが表示されますね。では、ダイアログを閉じて見てください。もうダイアログは復活しません。一度だけの実行となったのです。
+
+h2(#bind-muiti). 関数を複数のキーシーケンスへ一気に割り当てたい
+
+ある関数を、複数のキーシーケンスへ割り当てたい、ということは結構あります。
+
+例えば "g" と "M-<" そして ["ESC", "<"] に対して「ページ先頭へ移動」という関数を割り当てたい、と思ったとき
+
+<script src="http://gist.github.com/160285.js"></script>
+
+として同じような呼び出しを何度も行うのでは、どうにも無駄が多い感じがします。
+
+こんなときの為に、各 set*Key() には特別なフォームが用意されています。次のコードをご覧下さい。
+
+<script src="http://gist.github.com/160288.js"></script>
+
+このコードでは先程の例と同様の割り当てを行っていますが、ずいぶんすっきりとしました。違うのは、
+
+# setViewKey() を一度しか呼んでいない
+# setViewKey() 第一引数が「配列の配列」になっている
+
+ということです。
+
+各 set*Key() は通常「文字列」もしくは「文字列の配列」を第一引数にとり、そこで指定されたキーの組み合わせに関数を割り当てます。しかし「文字列の配列の配列」が指定された場合は、各文字列の配列に対して一つずつ関数を割り当てるようになるのです。
+
+複数のキーシーケンスに対してある関数を一度に割り当てたいときは「配列の配列」を指定する、ということを覚えておけば良いでしょう。
+
+h1(#key). キーの設定
+
+h2(#special-key). 特殊キーの設定
+
+特殊キーとは、次に示すキーのことを言います。
+
+|_. キー名      |_. 役割                                     |_. デフォルト値 |
+| quitKey       | キー入力のキャンセル等                     | C-g          |
+| helpKey       | ヘルプコマンド表示用                       | F1           |
+| escapeKey     | このキーに続けて入力されたキーをエスケープ (KeySnail がハンドリングしない) | C-q          |
+| macroStartKey | キーマクロの定義を開始                     | F3           |
+| macroEndKey   | キーマクロの定義を終了 / 実行              | F4           |
+
+これらのキーを変更したい場合は、設定ファイル内にて
+
+<script src="http://gist.github.com/160289.js"></script>
+
+のようにして下さい。
+
+現在の特殊キーは key.listKeyBindings()　関数で見ることが出来ます。この関数はデフォルトの初期化ファイルにおいて f1 + b に割り当てられています。
+
+これは、ステータスバーのアイコンを右クリックし「キーバインド一覧を表示」とするのと同じことです。
+
+h2(#key-cm). コントロール / メタキーの変更
+
+KeySnail がコントロールキー、メタキーと解釈するキーはデフォルトで次のようになっています。
+
+* コントロールキー
+** Ctrl
+* メタキー
+** Alt
+** Command
+
+この割り当てを変更したい場合は、初期化ファイル内で key.isControlKey(), key.isMetaKey() という関数を上書きして下さい。
+
+これらの関数は元々次のような定義となっています。
+
+<script src="http://gist.github.com/160290.js"></script>
+
+例えば ControlKey に Caps Lock キーを使いたい場合は key.isControlKey() の定義を次のように変更すれば良いでしょう。
+
+<script src="http://gist.github.com/160291.js"></script>
+
+<script type="text/javascript" src="http://i.yimg.jp/images/analytics/js/ywa.js"></script>
+<script type="text/javascript">
+var YWATracker = YWA.getTracker("1000175150938");
+YWATracker.addExcludeProtocol("file:");
+YWATracker.submit();
+</script>
+<noscript>
+<div><img src="http://by.analytics.yahoo.co.jp/p.pl?a=1000175150938&amp;js=no" width="1" height="1" alt="" /></div>
+</noscript>
+

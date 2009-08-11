@@ -6,18 +6,26 @@
     <Description about="urn:mozilla:install-manifest">
         <em:id>keysnail@mooz.github.com</em:id>
         <em:type>2</em:type> <!-- type of the addon, 2 means the extension -->
+        <em:version>0.5.2</em:version>
         <em:name>KeySnail</em:name>
-        <em:version>0.5.0</em:version>
-        <em:description>bind function to the key sequence!</em:description>
         <em:creator>mooz</em:creator>
-        <em:homepageURL>http://github.com/mooz/keysnail/</em:homepageURL>
+        <em:developer>mooz</em:developer>
+        <em:homepageURL>http://wiki.github.com/mooz/keysnail/</em:homepageURL>
         <em:optionsURL>chrome://keysnail/content/preference.xul</em:optionsURL>
 	<em:iconURL>chrome://keysnail/skin/icon.png</em:iconURL>
+        <!-- en-US -->
+        <em:description>Bind function to the key sequence!</em:description>
+        <!-- ja -->
         <em:localized>
-            <em:name>KeySnail</em:name>
-            <em:description>JavaScript の関数をキーシーケンスに割り当て</em:description>
-            <em:creator>mooz</em:creator>
+            <Description>
+                <em:locale>ja</em:locale>
+                <em:name>KeySnail</em:name>
+                <em:creator>mooz</em:creator>
+                <em:description>JavaScript の関数をキーシーケンスに割り当て</em:description>
+                <em:homepageURL>http://wiki.github.com/mooz/keysnail/keysnail-japanese</em:homepageURL>
+            </Description>
         </em:localized>
+        <!--  -->
         <em:targetApplication>
             <Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>

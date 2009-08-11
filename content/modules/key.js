@@ -34,6 +34,7 @@ KeySnail.Key = {
 
     // ==== status ====
     status: false,
+    hasEventListener: false,
 
     // ==== modes ====
     modes: {
@@ -61,20 +62,21 @@ KeySnail.Key = {
      * start key handler
      */
     run: function () {
+        if (this.hasEventListener == false) {
+            window.addEventListener("keypress", this, true);            
+        }
         this.status = true;
-        nsPreferences
-            .setBoolPref("extensions.keysnail.keyhandler.status", true);
-        window.addEventListener("keypress", this, true);
+        nsPreferences.setBoolPref("extensions.keysnail.keyhandler.status", true);
     },
 
     /**
      * stop key handler
      */
     stop: function () {
-        this.status = false;
-        nsPreferences
-            .setBoolPref("extensions.keysnail.keyhandler.status", false);
         window.removeEventListener("keypress", this, true);
+        this.hasEventListener = false;
+        this.status = false;
+        nsPreferences.setBoolPref("extensions.keysnail.keyhandler.status", false);
     },
 
     /**
@@ -813,9 +815,6 @@ KeySnail.Key = {
      * @param aArg   prefix argument to be passed    
      */
     executeFunction: function (aFunc, aEvent, aArg) {
-        this.message(aEvent.target);
-        this.message(aFunc);
-
         if (!aFunc.ksNoRepeat && aArg) {
             // iterate
             for (var i = 0; i < aArg; ++i) {

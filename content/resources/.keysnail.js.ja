@@ -11,7 +11,8 @@
 //
 // 各引数の説明は次の通り.
 //
-// keys          => キー (文字列) か キーシーケンス (文字列の配列) を指定する
+// keys          => キー (文字列) か キーシーケンス (文字列の配列) を指定する.
+//                  一つの関数を複数のキーシーケンスへ割り当てたい場合は「文字列の配列の配列」を指定する.
 //                  キーの表記は Emacs のそれを踏襲
 //                  ex1) Ctrl + Alt + t : C-M-t
 //                  ex2) Arrow Key      : <up>, <down>, <left>, <right>
@@ -50,16 +51,16 @@
 // userscript.require("module1.js");
 // userscript.require("module2.js");
 
-// ==================== misc settings ==================== //
+// ==================== special keys ==================== //
 // key.quitKey : キーシーケンス入力のキャンセルに用いられる.
 //               KeyBoardQuit フックを呼ぶので, 検索バーを閉じる等の動作をそこに登録しておくことも出来る.
 
 // key.helpKey : インタラクティヴヘルプの表示, 汎用のヘルプキーとして働く.
 //               例えば C-c C-c <helpKey> と入力すると, C-c C-c から始まるキーバインド一覧が表示される.
 //               またこの初期化ファイルの設定では <helpKey> b とすればキーバインド一覧が表示されるようになっている.
-// これらのキーを変更したい場合は次の二行をアンコメントし, 適宜書き換える.
-// key.quitKey = "C-g";
-// key.helpKey = "<f1>";
+####REPLACE_WITH_SPECIAL_KEYS####
+// key macro interval
+// macro.setSleepTime(100);
 
 // ----------------------------------------
 // コントロールキー / メタキーとして解釈させたいキーを変更したい場合は
@@ -73,15 +74,9 @@
 //     return aEvent.altKey || aEvent.commandKey;
 // };
 
-// ----------------------------------------
-// キーマクロ機能 (使用したい場合はアンコメント)
-// key.macroStartKey = "<f3>";
-// key.macroEndKey   = "<f4>";
-// macro.setSleepTime(100);
-
 // ==================== remap ==================== //
 // エディットモードで C-z を入力すると, ビューモードのキーバインドが使える
-key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
+// key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
 // ==================== set about:config value ==================== //
 // util.setPrefs(
@@ -94,6 +89,7 @@ key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 //     }
 // );
 
+// ==================== set hooks ==================== //
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
                 // 検索バーが開いていたら閉じる
@@ -333,6 +329,11 @@ key.setViewKey("M-p", function () {
                    command.walkInputElement(command.elementsRetrieverButton, false, true);
                }, "前のボタンへフォーカスを当てる");
 
+key.setViewKey("f", function () {
+                   command.focusElement(command.elementsRetrieverTextarea, 0);
+               },
+               "最初のインプットエリアへフォーカス", true);
+
 // ==================== set edit mode key ==================== //
 
 key.setEditKey([["C-SPC"],
@@ -430,12 +431,12 @@ key.setEditKey([["C-<backspace>"],
 // -------------------- transformation -------------------- //
 
 key.setEditKey("M-u", function (aEvent) {
-                   command.processForwardWord(aEvent.originalTarget, function (aString) aString.toUpperCase());
+                   command.processForwardWord(aEvent.originalTarget, function (aString) { return aString.toUpperCase(); });
                },
                "次の一単語を全て大文字に (Upper case)");
 
 key.setEditKey("M-l", function (aEvent) {
-                   command.processForwardWord(aEvent.originalTarget, function (aString) aString.toLowerCase());
+                   command.processForwardWord(aEvent.originalTarget, function (aString) { return aString.toLowerCase(); });
                },
                "次の一単語を全て小文字に (Lower case)");
 

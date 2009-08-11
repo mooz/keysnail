@@ -42,7 +42,7 @@ KeySnailLoader.prototype = {
         // this.message(aEvent.target.name);
         // this.message(windowType);
 
-        this.message(aEvent.target.documentURI);
+        // this.message(aEvent.target.documentURI);
 
         switch (aEvent.target.documentURI) {
             // while list
@@ -53,7 +53,7 @@ KeySnailLoader.prototype = {
             // black list
         case 'chrome://keysnail/content/rcwizard.xul':
         case 'chrome://keysnail/content/preference.xul':
-        case 'chrome://keysnail/content/keyDetector.xul':
+        case 'chrome://keysnail/content/keyGrabber.xul':
         case 'chrome://browser/content/aboutDialog.xul':
             return;
             break;
@@ -97,32 +97,32 @@ KeySnailLoader.prototype = {
 
     // list all the properties of the aObject
     // @param aObject
-    listProperty: function (aObject) {
-        if (!aObject) {
-            this.message("listProperty: undefined object passed");
-        } else {
-            for (var property in aObject) {
-                // this.message(property);
-                try {
-                    this.message("[" + property + "] = "
-                                 + aObject[property]
-                                );
-                } catch (x) {
-                    this.message(x);
-                }
-            }
-        }
-    },
+    // listProperty: function (aObject) {
+    //     if (!aObject) {
+    //         this.message("listProperty: undefined object passed");
+    //     } else {
+    //         for (var property in aObject) {
+    //             // this.message(property);
+    //             try {
+    //                 this.message("[" + property + "] = "
+    //                              + aObject[property]
+    //                             );
+    //             } catch (x) {
+    //                 this.message(x);
+    //             }
+    //         }
+    //     }
+    // },
 
-    message: function (aMsg) {
-        var logs = Components.classes["@mozilla.org/consoleservice;1"]
-            .getService(Components.interfaces.nsIConsoleService);
-        try {
-            logs.logStringMessage(aMsg);
-        } catch (x) {
-            log.logStringMessage(x);
-        }
-    },
+    // message: function (aMsg) {
+    //     var logs = Components.classes["@mozilla.org/consoleservice;1"]
+    //         .getService(Components.interfaces.nsIConsoleService);
+    //     try {
+    //         logs.logStringMessage(aMsg);
+    //     } catch (x) {
+    //         log.logStringMessage(x);
+    //     }
+    // },
 
     QueryInterface: function (aIID) {
         if (!aIID.equals(Components.interfaces.nsIDOMEventListener) &&

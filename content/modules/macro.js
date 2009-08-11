@@ -13,10 +13,10 @@ KeySnail.Macro = {
         if (document) {
             doc = (document.commandDispatcher.focusedWindow || gBrowser.contentWindow)
                 .document;
-            this.parent.message("document is not null");
+            // this.parent.message("document is not null");
         } else {
             doc = content.document;
-            this.parent.message("document is null");
+            // this.parent.message("document is null");
         }
 
         return (doc.commandDispatcher) ? doc.commandDispatcher.focusedElement : doc;

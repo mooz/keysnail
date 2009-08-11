@@ -37,9 +37,11 @@ print """// ==================== KeySnail configuration file ===================
 // """ + {ja: "各引数の説明は次の通り.",
           en: "Here are the descriptions of the each argument."}[l] + """
 //
-// keys          => """ + {ja: """キー (文字列) か キーシーケンス (文字列の配列) を指定する
+// keys          => """ + {ja: """キー (文字列) か キーシーケンス (文字列の配列) を指定する.
+//                  一つの関数を複数のキーシーケンスへ割り当てたい場合は「文字列の配列の配列」を指定する.
 //                  キーの表記は Emacs のそれを踏襲""",
                            en: """key (string) or key sequence (array)
+//                  if you want to bind a function to mutliple key sequence use 'array of array'
 //                  expression of the key follows the Emacs"""}[l] + """
 //                  ex1) Ctrl + Alt + t : C-M-t
 //                  ex2) Arrow Key      : <up>, <down>, <left>, <right>
@@ -101,14 +103,13 @@ print """// ==================== KeySnail configuration file ===================
 // userscript.require("module1.js");
 // userscript.require("module2.js");
 
-// ==================== misc settings ==================== //
+// ==================== special keys ==================== //
 """ + {ja: """// key.quitKey : キーシーケンス入力のキャンセルに用いられる.
 //               KeyBoardQuit フックを呼ぶので, 検索バーを閉じる等の動作をそこに登録しておくことも出来る.
 
 // key.helpKey : インタラクティヴヘルプの表示, 汎用のヘルプキーとして働く.
 //               例えば C-c C-c <helpKey> と入力すると, C-c C-c から始まるキーバインド一覧が表示される.
-//               またこの初期化ファイルの設定では <helpKey> b とすればキーバインド一覧が表示されるようになっている.
-// これらのキーを変更したい場合は次の二行をアンコメントし, 適宜書き換える.""",
+//               またこの初期化ファイルの設定では <helpKey> b とすればキーバインド一覧が表示されるようになっている.""",
        en: """// key.quitKey : Cancel the current input.
 //               This key event calls the KeyBoardQuit hook.
 //               You can set the command like "close the find bar" to it.
@@ -116,8 +117,9 @@ print """// ==================== KeySnail configuration file ===================
 // key.helpKey : Display the interactive help. General help key.
 //               When you input C-c C-c <helpKey>, keybindings begin with C-c C-c are displayed.
 //               And in this script settings, <helpKey> b lists the all keybindings."""}[l] + """
-// key.quitKey = "C-g";
-// key.helpKey = "<f1>";
+####REPLACE_WITH_SPECIAL_KEYS####
+// key macro interval
+// macro.setSleepTime(100);
 
 // ----------------------------------------
 // """ + {ja: "コントロールキー / メタキーとして解釈させたいキーを変更したい場合は\n// 次に示す二つの関数を変更する.",
@@ -131,18 +133,11 @@ print """// ==================== KeySnail configuration file ===================
 //     return aEvent.altKey || aEvent.commandKey;
 // };
 
-// ----------------------------------------
-// """ + {ja: "キーマクロ機能 (使用したい場合はアンコメント)",
-          en: "key macro (if you want to use this feature, uncomment the lines below)"}[l] + """
-// key.macroStartKey = "<f3>";
-// key.macroEndKey   = "<f4>";
-// macro.setSleepTime(100);
-
 // ==================== remap ==================== //
 // """ + {ja: "エディットモードで C-z を入力すると, ビューモードのキーバインドが使える",
           en: """// you can use view-mode keybindings in edit-mode adding
 // the prefix key C-z."""}[l] + """
-key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
+// key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
 // ==================== set about:config value ==================== //
 // util.setPrefs(
@@ -155,6 +150,7 @@ key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 //     }
 // );
 
+// ==================== set hooks ==================== //
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
                 // """ + {ja: "検索バーが開いていたら閉じる",
@@ -446,6 +442,12 @@ key.setViewKey("M-p", function () {
                }, """ + {ja: '"前のボタンへフォーカスを当てる"',
                          en: '"Focus to the previous button"'}[l] + """);
 
+key.setViewKey("f", function () {
+                   command.focusElement(command.elementsRetrieverTextarea, 0);
+               },
+               """ + {ja: '"最初のインプットエリアへフォーカス"',
+                      en: '"Focus to the first textarea"'}[l] + """, true);
+
 // ==================== set edit mode key ==================== //
 
 key.setEditKey([["C-SPC"],
@@ -562,13 +564,13 @@ key.setEditKey([["C-<backspace>"],
 // -------------------- transformation -------------------- //
 
 key.setEditKey("M-u", function (aEvent) {
-                   command.processForwardWord(aEvent.originalTarget, function (aString) aString.toUpperCase());
+                   command.processForwardWord(aEvent.originalTarget, function (aString) { return aString.toUpperCase(); });
                },
                """ + {ja: '"次の一単語を全て大文字に (Upper case)"',
                       en: '"Convert following word to upper case"'}[l] + """);
 
 key.setEditKey("M-l", function (aEvent) {
-                   command.processForwardWord(aEvent.originalTarget, function (aString) aString.toLowerCase());
+                   command.processForwardWord(aEvent.originalTarget, function (aString) { return aString.toLowerCase(); });
                },
                """ + {ja: '"次の一単語を全て小文字に (Lower case)"',
                       en: '"Convert following word to lower case"'}[l] + """);

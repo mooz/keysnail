@@ -1,0 +1,19 @@
+menulist menupopup > menuitem {
+    -moz-padding-start: 23px;
+}
+
+menulist menupopup > menuitem.menuitem-iconic {
+    -moz-padding-start: 4px;
+}
+
+menulist menupopup > .menuitem-iconic > .menu-iconic-left {
+    display: -moz-box;
+    min-width: 16px;
+    -moz-padding-end: 4px;
+}
+
+menulist .menulist-icon,
+menulist menupopup > .menuitem-iconic > .menu-iconic-left > .menu-iconic-icon {
+    width: 16px;
+    height: 16px;
+}

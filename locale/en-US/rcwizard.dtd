@@ -13,14 +13,35 @@
 <!ENTITY keySnail.rcWizard.createRcFile "Create a new one">
 <!ENTITY keySnail.rcWizard.selectRcFile "Select init file place">
 
-<!-- PAGE 2 -->
+<!-- PAGE a-1 -->
 
 <!ENTITY keySnail.rcWizard.createRcFileDescription "Select the initialization file name and destination.">
 <!ENTITY keySnail.rcWizard.rcFileDestination "Destination: ">
 <!ENTITY keySnail.rcWizard.filenameDotDiscription "Dot file genelally used in UNIX-like operating system.">
 <!ENTITY keySnail.rcWizard.filenameUBDiscription "Underbar type">
 
-<!-- PAGE 3 -->
+<!-- PAGE a-2 -->
+
+<!ENTITY keySnail.rcWizard.settingRcFile "Special Key Settings">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription1 "You can customize the special keys listed below. These settings are stored into the init file.">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription2 "If you want to change some keys, click textbox or button on right and press the new key.">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription3 "C- means the Ctrl and Command key. M- means the Alt and Meta key.">
+
+<!ENTITY keySnail.rcWizard.changeKey "Change">
+
+<!ENTITY keySnail.rcWizard.key.quit "Quit key">
+<!ENTITY keySnail.rcWizard.key.help "Help key">
+<!ENTITY keySnail.rcWizard.key.escape "Escape key">
+<!ENTITY keySnail.rcWizard.key.macroStart "Macro Start key">
+<!ENTITY keySnail.rcWizard.key.macroEnd "Macro End / Play key">
+
+<!ENTITY keySnail.rcWizard.key.quit.description "Used for cancelling current key input, close the findbar, etc">
+<!ENTITY keySnail.rcWizard.key.help.description "Used for listing the keybindings">
+<!ENTITY keySnail.rcWizard.key.escape.description "Escape the next key. This means that KeySnail ignore the key and pass to Firefox">
+<!ENTITY keySnail.rcWizard.key.macroStart.description "Start the key macro recording">
+<!ENTITY keySnail.rcWizard.key.macroEnd.description "Stop the key macro recording or play the recorded one">
+
+<!-- PAGE b-1 -->
 
 <!ENTITY keySnail.rcWizard.selectRcFileDescription "Select the directory where init file exists">
 <!ENTITY keySnail.rcWizard.rcFilePlace "Place: ">

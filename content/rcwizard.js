@@ -99,6 +99,13 @@ var rcWizard = {
         }
     },
 
+    setSpecialKeys: function (aStorage) {
+        var keys = keyCustomizer.keys;
+        for (var i = 0; i < keys.length; ++i) {
+            aStorage[keys[i] + "Key"] = keyCustomizer.getTextBoxValue(keys[i]);
+        }
+    },
+
     // ==================== termination ==================== //
 
     onFinish: function () {
@@ -110,16 +117,16 @@ var rcWizard = {
 
         // return changed arguments
         window.arguments[0].out = {};
-
         window.arguments[0].out.rcFilePath = this.rcFilePath;
-
         window.arguments[0].out.configFileNameIndex
             = document.getElementById("keysnail-userscript-filename-candidates").selectedIndex;
-
         window.arguments[0].out.selectedMethod = selectedMethod;
 
-        // set special keys
-        window.arguments[0].keys = {};
+        if (selectedMethod == 'create-rcfile') {
+            // set special keys
+            window.arguments[0].out.keys = {};
+            this.setSpecialKeys(window.arguments[0].out.keys);
+        }
 
         return true;
     },
@@ -141,49 +148,44 @@ var keyCustomizer = {
            'macroEnd'],
 
     initPane: function () {
-        var self = this;
-        this.KEYS.forEach(function (aKey) {
-                              let k = document.getElementById(self.prefPrefix + aKey);
-                              k.keyData = parseShortcut(k.value);
-                              self.keys[aKey] = k;
-                          });
-    },
-
-    set: function (aNode) {
-        let keyData = {};
-
-        window.openDialog(
-            'chrome://keysnail/content/keyDetector.xul',
-            '_blank',
-            'chrome,modal,resizable=no,titlebar=no,centerscreen',
-            keyData,
-            keyCustomizer.modules.util.getLocaleString('setKey'),
-            keyCustomizer.modules.util.getLocaleString('cancel')
-        );
-
-        if (keyData.modified) {
-            aNode.value = keyData.string;
-            var event = document.createEvent('UIEvents');
-            event.initUIEvent('input', true, false, window, 0);
-            aNode.dispatchEvent(event);
+        var keys = this.keys;
+        for (var i = 0; i < keys.length; ++i) {
+            this.setTextBoxValue(keys[i], this.modules.key[keys[i] + "Key"]);
         }
     },
 
-    clear: function (aNode) {
-        aNode.value = '';
-        aNode.keyData = parseShortcut(aNode.value);
-        aNode.keyData.modified = true;
+    set: function (aKeyName) {
+        var output = {
+            keyStr: ""
+        };
 
-        fireInputEvent(aNode);
+        window.openDialog(
+            'chrome://keysnail/content/keyGrabber.xul',
+            '_blank',
+            'chrome,modal,resizable=no,titlebar=no,centerscreen',
+            output,
+            this.modules.util.getLocaleString('setKey'),
+            this.modules.util.getLocaleString('cancel')
+        );
+
+        if (output.keyStr != "") {
+            this.setTextBoxValue(aKeyName, output.keyStr);
+        } else {
+            this.setTextBoxValue(aKeyName, "Not defined");
+        }
+    },
+
+    setTextBoxValue: function (aKeyName, aValue) {
+        var textBox = document.getElementById(this.prefPrefix + aKeyName);
+        textBox.value = aValue;
+    },
+
+    getTextBoxValue: function (aKeyName) {
+        var textBox = document.getElementById(this.prefPrefix + aKeyName);
+        return (textBox && textBox.value)
+            || (null);
     }
 };
-
-function fireInputEvent(aNode)
-{
-    var event = document.createEvent('UIEvents');
-    event.initUIEvent('input', true, false, window, 0);
-    aNode.dispatchEvent(event);
-}
 
 (function () {
      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]

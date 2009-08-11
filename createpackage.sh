@@ -9,7 +9,7 @@ setopt extended_glob
 
 rm -f chrome/keysnail.jar
 jar cvf0 chrome/keysnail.jar \
-    content/*.*~(*~|.svn/*) \
+    content/*.{js,xul}~(*~|.svn/*) \
     content/resources/{.*~*~,*~*~} \
     content/modules/*.js~(*~|.svn/*) \
     locale/**/*.*~(*~|.svn/*) \

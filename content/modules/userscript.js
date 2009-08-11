@@ -325,6 +325,13 @@ KeySnail.UserScript = {
                                              this.defaultInitFileNames);
         }
 
+        if (loadStatus == 0) {
+            this.initFileLoaded = true;
+            this.modules.key.run();
+            this.modules.key.updateMenu();
+            this.modules.key.updateStatusBar();
+        }
+
         return loadStatus;
     },
 
@@ -341,8 +348,6 @@ KeySnail.UserScript = {
                           "keysnail:initFileWizard",
                           "chrome,dialog,modal,centerscreen,dependent",
                           params);
-
-        this.modules.util.listProperty(params.out);
 
         if (!params.out) {
             this.message("Not params out!");
@@ -386,6 +391,16 @@ KeySnail.UserScript = {
             }
 
             // replace content with the selected key.
+            var keys = params.out.keys;
+            var specialKeySettings =
+                'key.quitKey = "' + keys.quitKey + '";\n' + 
+                'key.helpKey = "' + keys.helpKey + '";\n' + 
+                'key.escapeKey = "' + keys.escapeKey + '";\n' + 
+                'key.macroStartKey = "' + keys.macroStartKey + '";\n' + 
+                'key.macroEndKey = "' + keys.macroEndKey + '";';
+                
+            defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_SPECIAL_KEYS####',
+                                                      specialKeySettings);
 
             try {
                 this.modules.util.writeText(defaultInitFile,

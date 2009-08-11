@@ -15,7 +15,7 @@ KeySnail.Command = {
                 Application.console.log("goDoCommand called!");
                 try {
                     var controller = 
-                        document.commandDispatcher.getControllerForCommand(aCommand);
+                        top.document.commandDispatcher.getControllerForCommand(aCommand);
                     if (controller && controller.isCommandEnabled(aCommand))
                         controller.doCommand(aCommand);
                 }

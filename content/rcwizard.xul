@@ -5,7 +5,8 @@
 <!-- for findfiled -->
 <?xml-stylesheet href="chrome://mozapps/content/preferences/preferences.css"?>
 <?xml-stylesheet href="chrome://browser/skin/preferences/preferences.css"?>
-<?xml-stylesheet href="chrome://keysnail/skin/menuitem-icon.css"?>
+<?xml-stylesheet href="chrome://keysnail/skin/css/menuitem-icon.css"?>
+<?xml-stylesheet href="chrome://keysnail/skin/css/rcwizard.css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/rcwizard.dtd">
 
@@ -87,7 +88,9 @@
                 description="&keySnail.rcWizard.settingRcFile;"
                 onpageshow="keyCustomizer.initPane();"
                 >
-        <description>&keySnail.rcWizard.settingRcFileDescription;</description>
+        <description>&keySnail.rcWizard.settingRcFileDescription1;</description>
+        <description>&keySnail.rcWizard.settingRcFileDescription2;</description>
+        <description>&keySnail.rcWizard.settingRcFileDescription3;</description>
         <separator />
         <!-- original code from XUL/Migemo -->
         <!-- quit key -->
@@ -97,11 +100,12 @@
                 <description>&keySnail.rcWizard.key.quit.description;</description>
                 <hbox>
                     <textbox id="keysnail-userscript-key-quit"
-                             onclick="keyCustomizer.set(keyCustomizer.keys.quit);"
+                             onclick="keyCustomizer.set('quit');"
                              readonly="true"
-                             />
+                             class="keysnail-specialkey-textbox"/>
                     <button label="&keySnail.rcWizard.changeKey;"
-                            oncommand="keyCustomizer.set(keyCustomizer.keys.quit);"/>
+                            oncommand="keyCustomizer.set('quit');"
+                            class="keysnail-specialkey-button"/>
                 </hbox>
             </groupbox>
         </vbox>
@@ -112,11 +116,12 @@
                 <description>&keySnail.rcWizard.key.help.description;</description>
                 <hbox>
                     <textbox id="keysnail-userscript-key-help"
-                             onclick="keyCustomizer.set(keyCustomizer.keys.help);"
+                             onclick="keyCustomizer.set('help');"
                              readonly="true"
-                             />
+                             class="keysnail-specialkey-textbox"/>
                     <button label="&keySnail.rcWizard.changeKey;"
-                            oncommand="keyCustomizer.set(keyCustomizer.keys.help);"/>
+                            oncommand="keyCustomizer.set('help');"
+                            class="keysnail-specialkey-button"/>
                 </hbox>
             </groupbox>
         </vbox>
@@ -127,11 +132,12 @@
                 <description>&keySnail.rcWizard.key.escape.description;</description>
                 <hbox>
                     <textbox id="keysnail-userscript-key-escape"
-                             onclick="keyCustomizer.set(keyCustomizer.keys.escape);"
+                             onclick="keyCustomizer.set('escape');"
                              readonly="true"
-                             />
+                             class="keysnail-specialkey-textbox"/>
                     <button label="&keySnail.rcWizard.changeKey;"
-                            oncommand="keyCustomizer.set(keyCustomizer.keys.escape);"/>
+                            oncommand="keyCustomizer.set('escape');"
+                            class="keysnail-specialkey-button"/>
                 </hbox>
             </groupbox>
         </vbox>
@@ -142,11 +148,12 @@
                 <description>&keySnail.rcWizard.key.macroStart.description;</description>
                 <hbox>
                     <textbox id="keysnail-userscript-key-macroStart"
-                             onclick="keyCustomizer.set(keyCustomizer.keys.macroStart);"
+                             onclick="keyCustomizer.set('macroStart');"
                              readonly="true"
-                             />
+                             class="keysnail-specialkey-textbox"/>
                     <button label="&keySnail.rcWizard.changeKey;"
-                            oncommand="keyCustomizer.set(keyCustomizer.keys.macroStart);"/>
+                            oncommand="keyCustomizer.set('macroStart');"
+                            class="keysnail-specialkey-button"/>
                 </hbox>
             </groupbox>
         </vbox>
@@ -157,11 +164,12 @@
                 <description>&keySnail.rcWizard.key.macroEnd.description;</description>
                 <hbox>
                     <textbox id="keysnail-userscript-key-macroEnd"
-                             onclick="keyCustomizer.set(keyCustomizer.keys.macroEnd);"
+                             onclick="keyCustomizer.set('macroEnd');"
                              readonly="true"
-                             />
+                             class="keysnail-specialkey-textbox"/>
                     <button label="&keySnail.rcWizard.changeKey;"
-                            oncommand="keyCustomizer.set(keyCustomizer.keys.macroEnd);"/>
+                            oncommand="keyCustomizer.set('macroEnd');"
+                            class="keysnail-specialkey-button"/>
                 </hbox>
             </groupbox>
         </vbox>

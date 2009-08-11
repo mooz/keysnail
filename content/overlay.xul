@@ -32,7 +32,9 @@
                               src="chrome://keysnail/skin/icon/edit.png"/>
 	            <menuitem id="keysnail-menu-open-wizard"
 	                      label="&keySnail.statusbar.wizard;"
-	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"/>
+	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"
+                              class="menuitem-iconic"
+                              src="chrome://keysnail/skin/icon/create.png"/>
                 </menupopup>
             </menu>
 	    <menuitem id="keysnail-menu-open-preference"

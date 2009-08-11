@@ -21,8 +21,11 @@
 
 <!-- PAGE a-2 -->
 
-<!ENTITY keySnail.rcWizard.settingRcFile "作成する初期化ファイルの設定">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription "作成する初期化ファイルの設定を行います">
+<!ENTITY keySnail.rcWizard.settingRcFile "特殊キーの設定">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription1 "特殊キーの設定を行います。この設定は作成される初期化ファイルに書き込まれます。">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription2 "変更したいキーがあればテキストボックスかその右のボタンをクリックし、新たなキーを入力して下さい。">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription3 "C- は Ctrl キーや Command キーを、 M- は Alt キーや Meta キーを意味します。">
+
 <!ENTITY keySnail.rcWizard.changeKey "変更">
 
 <!ENTITY keySnail.rcWizard.key.quit "Quit key">
@@ -35,7 +38,7 @@
 <!ENTITY keySnail.rcWizard.key.help.description "キーバインドの一覧表示等に用いられます">
 <!ENTITY keySnail.rcWizard.key.escape.description "このキーの後に続けて入力されたキーは Firefox に直接送られます">
 <!ENTITY keySnail.rcWizard.key.macroStart.description "キーマクロの定義を開始します">
-<!ENTITY keySnail.rcWizard.key.macroEnd.description "キーマクロの定義を終了, 定義されたキーマクロの再生を行います">
+<!ENTITY keySnail.rcWizard.key.macroEnd.description "キーマクロの定義を終了 ＆ 記録されたキーマクロの再生を行います">
 
 <!-- PAGE b-1 -->
 
