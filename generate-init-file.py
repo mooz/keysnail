@@ -270,13 +270,13 @@ key.setGlobalKey("C-s", function () {
                      command.iSearchForward();
                  },
                  """ + {ja: '"インクリメンタル検索"',
-                        en: '"isearch forward"'}[l] + """);
+                        en: '"Incremental search forward"'}[l] + """);
 
 key.setGlobalKey("C-r", function () {
                      command.iSearchBackward();
                  },
                  """ + {ja: '"逆方向インクリメンタル検索"',
-                        en: '"isearch backward"'}[l] + """);
+                        en: '"Incremental search backward"'}[l] + """);
 
 // -------------------- window --------------------
 key.setGlobalKey(["C-x", "k"],

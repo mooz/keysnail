@@ -360,6 +360,11 @@ KeySnail.Key = {
     keyEventToString: function (aEvent) {
         var key;
 
+        this.modules.display.prettyPrint("char code : " + aEvent.charCode + "   " + 
+                                         "key code : " + aEvent.keyCode + "   " + 
+                                         (aEvent.ctrlKey ? "C" : "_") + (aEvent.altKey ? "M" : "_")
+                                        );
+
         if (aEvent.charCode >= 0x20 && aEvent.charCode <= 0x7e) {
             // ASCII displayable characters (0x20 : SPC)
             key = String.fromCharCode(aEvent.charCode);

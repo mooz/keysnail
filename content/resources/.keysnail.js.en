@@ -196,12 +196,12 @@ key.setGlobalKey("M-w",
 key.setGlobalKey("C-s", function () {
                      command.iSearchForward();
                  },
-                 "isearch forward");
+                 "Incremental search forward");
 
 key.setGlobalKey("C-r", function () {
                      command.iSearchBackward();
                  },
-                 "isearch backward");
+                 "Incremental search backward");
 
 // -------------------- window --------------------
 key.setGlobalKey(["C-x", "k"],
