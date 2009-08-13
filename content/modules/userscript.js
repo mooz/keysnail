@@ -265,6 +265,15 @@ KeySnail.UserScript = {
 
     // ==================== edit ==================== //
 
+    syncEditorWithGM: function () {
+        var gmEditor = this.modules.util.getUnicharPref("greasemonkey.editor");
+        if (gmEditor) {
+            nsPreferences.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
+        }
+
+        return gmEditor;
+    },
+
     editInitFile: function (aLineNum) {
         this.editFile(this.initFilePath, aLineNum);
     },
@@ -279,11 +288,7 @@ KeySnail.UserScript = {
             .getUnicharPref("extensions.keysnail.userscript.editor");
 
         if (!editorPath) {
-            var gmEditor = this.modules.util.getUnicharPref("greasemonkey.editor");
-            if (gmEditor) {
-                nsPreferences.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
-                editorPath = gmEditor;
-            }
+            editorPath = this.syncEditorWithGM();
         }
 
         try {

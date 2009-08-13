@@ -92,7 +92,6 @@
         <description>&keySnail.rcWizard.settingRcFileDescription2;</description>
         <description>&keySnail.rcWizard.settingRcFileDescription3;</description>
         <separator />
-        <!-- original code from XUL/Migemo -->
         <!-- quit key -->
         <vbox>
             <groupbox orient="vertical">

@@ -2,9 +2,17 @@ var ksPreference = {
     initFileKey: "extensions.keysnail.userscript.location",
     editorKey: "extensions.keysnail.userscript.editor",
 
+    onLoad: function () {
+        if (!this.modules.util.getUnicharPref(this.editorKey)) {
+            if (this.modules.util.getUnicharPref("greasemonkey.editor")) {
+                this.modules.userscript.syncEditorWithGM();
+            }
+        }
+        this.updateAllFileFields();
+    },
+
     updateFileField: function (aPrefKey, aID) {
-        var location = nsPreferences.getLocalizedUnicharPref(aPrefKey)
-            || nsPreferences.copyUnicharPref(aPrefKey);
+        var location = this.modules.util.getUnicharPref(aPrefKey);
         var fileField = document.getElementById(aID);
 
         var file = this.openFile(location);
@@ -78,7 +86,12 @@ var ksPreference = {
             }
 
             nsPreferences.setUnicharPref(prefKey, fp.file.path);
-            this.updateAllFileFields();
+
+            if (aType == 'INITFILE') {
+                this.updateFileField(this.initFileKey, "keysnail.preference.userscript.location");                
+            } else {
+                this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");                
+            }
         }
     }
 };

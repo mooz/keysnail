@@ -360,10 +360,10 @@ KeySnail.Key = {
     keyEventToString: function (aEvent) {
         var key;
 
-        // this.modules.display.prettyPrint("char code : " + aEvent.charCode + "   " + 
-        //                                  "key code : " + aEvent.keyCode + "   " + 
-        //                                  (aEvent.ctrlKey ? "C" : "_") + (aEvent.altKey ? "M" : "_")
-        //                                 );
+        this.modules.display.prettyPrint("char code : " + aEvent.charCode + "   " + 
+                                         "key code : " + aEvent.keyCode + "   " + 
+                                         (aEvent.ctrlKey ? "C" : "_") + (aEvent.altKey ? "M" : "_")
+                                        );
 
         if (aEvent.charCode >= 0x20 && aEvent.charCode <= 0x7e) {
             // ASCII displayable characters (0x20 : SPC)
@@ -425,11 +425,11 @@ KeySnail.Key = {
                 break;
             case KeyEvent.DOM_VK_DELETE:
                 key = "<delete>";
-            case 0x2D:
+            case 0xE2:
                 /**
                  * windows specific bug
                  * When Ctrl + _ is pressed, the char code becomes 0, not the 95
-                 * and the key code becomes 0x2D
+                 * and the key code becomes 242 (0xE2)
                  */
                 if (aEvent.ctrlKey)
                     key = "_";

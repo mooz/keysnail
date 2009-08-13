@@ -16,7 +16,7 @@
             style="min-width: 41em;"
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;" flex="1"
-              onpaneload="ksPreference.updateAllFileFields();">
+              onpaneload="ksPreference.onLoad();">
         <preferences>
             <preference
                  id="extensions.keysnail.keyhandler.global_enabled"
