@@ -481,7 +481,7 @@ key.setEditKey([["C-x", "u"],
                },
                """ + {ja: '"アンドゥ"',
                       en: '"Undo"'}[l] + """);
-key.setEditKey(["C-\\"],
+key.setEditKey(["C-\\\\"],
                function () {
                    display.echoStatusBar("Redo!", 2000);
                    goDoCommand('cmd_redo');
@@ -621,6 +621,27 @@ key.setEditKey("C-w",
                },
                """ + {ja: '"リージョンをカット"',
                       en: '"Cut current region"'}[l] + """);
+
+// -------------------- rectangle -------------------- //
+
+key.setEditKey(["C-x", "r", "d"],
+               function (aEvent) {
+                   command.replaceRectangle(aEvent.originalTarget, "");
+               }, """ + {ja: '"矩形削除"',
+                         en: '"Delete text in the region-rectangle"'}[l] + """);
+
+key.setEditKey(["C-x", "r", "t"],
+               function (aEvent) {
+                   var replacement = window.prompt("String rectangle", "");
+                   command.replaceRectangle(aEvent.originalTarget, replacement);
+               }, """ + {ja: '"矩形置換"',
+                         en: '"Replace text in the region-rectangle with user inputted string"'}[l] + """);
+
+key.setEditKey(["C-x", "r", "o"],
+               function (aEvent) {
+                   command.openRectangle(aEvent.originalTarget);
+               }, """ + {ja: '"矩形行空け"',
+                         en: '"Blank out the region-rectangle, shifting text right"'}[l] + """);
 
 // -------------------- selection -------------------- //
 

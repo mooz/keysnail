@@ -364,7 +364,7 @@ key.setEditKey([["C-x", "u"],
                    goDoCommand('cmd_undo');
                },
                "アンドゥ");
-key.setEditKey(["C-\"],
+key.setEditKey(["C-\\"],
                function () {
                    display.echoStatusBar("Redo!", 2000);
                    goDoCommand('cmd_redo');
@@ -481,6 +481,24 @@ key.setEditKey("C-w",
                    command.resetMark(aEvent);
                },
                "リージョンをカット");
+
+// -------------------- rectangle -------------------- //
+
+key.setEditKey(["C-x", "r", "d"],
+               function (aEvent) {
+                   command.replaceRectangle(aEvent.originalTarget, "");
+               }, "矩形削除");
+
+key.setEditKey(["C-x", "r", "t"],
+               function (aEvent) {
+                   var replacement = window.prompt("String rectangle", "");
+                   command.replaceRectangle(aEvent.originalTarget, replacement);
+               }, "矩形置換");
+
+key.setEditKey(["C-x", "r", "o"],
+               function (aEvent) {
+                   command.openRectangle(aEvent.originalTarget);
+               }, "矩形行空け");
 
 // -------------------- selection -------------------- //
 

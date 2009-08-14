@@ -11,7 +11,7 @@
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "Key Handler Settings">
 <!ENTITY keySnail.preference.keyhandler.enabled "Enabled">
-<!ENTITY keySnail.preference.keyhandler.globalEnabled "Enable KeySnail globally">
+<!ENTITY keySnail.preference.keyhandler.globalEnabled "Use KeySnail outside the browser window (enable globally)">
 <!ENTITY keySnail.preference.keyhandler.usePrefixArgument "Use Emacs-like prefix argument system">
 
 <!-- ABOUT -->

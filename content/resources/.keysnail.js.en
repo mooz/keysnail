@@ -368,7 +368,7 @@ key.setEditKey([["C-x", "u"],
                    goDoCommand('cmd_undo');
                },
                "Undo");
-key.setEditKey(["C-\"],
+key.setEditKey(["C-\\"],
                function () {
                    display.echoStatusBar("Redo!", 2000);
                    goDoCommand('cmd_redo');
@@ -485,6 +485,24 @@ key.setEditKey("C-w",
                    command.resetMark(aEvent);
                },
                "Cut current region");
+
+// -------------------- rectangle -------------------- //
+
+key.setEditKey(["C-x", "r", "d"],
+               function (aEvent) {
+                   command.replaceRectangle(aEvent.originalTarget, "");
+               }, "Delete text in the region-rectangle");
+
+key.setEditKey(["C-x", "r", "t"],
+               function (aEvent) {
+                   var replacement = window.prompt("String rectangle", "");
+                   command.replaceRectangle(aEvent.originalTarget, replacement);
+               }, "Replace text in the region-rectangle with user inputted string");
+
+key.setEditKey(["C-x", "r", "o"],
+               function (aEvent) {
+                   command.openRectangle(aEvent.originalTarget);
+               }, "Blank out the region-rectangle, shifting text right");
 
 // -------------------- selection -------------------- //
 

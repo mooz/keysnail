@@ -122,15 +122,15 @@ KeySnailLoader.prototype = {
     //     }
     // },
 
-    message: function (aMsg) {
-        var logs = Components.classes["@mozilla.org/consoleservice;1"]
-            .getService(Components.interfaces.nsIConsoleService);
-        try {
-            logs.logStringMessage(aMsg);
-        } catch (x) {
-            log.logStringMessage(x);
-        }
-    },
+    // message: function (aMsg) {
+    //     var logs = Components.classes["@mozilla.org/consoleservice;1"]
+    //         .getService(Components.interfaces.nsIConsoleService);
+    //     try {
+    //         logs.logStringMessage(aMsg);
+    //     } catch (x) {
+    //         log.logStringMessage(x);
+    //     }
+    // },
 
     QueryInterface: function (aIID) {
         if (!aIID.equals(Components.interfaces.nsIDOMEventListener) &&

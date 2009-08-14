@@ -86,10 +86,13 @@
     <prefpane id="prefpane-about" label="&keySnail.preference.about;" flex="1">
         <vbox align="center">
             <image src="chrome://keysnail/skin/logo.png" width="128" height="128"
-                   tooltiptext="KeySnail 0.5.2" />
+                   tooltiptext="KeySnail" />
             <spacer height="10px" />
             <description>mooz &lt;stillpedant@gmail.com&gt; (c) 2009</description>
-            <description>http://d.hatena.ne.jp/mooz/</description>
+            <description class="text-link"
+                         onclick="ksPreference.modules.key.viewURI('http://d.hatena.ne.jp/mooz/')">
+                http://d.hatena.ne.jp/mooz/ (Japanese)
+            </description>
         </vbox>
     </prefpane>
 

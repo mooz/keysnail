@@ -301,8 +301,10 @@ KeySnail.Command = {
         var begin = aInput.selectionStart;
         var end = aInput.selectionEnd;
 
-        if (begin == end)
-            return;
+        // if (typeof(aInput.ksMarked) == "number" &&
+        //     aInput.ksMarked > end) {
+        //     end = aInput.ksMarked;
+        // }
 
         var text = aInput.value;
 
@@ -345,8 +347,8 @@ KeySnail.Command = {
             output += lines[i] + "\n";
         }
 
-        this.message(from);
-        this.message(to);
+        // this.message(from);
+        // this.message(to);
 
         // replace
         for (i = beginLineNum; i <= endLineNum; ++i) {
