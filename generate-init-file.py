@@ -143,7 +143,7 @@ print """// ==================== KeySnail configuration file ===================
 //     return aEvent.altKey;
 // }
 
-// ==================== remap ==================== //
+// ==================== original prefix ==================== //
 // """ + {ja: "エディットモードで C-z を入力すると, ビューモードのキーバインドが使える",
           en: """You can use view-mode keybindings in edit-mode by adding
 // the prefix key C-z."""}[l] + """
@@ -475,9 +475,19 @@ key.setEditKey("C-o",
 
 key.setEditKey([["C-x", "u"],
                 ["C-_"]],
-               function () { goDoCommand('cmd_undo'); },
+               function () {
+                   display.echoStatusBar("Undo!", 2000);
+                   goDoCommand('cmd_undo');
+               },
                """ + {ja: '"アンドゥ"',
                       en: '"Undo"'}[l] + """);
+key.setEditKey(["C-\\"],
+               function () {
+                   display.echoStatusBar("Redo!", 2000);
+                   goDoCommand('cmd_redo');
+               },
+               """ + {ja: '"リドゥ"',
+                      en: '"Redo"'}[l] + """);
 
 // -------------------- cursor navigation --------------------
 
@@ -734,6 +744,11 @@ key.setCaretKey(".", function () {
                     util.getSelectionController().scrollHorizontal(false);
                 }, """ + {ja: '"ページを右へスクロール"',
                           en: '"Scroll right"'}[l] + """);
+
+key.setCaretKey("z", function (aEvent) {
+                    command.recenter(aEvent);
+                }, """ + {ja: '"カーソル位置へスクロール"',
+                          en: '"Scroll to the cursor position"'}[l] + """);
 
 // -------------------- tab navigation -------------------- //
 

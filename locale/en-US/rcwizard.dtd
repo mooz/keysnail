@@ -1,4 +1,4 @@
-<!ENTITY keySnail.rcWizard.title "Keysnail :: Create / Select the initialization file">
+<!ENTITY keySnail.rcWizard.title "Keysnail :: Init file setup">
 
 <!-- PAGE 1 -->
 
@@ -22,10 +22,10 @@
 
 <!-- PAGE a-2 -->
 
-<!ENTITY keySnail.rcWizard.settingRcFile "Special Key Settings">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription1 "You can customize the special keys listed below. These settings are stored into the init file.">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription2 "If you want to change some keys, click textbox or button on right and press the new key.">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription3 "C- means the Ctrl and Command key. M- means the Alt and Meta key.">
+<!ENTITY keySnail.rcWizard.settingRcFile "Customize special keys">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription1 "If you want to change some keys listed below, click textbox or button on right and press the new key. Those changes will be stored into the init file.">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription2 "C- means the Ctrl and Command key. M- means the Alt and Meta key.">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription3 "For example, C-g means pressing Ctrl + g at the same time and C-M-r means Ctrl + Alt + r.">
 
 <!ENTITY keySnail.rcWizard.changeKey "Change">
 
@@ -50,3 +50,4 @@
 
 <!ENTITY keySnail.rcWizard.change "Change">
 <!ENTITY keySnail.rcWizard.filename "File name: ">
+

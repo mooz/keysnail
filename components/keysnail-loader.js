@@ -46,6 +46,12 @@ KeySnailLoader.prototype = {
 
         // this.message(aEvent.target.documentURI);
 
+        // var elem = aEvent.target.defaultView
+        //     .QueryInterface(Components.interfaces.nsIDOMNSEditableElement);
+        // if (elem) {
+        //     this.message("Editable found [" + aEvent.target.documentURI + "]");
+        // }
+
         switch (aEvent.target.documentURI) {
             // white list
         case 'chrome://browser/content/browser.xul':
@@ -116,15 +122,15 @@ KeySnailLoader.prototype = {
     //     }
     // },
 
-    // message: function (aMsg) {
-    //     var logs = Components.classes["@mozilla.org/consoleservice;1"]
-    //         .getService(Components.interfaces.nsIConsoleService);
-    //     try {
-    //         logs.logStringMessage(aMsg);
-    //     } catch (x) {
-    //         log.logStringMessage(x);
-    //     }
-    // },
+    message: function (aMsg) {
+        var logs = Components.classes["@mozilla.org/consoleservice;1"]
+            .getService(Components.interfaces.nsIConsoleService);
+        try {
+            logs.logStringMessage(aMsg);
+        } catch (x) {
+            log.logStringMessage(x);
+        }
+    },
 
     QueryInterface: function (aIID) {
         if (!aIID.equals(Components.interfaces.nsIDOMEventListener) &&

@@ -43,7 +43,7 @@ var rcWizard = {
     updatePageCreate: function () {
         var fileField = document.getElementById("keysnail-userscript-destination");
 
-        // Note: 順番を逆にするとラベルが表示されない
+        // Note: Do *NOT* change these two lines order
         fileField.file = this.rcFileObject;
         fileField.label = this.rcFilePath;
     },

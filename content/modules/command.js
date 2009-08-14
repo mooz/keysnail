@@ -185,14 +185,14 @@ KeySnail.Command = {
 
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
         var items = toolbarBookMarks.getElementsByTagName('toolbarbutton');
-        // this.message("ブックマークツールバーには " + items.length + " 個");
+        // item.length
 
         if (aArg > items.length - 1)
             aArg = items.length - 1;
 
         // this.modules.util.listProperty(items[aArg].node);
 
-        // 一覧表示したいならこっち
+        // List all items
         // for (i = 0; i < items.length; ++i) {
         //     this.message("Name : " + items[i].label);
         //     this.message("URI : " + items[i].node.uri);
@@ -206,19 +206,46 @@ KeySnail.Command = {
         this.autoCompleteController.handleKeyNavigation(aKeyEvent);
     },
 
+    inputHandleKey: function (aEvent, aCommand, aSelectedCommand, aDOMKey) {
+        if (aEvent.originalTarget.localName == 'TEXTAREA') {
+            // ########################################
+            if (this.marked(aEvent)) {
+                goDoCommand(aSelectedCommand);
+            } else {
+                goDoCommand(aCommand);
+            }
+        } else if (this.modules.util.isMenu()) {
+            // ########################################
+            this.autoCompleteHandleKey(aDOMKey);
+        } else if (typeof(hBookmark.TagCompleter) != 'undefined') {
+            // ########################################
+            // hateb tag completion
+            var newEvent = document.createEvent('KeyboardEvent');
+            newEvent.initKeyEvent('keydown', true, true, null,
+                                  false, false, false, false,
+                                  aDOMKey, 0);
+            // aEvent.originalTarget.dispatchEvent(newEvent);
+            hBookmark.TagCompleter.InputHandler.prototype.inputKeydownHandler(newEvent);
+        } else {
+            // ########################################
+            this.modules.key
+                .generateKey(aEvent.originalTarget, aDOMKey, true);            
+        }
+    },
+
     // ==================== Editor Commands  ====================
 
-    // from XUL/Migemo
-    recenter: function () {
+    // original code from XUL/Migemo
+    recenter: function (aEvent) {
         var frame = document.commandDispatcher.focusedWindow
-            || gBrowser.contentWindow;
+                 || gBrowser.contentWindow;
 
         var selection = frame.getSelection();
         var range = frame.document.createRange();
         var elem;
 
-        if (frame.document.foundEditable) {
-            elem = frame.document.foundEditable;
+        if (this.modules.util.isWritable()) {
+            elem = aEvent.originalTarget;
 
             var box = elem.ownerDocument.getBoxObjectFor(elem);
             frame.scrollTo(box.x - frame.innerWidth / 2, box.y - frame.innerHeight / 2);
@@ -252,13 +279,158 @@ KeySnail.Command = {
     //     // this.message("Cursor Position : " + cursor.x + ", " + cursor.y);
     // },
 
+    // ==================== Insertion ==================== //
+
     openLine: function (aEvent) {
-        this.modules.key.generateKey(aEvent.target,
+        this.modules.key.generateKey(aEvent.originalTarget,
                                      KeyEvent.DOM_VK_RETURN,
                                      true);
         goDoCommand("cmd_linePrevious");
         goDoCommand("cmd_endLine");
     },
+
+    // ==================== Rectangle ==================== //
+
+    /**
+     * Do Emacs-like rectangle replacement
+     * @param {textarea} aInput
+     * @param {string} aAlt an alternative string
+     * @return
+     */
+    replaceRectangle: function (aInput, aReplacement) {
+        var begin = aInput.selectionStart;
+        var end = aInput.selectionEnd;
+
+        if (begin == end)
+            return;
+
+        var text = aInput.value;
+
+        var lines = text.split('\n');
+
+        // detect selection start line
+        var count = 0;
+        var beginLineNum, endLineNum;
+        var i, prevCount;
+        for (i = 0; i < lines.length; ++i) {
+            prevCount = count;
+            count += (lines[i].length + 1);
+            
+            if (typeof(beginLineNum) == 'undefined' &&
+                count >= begin) {
+                beginLineNum = i;
+                var beginHeadCount = begin - prevCount;
+            }
+            if (count >= end) {
+                endLineNum = i;
+                var endHeadCount = end - prevCount;
+                break;
+            }
+        }
+
+        // intra-line
+        // (from - to) becomes rectangle-width
+        var from, to;
+        if (beginHeadCount < endHeadCount) {
+            from = beginHeadCount;
+            to   = endHeadCount;
+        } else {
+            from = endHeadCount;
+            to   = beginHeadCount;
+        }
+
+        // now we process chars
+        var output = "";
+        for (i = 0; i < beginLineNum; ++i) {
+            output += lines[i] + "\n";
+        }
+
+        this.message(from);
+        this.message(to);
+
+        // replace
+        for (i = beginLineNum; i <= endLineNum; ++i) {
+            output += lines[i].slice(0, from)
+                + aReplacement
+                + lines[i].slice(to, lines[i].length)
+                + "\n";
+        }
+
+        // copy rest line
+        for (; i < lines.length; ++i) {
+            output += lines[i] + "\n";
+        }
+
+        // remove last "\n" and apply
+        aInput.value = output.slice(0, output.length - 1);
+
+        // set caret position
+        var caretPos = 0;
+        if (typeof(aInput.ksMarked) == "number") {
+            var replaceeLen = to - from;
+            if (aInput.ksMarked > begin) {
+                // ====================
+                if (beginHeadCount < endHeadCount) {
+                    caretPos = begin;                    
+                } else {
+                    caretPos = begin + (aReplacement.length - replaceeLen);
+                }
+            } else {
+                // ====================
+                caretPos = end +
+                    // gap in word count per line, between before and after
+                    (aReplacement.length - replaceeLen) *
+                    (endLineNum - beginLineNum + 1); // line count
+            }
+        }
+
+        aInput.selectionStart = aInput.selectionEnd = caretPos;
+
+        // quick hack
+        var ev = {};
+        ev.originalTarget = aInput;
+        this.resetMark(ev);
+    },
+
+    openRectangle: function (aInput) {
+        var begin = aInput.selectionStart;
+        var end = aInput.selectionEnd;
+
+        if (begin == end)
+            return;
+
+        var text = aInput.value;
+
+        var lines = text.split('\n');
+
+        // detect selection start line
+        var count = 0;
+        var beginLineNum, endLineNum;
+        var i, prevCount;
+        for (i = 0; i < lines.length; ++i) {
+            prevCount = count;
+            count += (lines[i].length + 1);
+            
+            if (typeof(beginLineNum) == 'undefined' &&
+                count >= begin) {
+                beginLineNum = i;
+                var beginHeadCount = begin - prevCount;
+            }
+            if (count >= end) {
+                endLineNum = i;
+                var endHeadCount = end - prevCount;
+                break;
+            }
+        }
+
+        // get rectangle-width
+        var width = (beginHeadCount < endHeadCount) ?
+            endHeadCount - beginHeadCount : beginHeadCount - endHeadCount;
+        
+        this.replaceRectangle(aInput, new Array(width + 1).join(" "));
+    },
+
+    // ==================== Copy / Cut ==================== //
 
     killLine: function (aEvent) {
         if (this.marked(aEvent)) {
@@ -275,35 +447,50 @@ KeySnail.Command = {
         this.resetMark(aEvent);
     },
 
+    // ==================== Select ==================== //
+
+    selectAll: function (aEvent) {
+        var orig = aEvent.originalTarget;
+        goDoCommand('cmd_moveBottom');
+        goDoCommand('cmd_selectTop');
+        orig.ksMarked = orig.selectionEnd;
+        // this.modules.util.print(orig.selectionStart);
+        // this.modules.util.print(orig.selectionEnd);
+    },
+
+    // ==================== By line ==================== //
+
     previousLine: function (aEvent) {
-        if (aEvent.target.localName == 'TEXTAREA') {
-            if (this.marked(aEvent)) {
-                goDoCommand('cmd_selectLinePrevious');
-            } else {
-                goDoCommand('cmd_linePrevious');
-            }
-        } else if (this.modules.util.isMenu()) {
-            this.autoCompleteHandleKey(KeyEvent.DOM_VK_UP);
-        } else {
-            this.modules.key
-                .generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_UP, true);
-        }
+        this.inputHandleKey(aEvent,
+                            "cmd_linePrevious",
+                            "cmd_selectLinePrevious",
+                            KeyEvent.DOM_VK_UP);
     },
 
     nextLine: function (aEvent) {
-        if (aEvent.target.localName == 'TEXTAREA') {
-            if (this.marked(aEvent)) {
-                goDoCommand('cmd_selectLineNext');
-            } else {
-                goDoCommand('cmd_lineNext');
-            }
-        } else if (this.modules.util.isMenu()) {
-            this.autoCompleteHandleKey(KeyEvent.DOM_VK_DOWN);
-        } else {
-            this.modules.key
-                .generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_DOWN, true);
-        }
+        this.inputHandleKey(aEvent,
+                            "cmd_lineNext",
+                            "cmd_selectLineNext",
+                            KeyEvent.DOM_VK_DOWN);
     },
+
+   // ==================== By page ==================== //
+
+    pageUp: function (aEvent) {
+        this.inputHandleKey(aEvent,
+                            "cmd_movePageUp",
+                            "cmd_selectPageUp",
+                            KeyEvent.DOM_VK_PAGE_UP);
+    },
+
+    pageDown: function (aEvent) {
+        this.inputHandleKey(aEvent,
+                            "cmd_movePageDown",
+                            "cmd_selectPageDown",
+                            KeyEvent.DOM_VK_PAGE_DOWN);
+    },
+ 
+    // ==================== Intra line ==================== //
 
     previousChar: function (aEvent) {
         if (this.marked(aEvent)) {
@@ -336,6 +523,24 @@ KeySnail.Command = {
             goDoCommand('cmd_wordNext');
         }
     },
+
+    beginLine: function (aEvent) {
+        if (this.marked(aEvent)) {
+            goDoCommand('cmd_selectBeginLine');
+        } else {
+            goDoCommand('cmd_beginLine');
+        }
+    },
+
+    endLine: function (aEvent) {
+        if (this.marked(aEvent)) {
+            goDoCommand('cmd_selectEndLine');
+        } else {
+            goDoCommand('cmd_endLine');
+        }
+    },
+
+    // ==================== Transformation ==================== //
 
     processBackwardWord: function (aInput, aFilter) {
         var begin = aInput.selectionStart;
@@ -373,37 +578,7 @@ KeySnail.Command = {
             + aString.slice(wordBegin + 1).toLowerCase();
     },
 
-    beginLine: function (aEvent) {
-        if (this.marked(aEvent)) {
-            goDoCommand('cmd_selectBeginLine');
-        } else {
-            goDoCommand('cmd_beginLine');
-        }
-    },
-
-    endLine: function (aEvent) {
-        if (this.marked(aEvent)) {
-            goDoCommand('cmd_selectEndLine');
-        } else {
-            goDoCommand('cmd_endLine');
-        }
-    },
-
-    pageUp: function (aEvent) {
-        if (this.marked(aEvent)) {
-            goDoCommand('cmd_selectPageUp');
-        } else {
-            goDoCommand('cmd_movePageUp');
-        }
-    },
-
-    pageDown: function (aEvent) {
-        if (this.marked(aEvent)) {
-            goDoCommand('cmd_selectPageDown');
-        } else {
-            goDoCommand('cmd_movePageDown');
-        }
-    },
+    // ==================== Complete move ==================== //
 
     moveTop: function (aEvent) {
         if (this.marked(aEvent)) {
@@ -421,15 +596,6 @@ KeySnail.Command = {
         }
     },
 
-    selectAll: function (aEvent) {
-        var orig = aEvent.originalTarget;
-        goDoCommand('cmd_moveBottom');
-        goDoCommand('cmd_selectTop');
-        orig.ksMarked = orig.selectionEnd;
-        // this.modules.util.print(orig.selectionStart);
-        // this.modules.util.print(orig.selectionEnd);
-    },
-
     // ==================== Mark ====================
     // original code from Firemacs
     // http://www.mew.org/~kazu/proj/firemacs/
@@ -437,7 +603,8 @@ KeySnail.Command = {
     // predicative
     marked: function (aEvent) {
         var orig = aEvent.originalTarget;
-        return (typeof(orig.ksMarked) == 'number' || typeof(orig.ksMarked) == 'boolean');
+        return (typeof(orig.ksMarked) == 'number' ||
+                typeof(orig.ksMarked) == 'boolean');
     },
 
     setMark: function (aEvent) {

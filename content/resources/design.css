@@ -21,7 +21,7 @@ body {
 background-color:#E6E6E6;
 color:#1D1D1D;
 font-size:100%;
-font-family:'Verdana','Helvetica', 'Arial', sans-serif;
+font-family:'Helvetica', 'Arial', sans-serif;
 text-align:center;
 margin:2em 15px 15px;
 padding:0;
@@ -99,7 +99,7 @@ margin:5px 15px;
 }
 
 *.table-keybindings {
-margin-left:4em;
+margin-left:2em;
 border:1px #BBB solid;
 border-collapse:collapse;
 border-spacing:0;
@@ -107,7 +107,7 @@ border-spacing:0;
 
 *.table-keybindings th {
 border:1px #BBB solid;
-background:#E5E5E5;
+background:#ECECEC;
 font-weight:700;
 line-height:120%;
 border-width:0 0 1px 1px;

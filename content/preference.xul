@@ -84,7 +84,7 @@
     </prefpane>
 
     <prefpane id="prefpane-about" label="&keySnail.preference.about;" flex="1">
-        <vbox flex="2" align="center">
+        <vbox align="center">
             <image src="chrome://keysnail/skin/logo.png" width="128" height="128"
                    tooltiptext="KeySnail 0.5.2" />
             <spacer height="10px" />

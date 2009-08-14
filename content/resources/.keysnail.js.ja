@@ -84,7 +84,7 @@
 //     return aEvent.altKey;
 // }
 
-// ==================== remap ==================== //
+// ==================== original prefix ==================== //
 // エディットモードで C-z を入力すると, ビューモードのキーバインドが使える
 // key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
@@ -359,8 +359,17 @@ key.setEditKey("C-o",
 
 key.setEditKey([["C-x", "u"],
                 ["C-_"]],
-               function () { goDoCommand('cmd_undo'); },
+               function () {
+                   display.echoStatusBar("Undo!", 2000);
+                   goDoCommand('cmd_undo');
+               },
                "アンドゥ");
+key.setEditKey(["C-\"],
+               function () {
+                   display.echoStatusBar("Redo!", 2000);
+                   goDoCommand('cmd_redo');
+               },
+               "リドゥ");
 
 // -------------------- cursor navigation --------------------
 
@@ -575,6 +584,10 @@ key.setCaretKey(",", function () {
 key.setCaretKey(".", function () {
                     util.getSelectionController().scrollHorizontal(false);
                 }, "ページを右へスクロール");
+
+key.setCaretKey("z", function (aEvent) {
+                    command.recenter(aEvent);
+                }, "カーソル位置へスクロール");
 
 // -------------------- tab navigation -------------------- //
 

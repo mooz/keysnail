@@ -41,8 +41,8 @@ KeySnail.Key = {
         GLOBAL: "global",
         VIEW:   "view",
         EDIT:   "edit",
-        CARET:  "caret",
-        MENU:   "menu"
+        CARET:  "caret"
+        // MENU:   "menu"
     },
 
     init: function () {
@@ -167,7 +167,7 @@ KeySnail.Key = {
         switch (key) {
         case this.escapeKey:
             this.modules.util.stopEventPropagation(aEvent);
-            this.modules.display.echoStatusBar("Escape Next Key: ");
+            this.modules.display.echoStatusBar("Escape: ");
             this.escapeCurrentChar = true;
             return;
         case this.quitKey:
@@ -360,10 +360,10 @@ KeySnail.Key = {
     keyEventToString: function (aEvent) {
         var key;
 
-        this.modules.display.prettyPrint("char code : " + aEvent.charCode + "   " + 
-                                         "key code : " + aEvent.keyCode + "   " + 
-                                         (aEvent.ctrlKey ? "C" : "_") + (aEvent.altKey ? "M" : "_")
-                                        );
+        // this.modules.display.prettyPrint("char code : " + aEvent.charCode + "   " + 
+        //                                  "key code : " + aEvent.keyCode + "   " + 
+        //                                  (aEvent.ctrlKey ? "C" : "_") + (aEvent.altKey ? "M" : "_")
+        //                                 );
 
         if (aEvent.charCode >= 0x20 && aEvent.charCode <= 0x7e) {
             // ASCII displayable characters (0x20 : SPC)
@@ -593,7 +593,6 @@ KeySnail.Key = {
         return -1;
     },
 
-    // キーシーケンスに関数を割り当て
     registerKeySequence: function (aKeys, aFunc, aKeyMap) {
         // validate (currently, not works)
 
@@ -632,8 +631,6 @@ KeySnail.Key = {
         }
 
         aKeyMap[aKeys[i]] = aFunc;
-
-        return true;
     },
 
     // ==================== set key sequence to the keymap  ====================
@@ -655,18 +652,11 @@ KeySnail.Key = {
     },
 
     defineKey: function (aKeyMapName, aKeys, aFunc, aKsdescription, aKsNoRepeat) {
-        var addTo = this.keyMapHolder[aKeyMapName]
-            || this.keyMapHolder[this.modes.GLOBAL];
+        var addTo = this.keyMapHolder[aKeyMapName];
 
-        // if (!addTo) {
-        //     this.message("'" + aKeyMapName
-        //                  + "' isn't a valid keyMap");
-        //     return;
+        // if (aKsdescription) {
+        aFunc.ksDescription = aKsdescription;
         // }
-
-        if (aKsdescription) {
-            aFunc.ksDescription = aKsdescription;
-        }
         // true, if you want to prevent the iteration
         // of the command when prefix argument specified.
         aFunc.ksNoRepeat = aKsNoRepeat;
@@ -711,8 +701,6 @@ KeySnail.Key = {
         this.copyKeyMap(aTargetKeyMapName, aDestinationKeyMapName);
     },
 
-    // 初期状態に戻す
-    //
     backToNeutral: function (aMsg, aTime) {
         // reset keymap
         this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
@@ -731,8 +719,7 @@ KeySnail.Key = {
     /**
      * @param {keyMap} aKeyMap
      * @param {[String]} aKeySequence
-     * @return {keyMap} keyMap を keySequence だけたどった先のキーマップ
-     *                  たどれなかったら null 
+     * @return {keyMap} trailed keymap using <keyMap>. null when failed to trail
      */
     trailByKeySequence: function (aKeyMap, aKeySequence) {
         var key;
@@ -740,12 +727,11 @@ KeySnail.Key = {
         for (var i = 0; i < to; ++i) {
             key = aKeySequence[i];
             if (typeof(aKeyMap[key]) != "object") {
-                // aKeySequence 分だけたどれなかった場合は
-                // 無理だと分かるので null を返す
+                // failed to trail
                 return null;
             }
 
-            // たどれる場合は次のキーマップへ
+            // when trailable, go to the next keymap
             aKeyMap = aKeyMap[key];
         }
 
@@ -843,13 +829,11 @@ KeySnail.Key = {
         if (!aFunc.ksNoRepeat && aArg) {
             // iterate
             for (var i = 0; i < aArg; ++i) {
-                // func(event, arg); => this がグローバルになる
                 // aFunc.apply(this.modules, [aEvent, aArg]);
                 aFunc.apply(KeySnail, [aEvent, aArg]);
             }
         } else {
             // one time
-            // func(event, arg); => this がグローバルになる
             aFunc.apply(KeySnail, [aEvent, aArg]);
             // aFunc.apply(this.modules, [aEvent, aArg]);
         }
@@ -952,7 +936,7 @@ KeySnail.Key = {
         }
     },
 
-    // 現在のキーシーケンスから可能なキーバインド一覧を表示
+    // Display beginning with ... help
     interactiveHelp: function () {
         var contentHolder = ['<h1>Key Bindings Starting With ' +
                              this.currentKeySequence.join(" ") + '</h1><hr />'];
@@ -997,7 +981,7 @@ KeySnail.Key = {
         this.viewURI(contentPath);
     },
 
-    // 全てのキーバインドを一覧
+    // List all key bindings
     listKeyBindings: function () {
         var contentHolder = ['<h1>All key bindings</h1><hr />',
                              '<ul>',

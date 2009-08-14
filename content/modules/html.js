@@ -42,7 +42,7 @@ KeySnail.HTML = {
         const Cc = Components.classes;
         const Ci = Components.interfaces;
 
-        // キーバインド表示用の一時ファイルを作成
+        // Make temporary file for listing the keybindings
         var tmpFile = this.modules.util.getSpecialDir("UChrm");
         tmpFile.appendRelativePath("keybindings.html");
 

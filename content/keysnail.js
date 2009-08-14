@@ -66,7 +66,5 @@ var KeySnail = {
         _ksLast = now;
     },
 
-    message: function (msg) {
-        Application.console.log(msg);
-    }
+    message: Application.console.log
 };

@@ -21,10 +21,18 @@
 
 <!-- PAGE a-2 -->
 
-<!ENTITY keySnail.rcWizard.settingRcFile "特殊キーの設定">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription1 "特殊キーの設定を行います。この設定は作成される初期化ファイルに書き込まれます。">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription2 "変更したいキーがあればテキストボックスかその右のボタンをクリックし、新たなキーを入力して下さい。">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription3 "C- は Ctrl キーや Command キーを、 M- は Alt キーや Meta キーを意味します。">
+<!ENTITY keySnail.rcWizard.selectScheme "使用するキースキームを選んでください">
+<!ENTITY keySnail.rcWizard.selectSchemeDescription1 "あらかじめ用意されたキーバインド一式をキースキームと呼びます。">
+
+<!ENTITY keySnail.rcWizard.scheme.emacs "Emacs や w3m などのキーバインドをエミュレートしたスキーム">
+<!ENTITY keySnail.rcWizard.scheme.empty "空のスキーム">
+
+<!-- PAGE a-3 -->
+
+<!ENTITY keySnail.rcWizard.settingRcFile "特殊キーの設定を行います">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription1 "変更したいキーがあればテキストボックスかその右のボタンをクリックし、新たなキーを入力して下さい。その設定が初期化ファイルに書き込まれます。">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription2 "C- は「Ctrl や Command」と、 M- は「Alt や Meta」と同時にキーを入力することを意味します。">
+<!ENTITY keySnail.rcWizard.settingRcFileDescription3 "すなわち C-g は Ctrl + g を、 C-M-r は Ctrl + Alt + r を同時に押す、といった具合になります。">
 
 <!ENTITY keySnail.rcWizard.changeKey "変更">
 

@@ -26,19 +26,19 @@ KeySnail.Util = {
 
     // @return Object which contains text as the 'value' property
     readTextFile: function (aPath, aCharset) {
-        // ファイルインスタンス作成
+        // Create the file instance
         var file = this.openFile(aPath);
 
         if (!file.exists()) {
             throw aPath + " not found";
         }
 
-        // テキスト読み込み用にストリームをつくる
+        // Create stream for reading text
         var fileStream = Components
             .classes["@mozilla.org/network/file-input-stream;1"]
             .createInstance(Components.interfaces.nsIFileInputStream);
         fileStream.init(file, 1, 0, false);
-        // 文字コード変換して
+        // Convert char-code
         var converterStream = Components
             .classes["@mozilla.org/intl/converter-input-stream;1"]
             .createInstance(Components.interfaces.nsIConverterInputStream);
@@ -47,7 +47,7 @@ KeySnail.Util = {
         }
         converterStream.init(fileStream, aCharset, fileStream.available(),
                              converterStream.DEFAULT_REPLACEMENT_CHARACTER);
-        // 出力
+        // Output
         var out = new Object();
         converterStream.readString(fileStream.available(), out);
 
@@ -58,7 +58,6 @@ KeySnail.Util = {
     },
 
     writeText: function (aString, aPath, aForce) {
-        // ファイルインスタンス作成
         var file = this.openFile(aPath);
 
         if (file.exists() &&
@@ -66,7 +65,6 @@ KeySnail.Util = {
             !window.confirm(aPath + ' ' + this.getLocaleString("overWriteConfirmation")))
             throw "Cancelled by user";
 
-        // テキスト読み込み用にストリームをつくる
         var fileStream = Components
             .classes["@mozilla.org/network/file-output-stream;1"]
             .createInstance(Components.interfaces.nsIFileOutputStream);
@@ -184,9 +182,9 @@ KeySnail.Util = {
     getEventStateManager: function () {
         this.listProperty(esm);
         // var docShell = document.commandDispatcher.focusedWindow
-	//     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-	//     .getInterface(Components.interfaces.nsIWebNavigation)
-	//     .QueryInterface(Components.interfaces.nsIDocShell);
+        //     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+        //     .getInterface(Components.interfaces.nsIWebNavigation)
+        //     .QueryInterface(Components.interfaces.nsIDocShell);
 
         // return docShell
         //     .QueryInterface(Components.interfaces.nsIEventStateManager);
@@ -194,9 +192,9 @@ KeySnail.Util = {
 
     getSelectionController: function () {
         var docShell = document.commandDispatcher.focusedWindow
-	    .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-	    .getInterface(Components.interfaces.nsIWebNavigation)
-	    .QueryInterface(Components.interfaces.nsIDocShell);
+            .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+            .getInterface(Components.interfaces.nsIWebNavigation)
+            .QueryInterface(Components.interfaces.nsIDocShell);
 
         return docShell
             .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
@@ -207,7 +205,6 @@ KeySnail.Util = {
     // ==================== event ==================== //
 
     stopEventPropagation: function (aEvent) {
-        // event の伝搬をキャンセル
         aEvent.stopPropagation();
         aEvent.preventDefault();
     },

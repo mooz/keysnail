@@ -3,8 +3,8 @@ KeySnail.Display = {
     modules: null,
 
     // ==== status bar ====
-    statusBar: null,            // ステータスバーへの参照
-    msgTimeOut: null,           // スタータスバーへのメッセージタイムアウトオブジェクト
+    statusBar: null,            // reference to the status bar
+    msgTimeOut: null,           // timeout object to the status bar
     modeLine: null,
 
     init: function () {
@@ -19,19 +19,16 @@ KeySnail.Display = {
         if (!this.statusBar) return;
 
         if (this.msgTimeOut) {
-            // 既にタイムアウトが設定されている場合はキャンセル
+            // Cancell, when the timeout is already set to
             clearTimeout(this.msgTimeOut);
             this.msgTimeOut = null;
         }
 
         var self = this;
 
-        // ここで this.statusbar とすると, タイムアウト処理時に setTimeout が
-        // this となってしまうのでうまくいかない
-        // 毎回 getElementById するのも嫌なので bind 修飾で
         self.statusBar.label = msg;
         if (time) {
-            // 元に戻す (this が使えないのでクロージャを作っている)
+            // Revert to default state (make closure and self to static)
             this.msgTimeOut = setTimeout(function () { self.echoStatusBar('', 0); }, time);
         }
     },

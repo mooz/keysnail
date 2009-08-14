@@ -87,7 +87,7 @@
 //     return aEvent.altKey;
 // }
 
-// ==================== remap ==================== //
+// ==================== original prefix ==================== //
 // You can use view-mode keybindings in edit-mode by adding
 // the prefix key C-z.
 // key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
@@ -363,8 +363,17 @@ key.setEditKey("C-o",
 
 key.setEditKey([["C-x", "u"],
                 ["C-_"]],
-               function () { goDoCommand('cmd_undo'); },
+               function () {
+                   display.echoStatusBar("Undo!", 2000);
+                   goDoCommand('cmd_undo');
+               },
                "Undo");
+key.setEditKey(["C-\"],
+               function () {
+                   display.echoStatusBar("Redo!", 2000);
+                   goDoCommand('cmd_redo');
+               },
+               "Redo");
 
 // -------------------- cursor navigation --------------------
 
@@ -579,6 +588,10 @@ key.setCaretKey(",", function () {
 key.setCaretKey(".", function () {
                     util.getSelectionController().scrollHorizontal(false);
                 }, "Scroll right");
+
+key.setCaretKey("z", function (aEvent) {
+                    command.recenter(aEvent);
+                }, "Scroll to the cursor position");
 
 // -------------------- tab navigation -------------------- //
 
