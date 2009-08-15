@@ -298,12 +298,14 @@ KeySnail.Command = {
      * @return
      */
     replaceRectangle: function (aInput, aReplacement) {
-        var begin = aInput.selectionStart;
-        var end = aInput.selectionEnd;
+        var oldScrollTop = aInput.scrollTop;
+
+        var selStart = aInput.selectionStart;
+        var selEnd = aInput.selectionEnd;
 
         // if (typeof(aInput.ksMarked) == "number" &&
-        //     aInput.ksMarked > end) {
-        //     end = aInput.ksMarked;
+        //     aInput.ksMarked > selEnd) {
+        //     selEnd = aInput.ksMarked;
         // }
 
         var text = aInput.value;
@@ -311,21 +313,21 @@ KeySnail.Command = {
         var lines = text.split('\n');
 
         // detect selection start line
-        var count = 0;
-        var beginLineNum, endLineNum;
-        var i, prevCount;
-        for (i = 0; i < lines.length; ++i) {
+        var count = 0, prevCount;
+        var startLineNum, endLineNum; // line number
+        for (var i = 0; i < lines.length; ++i) {
             prevCount = count;
+            // includes last '\n' (+ 1)
             count += (lines[i].length + 1);
             
-            if (typeof(beginLineNum) == 'undefined' &&
-                count >= begin) {
-                beginLineNum = i;
-                var beginHeadCount = begin - prevCount;
+            if (typeof(startLineNum) == 'undefined' &&
+                count >= selStart) {
+                startLineNum = i;
+                var startHeadCount = selStart - prevCount;
             }
-            if (count >= end) {
+            if (count >= selEnd) {
                 endLineNum = i;
-                var endHeadCount = end - prevCount;
+                var endHeadCount = selEnd - prevCount;
                 break;
             }
         }
@@ -333,29 +335,32 @@ KeySnail.Command = {
         // intra-line
         // (from - to) becomes rectangle-width
         var from, to;
-        if (beginHeadCount < endHeadCount) {
-            from = beginHeadCount;
+        if (startHeadCount < endHeadCount) {
+            from = startHeadCount;
             to   = endHeadCount;
         } else {
             from = endHeadCount;
-            to   = beginHeadCount;
+            to   = startHeadCount;
         }
 
         // now we process chars
         var output = "";
-        for (i = 0; i < beginLineNum; ++i) {
+        for (i = 0; i < startLineNum; ++i) {
             output += lines[i] + "\n";
         }
 
-        // this.message(from);
-        // this.message(to);
-
         // replace
-        for (i = beginLineNum; i <= endLineNum; ++i) {
-            output += lines[i].slice(0, from)
-                + aReplacement
-                + lines[i].slice(to, lines[i].length)
-                + "\n";
+        var padHead, padTail;
+        var addedSpace = 0, addedSpaceLineCount = 0;
+        for (i = startLineNum; i <= endLineNum; ++i) {
+            padHead = lines[i].slice(0, from);
+            if (padHead.length < from) {
+                addedSpace += (from - padHead.length);
+                addedSpaceLineCount++;
+                padHead += new Array(from - padHead.length + 1).join(" ");            
+            }
+            padTail = lines[i].slice(to, lines[i].length);
+            output += padHead + aReplacement + padTail + "\n";
         }
 
         // copy rest line
@@ -370,28 +375,37 @@ KeySnail.Command = {
         var caretPos = 0;
         if (typeof(aInput.ksMarked) == "number") {
             var replaceeLen = to - from;
-            if (aInput.ksMarked > begin) {
+            var gap = aReplacement.length - replaceeLen;
+
+            // we need to put caret on [*] position
+            if (aInput.ksMarked == selEnd) {
+                // [*] selStart <------------- mark (selEnd)
+                // display.prettyPrint("[*] selStart <------------- mark (selEnd)");
                 // ====================
-                if (beginHeadCount < endHeadCount) {
-                    caretPos = begin;                    
+                if (startHeadCount < endHeadCount) {
+                    caretPos = selStart;
                 } else {
-                    caretPos = begin + (aReplacement.length - replaceeLen);
+                    caretPos = selStart + gap;
                 }
             } else {
+                // mark (selStart) -------------> selEnd [*]
+                // display.prettyPrint("mark (selStart) -------------> selEnd [*]");
                 // ====================
-                caretPos = end +
-                    // gap in word count per line, between before and after
-                    (aReplacement.length - replaceeLen) *
-                    (endLineNum - beginLineNum + 1); // line count
+                // (gap in word count per line, between before and after) *
+                // (line count)
+                caretPos = selEnd + gap * (endLineNum - startLineNum + 1
+                                           - addedSpaceLineCount);
+                caretPos += addedSpace + addedSpaceLineCount;
             }
         }
 
-        aInput.selectionStart = aInput.selectionEnd = caretPos;
+        aInput.setSelectionRange(caretPos, caretPos);
+        aInput.scrollTop = oldScrollTop;
 
         // quick hack
         var ev = {};
         ev.originalTarget = aInput;
-        this.resetMark(ev);
+        command.resetMark(ev);
     },
 
     openRectangle: function (aInput) {
@@ -544,21 +558,22 @@ KeySnail.Command = {
 
     // ==================== Transformation ==================== //
 
-    processBackwardWord: function (aInput, aFilter) {
-        var begin = aInput.selectionStart;
-        var end   = aInput.selectionEnd;
-        var text  = aInput.value;
-        var subword = text.slice(0, end).match(/[a-zA-Z]+\s*$/);
+    // processBackwardWord: function (aInput, aFilter) {
+    //     var begin = aInput.selectionStart;
+    //     var end   = aInput.selectionEnd;
+    //     var text  = aInput.value;
+    //     var subword = text.slice(0, end).match(/[a-zA-Z]+\s*$/);
 
-        var wordBegin = !!subword ? end - subword[0].length : end;
+    //     var wordBegin = !!subword ? end - subword[0].length : end;
 
-        subword[0] = aFilter(subword[0]);
+    //     subword[0] = aFilter(subword[0]);
 
-        aInput.value = text.slice(0, wordBegin) + subword[0] + text.slice(end);
-        aInput.setSelectionRange(wordBegin, wordBegin);
-    },
+    //     aInput.value = text.slice(0, wordBegin) + subword[0] + text.slice(end);
+    //     aInput.setSelectionRange(wordBegin, wordBegin);
+    // },
 
     processForwardWord: function (aInput, aFilter) {
+        var oldScrollTop = aInput.scrollTop;
         var begin = aInput.selectionStart;
         var end   = aInput.selectionEnd;
         var text  = aInput.value;
@@ -569,6 +584,8 @@ KeySnail.Command = {
             subword[0] = aFilter(subword[0]);
             aInput.value = text.slice(0, begin) + subword[0] + text.slice(wordEnd);
             aInput.setSelectionRange(wordEnd, wordEnd);
+            // without a line below, textbox scrollTop becomes 0!
+            aInput.scrollTop = oldScrollTop;
         }
     },
 

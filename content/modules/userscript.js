@@ -230,6 +230,7 @@ KeySnail.UserScript = {
      */
     require: function (aFileName) {
         var baseDir;
+
         for (var i = 0; i < this.loadPath.length; ++i) {
             baseDir = this.loadPath[i];
             if (!baseDir)
@@ -257,7 +258,7 @@ KeySnail.UserScript = {
         }
 
         // avoid duplication / not existing directory
-        if (!this.loadPath.some(function (aContained) aContained == aPath)
+        if (!this.loadPath.some(function (aContainedPath) { return aContainedPath == aPath; } )
             && this.modules.util.openFile(aPath).exists()) {
             this.loadPath.push(aPath);
         }
