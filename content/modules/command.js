@@ -292,10 +292,10 @@ KeySnail.Command = {
     // ==================== Rectangle ==================== //
 
     /**
-     * Do Emacs-like rectangle replacement
+     * Do Emacs-like rectangle replacement or insersion
      * @param {textarea} aInput
-     * @param {string} aAlt an alternative string
-     * @return
+     * @param {string} aReplacement alternative string
+     * @param {boolean} aIsInsert whether do insersion or not (replacement)
      */
     replaceRectangle: function (aInput, aReplacement, aIsInsert) {
         var oldScrollTop = aInput.scrollTop;
@@ -347,7 +347,6 @@ KeySnail.Command = {
             output += lines[i] + "\n";
         }
 
-        // replace / insert
         var padHead, padTail;
         var addedSpace = 0, addedSpaceLineCount = 0;
         // replace
@@ -376,30 +375,31 @@ KeySnail.Command = {
             var replaceeLen = to - from;
             var gap = aReplacement.length - replaceeLen;
 
-            // we need to put caret on [*] position
-            if (aInput.ksMarked == selEnd) {
-                // [*] selStart <------------- mark (selEnd)
-                // display.prettyPrint("[*] selStart <------------- mark (selEnd)");
-                // ====================
-                if (startHeadCount < endHeadCount) {
-                    caretPos = selStart;
-                } else {
-                    caretPos = selStart + gap;
-                }
+            if (aIsInsert) {
+                // just put caret to the original selection start (as in Emacs)
+                caretPos = selStart;
             } else {
-                // mark (selStart) -------------> selEnd [*]
-                // display.prettyPrint("mark (selStart) -------------> selEnd [*]");
-                // ====================
-                // (gap in word count per line, between before and after) *
-                // (line count)
-                caretPos = selEnd + gap * (endLineNum - startLineNum + 1
-                                           - addedSpaceLineCount);
-                caretPos += addedSpace + addedSpaceLineCount;
+                // we need to put caret on [*] position
+                if (aInput.ksMarked == selEnd) {
+                    // [*] selStart <------------- mark (selEnd)
+                    // display.prettyPrint("[*] selStart <------------- mark (selEnd)");
+                    // ====================
+                    if (startHeadCount < endHeadCount) {
+                        caretPos = selStart;
+                    } else {
+                        caretPos = selStart + gap;
+                    }
+                } else {
+                    // mark (selStart) -------------> selEnd [*]
+                    // display.prettyPrint("mark (selStart) -------------> selEnd [*]");
+                    // ====================
+                    // (gap in word count per line, between before and after) *
+                    // (line count)
+                    caretPos = selEnd + gap * (endLineNum - startLineNum + 1
+                                               - addedSpaceLineCount);
+                    caretPos += addedSpace + addedSpaceLineCount;
+                }
             }
-        }
-
-        if (aIsInsert) {
-            caretPos = selStart;
         }
 
         aInput.setSelectionRange(caretPos, caretPos);
@@ -411,6 +411,10 @@ KeySnail.Command = {
         this.resetMark(ev);
     },
 
+    /**
+     * Emacs-like open-rectangle command
+     * @param {Textarea} aInput
+     */
     openRectangle: function (aInput) {
         var begin = aInput.selectionStart;
         var end = aInput.selectionEnd;
@@ -446,8 +450,7 @@ KeySnail.Command = {
         var width = (beginHeadCount < endHeadCount) ?
             endHeadCount - beginHeadCount : beginHeadCount - endHeadCount;
         
-        this.replaceRectangle(aInput, new Array(width + 1).join(" "),
-                              true);
+        this.replaceRectangle(aInput, new Array(width + 1).join(" "), true);
     },
 
     // ==================== Copy / Cut ==================== //
