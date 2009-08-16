@@ -297,19 +297,13 @@ KeySnail.Command = {
      * @param {string} aAlt an alternative string
      * @return
      */
-    replaceRectangle: function (aInput, aReplacement) {
+    replaceRectangle: function (aInput, aReplacement, aIsInsert) {
         var oldScrollTop = aInput.scrollTop;
 
         var selStart = aInput.selectionStart;
         var selEnd = aInput.selectionEnd;
 
-        // if (typeof(aInput.ksMarked) == "number" &&
-        //     aInput.ksMarked > selEnd) {
-        //     selEnd = aInput.ksMarked;
-        // }
-
         var text = aInput.value;
-
         var lines = text.split('\n');
 
         // detect selection start line
@@ -343,15 +337,20 @@ KeySnail.Command = {
             to   = startHeadCount;
         }
 
+        if (aIsInsert) {
+            to = from;
+        }
+
         // now we process chars
         var output = "";
         for (i = 0; i < startLineNum; ++i) {
             output += lines[i] + "\n";
         }
 
-        // replace
+        // replace / insert
         var padHead, padTail;
         var addedSpace = 0, addedSpaceLineCount = 0;
+        // replace
         for (i = startLineNum; i <= endLineNum; ++i) {
             padHead = lines[i].slice(0, from);
             if (padHead.length < from) {
@@ -399,13 +398,17 @@ KeySnail.Command = {
             }
         }
 
+        if (aIsInsert) {
+            caretPos = selStart;
+        }
+
         aInput.setSelectionRange(caretPos, caretPos);
         aInput.scrollTop = oldScrollTop;
 
         // quick hack
         var ev = {};
         ev.originalTarget = aInput;
-        command.resetMark(ev);
+        this.resetMark(ev);
     },
 
     openRectangle: function (aInput) {
@@ -443,7 +446,8 @@ KeySnail.Command = {
         var width = (beginHeadCount < endHeadCount) ?
             endHeadCount - beginHeadCount : beginHeadCount - endHeadCount;
         
-        this.replaceRectangle(aInput, new Array(width + 1).join(" "));
+        this.replaceRectangle(aInput, new Array(width + 1).join(" "),
+                              true);
     },
 
     // ==================== Copy / Cut ==================== //
