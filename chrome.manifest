@@ -7,4 +7,4 @@ locale	keysnail                   ja           locale/ja/
 
 resource                keysnail     modules/
 
-overlay chrome://browser/content/browser.xul    chrome://keysnail/content/overlay.xul
+overlay chrome://browser/content/browser.xul    chrome://keysnail/content/browser.xul

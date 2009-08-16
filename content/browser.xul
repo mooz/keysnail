@@ -49,4 +49,5 @@
 		      oncommand="KeySnail.Key.toggleStatus();"/>
         </menupopup>
     </statusbar>
+
 </overlay>
