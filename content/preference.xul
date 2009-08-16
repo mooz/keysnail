@@ -90,8 +90,12 @@
             <spacer height="10px" />
             <description>mooz &lt;stillpedant@gmail.com&gt; (c) 2009</description>
             <description class="text-link"
+                         onclick="ksPreference.modules.key.viewURI('http://wiki.github.com/mooz/keysnail/')">
+                Visit KeySnail wiki
+            </description>
+            <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://d.hatena.ne.jp/mooz/')">
-                http://d.hatena.ne.jp/mooz/ (Japanese)
+                Author blog (Japanese)
             </description>
         </vbox>
     </prefpane>
