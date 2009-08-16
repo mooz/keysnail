@@ -3,37 +3,38 @@ KeySnail.Macro = {
         this.sleepTime = 10;
     },
 
+    /**
+     * set sleep time of doMacro()
+     * @param {Integer} aMsec sleep time in mili-second
+     */
     setSleepTime: function (aMsec) {
         this.sleepTime = aMsec;
     },
 
+    /**
+     * return current focused element
+     * @return {HTMLElement} current focused element
+     */
     getCurrentFocusedElement: function () {
-        var doc;
+        return window.document.commandDispatcher.focusedElement;
 
-        if (document) {
-            doc = (document.commandDispatcher.focusedWindow || gBrowser.contentWindow)
-                .document;
-            // this.parent.message("document is not null");
-        } else {
-            doc = content.document;
-            // this.parent.message("document is null");
-        }
-
-        return (doc.commandDispatcher) ? doc.commandDispatcher.focusedElement : doc;
+        // var doc;
+        // doc = (window.document.commandDispatcher.focusedWindow || window).document;
+        // return (doc.commandDispatcher) ? doc.commandDispatcher.focusedElement : doc;
     },
 
+    /**
+     * play keyboard macro
+     * @param {[KeyboardEvent]} aEvents array of keypress event
+     */
     doMacro: function (aEvents) {
         var len = aEvents.length;
-        var newEvent;
+        var event, newEvent;
         var sleepTime = this.sleepTime;
-        // var stack = [];
 
         for (var i = 0; i < len; ++i) {
             event = aEvents[i];
             newEvent = document.createEvent('KeyboardEvent');
-            // newEvent.initKeyEvent('keypress', true, true, null,
-            //                       false, false, false, false,
-            //                       aKey, 0);
             newEvent.initKeyEvent('keypress', true, true, null,
                                   event.ctrlKey,
                                   event.altKey,
@@ -48,7 +49,11 @@ KeySnail.Macro = {
         // Application.console.log(stack.join(" "));
     },
 
-    // from http://d.hatena.ne.jp/fls/20090224/p1
+    /**
+     * sleep current thread for <aWait> [msec] time.
+     * from http://d.hatena.ne.jp/fls/20090224/p1
+     * @param {Integer} aWait sleep time in mili-second
+     */
     sleep: function (aWait) {
         var timer = {
             timeup: false
