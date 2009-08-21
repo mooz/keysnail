@@ -32,7 +32,26 @@ var KeySnail = {
             this.modules.key.run();
         }
 
+        // arrange hook points when window is the main browser-window
+        if (window.document.documentElement.getAttribute("windowtype") == "navigator:browser") {
+            gBrowser.addProgressListener(KeySnail.urlBarListener,
+                                         Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
+            // window.addEventListener("DOMContentLoaded", function (aEvent) {
+            //                             KeySnail.Hook.callHook("DOMContentLoaded", aEvent);
+            //                         }, false);
+            // window.addEventListener("DOMTitleChanged", function (aEvent) {
+            //                             KeySnail.Hook.callHook("DOMTitleChanged", aEvent);
+            //                         }, false);
+        }
+
+        // arrange destructor
+        window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
+
         this.modules.key.updateStatusBar();
+    },
+
+    uninit: function () {
+        gBrowser.removeProgressListener(KeySnail.urlBarListener);
     },
 
     registerModule: function (aModuleName) {
@@ -66,5 +85,26 @@ var KeySnail = {
         _ksLast = now;
     },
 
-    message: Application.console.log
+    message: Application.console.log,
+
+    urlBarListener: {
+        QueryInterface: function (aIID) {
+            if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
+                aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
+                aIID.equals(Components.interfaces.nsISupports))
+                return KeySnail.urlBarListener;
+            throw Components.results.NS_NOINTERFACE;
+        },
+
+        onLocationChange: function (aProgress, aRequest, aURI) {
+            // Application.console.log("onLocationChange");
+            KeySnail.Hook.callHook("LocationChange", aURI);
+        },
+
+        onStateChange: function () {},
+        onProgressChange: function () {},
+        onStatusChange: function () {},
+        onSecurityChange: function () {},
+        onLinkIconAvailable: function () {}
+    }
 };

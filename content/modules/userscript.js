@@ -20,14 +20,13 @@ KeySnail.UserScript = {
     initFileLoaded: false,
 
     // line number of the Function() consctuctor
-    userScriptOffset: 34,
+    userScriptOffset: 33,
 
     // ==================== Loader ==================== //
 
     /**
      * load js file and execute its content under *KeySnail.modules* scope
-     * @param {String} aScriptPath
-     * @throw exception
+     * @param {string} aScriptPath
      */
     jsFileLoader: function (aScriptPath) {
         var code = this.modules.util.readTextFile(aScriptPath).value;
@@ -40,8 +39,8 @@ KeySnail.UserScript = {
 
     /**
      * load initialization file (wrap jsFileLoader)
-     * @param {String} aInitFilePath
-     * @throw exception
+     * @param {string} aInitFilePath
+     * @throws {string} error message
      */
     initFileLoader: function (aInitFilePath) {
         try {
@@ -187,7 +186,7 @@ KeySnail.UserScript = {
      * @param {String} aBaseDir base directory of the js file (e.g. "/home/hoge")
      * @param {[String]} aUserScriptNames script names to load
      * @return {int} status
-     *  0: success
+     * 0: success
      * -1: file not found
      * -2: error occured in the js file
      */
@@ -227,6 +226,7 @@ KeySnail.UserScript = {
      * load script specified by <aFileName> in the load path
      * scripts are executed under the KeySnail.modules scope
      * @param {String} aFileName
+     * @augments 
      */
     require: function (aFileName) {
         var baseDir;
@@ -275,10 +275,19 @@ KeySnail.UserScript = {
         return gmEditor;
     },
 
+    /**
+     * 
+     * @param {} aLineNum
+     */
     editInitFile: function (aLineNum) {
         this.editFile(this.initFilePath, aLineNum);
     },
 
+    /**
+     * 
+     * @param {} aFilePath
+     * @param {} aLineNum
+     */
     editFile: function (aFilePath, aLineNum) {
         if (!aFilePath) {
             this.modules.display.prettyPrint("editor: invalid file path");
@@ -317,6 +326,10 @@ KeySnail.UserScript = {
 
     // ==================== util / wizard ==================== //
 
+    /**
+     * 
+     * @returns
+     */
     getPrefDirectory: function () {
         var pref = null;
         var delimiter = null;
@@ -334,6 +347,9 @@ KeySnail.UserScript = {
         return [pref, delimiter];
     },
 
+    /**
+     * @returns {integer} status
+     */
     beginRcFileWizard: function () {
         var loadStatus = -1;
 
@@ -353,6 +369,10 @@ KeySnail.UserScript = {
         return loadStatus;
     },
 
+    /**
+     * 
+     * @returns {boolean}
+     */
     openDialog: function () {
         var params = {
             inn: {

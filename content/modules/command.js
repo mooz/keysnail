@@ -13,7 +13,7 @@ KeySnail.Command = {
         if (typeof(goDoCommand) == 'undefined') {
             document.defaultView.goDoCommand = function(aCommand) {
                 try {
-                    var controller = 
+                    var controller =
                         top.document.commandDispatcher.getControllerForCommand(aCommand);
                     if (controller && controller.isCommandEnabled(aCommand))
                         controller.doCommand(aCommand);
@@ -27,6 +27,10 @@ KeySnail.Command = {
 
     // ==================== Walk through elements  ====================
 
+    /**
+     * @param {} aDocument
+     * @return
+     */
     elementsRetrieverTextarea: function (aDocument) {
         // var document = gBrowser.contentWindow.document;
         // Note: type="search" is Safari specific
@@ -48,6 +52,11 @@ KeySnail.Command = {
             || aDoc.defaultView.getComputedStyle(aElement, null).height[0] == '0';
     },
 
+    /**
+     * Retrieve element using <aElementsRetriever> and focus to the <aNum>'rd element
+     * @param {function} aElementsRetriever
+     * @param {integer} aNum
+     */
     focusElement: function (aElementsRetriever, aNum) {
         var doc = document.commandDispatcher.focusedWindow.document
             || gBrowser.contentWindow.document;
@@ -72,6 +81,12 @@ KeySnail.Command = {
         item.focus();
     },
 
+    /**
+     *
+     * @param {function} aElementsRetriever
+     * @param {boolean} aForward
+     * @param {boolean} aCycle
+     */
     walkInputElement: function (aElementsRetriever, aForward, aCycle) {
         var doc = document.commandDispatcher.focusedWindow.document
             || gBrowser.contentWindow.document;
@@ -229,7 +244,7 @@ KeySnail.Command = {
         } else {
             // ########################################
             this.modules.key
-                .generateKey(aEvent.originalTarget, aDOMKey, true);            
+                .generateKey(aEvent.originalTarget, aDOMKey, true);
         }
     },
 
@@ -313,7 +328,7 @@ KeySnail.Command = {
             prevCount = count;
             // includes last '\n' (+ 1)
             count += (lines[i].length + 1);
-            
+
             if (typeof(startLineNum) == 'undefined' &&
                 count >= selStart) {
                 startLineNum = i;
@@ -355,7 +370,7 @@ KeySnail.Command = {
             if (padHead.length < from) {
                 addedSpace += (from - padHead.length);
                 addedSpaceLineCount++;
-                padHead += new Array(from - padHead.length + 1).join(" ");            
+                padHead += new Array(from - padHead.length + 1).join(" ");
             }
             padTail = lines[i].slice(to, lines[i].length);
             output += padHead + aReplacement + padTail + "\n";
@@ -433,7 +448,7 @@ KeySnail.Command = {
         for (i = 0; i < lines.length; ++i) {
             prevCount = count;
             count += (lines[i].length + 1);
-            
+
             if (typeof(beginLineNum) == 'undefined' &&
                 count >= begin) {
                 beginLineNum = i;
@@ -449,7 +464,7 @@ KeySnail.Command = {
         // get rectangle-width
         var width = (beginHeadCount < endHeadCount) ?
             endHeadCount - beginHeadCount : beginHeadCount - endHeadCount;
-        
+
         this.replaceRectangle(aInput, new Array(width + 1).join(" "), true);
     },
 
@@ -512,7 +527,7 @@ KeySnail.Command = {
                             "cmd_selectPageDown",
                             KeyEvent.DOM_VK_PAGE_DOWN);
     },
- 
+
     // ==================== Intra line ==================== //
 
     previousChar: function (aEvent) {
