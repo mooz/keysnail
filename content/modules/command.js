@@ -332,19 +332,20 @@ KeySnail.Command = {
         // detect selection start line
         var count = 0, prevCount;
         var startLineNum, endLineNum; // line number
+        var startHeadCount = 0, endHeadCount = 0;
         for (var i = 0; i < lines.length; ++i) {
             prevCount = count;
             // includes last '\n' (+ 1)
             count += (lines[i].length + 1);
 
             if (typeof(startLineNum) == 'undefined' &&
-                count >= selStart) {
+                count > selStart) {
                 startLineNum = i;
-                var startHeadCount = selStart - prevCount;
+                startHeadCount = selStart - prevCount;
             }
-            if (count >= selEnd) {
+            if (count > selEnd) {
                 endLineNum = i;
-                var endHeadCount = selEnd - prevCount;
+                endHeadCount = selEnd - prevCount;
                 break;
             }
         }
@@ -439,39 +440,36 @@ KeySnail.Command = {
      * @param {Textarea} aInput
      */
     openRectangle: function (aInput) {
-        var begin = aInput.selectionStart;
-        var end = aInput.selectionEnd;
-
-        if (begin == end)
-            return;
+        var selStart = aInput.selectionStart;
+        var selEnd = aInput.selectionEnd;
 
         var text = aInput.value;
-
         var lines = text.split('\n');
 
         // detect selection start line
-        var count = 0;
-        var beginLineNum, endLineNum;
-        var i, prevCount;
-        for (i = 0; i < lines.length; ++i) {
+        var count = 0, prevCount;
+        var startLineNum, endLineNum; // line number
+        var startHeadCount = 0, endHeadCount = 0;
+        for (var i = 0; i < lines.length; ++i) {
             prevCount = count;
+            // includes last '\n' (+ 1)
             count += (lines[i].length + 1);
 
-            if (typeof(beginLineNum) == 'undefined' &&
-                count >= begin) {
-                beginLineNum = i;
-                var beginHeadCount = begin - prevCount;
+            if (typeof(startLineNum) == 'undefined' &&
+                count > selStart) {
+                startLineNum = i;
+                startHeadCount = selStart - prevCount;
             }
-            if (count >= end) {
+            if (count > selEnd) {
                 endLineNum = i;
-                var endHeadCount = end - prevCount;
+                endHeadCount = selEnd - prevCount;
                 break;
             }
         }
 
         // get rectangle-width
-        var width = (beginHeadCount < endHeadCount) ?
-            endHeadCount - beginHeadCount : beginHeadCount - endHeadCount;
+        var width = (startHeadCount < endHeadCount) ?
+            endHeadCount - startHeadCount : startHeadCount - endHeadCount;
 
         this.replaceRectangle(aInput, new Array(width + 1).join(" "), true);
     },
