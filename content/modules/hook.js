@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name hook.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 KeySnail.Hook = {
     // ==== common ====
     modules: null,

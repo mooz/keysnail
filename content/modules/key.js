@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name key.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 KeySnail.Key = {
     modules: null,
     // "modules" is automatically added
@@ -111,7 +118,7 @@ KeySnail.Key = {
     /**
      * check for the black list regexp and if <aURL> found in black list,
      * suspend the keyhandler.
-     * If <aURL> is undefined, force suspend.
+     * If <aURL> is undefined, force unsuspend.
      * @param {string} aURL page URL to check.
      */
     checkBlackList: function (aURL) {

@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name keysnail-loader.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const prefService = Cc['@mozilla.org/preferences;1']

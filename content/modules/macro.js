@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name macro.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 KeySnail.Macro = {
     init: function () {
         this.sleepTime = 10;

@@ -1,5 +1,9 @@
-// most functions in this file
-// are retrieved from "sage"
+/**
+ * @fileOverview
+ * @name html.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
 
 KeySnail.HTML = {
     // ==== common ====

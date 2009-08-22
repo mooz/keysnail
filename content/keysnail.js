@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name keysnail.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 var KeySnail = {
     modules: {},
 

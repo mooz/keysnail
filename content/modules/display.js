@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name display.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 KeySnail.Display = {
     // ==== common ====
     modules: null,

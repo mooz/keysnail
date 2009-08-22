@@ -180,6 +180,26 @@ hook.setHook("KeyBoardQuit",
                 key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
             });
 
+// If user transit the page to "http://www.foo.com/bar/"
+// from "http://www.hoge.com/huga/", aNsURI's property becomes ...
+//
+// aNsURI.spec      => "http://www.foo.com/bar/"
+// aNsURI.scheme    => "http"
+// aNsURI.host      => "www.foo.com"
+// aNsURI.path      => "/bar/"
+// aNsURI.prePath   => "http://www.hoge.com/huga/"
+
+// hook.setHook("LocationChange",
+//              function (aNsURI) {
+//                  var URL = aNsURI ? aNsURI.spec : null;
+
+//                  key.checkBlackList(URL);
+//              });
+
+// key.blackList = [
+//     "http://mail\\.google\\.com/.*"
+// ];
+
 // ==================== set global keys ==================== //
 
 key.setGlobalKey("C-M-r",

@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name userscript.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 KeySnail.UserScript = {
     modules: null,
 
@@ -186,7 +193,7 @@ KeySnail.UserScript = {
      * @param {String} aBaseDir base directory of the js file (e.g. "/home/hoge")
      * @param {[String]} aUserScriptNames script names to load
      * @return {int} status
-     * 0: success
+     *  0: success
      * -1: file not found
      * -2: error occured in the js file
      */

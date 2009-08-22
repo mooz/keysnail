@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name util.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 KeySnail.Util = {
     // ==== common ====
     modules: null,

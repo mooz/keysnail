@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name command.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 KeySnail.Command = {
     modules: null,
     get gFindBar() {

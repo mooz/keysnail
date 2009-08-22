@@ -1,3 +1,10 @@
+/**
+ * @fileOverview
+ * @name preference.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
 var ksPreference = {
     initFileKey: "extensions.keysnail.userscript.location",
     editorKey: "extensions.keysnail.userscript.editor",
