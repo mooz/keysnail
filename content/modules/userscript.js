@@ -160,7 +160,7 @@ KeySnail.UserScript = {
             // file not found.
             // we need to create the new one
             // or let user to select the init file place
-            if (window.document.documentElement.getAttribute("windowtype") == "navigator:browser") {
+            if (this.parent.windowType == "navigator:browser") {
                 loadStatus = this.beginRcFileWizard();
             }
         }

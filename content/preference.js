@@ -23,7 +23,6 @@ var ksPreference = {
         var fileField = document.getElementById(aID);
 
         var file = this.openFile(location);
-
         if (file) {
             fileField.file = file;
             fileField.label = file.path;

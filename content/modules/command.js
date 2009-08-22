@@ -7,6 +7,7 @@
 
 KeySnail.Command = {
     modules: null,
+
     get gFindBar() {
         return typeof(gFindBar) == 'undefined' ?
             document.getElementById('FindToolbar') : gFindBar;

@@ -8,6 +8,10 @@
 var KeySnail = {
     modules: {},
 
+    get windowType () {
+        return window.document.documentElement.getAttribute("windowtype");
+    },
+
     init: function () {
         // unfortunately, changes in this order
         // may cause the undefined error
@@ -40,7 +44,7 @@ var KeySnail = {
         }
 
         // arrange hook points when window is the main browser-window
-        if (window.document.documentElement.getAttribute("windowtype") == "navigator:browser") {
+        if (this.windowType == "navigator:browser") {
             gBrowser.addProgressListener(KeySnail.urlBarListener,
                                          Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
             // window.addEventListener("DOMContentLoaded", function (aEvent) {
