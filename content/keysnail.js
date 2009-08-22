@@ -47,16 +47,9 @@ var KeySnail = {
         if (this.windowType == "navigator:browser") {
             gBrowser.addProgressListener(KeySnail.urlBarListener,
                                          Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
-            // window.addEventListener("DOMContentLoaded", function (aEvent) {
-            //                             KeySnail.Hook.callHook("DOMContentLoaded", aEvent);
-            //                         }, false);
-            // window.addEventListener("DOMTitleChanged", function (aEvent) {
-            //                             KeySnail.Hook.callHook("DOMTitleChanged", aEvent);
-            //                         }, false);
+            // arrange destructor
+            window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
         }
-
-        // arrange destructor
-        window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
 
         this.modules.key.updateStatusBar();
     },
