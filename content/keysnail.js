@@ -65,12 +65,22 @@ var KeySnail = {
         gBrowser.removeProgressListener(KeySnail.urlBarListener);
     },
 
+    /**
+     * Register modules
+     * add given module to KeySnail.modules
+     * @param {[string]} aModuleName
+     */
     registerModule: function (aModuleName) {
         // KeySnail.Key => modules.key
         // KeySnail.HTML => modules.html
         this.modules[aModuleName.toLowerCase()] = this[aModuleName];
     },
 
+    /**
+     * Init modules
+     * call each modules init() and add member 'modules' and 'parent'.
+     * @param {[string]} aModuleName
+     */
     initModule: function (aModuleName) {
          if (!this[aModuleName]) {
             this.message('initModule: module "' + aModuleName + '" is not loaded. Skip this module.');
@@ -85,6 +95,9 @@ var KeySnail = {
         // this.message('initModule: module "' + aModuleName + '" initialized.');
     },
 
+    /**
+     * Open preference dialog
+     */
     openPreference: function () {
         window.openDialog("chrome://keysnail/content/preference.xul", "Preferences",
                           "chrome,titlebar,toolbar,centerscreen", "prefpane-rcfile");
@@ -98,6 +111,9 @@ var KeySnail = {
 
     message: Application.console.log,
 
+    /**
+     * For checking the "LocationChange"
+     */
     urlBarListener: {
         QueryInterface: function (aIID) {
             if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
