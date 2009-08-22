@@ -27,11 +27,11 @@ KeySnail.Hook = {
         this.hookList[aHookName].push(aFunction);
     },
 
-    callHook: function (aHookName, aEvent) {
+    callHook: function (aHookName, aArgument) {
         if (this.hookList[aHookName]) {
             var hook = this.hookList[aHookName];
             for (var i = 0; i < hook.length; ++i) {
-                hook[i].apply(KeySnail, [aEvent]);
+                hook[i].apply(KeySnail, [aArgument]);
             }
         }
     }

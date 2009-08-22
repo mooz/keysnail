@@ -867,17 +867,25 @@ KeySnail.Key = {
      * @param aArg   prefix argument to be passed
      */
     executeFunction: function (aFunc, aEvent, aArg) {
+        // var hookArg = {
+        //     "event": aEvent,
+        //     "func":  aFunc,
+        //     "arg":   aArg
+        // };
+
+        // this.modules.hook.callHook("PreCommand", hookArg);
+
         if (!aFunc.ksNoRepeat && aArg) {
             // iterate
             for (var i = 0; i < aArg; ++i) {
-                // aFunc.apply(this.modules, [aEvent, aArg]);
                 aFunc.apply(KeySnail, [aEvent, aArg]);
             }
         } else {
             // one time
             aFunc.apply(KeySnail, [aEvent, aArg]);
-            // aFunc.apply(this.modules, [aEvent, aArg]);
         }
+
+        // this.modules.hook.callHook("PostCommand", hookArg);
     },
 
     /**
