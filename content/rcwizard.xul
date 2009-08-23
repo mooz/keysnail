@@ -16,7 +16,7 @@
         onwizardcancel="return rcWizard.onCancel();"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="600px"
-        height="500px"
+        height="600px"
         >
 
     <!-- ==================== START ==================== -->
@@ -166,6 +166,61 @@
                      class="keysnail-specialkey-textbox"/>
             <button label="&keySnail.rcWizard.changeKey;"
                     oncommand="keyCustomizer.set('macroEnd');"
+                    class="keysnail-specialkey-button"/>
+        </hbox>
+        <!-- suspend key -->
+        <hbox tooltiptext="&keySnail.rcWizard.key.suspend.description;">
+            <description flex="1">&keySnail.rcWizard.key.suspend;:</description>
+            <textbox id="keysnail-userscript-key-suspend"
+                     onclick="keyCustomizer.set('suspend');"
+                     readonly="true"
+                     class="keysnail-specialkey-textbox"/>
+            <button label="&keySnail.rcWizard.changeKey;"
+                    oncommand="keyCustomizer.set('suspend');"
+                    class="keysnail-specialkey-button"/>
+        </hbox>
+        <!-- universalArgument key -->
+        <hbox tooltiptext="&keySnail.rcWizard.key.universalArgument.description;">
+            <description flex="1">&keySnail.rcWizard.key.universalArgument;:</description>
+            <textbox id="keysnail-userscript-key-universalArgument"
+                     onclick="keyCustomizer.set('universalArgument');"
+                     readonly="true"
+                     class="keysnail-specialkey-textbox"/>
+            <button label="&keySnail.rcWizard.changeKey;"
+                    oncommand="keyCustomizer.set('universalArgument');"
+                    class="keysnail-specialkey-button"/>
+        </hbox>
+        <!-- negativeArgument1 key -->
+        <hbox tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
+            <description flex="1">&keySnail.rcWizard.key.negativeArgument1;:</description>
+            <textbox id="keysnail-userscript-key-negativeArgument1"
+                     onclick="keyCustomizer.set('negativeArgument1');"
+                     readonly="true"
+                     class="keysnail-specialkey-textbox"/>
+            <button label="&keySnail.rcWizard.changeKey;"
+                    oncommand="keyCustomizer.set('negativeArgument1');"
+                    class="keysnail-specialkey-button"/>
+        </hbox>
+        <!-- negativeArgument2 key -->
+        <hbox tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
+            <description flex="1">&keySnail.rcWizard.key.negativeArgument2;:</description>
+            <textbox id="keysnail-userscript-key-negativeArgument2"
+                     onclick="keyCustomizer.set('negativeArgument2');"
+                     readonly="true"
+                     class="keysnail-specialkey-textbox"/>
+            <button label="&keySnail.rcWizard.changeKey;"
+                    oncommand="keyCustomizer.set('negativeArgument2');"
+                    class="keysnail-specialkey-button"/>
+        </hbox>
+        <!-- negativeArgument3 key -->
+        <hbox tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
+            <description flex="1">&keySnail.rcWizard.key.negativeArgument3;:</description>
+            <textbox id="keysnail-userscript-key-negativeArgument3"
+                     onclick="keyCustomizer.set('negativeArgument3');"
+                     readonly="true"
+                     class="keysnail-specialkey-textbox"/>
+            <button label="&keySnail.rcWizard.changeKey;"
+                    oncommand="keyCustomizer.set('negativeArgument3');"
                     class="keysnail-specialkey-button"/>
         </hbox>
     </wizardpage>

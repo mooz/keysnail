@@ -41,12 +41,22 @@
 <!ENTITY keySnail.rcWizard.key.escape "Escape key">
 <!ENTITY keySnail.rcWizard.key.macroStart "Macro Start key">
 <!ENTITY keySnail.rcWizard.key.macroEnd "Macro End / Play key">
+<!ENTITY keySnail.rcWizard.key.suspend "Suspension switch key">
+
+<!ENTITY keySnail.rcWizard.key.universalArgument "Universal argument key">
+<!ENTITY keySnail.rcWizard.key.negativeArgument1 "Negative argument key 1">
+<!ENTITY keySnail.rcWizard.key.negativeArgument2 "Negative argument key 2">
+<!ENTITY keySnail.rcWizard.key.negativeArgument3 "Negative argument key 3">
 
 <!ENTITY keySnail.rcWizard.key.quit.description "キー入力のキャンセル等に用いられます">
 <!ENTITY keySnail.rcWizard.key.help.description "キーバインドの一覧表示等に用いられます">
 <!ENTITY keySnail.rcWizard.key.escape.description "このキーの後に続けて入力されたキーは Firefox に直接送られます">
 <!ENTITY keySnail.rcWizard.key.macroStart.description "キーマクロの定義を開始します">
 <!ENTITY keySnail.rcWizard.key.macroEnd.description "キーマクロの定義を終了 ＆ 記録されたキーマクロの再生を行います">
+<!ENTITY keySnail.rcWizard.key.suspend.description "一時停止状態を切り替えるキーです">
+
+<!ENTITY keySnail.rcWizard.key.universalArgument.description "前置引数の入力を開始します">
+<!ENTITY keySnail.rcWizard.key.negativeArgument.description "負の前置引数の入力を開始します">
 
 <!-- PAGE b-1 -->
 

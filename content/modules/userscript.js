@@ -437,15 +437,14 @@ KeySnail.UserScript = {
 
             // replace content with the selected key.
             var keys = params.out.keys;
-            var specialKeySettings =
-                'key.quitKey = "' + keys.quitKey + '";\n' +
-                'key.helpKey = "' + keys.helpKey + '";\n' +
-                'key.escapeKey = "' + keys.escapeKey + '";\n' +
-                'key.macroStartKey = "' + keys.macroStartKey + '";\n' +
-                'key.macroEndKey = "' + keys.macroEndKey + '";';
+            var specialKeySettings = [];
+
+            for (var key in keys) {
+                specialKeySettings.push('key.' + key + ' = "'+keys[key]+'";');
+            }
 
             defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_SPECIAL_KEYS####',
-                                                      specialKeySettings);
+                                                      specialKeySettings.join('\n'));
 
             try {
                 this.modules.util.writeText(defaultInitFile,
@@ -454,7 +453,6 @@ KeySnail.UserScript = {
                 this.message("openDialog: " + e);
                 return false;
             }
-
             break;
         }
 

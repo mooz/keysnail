@@ -148,11 +148,18 @@ var rcWizard = {
 
 var keyCustomizer = {
     prefPrefix: 'keysnail-userscript-key-',
-    keys: ['quit',
-           'help',
-           'escape',
-           'macroStart',
-           'macroEnd'],
+    keys: [
+        'quit',
+        'help',
+        'escape',
+        'macroStart',
+        'macroEnd',
+        'suspend',
+        'universalArgument',
+        'negativeArgument1',
+        'negativeArgument2',
+        'negativeArgument3'
+    ],
 
     initPane: function () {
         var keys = this.keys;
