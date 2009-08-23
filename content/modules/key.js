@@ -261,7 +261,9 @@ KeySnail.Key = {
                 // sequencial C-u - begins negative prefix argument
                 this.modules.util.stopEventPropagation(aEvent);
                 this.currentKeySequence.push(key);
-                this.modules.display.echoStatusBar(this.currentKeySequence.join(" ") + " [prefix argument]");
+                this.modules.display.echoStatusBar(this.currentKeySequence.join(" ") +
+                                                   " [prefix argument :: " +
+                                                   this.parsePrefixArgument(this.currentKeySequence) + "]");
                 // do nothing and return
                 return;
             }
@@ -291,7 +293,9 @@ KeySnail.Key = {
                     // transit state: to inputting prefix argument
                     this.modules.util.stopEventPropagation(aEvent);
                     this.currentKeySequence.push(key);
-                    this.modules.display.echoStatusBar(key + " [prefix argument]");
+                    this.modules.display.echoStatusBar(this.currentKeySequence.join(" ") +
+                                                       " [prefix argument :: " +
+                                                       this.parsePrefixArgument(this.currentKeySequence) + "]");
                     this.inputtingPrefixArgument = true;
                     return;
                 }
@@ -829,16 +833,23 @@ KeySnail.Key = {
             coef = -1;
             break;
         default:
+            while (typeof(aKeySequence[i]) == "string" &&
+                   this.isDigitArgumentKey(this.stringToKeyEvent(aKeySequence[i]))) {
+                i++;
+            }
+
             // M-2 ... C-1 ... C-M-9
             // => 2 ... 1 ... 9
-            var mix = aKeySequence[0];
+            var mix = aKeySequence[i - 1];
             numSequence[0] = Number(mix.charAt(mix.length - 1));
         }
 
-        // ["3", "2", "1"] => ["1", "2", "3"]
+        // ["3", "2", "1"] => [1, 2, 3]
         for (; i < aKeySequence.length; ++i) {
             numSequence.unshift(Number(aKeySequence[i]));
         }
+
+        // this.modules.display.prettyPrint(numSequence.join(", "));
 
         var base = 1;
         for (i = 0; i < numSequence.length; base *= 10, ++i) {
@@ -851,12 +862,12 @@ KeySnail.Key = {
     },
 
     /**
-     * Check whether key event (and string expression) is the degit argument key
+     * Check whether key event (and string expression) is the digit argument key
      * @param {KeyBoardEvent} aEvent key event
-     * @returns {boolean} true when the <aEvent> is regarded as the degit argument
+     * @returns {boolean} true when the <aEvent> is regarded as the digit argument
      */
-    isDegitArgumentKey: function (aEvent) {
-        // C-degit only (M-degit is useful for tab navigation ...)
+    isDigitArgumentKey: function (aEvent) {
+        // C-digit only (M-digit is useful for tab navigation ...)
         // If you want
         return (aEvent.ctrlKey && this.isKeyEventNum(aEvent));
     },
@@ -874,8 +885,8 @@ KeySnail.Key = {
             aKey == this.negativeArgumentKey1 ||
             aKey == this.negativeArgumentKey2 ||
             aKey == this.negativeArgumentKey3 ||
-            // [prefix]-degit
-            this.isDegitArgumentKey(aEvent);
+            // [prefix]-digit
+            this.isDigitArgumentKey(aEvent);
     },
 
     /**
@@ -1073,24 +1084,25 @@ KeySnail.Key = {
             contentHolder.push("<h2 id='parg'>Prefix Argument Keys</h2>");
             if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true)) {
                 contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanDisable") + "</p>\n");
-
-                var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";
                 contentHolder.push("<table class='table-keybindings'>");
                 contentHolder.push("<tr><th>Key</th><th>Description</th></tr>");
-                contentHolder.push("<tr><td>" + this.universalArgumentKey + "</td><td>" + util.getLocaleString("prefixArgumentCu") + "</td></tr>");
+                contentHolder.push("<tr><td>" + this.universalArgumentKey + "</td><td>" +
+                                   util.getLocaleString("prefixArgumentUniv", [this.universalArgumentKey, this.universalArgumentKey]) +
+                                   "</td></tr>");
 
-                var degitKeys = [];
+                var digitKeys = [];
+                // for testing
                 var eventKeys = ["C-0", "M-0", "C-M-0"];
 
                 let self = this;
                 eventKeys.forEach(function (eventKey) {
-                                      if (self.isDegitArgumentKey(self.stringToKeyEvent(eventKey))) {
-                                          degitKeys.push(eventKey.substr(0, eventKey.length - 1) + "[0-9]");
+                                      if (self.isDigitArgumentKey(self.stringToKeyEvent(eventKey))) {
+                                          digitKeys.push(eventKey.substr(0, eventKey.length - 1) + "[0-9]");
                                       }
                                   });
 
-                contentHolder.push("<tr><td>" + degitKeys.join(", ") + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
-
+                contentHolder.push("<tr><td>" + digitKeys.join(", ") + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
+                var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";
                 contentHolder.push("<tr><td>" + this.negativeArgumentKey1 + "</td><td>" + paNegDesc);
                 contentHolder.push("<tr><td>" + this.negativeArgumentKey2 + "</td><td>" + paNegDesc);
                 contentHolder.push("<tr><td>" + this.negativeArgumentKey3 + "</td><td>" + paNegDesc);
