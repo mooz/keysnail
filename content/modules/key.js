@@ -27,13 +27,19 @@ KeySnail.Key = {
     // useful to for the access key
     escapeCurrentChar: false,
 
-    // ==== magic keys ====
+    // ==== special keys ====
     // these keys can be configured through the user config file
     quitKey: "C-g",
     helpKey: "<f1>",
     escapeKey: "C-q",
+    // key macro
     macroStartKey: "Not defined",
     macroEndKey: "Not defined",
+    // prefix argument
+    universalArgumentKey: "C-u",
+    negativeArgumentKey1: "C--",
+    negativeArgumentKey2: "C-M--",
+    negativeArgumentKey3: "M--",
 
     // ==== keyboard macro ====
     currentMacro: [],
@@ -247,8 +253,8 @@ KeySnail.Key = {
 
         if (this.inputtingPrefixArgument) {
             if (this.isKeyEventNum(aEvent) ||
-                key == "C-u" ||
-                ((this.currentKeySequence[this.currentKeySequence.length - 1] == "C-u") &&
+                key == this.universalArgumentKey ||
+                ((this.currentKeySequence[this.currentKeySequence.length - 1] == this.universalArgumentKey) &&
                  (key == '-'))) {
                 // append to currentKeySequence, while the key event is number value.
                 // sequencial C-u like C-u C-u => 4 * 4 = 16 is also supported.
@@ -782,7 +788,7 @@ KeySnail.Key = {
     /**
      * examples)
      * ["M--", "2", "1", "3"] => -213
-     * ["C-u", "C-u", "C-u"] => 64
+     * [this.universalArgumentKey, this.universalArgumentKey, this.universalArgumentKey] => 64
      * ["C-9", "2"] => 92
      * @param {[String]} aKeySequence key sequence (array) to be parsed
      * @return {Integer} prefix argument
@@ -798,9 +804,9 @@ KeySnail.Key = {
         var i = 1;
 
         switch (aKeySequence[0]) {
-        case "C-u":
+        case this.universalArgumentKey:
             arg = 4;
-            while (aKeySequence[i] == "C-u" && i < aKeySequence.length) {
+            while (aKeySequence[i] == this.universalArgumentKey && i < aKeySequence.length) {
                 // Repeating C-u without digits or minus sign
                 // multiplies the argument by 4 each time.
                 arg <<= 2;
@@ -816,9 +822,9 @@ KeySnail.Key = {
                 }
             }
             break;
-        case "C--":
-        case "C-M--":
-        case "M--":
+        case this.negativeArgumentKey1:
+        case this.negativeArgumentKey2:
+        case this.negativeArgumentKey3:
             // negative argument
             coef = -1;
             break;
@@ -845,20 +851,31 @@ KeySnail.Key = {
     },
 
     /**
-     * @param {String} aKey literal expression of the aEvent
-     * @param {Event} aEvent key event
-     * @return {Boolean} true, is the key specified by aKey and aEvent
-     *         will be followed by prefix argument
+     * Check whether key event (and string expression) is the degit argument key
+     * @param {KeyBoardEvent} aEvent key event
+     * @returns {boolean} true when the <aEvent> is regarded as the degit argument
+     */
+    isDegitArgumentKey: function (aEvent) {
+        // C-degit only (M-degit is useful for tab navigation ...)
+        // If you want
+        return (aEvent.ctrlKey && this.isKeyEventNum(aEvent));
+    },
+
+    /**
+     * Check whether key event (and string expression) is the prefix argument key
+     * @param {string} aKey literal expression of the aEvent
+     * @param {KeyBoardEvent} aEvent key event
+     * @returns {boolean} true, is the key specified by <aKey> and <aEvent>
+     * will be followed by prefix argument
      */
     isPrefixArgumentKey: function (aKey, aEvent) {
-        return (aKey == "C-u"   ||
-                // negative argument
-                aKey == "M--"   ||
-                aKey == "C--"   ||
-                aKey == "C-M--" ||
-                // C-degit only (M-degit is useful for tab navigation ...)
-                (aEvent.ctrlKey && this.isKeyEventNum(aEvent))
-               );
+        return aKey == this.universalArgumentKey ||
+            // negative argument
+            aKey == this.negativeArgumentKey1 ||
+            aKey == this.negativeArgumentKey2 ||
+            aKey == this.negativeArgumentKey3 ||
+            // [prefix]-degit
+            this.isDegitArgumentKey(aEvent);
     },
 
     /**
@@ -1060,11 +1077,23 @@ KeySnail.Key = {
                 var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";
                 contentHolder.push("<table class='table-keybindings'>");
                 contentHolder.push("<tr><th>Key</th><th>Description</th></tr>");
-                contentHolder.push("<tr><td>C-u</td><td>" + util.getLocaleString("prefixArgumentCu") + "</td></tr>");
-                contentHolder.push("<tr><td>C-[0-9]</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
-                contentHolder.push("<tr><td>M--</td><td>" + paNegDesc);
-                contentHolder.push("<tr><td>C--</td><td>" + paNegDesc);
-                contentHolder.push("<tr><td>C-M--</td><td>" + paNegDesc);
+                contentHolder.push("<tr><td>" + this.universalArgumentKey + "</td><td>" + util.getLocaleString("prefixArgumentCu") + "</td></tr>");
+
+                var degitKeys = [];
+                var eventKeys = ["C-0", "M-0", "C-M-0"];
+
+                let self = this;
+                eventKeys.forEach(function (eventKey) {
+                                      if (self.isDegitArgumentKey(self.stringToKeyEvent(eventKey))) {
+                                          degitKeys.push(eventKey.substr(0, eventKey.length - 1) + "[0-9]");
+                                      }
+                                  });
+
+                contentHolder.push("<tr><td>" + degitKeys.join(", ") + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
+
+                contentHolder.push("<tr><td>" + this.negativeArgumentKey1 + "</td><td>" + paNegDesc);
+                contentHolder.push("<tr><td>" + this.negativeArgumentKey2 + "</td><td>" + paNegDesc);
+                contentHolder.push("<tr><td>" + this.negativeArgumentKey3 + "</td><td>" + paNegDesc);
                 contentHolder.push("</table>\n");
             } else {
                 contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanEnable") + "</p>\n");
