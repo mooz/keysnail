@@ -27,7 +27,7 @@ KeySnail.UserScript = {
     initFileLoaded: false,
 
     // line number of the Function() consctuctor
-    userScriptOffset: 33,
+    userScriptOffset: 40,
 
     // ==================== Loader ==================== //
 
@@ -115,7 +115,7 @@ KeySnail.UserScript = {
          * (even in simple window.alert()! that a huge bottleneck)
          */
 
-        // if (window.document.documentElement.getAttribute("windowtype") != "navigator:browser") {
+        // if (this.parent.windowType != "navigator:browser") {
         //     // cheat
         //     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
         //         .getService(Components.interfaces.nsIWindowMediator);
@@ -128,14 +128,21 @@ KeySnail.UserScript = {
 
         //     this.linkMembers(browserWindow.KeySnail.modules.key,
         //                      this.modules.key,
-        //                      ["keyMapHolder",
-        //                       "quitKey",
-        //                       "helpKey",
-        //                       "escapeKey",
-        //                       "macroStartKey",
-        //                       "macroEndKey"]);
+        //                      [
+        //                          "keyMapHolder",
+        //                          "quitKey",
+        //                          "helpKey",
+        //                          "escapeKey",
+        //                          "macroStartKey",
+        //                          "macroEndKey",
+        //                          "universalArgumentKey",
+        //                          "negativeArgument1Key",
+        //                          "negativeArgument2Key",
+        //                          "negativeArgument3Key",
+        //                          "suspendKey"
+        //                      ]);
 
-        //     goDoCommand = function (aCommand) {
+        //     document.defaultView.goDoCommand = function (aCommand) {
         //         this.message("goDoCommand called!");
         //         try {
         //             var controller =

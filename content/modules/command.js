@@ -19,7 +19,7 @@ KeySnail.Command = {
 
     init: function () {
         if (typeof(goDoCommand) == 'undefined') {
-            document.defaultView.goDoCommand = function(aCommand) {
+            document.defaultView.goDoCommand = function (aCommand) {
                 try {
                     var controller =
                         top.document.commandDispatcher.getControllerForCommand(aCommand);
