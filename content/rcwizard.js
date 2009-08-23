@@ -35,14 +35,17 @@ var rcWizard = {
         var startPage
             = document.getElementById("keysnail-rcwizard-startpage");
 
-        switch (menuList.selectedIndex) {
-        case 0:
-            startPage.next = "create-rcfile";
-            break;
-        case 1:
-            startPage.next = "select-rcfile";
-            break;
-        }
+        startPage.next = ["create-rcfile", "select-rcfile"]
+        [menuList.selectedIndex];
+
+        // switch (menuList.selectedIndex) {
+        // case 0:
+        //     startPage.next = "create-rcfile";
+        //     break;
+        // case 1:
+        //     startPage.next = "select-rcfile";
+        //     break;
+        // }
 
         return true;
     },
@@ -122,12 +125,16 @@ var rcWizard = {
 
         var selectedMethod = document.getElementById("keysnail-rcwizard-startpage").next;
 
+        var selectedScheme = ["emacs", null]
+        [document.getElementById("keysnail-rcwizard-selectscheme").selectedIndex];
+
         // return changed arguments
         window.arguments[0].out = {};
         window.arguments[0].out.rcFilePath = this.rcFilePath;
         window.arguments[0].out.configFileNameIndex
             = document.getElementById("keysnail-userscript-filename-candidates").selectedIndex;
         window.arguments[0].out.selectedMethod = selectedMethod;
+        window.arguments[0].out.selectedScheme = selectedScheme;
 
         if (selectedMethod == 'create-rcfile') {
             // set special keys

@@ -416,6 +416,7 @@ KeySnail.UserScript = {
 
             var defaultInitFileBase = "chrome://keysnail/content/resources/.keysnail.js.";
             var userLocale = this.modules.util.getUnicharPref("general.useragent.locale");
+            var scheme = (params.out.selectedScheme == null) ? "" : params.out.selectedScheme + ".";
 
             userLocale = {
                 "ja-JP": "ja",
@@ -424,14 +425,14 @@ KeySnail.UserScript = {
                 "en-US": "en"
             }[userLocale] || userLocale;
 
-            var defaultInitFile = this.modules.util.getContents(defaultInitFileBase + userLocale);
+            var defaultInitFile = this.modules.util.getContents(defaultInitFileBase + scheme + userLocale);
 
             if (!defaultInitFile) {
-                defaultInitFile = this.modules.util.getContents(defaultInitFileBase + "en");
+                defaultInitFile = this.modules.util.getContents(defaultInitFileBase + scheme + "en");
             }
 
             if (!defaultInitFile) {
-                this.message("rc file wizard: failed to open the default .keysnail file");
+                this.modules.display.prettyPrint("rc file wizard: failed to open the default init file");
                 return false;
             }
 

@@ -16,7 +16,7 @@
         onwizardcancel="return rcWizard.onCancel();"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="600px"
-        height="600px"
+        height="500px"
         >
 
     <!-- ==================== START ==================== -->
@@ -48,7 +48,7 @@
     <wizardpage pageid="create-rcfile"
                 onpageshow="rcWizard.updatePageCreate();"
                 description="&keySnail.rcWizard.createRcFileDescription;"
-                next="rcfile-specialkey">
+                next="rcfile-scheme">
         <grid flex="1">
             <columns>
                 <column />
@@ -83,25 +83,25 @@
 
     <!-- ==================== CREATE : scheme (select key scheme) ==================== -->
 
-    <!-- <wizardpage pageid="rcfile-scheme" -->
-    <!--             description="&keySnail.rcWizard.selectScheme;" -->
-    <!--             next="rcfile-specialkey" -->
-    <!--             > -->
-    <!--     <description>&keySnail.rcWizard.selectSchemeDescription1;</description> -->
-    <!--     <separator /> -->
-    <!--     <menulist id="keysnail-rcwizard-selectscheme"> -->
-    <!--         <menupopup> -->
-    <!--             <menuitem label="&keySnail.rcWizard.scheme.emacs;" -->
-    <!--                       name="scheme-emacs" -->
-    <!--                       class="menuitem-iconic" -->
-    <!--                       image="chrome://keysnail/skin/icon/emacs.png"/> -->
-    <!--             <menuitem label="&keySnail.rcWizard.scheme.empty;" -->
-    <!--                       name="scheme-empty" -->
-    <!--                       class="menuitem-iconic" -->
-    <!--                       image="chrome://keysnail/skin/icon/empty.png"/> -->
-    <!--         </menupopup> -->
-    <!--     </menulist> -->
-    <!-- </wizardpage> -->
+    <wizardpage pageid="rcfile-scheme"
+                description="&keySnail.rcWizard.selectScheme;"
+                next="rcfile-specialkey"
+                >
+        <description>&keySnail.rcWizard.selectSchemeDescription1;</description>
+        <separator />
+        <menulist id="keysnail-rcwizard-selectscheme">
+            <menupopup>
+                <menuitem label="&keySnail.rcWizard.scheme.emacs;"
+                          name="scheme-emacs"
+                          class="menuitem-iconic"
+                          image="chrome://keysnail/skin/icon/emacs.png"/>
+                <menuitem label="&keySnail.rcWizard.scheme.empty;"
+                          name="scheme-empty"
+                          class="menuitem-iconic"
+                          image="chrome://keysnail/skin/icon/empty.png"/>
+            </menupopup>
+        </menulist>
+    </wizardpage>
 
     <!-- ==================== CREATE : specialkey (select special keys) ==================== -->
 

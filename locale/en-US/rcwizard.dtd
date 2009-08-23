@@ -22,6 +22,14 @@
 
 <!-- PAGE a-2 -->
 
+<!ENTITY keySnail.rcWizard.selectScheme "Select the key scheme">
+<!ENTITY keySnail.rcWizard.selectSchemeDescription1 "The set of keybindings is called `key scheme'">
+
+<!ENTITY keySnail.rcWizard.scheme.emacs "Emacs / w3m like keybindings">
+<!ENTITY keySnail.rcWizard.scheme.empty "Empty scheme">
+
+<!-- PAGE a-3 -->
+
 <!ENTITY keySnail.rcWizard.settingRcFile "Customize special keys">
 <!ENTITY keySnail.rcWizard.settingRcFileDescription1 "If you want to change some keys listed below, click textbox or button on right and press the new key. Those changes will be stored into the init file.">
 <!ENTITY keySnail.rcWizard.settingRcFileDescription2 "C- means the Ctrl and Command key. M- means the Alt and Meta key.">
@@ -46,6 +54,7 @@
 <!ENTITY keySnail.rcWizard.key.escape.description "Escape the next key. This means that KeySnail ignore the key and pass to Firefox">
 <!ENTITY keySnail.rcWizard.key.macroStart.description "Start the key macro recording">
 <!ENTITY keySnail.rcWizard.key.macroEnd.description "Stop the key macro recording or play the recorded one">
+<!ENTITY keySnail.rcWizard.key.suspend.description "To switch the suspension state of the KeySnail">
 
 <!ENTITY keySnail.rcWizard.key.universalArgument.description "To begin input the prefix argument">
 <!ENTITY keySnail.rcWizard.key.negativeArgument.description "To begin input the negative prefix argument">
