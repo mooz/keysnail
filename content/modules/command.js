@@ -322,6 +322,7 @@ KeySnail.Command = {
      */
     replaceRectangle: function (aInput, aReplacement, aIsInsert) {
         var oldScrollTop = aInput.scrollTop;
+        var oldScrollLeft = aInput.scrollLeft;
 
         var selStart = aInput.selectionStart;
         var selEnd = aInput.selectionEnd;
@@ -428,6 +429,7 @@ KeySnail.Command = {
 
         aInput.setSelectionRange(caretPos, caretPos);
         aInput.scrollTop = oldScrollTop;
+        aInput.scrollLeft = oldScrollLeft;
 
         // quick hack
         var ev = {};
@@ -602,6 +604,8 @@ KeySnail.Command = {
 
     processForwardWord: function (aInput, aFilter) {
         var oldScrollTop = aInput.scrollTop;
+        var oldScrollLeft = aInput.scrollLeft;
+
         var begin = aInput.selectionStart;
         var end   = aInput.selectionEnd;
         var text  = aInput.value;
@@ -614,6 +618,7 @@ KeySnail.Command = {
             aInput.setSelectionRange(wordEnd, wordEnd);
             // without a line below, textbox scrollTop becomes 0!
             aInput.scrollTop = oldScrollTop;
+            aInput.scrollLeft = oldScrollLeft;
         }
     },
 
