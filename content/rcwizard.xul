@@ -101,6 +101,11 @@
                           image="chrome://keysnail/skin/icon/empty.png"/>
             </menupopup>
         </menulist>
+        <separator />
+        <checkbox id="keysnail-rcwizard-selectscheme-insert-document"
+                  label="&keySnail.rcWizard.selectScheme.insertDocument;"
+                  checked="false"
+                  />
     </wizardpage>
 
     <!-- ==================== CREATE : specialkey (select special keys) ==================== -->

@@ -1,83 +1,16 @@
 // ==================== KeySnail configuration file ==================== //
+####REPLACE_WITH_DOC####
+// ==================== special keys ==================== //
+####REPLACE_WITH_SPECIAL_KEYS####
+// macro.setSleepTime(100); // key macro interval
 
-// -------------------- How to bind function to the key sequence -------------------- //
-//
-// You can bind the function to the key sequence, using the functions listed below.
-//
-// key.setGlobalKey(keys, func, ksDescription, ksNoRepeat);
-// key.setEditKey(keys, func, ksDescription, ksNoRepeat);
-// key.setViewKey(keys, func, ksDescription, ksNoRepeat);
-// key.setCaretKey(keys, func, ksDescription, ksNoRepeat);
-//
-// Here are the descriptions of the each argument.
-//
-// keys          => key (string) or key sequence (array)
-//                  if you want to bind a function to mutliple key sequence use 'array of array'
-//                  expression of the key follows the Emacs
-//                  ex1) Ctrl + Alt + t : C-M-t
-//                  ex2) Arrow Key      : <up>, <down>, <left>, <right>
-//                  ex3) PgUp, PgDn     : <prior>, <next>
-//                  ex4) F1, F2, F3     : <f1>, <f2>, <f3>
-//
-// func          => anonymous function.
-//                  this function can take two arguments.
-//                     * argument 1 => key event
-//                     * argument 2 => prefix argument (or null)
-//                  you can use these arguments through declaring the
-//                  following expression.
-//                        function (aEvent, aArg)
-// ksDescription => Description of the function.
-//                  you can omit this argument.
-//
-// ksNoRepeat    => when false, command (function) is executed
-//                  prefix arguments times.
-//                  if you want to use prefix argument in your
-//                  function, and do not want to repeat it, set
-//                  this value to true.
-//                  you can omit this argument.
-//
-// Actually, these functions just wrap the function below.
-//
-// key.defineKey(keyMapName, keys, func, ksDescription, ksNoRepeat);
-//
-// keyMapName    => key.modes.GLOBAL, key.modes.VIEW, key.modes.EDIT, key.modes.CARET
-//
-// ==================== About hook ====================
-// User can set the function to the hook.
-// For example, when KeySnail the key press event of the key.quitKey,
-// functions set to KeyBoardQuit are called.
-// You can bind "Cancell isearch", "Deselect the text", and so forth.
-
-// ==================== load modules (example) ==================== //
+// ==================== load modules ==================== //
 // You can split the init file into mutliple files.
 // userscript.addLoadPath("~/.keysnail.d");
 // userscript.require("module1.js");
 // userscript.require("module2.js");
 
-// ==================== special keys ==================== //
-// key.quitKey : Cancel the current input.
-//               This key event calls the KeyBoardQuit hook.
-//               You can set the command like "close the find bar" to it.
-
-// key.helpKey : Display the interactive help. General help key.
-//               When you input C-c C-c <helpKey>, keybindings begin with C-c C-c are displayed.
-//               And in this script settings, <helpKey> b lists the all keybindings.
-####REPLACE_WITH_SPECIAL_KEYS####
-// key macro interval
-// macro.setSleepTime(100);
-
-// ----------------------------------------
-// If you want to change the Ctrl key and Meta key, uncomment two functions below and modify them.
-
-// key.isControlKey = function (aEvent) {
-//     return aEvent.ctrlKey || aEvent.commandKey;
-// }
-
-// isMetaKey = function (aEvent) {
-//     return aEvent.altKey;
-// }
-
-// ==================== original prefix ==================== //
+// ==================== prefix ==================== //
 // You can use view-mode keybindings in edit-mode by adding
 // the prefix key C-z.
 // key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];

@@ -28,6 +28,8 @@
 <!ENTITY keySnail.rcWizard.scheme.emacs "Emacs / w3m like keybindings">
 <!ENTITY keySnail.rcWizard.scheme.empty "Empty scheme">
 
+<!ENTITY keySnail.rcWizard.selectScheme.insertDocument "Insert document to init file">
+
 <!-- PAGE a-3 -->
 
 <!ENTITY keySnail.rcWizard.settingRcFile "Customize special keys">

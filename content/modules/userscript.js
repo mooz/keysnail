@@ -443,24 +443,34 @@ KeySnail.UserScript = {
                 return false;
             }
 
-            // replace content with the selected key.
+            // ================ insert document ================ //
+            var documentString = "";
+            if (params.out.insertDocument) {
+                var doc = "doc.";
+                documentString = this.modules.util.getContents(defaultInitFileBase + doc + userLocale);
+                if (!documentString) {
+                    documentString = this.modules.util.getContents(defaultInitFileBase + doc + "en");
+                }
+            }
+            defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_DOC####', documentString);
+
+            // ================ insert special key settings ================ //
             var keys = params.out.keys;
             var specialKeySettings = [];
             var maxLen = Math.max.apply(null, [str.length for each (str in
                                                                     (function (obj) {
                                                                          for (var key in obj) yield key;
                                                                      })(keys))]);
-
             for (var key in keys) {
                 var padding = Math.max(maxLen - key.length, 0) + 2;
                 specialKeySettings.push('key.' + key +
                                         new Array(padding).join(" ") +
                                         '= "' + keys[key] + '";');
             }
-
             defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_SPECIAL_KEYS####',
                                                       specialKeySettings.join('\n'));
 
+            // ================ write content ================ //
             try {
                 this.modules.util.writeText(defaultInitFile,
                                             rcFilePlace + this.directoryDelimiter + configFileName);

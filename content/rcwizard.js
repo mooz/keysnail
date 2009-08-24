@@ -125,21 +125,26 @@ var rcWizard = {
 
         var selectedMethod = document.getElementById("keysnail-rcwizard-startpage").next;
 
-        var selectedScheme = ["emacs", null]
-        [document.getElementById("keysnail-rcwizard-selectscheme").selectedIndex];
-
         // return changed arguments
         window.arguments[0].out = {};
+        window.arguments[0].out.selectedMethod = selectedMethod;
+
+        // ================ init file path ================ //
         window.arguments[0].out.rcFilePath = this.rcFilePath;
         window.arguments[0].out.configFileNameIndex
             = document.getElementById("keysnail-userscript-filename-candidates").selectedIndex;
-        window.arguments[0].out.selectedMethod = selectedMethod;
-        window.arguments[0].out.selectedScheme = selectedScheme;
 
         if (selectedMethod == 'create-rcfile') {
-            // set special keys
+            // ================ special keys ================ //
             window.arguments[0].out.keys = {};
             this.setSpecialKeys(window.arguments[0].out.keys);
+            // ================ scheme ================ //
+            var selectedScheme = ["emacs", null]
+            [document.getElementById("keysnail-rcwizard-selectscheme").selectedIndex];
+            window.arguments[0].out.selectedScheme = selectedScheme;
+            // ================ document ================ //
+            window.arguments[0].out.insertDocument = 
+                document.getElementById("keysnail-rcwizard-selectscheme-insert-document").checked;
         }
 
         return true;

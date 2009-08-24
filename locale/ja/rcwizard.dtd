@@ -27,6 +27,8 @@
 <!ENTITY keySnail.rcWizard.scheme.emacs "Emacs や w3m などのキーバインドをエミュレートしたスキーム">
 <!ENTITY keySnail.rcWizard.scheme.empty "空のスキーム">
 
+<!ENTITY keySnail.rcWizard.selectScheme.insertDocument "ドキュメントを初期化ファイル内に挿入する">
+
 <!-- PAGE a-3 -->
 
 <!ENTITY keySnail.rcWizard.settingRcFile "特殊キーの設定を行います">

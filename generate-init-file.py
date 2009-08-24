@@ -19,6 +19,7 @@ if (argc != 3):
     print 'scheme:'
     print '    emacs'
     print '    empty'
+    print '    doc'
     quit()
 
 # set locale
@@ -28,8 +29,8 @@ l = {"ja": ja,
 # set scheme
 scheme = argv[2]
 
-print """// ==================== KeySnail configuration file ==================== //
-
+if scheme == 'doc':
+    print """
 // -------------------- """ + {ja: "キーシーケンスへの関数割り当て方法",
                                en: "How to bind function to the key sequence"}[l] + """ -------------------- //
 //
@@ -103,14 +104,6 @@ print """// ==================== KeySnail configuration file ===================
 // functions set to KeyBoardQuit are called.
 // You can bind "Cancell isearch", "Deselect the text", and so forth."""}[l] + """
 
-// ==================== load modules (example) ==================== //
-// """ + {ja: "初期化ファイルを複数のファイルに分割し, 読み込むことが出来る.",
-          en: "You can split the init file into mutliple files."}[l] + """
-// userscript.addLoadPath("~/.keysnail.d");
-// userscript.require("module1.js");
-// userscript.require("module2.js");
-
-// ==================== special keys ==================== //
 """ + {ja: """// key.quitKey : キーシーケンス入力のキャンセルに用いられる.
 //               KeyBoardQuit フックを呼ぶので, 検索バーを閉じる等の動作をそこに登録しておくことも出来る.
 
@@ -123,24 +116,23 @@ print """// ==================== KeySnail configuration file ===================
 
 // key.helpKey : Display the interactive help. General help key.
 //               When you input C-c C-c <helpKey>, keybindings begin with C-c C-c are displayed.
-//               And in this script settings, <helpKey> b lists the all keybindings."""}[l] + """
+//               And in this script settings, <helpKey> b lists the all keybindings."""}[l]
+
+if scheme != 'doc':
+    print """// ==================== KeySnail configuration file ==================== //
+####REPLACE_WITH_DOC####
+// ==================== special keys ==================== //
 ####REPLACE_WITH_SPECIAL_KEYS####
-// key macro interval
-// macro.setSleepTime(100);
+// macro.setSleepTime(100); // key macro interval
 
-// ----------------------------------------
-// """ + {ja: "コントロールキー / メタキーとして解釈させたいキーを変更したい場合は\n// 次に示す二つの関数を変更する.",
-          en: "If you want to change the Ctrl key and Meta key, uncomment two functions below and modify them."}[l] + """
+// ==================== load modules ==================== //
+// """ + {ja: "初期化ファイルを複数のファイルに分割し, 読み込むことが出来る.",
+          en: "You can split the init file into mutliple files."}[l] + """
+// userscript.addLoadPath("~/.keysnail.d");
+// userscript.require("module1.js");
+// userscript.require("module2.js");
 
-// key.isControlKey = function (aEvent) {
-//     return aEvent.ctrlKey || aEvent.commandKey;
-// }
-
-// isMetaKey = function (aEvent) {
-//     return aEvent.altKey;
-// }
-
-// ==================== original prefix ==================== //
+// ==================== prefix ==================== //
 // """ + {ja: "エディットモードで C-z を入力すると, ビューモードのキーバインドが使える",
           en: """You can use view-mode keybindings in edit-mode by adding
 // the prefix key C-z."""}[l] + """
