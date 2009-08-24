@@ -206,3 +206,22 @@ KeySnail §¨•≥•Û•»•Ì°º•Î•≠°º°¢•·•ø•≠°º§»≤Úº·§π§Î•≠°º§œ•«•’•©•Î•»§«º°§Œ§Ë§¶§À§ §√§
 Œ„§®§– ControlKey §À Caps Lock •≠°º§Úª»§§§ø§§æÏπÁ§œ key.isControlKey() §ŒƒÍµ¡§Úº°§Œ§Ë§¶§À —ππ§π§Ï§–Œ…§§§«§∑§Á§¶°£
 
 <script src="http://gist.github.com/160291.js"></script>
+
+h2.•’•√•Ø
+
+<pre>
+hook.setHook("LocationChange",
+             function (aNsURI) {
+                 var URL = aNsURI ? aNsURI.spec : null;
+                 key.suspendWhenMatched(URL, key.blackList);
+             });
+</pre>
+
+If user transit the page to "http://www.foo.com/bar/"
+from "http://www.hoge.com/huga/", aNsURI's property becomes ...
+
+aNsURI.spec      => "http://www.foo.com/bar/"
+aNsURI.scheme    => "http"
+aNsURI.host      => "www.foo.com"
+aNsURI.path      => "/bar/"
+aNsURI.prePath   => "http://www.hoge.com/huga/"

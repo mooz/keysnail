@@ -16,7 +16,7 @@
         onwizardcancel="return rcWizard.onCancel();"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         width="600px"
-        height="500px"
+        height="600px"
         >
 
     <!-- ==================== START ==================== -->

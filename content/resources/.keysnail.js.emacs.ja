@@ -105,26 +105,16 @@ hook.setHook("KeyBoardQuit",
                 key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
             });
 
-// If user transit the page to "http://www.foo.com/bar/"
-// from "http://www.hoge.com/huga/", aNsURI's property becomes ...
-//
-// aNsURI.spec      => "http://www.foo.com/bar/"
-// aNsURI.scheme    => "http"
-// aNsURI.host      => "www.foo.com"
-// aNsURI.path      => "/bar/"
-// aNsURI.prePath   => "http://www.hoge.com/huga/"
-
-// hook.setHook("LocationChange",
-//              function (aNsURI) {
-//                  var URL = aNsURI ? aNsURI.spec : null;
-
-//                  key.checkBlackList(URL);
-//              });
-
+// KeySnail を無効にしたいページの URL を正規表現で指定する
 // key.blackList = [
 //     "http://mail\.google\.com/.*"
 // ];
 
+// hook.setHook("LocationChange",
+//              function (aNsURI) {
+//                  var URL = aNsURI ? aNsURI.spec : null;
+//                  key.suspendWhenMatched(URL, key.blackList);
+//              });
 
 // ==================== set global keys ==================== //
 

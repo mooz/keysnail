@@ -23,7 +23,7 @@ KeySnail.Macro = {
      * @return {HTMLElement} current focused element
      */
     getCurrentFocusedElement: function () {
-        return window.document.commandDispatcher.focusedElement;
+        return window.document.commandDispatcher.focusedElement || window.document;
 
         // var doc;
         // doc = (window.document.commandDispatcher.focusedWindow || window).document;

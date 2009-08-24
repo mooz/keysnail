@@ -58,6 +58,8 @@ KeySnailLoader.prototype = {
         // if (elem) {
         //     this.message("Editable found [" + aEvent.target.documentURI + "]");
         // }
+        
+        // this.message(aEvent.target.documentURI);
 
         switch (aEvent.target.documentURI) {
             // white list
@@ -70,6 +72,7 @@ KeySnailLoader.prototype = {
         case 'chrome://keysnail/content/preference.xul':
         case 'chrome://keysnail/content/keyGrabber.xul':
         case 'chrome://browser/content/aboutDialog.xul':
+        case 'chrome://mozapps/content/downloads/unknownContentType.xul':
             return;
             break;
             // special case

@@ -129,13 +129,13 @@ KeySnail.Key = {
      * If <aURL> is undefined, force unsuspend.
      * @param {string} aURL page URL to check.
      */
-    checkBlackList: function (aURL) {
-        if (!this.blackList)
+    suspendWhenMatched: function (aURL, aBlackList) {
+        if (!aBlackList)
             return;
 
         if (aURL) {
             this.suspended =
-                this.blackList.some(function (elem) { return !!aURL.match(elem); });
+                aBlackList.some(function (elem) { return !!aURL.match(elem); });
         } else {
             // about:blank ...
             this.suspended = false;

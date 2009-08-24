@@ -177,30 +177,21 @@ hook.setHook("KeyBoardQuit",
                 key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
             });
 
-// If user transit the page to "http://www.foo.com/bar/"
-// from "http://www.hoge.com/huga/", aNsURI's property becomes ...
-//
-// aNsURI.spec      => "http://www.foo.com/bar/"
-// aNsURI.scheme    => "http"
-// aNsURI.host      => "www.foo.com"
-// aNsURI.path      => "/bar/"
-// aNsURI.prePath   => "http://www.hoge.com/huga/"
+// """ + {ja: "KeySnail を無効にしたいページの URL を正規表現で指定する",
+          en: "If you want to suspend the KeySnail in certain page, put its URL (regexp) into the list"}[l] + """
+// key.blackList = [
+//     "http://mail\.google\.com/.*"
+// ];
 
 // hook.setHook("LocationChange",
 //              function (aNsURI) {
 //                  var URL = aNsURI ? aNsURI.spec : null;
-
-//                  key.checkBlackList(URL);
+//                  key.suspendWhenMatched(URL, key.blackList);
 //              });
-
-// key.blackList = [
-//     "http://mail\\.google\\.com/.*"
-// ];
 """;
 
 if scheme == "emacs":
-    print """
-// ==================== set global keys ==================== //
+    print """// ==================== set global keys ==================== //
 
 key.setGlobalKey("C-M-r",
                  function () { userscript.reload(); },
