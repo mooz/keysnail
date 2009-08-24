@@ -446,9 +446,16 @@ KeySnail.UserScript = {
             // replace content with the selected key.
             var keys = params.out.keys;
             var specialKeySettings = [];
+            var maxLen = Math.max.apply(null, [str.length for each (str in
+                                                                    (function (obj) {
+                                                                         for (var key in obj) yield key;
+                                                                     })(keys))]);
 
             for (var key in keys) {
-                specialKeySettings.push('key.' + key + ' = "'+keys[key]+'";');
+                var padding = Math.max(maxLen - key.length, 0) + 2;
+                specialKeySettings.push('key.' + key +
+                                        new Array(padding).join(" ") +
+                                        '= "' + keys[key] + '";');
             }
 
             defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_SPECIAL_KEYS####',
