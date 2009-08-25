@@ -7,6 +7,7 @@
 
 KeySnail.Command = {
     modules: null,
+    killBuffer: null,
 
     get gFindBar() {
         return typeof(gFindBar) == 'undefined' ?
@@ -204,14 +205,14 @@ KeySnail.Command = {
 
     bookMarkToolBarJumpTo: function (aEvent, aArg) {
         if (!aArg || aArg < 0)
-            aArg = 0;
+            aArg = 1;
 
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
         var items = toolbarBookMarks.getElementsByTagName('toolbarbutton');
         // item.length
 
         if (aArg > items.length - 1)
-            aArg = items.length - 1;
+            aArg = items.length;
 
         // this.modules.util.listProperty(items[aArg].node);
 
@@ -315,12 +316,63 @@ KeySnail.Command = {
     // ==================== Rectangle ==================== //
 
     /**
-     * Do Emacs-like rectangle replacement or insersion
-     * @param {textarea} aInput
-     * @param {string} aReplacement alternative string
-     * @param {boolean} aIsInsert whether do insersion or not (replacement)
+     * Get selection information;
+     * line number and char count from head of line.
+     * @param {[string]} aLines 
+     * @param {integer} aSelStart beggining of the selection
+     * @param {integer} aSelEnd end of the selection
+     * @returns {[integer, integer, integer, integer]} 
      */
-    replaceRectangle: function (aInput, aReplacement, aIsInsert) {
+    getSelectionInfo: function (aLines, aSelStart, aSelEnd) {
+        // detect selection start line
+        var count = 0, prevCount;
+        var startLineNum, endLineNum; // line number
+        var startHeadCount = 0, endHeadCount = 0;
+        for (var i = 0; i < aLines.length; ++i) {
+            prevCount = count;
+            // includes last '\n' (+ 1)
+            count += (aLines[i].length + 1);
+
+            if (typeof(startLineNum) == 'undefined' &&
+                count > aSelStart) {
+                startLineNum = i;
+                startHeadCount = aSelStart - prevCount;
+            }
+            if (count > aSelEnd) {
+                endLineNum = i;
+                endHeadCount = aSelEnd - prevCount;
+                break;
+            }
+        }
+
+        return [startLineNum, endLineNum, startHeadCount, endHeadCount];
+    },
+
+    /**
+     * Delete rectangle
+     * @param {textarea} aInput text area current caret placed to
+     * @param {boolean} aNoExSpace if true, do not add white space to the blank line
+     */
+    deleteRectangle: function (aInput, aNoExSpace) {
+        this.processRectangle(aInput, "", false, aNoExSpace, false);
+    },
+
+    /**
+     * Kill rectangle and set killed line to the kill-ring
+     * @param {textarea} aInput text area current caret placed to
+     * @param {boolean} aNoExSpace if true, do not add white space to the blank line
+     * @returns {[string]} killed lines
+     */
+    killRectangle: function (aInput, aNoExSpace) {
+        return this.processRectangle(aInput, "", false, aNoExSpace, true);
+    },
+
+    yankRectangle: function (aInput, aRectangle) {
+        if (!aRectangle) {
+            this.modules.display.echoStatusBar("Kill ring is empty", 3000);
+            return;
+        }
+
         var oldScrollTop = aInput.scrollTop;
         var oldScrollLeft = aInput.scrollLeft;
 
@@ -330,42 +382,10 @@ KeySnail.Command = {
         var text = aInput.value;
         var lines = text.split('\n');
 
-        // detect selection start line
-        var count = 0, prevCount;
-        var startLineNum, endLineNum; // line number
-        var startHeadCount = 0, endHeadCount = 0;
-        for (var i = 0; i < lines.length; ++i) {
-            prevCount = count;
-            // includes last '\n' (+ 1)
-            count += (lines[i].length + 1);
+        [startLineNum, endLineNum, startHeadCount, endHeadCount]
+            = this.getSelectionInfo(lines, selStart, selEnd);
 
-            if (typeof(startLineNum) == 'undefined' &&
-                count > selStart) {
-                startLineNum = i;
-                startHeadCount = selStart - prevCount;
-            }
-            if (count > selEnd) {
-                endLineNum = i;
-                endHeadCount = selEnd - prevCount;
-                break;
-            }
-        }
-
-        // intra-line
-        // (from - to) becomes rectangle-width
-        var from, to;
-        if (startHeadCount < endHeadCount) {
-            from = startHeadCount;
-            to   = endHeadCount;
-        } else {
-            from = endHeadCount;
-            to   = startHeadCount;
-        }
-
-        if (aIsInsert) {
-            to = from;
-        }
-
+        // ================ process {{ ================ //
         // now we process chars
         var output = "";
         for (i = 0; i < startLineNum; ++i) {
@@ -373,23 +393,142 @@ KeySnail.Command = {
         }
 
         var padHead, padTail;
-        var addedSpace = 0, addedSpaceLineCount = 0;
-        // replace
-        for (i = startLineNum; i <= endLineNum; ++i) {
-            padHead = lines[i].slice(0, from);
-            if (padHead.length < from) {
-                addedSpace += (from - padHead.length);
-                addedSpaceLineCount++;
-                padHead += new Array(from - padHead.length + 1).join(" ");
+        for (var j = 0; j < aRectangle.length; ++j, ++i) {
+            if (i < lines.length) {
+                padHead = lines[i].slice(0, startHeadCount);  
+                padTail = lines[i].slice(startHeadCount, lines[i].length);
+            } else {
+                padHead = padTail = "";
             }
-            padTail = lines[i].slice(to, lines[i].length);
-            output += padHead + aReplacement + padTail + "\n";
+            if (padHead.length < startHeadCount) {
+                padHead += new Array(startHeadCount - padHead.length + 1).join(" ");
+            }
+            output += padHead + aRectangle[j] + padTail + "\n";
         }
 
         // copy rest line
         for (; i < lines.length; ++i) {
             output += lines[i] + "\n";
         }
+        // ================ }} process ================ //
+
+        // remove last "\n" and apply
+        aInput.value = output.slice(0, output.length - 1);
+
+        // set caret position
+        var caretPos = selStart;
+
+        aInput.setSelectionRange(caretPos, caretPos);
+        aInput.scrollTop = oldScrollTop;
+        aInput.scrollLeft = oldScrollLeft;
+
+        // quick hack
+        var ev = {};
+        ev.originalTarget = aInput;
+        this.resetMark(ev);
+    },
+
+    /**
+     * Emacs-like open-rectangle command
+     * @param {Textarea} aInput
+     * @param {boolean} aNoExSpace if true, do not add white space to the blank line
+     */
+    openRectangle: function (aInput, aNoExSpace) {
+        var selStart = aInput.selectionStart;
+        var selEnd = aInput.selectionEnd;
+
+        var text = aInput.value;
+        var lines = text.split('\n');
+
+        var startLineNum, endLineNum; // line number
+        var startHeadCount, endHeadCount;
+
+        [startLineNum, endLineNum, startHeadCount, endHeadCount]
+            = this.getSelectionInfo(lines, selStart, selEnd);
+
+        // get rectangle-width
+        var width = (startHeadCount < endHeadCount) ?
+            endHeadCount - startHeadCount : startHeadCount - endHeadCount;
+
+        this.processRectangle(aInput, new Array(width + 1).join(" "), true, aNoExSpace, false);
+    },
+
+    /**
+     * Do Emacs-like rectangle replacement or insersion
+     * @param {textarea} aInput text area current caret placed to
+     * @param {string} aReplacement alternative string
+     */
+    replaceRectangle: function (aInput, aReplacement) {
+        this.processRectangle(aInput, aReplacement, false, false, false);
+    },
+
+    /**
+     * Do Emacs-like rectangle manipulation
+     * @param {textarea} aInput text area current caret placed to
+     * @param {string} aReplacement alternative string
+     * @param {boolean} aIsInsert whether do insersion or not (replacement)
+     * @param {boolean} aNoExSpace if true, do not add white space to the blank line
+     * @param {boolean} aIsKill if true, return killed lines
+     * @returns {[string]} killed lines
+     */
+    processRectangle: function (aInput, aReplacement, aIsInsert, aNoExSpace, aIsKill) {
+        var oldScrollTop = aInput.scrollTop;
+        var oldScrollLeft = aInput.scrollLeft;
+
+        var selStart = aInput.selectionStart;
+        var selEnd = aInput.selectionEnd;
+
+        var text = aInput.value;
+        var lines = text.split('\n');
+        var killedLines = aIsKill ? [] : null;
+
+        var startLineNum, endLineNum; // line number
+        var startHeadCount, endHeadCount;
+
+        [startLineNum, endLineNum, startHeadCount, endHeadCount]
+            = this.getSelectionInfo(lines, selStart, selEnd);
+
+        // intra-line
+        // (from - to) becomes rectangle-width
+        var from, to;
+        [from, to] = (startHeadCount < endHeadCount) ?
+            [startHeadCount, endHeadCount] : [endHeadCount, startHeadCount];
+
+        if (aIsInsert) {
+            to = from;
+        }
+
+        // ================ process {{ ================ //
+        // now we process chars
+        var output = "";
+        for (i = 0; i < startLineNum; ++i) {
+            output += lines[i] + "\n";
+        }
+
+        var padHead, padTail;
+        // replace
+        for (i = startLineNum; i <= endLineNum; ++i) {
+            // kill
+            if (aIsKill) {
+                killedLines.push(lines[i].slice(from, to));                
+            }
+            // replace / delete
+            padHead = lines[i].slice(0, from);
+            if (padHead.length < from && !aNoExSpace) {
+                padHead += new Array(from - padHead.length + 1).join(" ");
+            }
+            padTail = lines[i].slice(to, lines[i].length);
+            output += padHead + aReplacement + padTail + "\n";
+        }
+
+        // var rectBeginPos = selStart;
+        var rectEndPos = output.length - (padTail.length + 1);
+
+        // copy rest line
+        for (; i < lines.length; ++i) {
+            output += lines[i] + "\n";
+        }
+        // ================ }} process ================ //
 
         // remove last "\n" and apply
         aInput.value = output.slice(0, output.length - 1);
@@ -407,8 +546,7 @@ KeySnail.Command = {
                 // we need to put caret on [*] position
                 if (aInput.ksMarked == selEnd) {
                     // [*] selStart <------------- mark (selEnd)
-                    // display.prettyPrint("[*] selStart <------------- mark (selEnd)");
-                    // ====================
+                    // this.modules.display.prettyPrint("[*] selStart <------------- mark (selEnd)");
                     if (startHeadCount < endHeadCount) {
                         caretPos = selStart;
                     } else {
@@ -416,13 +554,12 @@ KeySnail.Command = {
                     }
                 } else {
                     // mark (selStart) -------------> selEnd [*]
-                    // display.prettyPrint("mark (selStart) -------------> selEnd [*]");
-                    // ====================
-                    // (gap in word count per line, between before and after) *
-                    // (line count)
-                    caretPos = selEnd + gap * (endLineNum - startLineNum + 1
-                                               - addedSpaceLineCount);
-                    caretPos += addedSpace + addedSpaceLineCount;
+                    // this.modules.display.prettyPrint("mark (selStart) -------------> selEnd [*]");
+                    if (startHeadCount < endHeadCount) {
+                        caretPos = rectEndPos;
+                    } else {
+                        caretPos = rectEndPos - aReplacement.length;
+                    }
                 }
             }
         }
@@ -435,45 +572,8 @@ KeySnail.Command = {
         var ev = {};
         ev.originalTarget = aInput;
         this.resetMark(ev);
-    },
 
-    /**
-     * Emacs-like open-rectangle command
-     * @param {Textarea} aInput
-     */
-    openRectangle: function (aInput) {
-        var selStart = aInput.selectionStart;
-        var selEnd = aInput.selectionEnd;
-
-        var text = aInput.value;
-        var lines = text.split('\n');
-
-        // detect selection start line
-        var count = 0, prevCount;
-        var startLineNum, endLineNum; // line number
-        var startHeadCount = 0, endHeadCount = 0;
-        for (var i = 0; i < lines.length; ++i) {
-            prevCount = count;
-            // includes last '\n' (+ 1)
-            count += (lines[i].length + 1);
-
-            if (typeof(startLineNum) == 'undefined' &&
-                count > selStart) {
-                startLineNum = i;
-                startHeadCount = selStart - prevCount;
-            }
-            if (count > selEnd) {
-                endLineNum = i;
-                endHeadCount = selEnd - prevCount;
-                break;
-            }
-        }
-
-        // get rectangle-width
-        var width = (startHeadCount < endHeadCount) ?
-            endHeadCount - startHeadCount : startHeadCount - endHeadCount;
-
-        this.replaceRectangle(aInput, new Array(width + 1).join(" "), true);
+        return killedLines;
     },
 
     // ==================== Copy / Cut ==================== //

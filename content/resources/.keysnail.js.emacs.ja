@@ -63,7 +63,6 @@ key.setGlobalKey("C-M-r",
 key.setGlobalKey([key.helpKey, "b"], function () {
                      key.listKeyBindings();
                  }, "キーバインド一覧を表示");
-
 key.setGlobalKey([key.helpKey, "F"], function () {
                      openHelpLink('firefox-help');
                  }, "Firefox のヘルプを表示");
@@ -73,17 +72,14 @@ key.setGlobalKey([key.helpKey, "F"], function () {
 key.setGlobalKey("C-t", function () {
                      document.getElementById("cmd_newNavigatorTab").doCommand();
                  }, "タブを開く");
-
 key.setGlobalKey(["C-x", "j"], function (aEvent) {
                      hah.enterStartKey(aEvent);
                  }, "LoL を開始");
-
 key.setGlobalKey("C-m", function (aEvent) {
                      key.generateKey(aEvent.originalTarget,
                                      KeyEvent.DOM_VK_RETURN, true);
                  },
                  "リターンコードを生成");
-
 key.setGlobalKey("C-j",
                  function (aEvent, arg) {
                      command.bookMarkToolBarJumpTo(aEvent, arg);
@@ -97,19 +93,16 @@ key.setGlobalKey(["C-x", "l"],
                      command.focusToById('urlbar');
                  },
                  "ロケーションバーへフォーカス", true);
-
 key.setGlobalKey(["C-x", "g"],
                  function () {
                      command.focusToById('searchbar');
                  },
                  "検索バーへフォーカス", true);
-
 key.setGlobalKey(["C-x", "t"],
                  function () {
                      command.focusElement(command.elementsRetrieverTextarea, 0);
                  },
                  "最初のインプットエリアへフォーカス", true);
-
 key.setGlobalKey(["C-x", "s"],
                  function () {
                      command.focusElement(command.elementsRetrieverButton, 0);
@@ -130,7 +123,6 @@ key.setGlobalKey("C-s", function () {
                      command.iSearchForward();
                  },
                  "インクリメンタル検索");
-
 key.setGlobalKey("C-r", function () {
                      command.iSearchBackward();
                  },
@@ -140,15 +132,12 @@ key.setGlobalKey("C-r", function () {
 key.setGlobalKey(["C-x", "k"],
                  function () { BrowserCloseTabOrWindow(); },
                  "タブ / ウィンドウを閉じる");
-
 key.setGlobalKey(["C-x", "K"],
                  function () { closeWindow(true); },
                  "ウィンドウを閉じる");
-
 key.setGlobalKey(["C-x", "n"],
                  function () { OpenBrowserWindow(); },
                  "ウィンドウを開く");
-
 key.setGlobalKey(["C-x", "C-c"],
                  function () { goQuitApplication(); },
                  "Firefox を終了");
@@ -178,7 +167,6 @@ key.setGlobalKey(["C-c", "C-c", "C-c"],
                      command.clearConsole();
                  },
                  "Javascript コンソールの表示をクリア");
-
 key.setGlobalKey(["C-c", "i"],
                  function () { BrowserPageInfo(); },
                  "ページ情報表示");
@@ -422,20 +410,30 @@ key.setEditKey("C-w",
 // -------------------- rectangle -------------------- //
 
 key.setEditKey(["C-x", "r", "d"],
-               function (aEvent) {
-                   command.replaceRectangle(aEvent.originalTarget, "");
-               }, "矩形削除");
+               function (aEvent, aArg) {
+                   command.replaceRectangle(aEvent.originalTarget, "", false, !aArg);
+               }, "矩形削除", true);
 
 key.setEditKey(["C-x", "r", "t"],
                function (aEvent) {
                    var replacement = window.prompt("String rectangle", "");
                    command.replaceRectangle(aEvent.originalTarget, replacement);
-               }, "矩形置換");
+               }, "矩形置換", true);
 
 key.setEditKey(["C-x", "r", "o"],
                function (aEvent) {
                    command.openRectangle(aEvent.originalTarget);
-               }, "矩形行空け");
+               }, "矩形行空け", true);
+
+key.setEditKey(["C-x", "r", "k"],
+               function (aEvent, aArg) {
+                   command.killBuffer = command.killRectangle(aEvent.originalTarget, !aArg);
+               }, "矩形 kill", true);
+
+key.setEditKey(["C-x", "r", "y"],
+               function (aEvent) {
+                   command.yankRectangle(aEvent.originalTarget, command.killBuffer);
+               }, "矩形 yank", true);
 
 // -------------------- selection -------------------- //
 

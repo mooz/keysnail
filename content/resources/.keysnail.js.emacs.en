@@ -64,7 +64,6 @@ key.setGlobalKey("C-M-r",
 key.setGlobalKey([key.helpKey, "b"], function () {
                      key.listKeyBindings();
                  }, "List all keybindings");
-
 key.setGlobalKey([key.helpKey, "F"], function () {
                      openHelpLink('firefox-help');
                  }, "Display Firefox help");
@@ -74,17 +73,14 @@ key.setGlobalKey([key.helpKey, "F"], function () {
 key.setGlobalKey("C-t", function () {
                      document.getElementById("cmd_newNavigatorTab").doCommand();
                  }, "Open the new tab");
-
 key.setGlobalKey(["C-x", "j"], function (aEvent) {
                      hah.enterStartKey(aEvent);
                  }, "Start LoL");
-
 key.setGlobalKey("C-m", function (aEvent) {
                      key.generateKey(aEvent.originalTarget,
                                      KeyEvent.DOM_VK_RETURN, true);
                  },
                  "Generate the return key code");
-
 key.setGlobalKey("C-j",
                  function (aEvent, arg) {
                      command.bookMarkToolBarJumpTo(aEvent, arg);
@@ -98,19 +94,16 @@ key.setGlobalKey(["C-x", "l"],
                      command.focusToById('urlbar');
                  },
                  "Focus to the location bar", true);
-
 key.setGlobalKey(["C-x", "g"],
                  function () {
                      command.focusToById('searchbar');
                  },
                  "Focus to the search bar", true);
-
 key.setGlobalKey(["C-x", "t"],
                  function () {
                      command.focusElement(command.elementsRetrieverTextarea, 0);
                  },
                  "Focus to the first textarea", true);
-
 key.setGlobalKey(["C-x", "s"],
                  function () {
                      command.focusElement(command.elementsRetrieverButton, 0);
@@ -131,7 +124,6 @@ key.setGlobalKey("C-s", function () {
                      command.iSearchForward();
                  },
                  "Incremental search forward");
-
 key.setGlobalKey("C-r", function () {
                      command.iSearchBackward();
                  },
@@ -141,15 +133,12 @@ key.setGlobalKey("C-r", function () {
 key.setGlobalKey(["C-x", "k"],
                  function () { BrowserCloseTabOrWindow(); },
                  "Close tab / window");
-
 key.setGlobalKey(["C-x", "K"],
                  function () { closeWindow(true); },
                  "Close the window");
-
 key.setGlobalKey(["C-x", "n"],
                  function () { OpenBrowserWindow(); },
                  "Open new window");
-
 key.setGlobalKey(["C-x", "C-c"],
                  function () { goQuitApplication(); },
                  "Exit Firefox");
@@ -179,7 +168,6 @@ key.setGlobalKey(["C-c", "C-c", "C-c"],
                      command.clearConsole();
                  },
                  "Clear Javascript console");
-
 key.setGlobalKey(["C-c", "i"],
                  function () { BrowserPageInfo(); },
                  "Display page information");
@@ -423,20 +411,30 @@ key.setEditKey("C-w",
 // -------------------- rectangle -------------------- //
 
 key.setEditKey(["C-x", "r", "d"],
-               function (aEvent) {
-                   command.replaceRectangle(aEvent.originalTarget, "");
-               }, "Delete text in the region-rectangle");
+               function (aEvent, aArg) {
+                   command.replaceRectangle(aEvent.originalTarget, "", false, !aArg);
+               }, "Delete text in the region-rectangle", true);
 
 key.setEditKey(["C-x", "r", "t"],
                function (aEvent) {
                    var replacement = window.prompt("String rectangle", "");
                    command.replaceRectangle(aEvent.originalTarget, replacement);
-               }, "Replace text in the region-rectangle with user inputted string");
+               }, "Replace text in the region-rectangle with user inputted string", true);
 
 key.setEditKey(["C-x", "r", "o"],
                function (aEvent) {
                    command.openRectangle(aEvent.originalTarget);
-               }, "Blank out the region-rectangle, shifting text right");
+               }, "Blank out the region-rectangle, shifting text right", true);
+
+key.setEditKey(["C-x", "r", "k"],
+               function (aEvent, aArg) {
+                   command.killBuffer = command.killRectangle(aEvent.originalTarget, !aArg);
+               }, "Delete the region-rectangle and save it as the last killed one", true);
+
+key.setEditKey(["C-x", "r", "y"],
+               function (aEvent) {
+                   command.yankRectangle(aEvent.originalTarget, command.killBuffer);
+               }, "Yank the last killed rectangle with upper left corner at point", true);
 
 // -------------------- selection -------------------- //
 
