@@ -20,7 +20,11 @@ KeySnail.Prompt = {
 
     savedFocusedElement: null,
 
+    // Options
+    substrMatch: true,
+
     // History
+    historyHolder: null,
     history: {
         list: null,
         index: 0,
@@ -40,8 +44,9 @@ KeySnail.Prompt = {
             this.label     = document.getElementById("keysnail-prompt-label");
             this.textbox   = document.getElementById("keysnail-prompt-textbox");
 
-            this.history.list    = [];
-            // this.completion.list = [];
+            // this holds all history and 
+            this.historyHolder = new Object;
+            this.historyHolder["default"] = [];
         }
     },
 
@@ -133,29 +138,28 @@ KeySnail.Prompt = {
             var listLen = aType.list.length;
             var delta = (aDirection >= 0) ? 1 : -1;
             var i = index;
+            var substrIndex;
 
-            if (aDirection >= 0) {
-                while (i < listLen) {
-                    if (aType.list[i].slice(0, start) == header) {
-                        index = i;
-                        break;
-                    }
-                    i++;
+            while ((aDirection >= 0) ? (i < listLen) : (i >= 0)) {
+                if (aType.list[i].slice(0, start) == header) {
+                    index = i;
+                    break;                    
                 }
-            } else {
-                while (i >= 0) {
-                    if (aType.list[i].slice(0, start) == header) {
-                        index = i;
-                        break;
-                    }
-                    i--;
+                if (this.substrMatch &&
+                    (substrIndex = aType.list[i].indexOf(header)) != -1) {
+                    index = i;
+                    // quick hack (changing start value not good)
+                    start = substrIndex + header.length;
+                    break;
                 }
+                i += delta;
             }
 
             if ((aDirection >= 0 && i == listLen) ||
                 (aDirection < 0  && i == -1)) {
                 // stay current position
-                index = aType.index;
+                // index = aType.index;
+                return;
             }
         }
 
@@ -209,8 +213,11 @@ KeySnail.Prompt = {
      * The first aReadStr becomes the string read from prompt
      * The second arguments
      * @param {[string]} aCollection string list used to completion
+     * @param {string} aInitialInput
+     * @param {string} aInitialCount
+     * @param {string} aGroup history group
      */
-    read: function (aMsg, aCallback, aUserArg, aCollection, aInitialInput, aInitialCount) {
+    read: function (aMsg, aCallback, aUserArg, aCollection, aInitialInput, aInitialCount, aGroup) {
         if (!this.promptbox) {
             return;
         }
@@ -219,6 +226,10 @@ KeySnail.Prompt = {
 
         // set up history
         this.history.index = 0;
+        aGroup = aGroup || "default";
+        if (aGroup && typeof(this.historyHolder[aGroup]) == "undefined")
+            this.historyHolder[aGroup] = [];
+        this.history.list = this.historyHolder[aGroup];
 
         // set up completion
         this.completion.list = aCollection;
@@ -232,7 +243,7 @@ KeySnail.Prompt = {
         this.label.value = aMsg;
         this.textbox.value = aInitialInput || "";
         this.promptbox.hidden = false;
-        // do not set selection value till textbox appear 
+        // do not set selection value till textbox appear (cause crash)
         this.textbox.selectionStart = this.textbox.selectionEnd = 0;
 
         // now focus to the input area

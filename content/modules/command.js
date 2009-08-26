@@ -214,7 +214,7 @@ KeySnail.Command = {
         var urlList = [];
 
         for (var i = 0; i < items.length; ++i) {
-            if (items[i].node.uri.match(/^http:/))
+            if (items[i].node.uri.match(/^https?:/))
                 urlList.push(items[i].node.uri);
         }
 
@@ -229,12 +229,12 @@ KeySnail.Command = {
                         if (aStr) {
                             key.viewURI(aStr);                            
                         }
-                        // PlacesUIUtils.openNodeIn(aItems[aArg - 1].node, "tab");
                     },
                     items,
                     urlList,
                     urlList[aArg - 1],
-                    aArg - 1);
+                    aArg - 1,
+                    "url");
         }
 
         // PlacesUIUtils.openNodeIn(items[aArg - 1].node, "tab");
