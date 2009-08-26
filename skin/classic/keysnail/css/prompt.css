@@ -1,12 +1,17 @@
 #keysnail-prompt-textbox {
-    -moz-margin-start: 0;
+    -moz-appearance: none !important;
+    min-height: 18px !important;
+    border: none !important;
 }
 
 #keysnail-prompt-label {
-    /* margin: auto auto; */
+    -moz-appearance: none !important;
+    font-weight: bold;
 }
 
+/* font-family: -moz-fixed; */
+
 #keysnail-prompt {
-    margin: 0;
-    padding: 0;
+    -moz-appearance: none !important;
 }
+

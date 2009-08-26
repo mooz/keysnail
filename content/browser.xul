@@ -52,7 +52,7 @@
     </statusbar>
 
     <vbox id="browser-bottombox">
-        <hbox id="keysnail-prompt" insertbefore="status-bar" hidden="true">
+        <hbox id="keysnail-prompt" insertafter="status-bar" hidden="true">
             <label class="keysnail-prompt-label"
                    id="keysnail-prompt-label"></label>
             <textbox id="keysnail-prompt-textbox" flex="1"

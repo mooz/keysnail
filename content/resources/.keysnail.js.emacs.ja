@@ -416,8 +416,13 @@ key.setEditKey(["C-x", "r", "d"],
 
 key.setEditKey(["C-x", "r", "t"],
                function (aEvent) {
-                   var replacement = window.prompt("String rectangle", "");
-                   command.replaceRectangle(aEvent.originalTarget, replacement);
+                   prompt.read("String rectangle: ",
+                               function (aStr, aInput) {
+                                   command.replaceRectangle(aInput, aStr);
+                               },
+                               aEvent.originalTarget);
+                   // var replacement = window.prompt("String rectangle", "");
+                   // command.replaceRectangle(aEvent.originalTarget, replacement);
                }, "矩形置換", true);
 
 key.setEditKey(["C-x", "r", "o"],

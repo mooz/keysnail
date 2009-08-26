@@ -29,13 +29,27 @@ KeySnail.Prompt = {
             this.promptbox = document.getElementById("keysnail-prompt");
             this.label     = document.getElementById("keysnail-prompt-label");
             this.textbox   = document.getElementById("keysnail-prompt-textbox");
-            this.textbox.addEventListener('keypress', this, false);
 
             this.history = [];
         }
     },
 
     handleEvent: function (aEvent) {
+        switch (aEvent.type) {
+            case 'keypress':
+            this.handleKeyPress(aEvent);
+            break;
+            case 'blur':
+            this.onBlur();
+            break;
+        }
+    },
+
+    onBlur: function () {
+        this.cleanUp();
+    },
+
+    handleKeyPress: function (aEvent) {
         switch (aEvent.keyCode) {
         case KeyEvent.DOM_VK_ESCAPE:
             this.cleanUp();
@@ -60,8 +74,9 @@ KeySnail.Prompt = {
                 this.trailingHistory = true;
             }
             break;
-        // case KeyEvent.DOM_VK_TAB:
-        //     break;
+            case KeyEvent.DOM_VK_TAB:
+            this.modules.util.stopEventPropagation(aEvent);
+            break;
         default:
             // reset history index
             this.historyIndex = 0;
@@ -84,6 +99,9 @@ KeySnail.Prompt = {
     },
 
     cleanUp: function () {
+        this.textbox.removeEventListener('blur', this, false);
+        this.textbox.removeEventListener('keypress', this, false);
+
         this.textbox.value = "";
         this.label.value = "";
 
@@ -104,7 +122,8 @@ KeySnail.Prompt = {
 
             this.currentCallback(readStr, this.currentUserArg);
 
-            this.history.unshift(readStr);
+            if (readStr.length)
+                this.history.unshift(readStr);
         }
 
         this.cleanUp();
@@ -138,5 +157,8 @@ KeySnail.Prompt = {
 
         // now focus to the input area
         this.textbox.focus();
+        // add event listener
+        this.textbox.addEventListener('blur', this, false);
+        this.textbox.addEventListener('keypress', this, false);
     }
 };
