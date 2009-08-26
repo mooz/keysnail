@@ -24,6 +24,7 @@ var KeySnail = {
                              "Hook",
                              "Macro",
                              "Key",
+                             "Prompt",
                              // UserScript must be the last
                              "UserScript"];
         this.moduleObjects = moduleObjects;

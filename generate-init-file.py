@@ -623,8 +623,13 @@ key.setEditKey(["C-x", "r", "d"],
 
 key.setEditKey(["C-x", "r", "t"],
                function (aEvent) {
-                   var replacement = window.prompt("String rectangle", "");
-                   command.replaceRectangle(aEvent.originalTarget, replacement);
+                   prompt.read("String rectangle: ",
+                               function (aStr, aInput) {
+                                   command.replaceRectangle(aInput, aStr);
+                               },
+                               aEvent.originalTarget);
+                   // var replacement = window.prompt("String rectangle", "");
+                   // command.replaceRectangle(aEvent.originalTarget, replacement);
                }, """ + {ja: '"矩形置換"',
                          en: '"Replace text in the region-rectangle with user inputted string"'}[l] + """, true);
 

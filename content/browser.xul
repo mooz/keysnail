@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://keysnail/skin/css/prompt.css" type="text/css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/statusbar.dtd">
 
@@ -50,4 +51,13 @@
         </menupopup>
     </statusbar>
 
+    <vbox id="browser-bottombox">
+        <hbox id="keysnail-prompt" insertbefore="status-bar" hidden="true">
+            <label class="keysnail-prompt-label"
+                   id="keysnail-prompt-label"></label>
+            <textbox id="keysnail-prompt-textbox" flex="1"
+                     >
+            </textbox>
+        </hbox>
+    </vbox>
 </overlay>
