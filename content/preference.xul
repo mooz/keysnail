@@ -52,7 +52,7 @@
                 <caption label="&keySnail.preference.userscript.settings;" />
                 <vbox flex="1">
                     <!-- init file path -->
-                    <hbox>
+                    <hbox align="center">
                         <label value="&keySnail.preference.userscript.location;"
                                control="userScriptLocation" flex="1"/>
                         <filefield id="keysnail.preference.userscript.location"
@@ -66,7 +66,7 @@
                     <spacer height="5px" />
 
                     <!-- editor path -->
-                    <hbox>
+                    <hbox align="center">
                         <label value="&keySnail.preference.userscript.editor;"
                                control="userScriptLocation" flex="1"/>
                         <filefield id="keysnail.preference.userscript.editor"

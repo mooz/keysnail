@@ -55,9 +55,9 @@
                 <column flex="1" />
             </columns>
             <rows>
-                <row>
+                <row align="center">
                     <label value="&keySnail.rcWizard.rcFileDestination;" />
-                    <hbox>
+                    <hbox align="center">
                         <filefield id="keysnail-userscript-destination"
                                    style="width: 25em;"
                                    flex="2" />
@@ -65,7 +65,7 @@
                                 oncommand="rcWizard.changePathClicked(rcWizard.updatePageCreate);" />
                     </hbox>
                 </row>
-                <row>
+                <row align="center">
                     <label value="&keySnail.rcWizard.filename;" />
                     <radiogroup id="keysnail-userscript-filename-candidates">
                         <radio id="keysnail-userscript-filename-dot"
@@ -119,7 +119,7 @@
         <description>&keySnail.rcWizard.settingRcFileDescription3;</description>
         <separator />
         <!-- quit key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.quit.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.quit.description;">
             <description flex="1">&keySnail.rcWizard.key.quit;:</description>
             <textbox id="keysnail-userscript-key-quit"
                      onclick="keyCustomizer.set('quit');"
@@ -130,7 +130,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- help key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.help.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.help.description;">
             <description flex="1">&keySnail.rcWizard.key.help;:</description>
             <textbox id="keysnail-userscript-key-help"
                      onclick="keyCustomizer.set('help');"
@@ -141,7 +141,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- escape key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.escape.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.escape.description;">
             <description flex="1">&keySnail.rcWizard.key.escape;:</description>
             <textbox id="keysnail-userscript-key-escape"
                      onclick="keyCustomizer.set('escape');"
@@ -152,7 +152,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- macroStart key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.macroStart.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.macroStart.description;">
             <description flex="1">&keySnail.rcWizard.key.macroStart;:</description>
             <textbox id="keysnail-userscript-key-macroStart"
                      onclick="keyCustomizer.set('macroStart');"
@@ -163,7 +163,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- macroEnd key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.macroEnd.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.macroEnd.description;">
             <description flex="1">&keySnail.rcWizard.key.macroEnd;:</description>
             <textbox id="keysnail-userscript-key-macroEnd"
                      onclick="keyCustomizer.set('macroEnd');"
@@ -174,7 +174,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- suspend key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.suspend.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.suspend.description;">
             <description flex="1">&keySnail.rcWizard.key.suspend;:</description>
             <textbox id="keysnail-userscript-key-suspend"
                      onclick="keyCustomizer.set('suspend');"
@@ -185,7 +185,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- universalArgument key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.universalArgument.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.universalArgument.description;">
             <description flex="1">&keySnail.rcWizard.key.universalArgument;:</description>
             <textbox id="keysnail-userscript-key-universalArgument"
                      onclick="keyCustomizer.set('universalArgument');"
@@ -196,7 +196,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- negativeArgument1 key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
             <description flex="1">&keySnail.rcWizard.key.negativeArgument1;:</description>
             <textbox id="keysnail-userscript-key-negativeArgument1"
                      onclick="keyCustomizer.set('negativeArgument1');"
@@ -207,7 +207,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- negativeArgument2 key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
             <description flex="1">&keySnail.rcWizard.key.negativeArgument2;:</description>
             <textbox id="keysnail-userscript-key-negativeArgument2"
                      onclick="keyCustomizer.set('negativeArgument2');"
@@ -218,7 +218,7 @@
                     class="keysnail-specialkey-button"/>
         </hbox>
         <!-- negativeArgument3 key -->
-        <hbox tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
+        <hbox align="center" tooltiptext="&keySnail.rcWizard.key.negativeArgument.description;">
             <description flex="1">&keySnail.rcWizard.key.negativeArgument3;:</description>
             <textbox id="keysnail-userscript-key-negativeArgument3"
                      onclick="keyCustomizer.set('negativeArgument3');"
@@ -235,7 +235,7 @@
     <wizardpage pageid="select-rcfile"
                 onpageshow="rcWizard.updatePageSelect();"
                 description="&keySnail.rcWizard.selectRcFileDescription;">
-        <hbox>
+        <hbox align="center">
             <label value="&keySnail.rcWizard.rcFilePlace;" />
             <filefield id="keysnail-userscript-place"
                        style="width: 25em;"

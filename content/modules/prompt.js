@@ -21,14 +21,18 @@ KeySnail.Prompt = {
     savedFocusedElement: null,
 
     // History
-    history: null,
-    historyIndex: 0,
-    trailingHistory: false,
+    history: {
+        list: null,
+        index: 0,
+        state: false
+    },
 
     // Completion
-    completion: null,
-    trailingHistory: false,
-    isCompleting: false,
+    completion : {
+        list: null,
+        index: 0,
+        state: false
+    },
 
     init: function () {
         if (KeySnail.windowType == "navigator:browser") {
@@ -36,131 +40,129 @@ KeySnail.Prompt = {
             this.label     = document.getElementById("keysnail-prompt-label");
             this.textbox   = document.getElementById("keysnail-prompt-textbox");
 
-            this.history = [];
+            this.history.list    = [];
+            // this.completion.list = [];
         }
     },
 
     handleEvent: function (aEvent) {
+
         switch (aEvent.type) {
-            case 'keypress':
+        case 'keypress':
             this.handleKeyPress(aEvent);
             break;
-            case 'blur':
+        case 'blur':
             this.onBlur();
             break;
         }
     },
 
     onBlur: function () {
-        this.cleanUp();
+        this.finish(true);
     },
 
     handleKeyPress: function (aEvent) {
         switch (aEvent.keyCode) {
         case KeyEvent.DOM_VK_ESCAPE:
-            this.cleanUp();
+            this.finish(true);
             break;
         case KeyEvent.DOM_VK_RETURN:
         case KeyEvent.DOM_VK_ENTER:
             this.finish();
             break;
         case KeyEvent.DOM_VK_UP:
-            if (this.isCompleting) {
-                this.fetchCompletion(-1);
-            } else if (this.isTrailingHistory) {
-                this.fetchHistory(-1);
+            if (this.history.state) {
+                this.fetchItem(this.history, -1);
             } else {
-                this.fetchHistory(0);                
-                this.isTrailingHistory = true;
+                this.fetchItem(this.history, 0);
+                this.history.state = true;
             }
+            // reset completion index
+            this.resetState(this.completion);
             break;
         case KeyEvent.DOM_VK_DOWN:
-            if (this.isCompleting) {
-                this.fetchCompletion(1);
-            } else if (this.isTrailingHistory) {
-                this.fetchHistory(-1);
+            if (this.history.state) {
+                this.fetchItem(this.history, -1);
             } else {
-                this.fetchHistory(0);                
-                this.isTrailingHistory = true;
+                this.fetchItem(this.history, 0);
+                this.history.state = true;
             }
+            // reset completion index
+            this.resetState(this.completion);
             break;
-            case KeyEvent.DOM_VK_TAB:
+        case KeyEvent.DOM_VK_TAB:
             this.modules.util.stopEventPropagation(aEvent);
-            if (this.isCompleting) {
-                this.fetchCompletion(aEvent.shitfKey ? -1 : 1);
+            if (this.completion.state) {
+                this.fetchItem(this.completion, aEvent.shiftKey ? -1 : 1);
             } else {
-                this.fetchCompletion(0);                
-                this.isCompleting = true;
+                this.fetchItem(this.completion, 0);
+                this.completion.state = true;
             }
+            // reset history index
+            this.resetState(this.history);
             break;
         default:
             // reset history index
-            this.historyIndex = 0;
-            this.isTrailingHistory = false;
+            this.resetState(this.history);
             // reset completion index
-            this.completeIndex = 0;
-            this.isCompleting = false;
+            this.resetState(this.completion);
             break;
         }
     },
 
-    fetchCompletion: function (aDirection) {
-        if (this.completion.length == 0)
+    resetState: function (aType) {
+        aType.index = 0;
+        aType.state = false;
+    },
+
+    fetchItem: function (aType, aDirection) {
+        if (!aType || !aType.list.length)
             return;
 
-        var start = this.textbox.selectionStart;
-        var header = this.textbox.value.slice(0, start);
-
-        var index = this.completionIndex + aDirection;
-
+        var index = aType.index + aDirection;
         if (index < 0)
-            index = this.completion.length - 1;
+            index = aType.list.length - 1;
+        if (index >= aType.list.length)
+            index = 0;
 
-        if (index >= this.completion.length)
-            index = 0;            
+        var start = this.textbox.selectionStart;
 
-        if (header.length > 0) {
-            for (var i = index; i < this.completion.length; ++i) {
-                if (this.completion[i].slice(0, start) == header) {
-                    this.completionIndex = i;
-                    break;
+        if (start > 0) {
+            // substr matched item only
+            var header = this.textbox.value.slice(0, start);
+            var listLen = aType.list.length;
+            var delta = (aDirection >= 0) ? 1 : -1;
+            var i = index;
+
+            if (aDirection >= 0) {
+                while (i < listLen) {
+                    if (aType.list[i].slice(0, start) == header) {
+                        index = i;
+                        break;
+                    }
+                    i++;
+                }
+            } else {
+                while (i >= 0) {
+                    if (aType.list[i].slice(0, start) == header) {
+                        index = i;
+                        break;
+                    }
+                    i--;
                 }
             }
-            for (i = 0; i < index; ++i) {
-                if (this.completion[i].slice(0, start) == header) {
-                    this.completionIndex = i;
-                    break;
-                }
-            }
-            if (i == index) {
-                index = this.completionIndex;
+
+            if ((aDirection >= 0 && i == listLen) ||
+                (aDirection < 0  && i == -1)) {
+                // stay current position
+                index = aType.index;
             }
         }
 
-        this.textbox.value = this.completion[index];
-        this.completionIndex = index;
+        this.textbox.value = aType.list[index];
+        aType.index = index;
 
-        if (header.length > 0)
-            this.textbox.selectionStart = this.textbox.selectionEnd = start;
-    },
-
-    fetchHistory: function (aDirection) {
-        if (this.history.length == 0)
-            return;
-
-        var index = this.historyIndex + aDirection;
-
-        if (index < 0)
-            index = this.completion.length - 1;
-
-        if (index >= this.completion.length)
-            index = 0;
-
-        // if (index < 0 || index >= this.history.length)
-        //     return;
-
-        this.textbox.value = this.history[index];
-        this.historyIndex = index;
+        this.textbox.selectionStart = this.textbox.selectionEnd = start;
     },
 
     cleanUp: function () {
@@ -176,19 +178,22 @@ KeySnail.Prompt = {
 
         if (this.savedFocusedElement) {
             this.savedFocusedElement.focus();
-            this.savedFocusedElement = null;            
+            this.savedFocusedElement = null;
         }
     },
 
-    finish: function () {
+    /**
+     * Finish inputting and current the prompt and If user can
+     * @param {boolean} aCancelled true, if user cancelled the prompt
+     */
+    finish: function (aCancelled) {
         if (this.currentCallback) {
-            var readStr = this.textbox.value;
-            // this.parent.message(readStr);
+            var readStr = aCancelled ? null : this.textbox.value;
 
             this.currentCallback(readStr, this.currentUserArg);
 
-            if (readStr.length)
-                this.history.unshift(readStr);
+            if (!aCancelled && readStr.length)
+                this.history.list.unshift(readStr);
         }
 
         this.cleanUp();
@@ -198,23 +203,26 @@ KeySnail.Prompt = {
      * Read string from prompt and execute <aCallback>
      * @param {string} aMsg message to be displayed
      * @param {function} aCallback function to execute after read
-     * @param aUserArg any object which will be passed to the <aCallback>
-     * @param {[string]} aCandidates string list used to completion
+     * @param {object} aUserArg any object which will be passed to the <aCallback>
      * <aCallback> must take two arguments like below.
      * function callback(aReadStr, aUserArg);
      * The first aReadStr becomes the string read from prompt
      * The second arguments
+     * @param {[string]} aCollection string list used to completion
      */
-    read: function (aMsg, aCallback, aUserArg, aCandidates) {
-        if (!this.promptbox || this.currentCallback) {
+    read: function (aMsg, aCallback, aUserArg, aCollection, aInitialInput, aInitialCount) {
+        if (!this.promptbox) {
             return;
         }
 
-        this.savedFocusedElement = document.commandDispatcher.focusedElement;
-        this.historyIndex = 0;
+        this.savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
 
-        this.completion = aCandidates;
-        this.completionIndex = 0;
+        // set up history
+        this.history.index = 0;
+
+        // set up completion
+        this.completion.list = aCollection;
+        this.completion.index = aInitialCount || 0;
 
         // set up callbacks
         this.currentCallback = aCallback;
@@ -222,12 +230,17 @@ KeySnail.Prompt = {
 
         // display prompt box
         this.label.value = aMsg;
+        this.textbox.value = aInitialInput || "";
         this.promptbox.hidden = false;
+        // do not set selection value till textbox appear 
+        this.textbox.selectionStart = this.textbox.selectionEnd = 0;
 
         // now focus to the input area
         this.textbox.focus();
         // add event listener
         this.textbox.addEventListener('blur', this, false);
         this.textbox.addEventListener('keypress', this, false);
-    }
+    },
+
+    message: KeySnail.message
 };

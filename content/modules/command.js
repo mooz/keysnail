@@ -211,9 +211,6 @@ KeySnail.Command = {
         var items = toolbarBookMarks.getElementsByTagName('toolbarbutton');
         // item.length
 
-        if (aArg > items.length - 1)
-            aArg = items.length;
-
         var urlList = [];
 
         for (var i = 0; i < items.length; ++i) {
@@ -221,16 +218,23 @@ KeySnail.Command = {
                 urlList.push(items[i].node.uri);
         }
 
-        // var urlList = [item.node.uri for each (item in items)];
+        if (aArg > urlList.length - 1)
+            aArg = urlList.length;
+
         // var nameList = [item.label for each (item in items)];
 
         with (this.modules) {
         prompt.read("Places:",
                     function (aStr, aItems) {
-                        key.viewURI(aStr);
+                        if (aStr) {
+                            key.viewURI(aStr);                            
+                        }
                         // PlacesUIUtils.openNodeIn(aItems[aArg - 1].node, "tab");
                     },
-                    items, urlList);
+                    items,
+                    urlList,
+                    urlList[aArg - 1],
+                    aArg - 1);
         }
 
         // PlacesUIUtils.openNodeIn(items[aArg - 1].node, "tab");
@@ -482,6 +486,9 @@ KeySnail.Command = {
      * @returns {[string]} killed lines
      */
     processRectangle: function (aInput, aReplacement, aIsInsert, aNoExSpace, aIsKill) {
+        if (aReplacement != "" && !aReplacement)
+            return;
+
         var oldScrollTop = aInput.scrollTop;
         var oldScrollLeft = aInput.scrollLeft;
 

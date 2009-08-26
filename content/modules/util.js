@@ -145,8 +145,8 @@ KeySnail.Util = {
         var insertTextController = document.commandDispatcher
             .getControllerForCommand("cmd_insertText");
 
-        return (insertTextController
-                && insertTextController.isCommandEnabled("cmd_insertText"));
+        return (insertTextController &&
+                insertTextController.isCommandEnabled("cmd_insertText"));
     },
 
     // original code from Firemacs
