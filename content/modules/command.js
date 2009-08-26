@@ -214,16 +214,26 @@ KeySnail.Command = {
         if (aArg > items.length - 1)
             aArg = items.length;
 
-        // this.modules.util.listProperty(items[aArg].node);
+        var urlList = [];
 
-        // List all items
-        // for (i = 0; i < items.length; ++i) {
-        //     this.message("Name : " + items[i].label);
-        //     this.message("URI : " + items[i].node.uri);
-        //     // PlacesUIUtils.openNodeIn(items[i].node, "tab");
-        // }
+        for (var i = 0; i < items.length; ++i) {
+            if (items[i].node.uri.match(/^http:/))
+                urlList.push(items[i].node.uri);
+        }
 
-        PlacesUIUtils.openNodeIn(items[aArg - 1].node, "tab");
+        // var urlList = [item.node.uri for each (item in items)];
+        // var nameList = [item.label for each (item in items)];
+
+        with (this.modules) {
+        prompt.read("Places:",
+                    function (aStr, aItems) {
+                        key.viewURI(aStr);
+                        // PlacesUIUtils.openNodeIn(aItems[aArg - 1].node, "tab");
+                    },
+                    items, urlList);
+        }
+
+        // PlacesUIUtils.openNodeIn(items[aArg - 1].node, "tab");
     },
 
     autoCompleteHandleKey: function (aKeyEvent) {
