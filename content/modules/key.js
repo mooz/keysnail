@@ -57,10 +57,10 @@ KeySnail.Key = {
 
     // ==== modes ====
     modes: {
-        GLOBAL: "global",
-        VIEW:   "view",
-        EDIT:   "edit",
-        CARET:  "caret"
+        GLOBAL: "Global",
+        VIEW:   "View",
+        EDIT:   "Edit",
+        CARET:  "Caret"
         // MENU:   "menu"
     },
 
@@ -985,21 +985,21 @@ KeySnail.Key = {
             aKeySequence = [];
         }
 
-        for (i in aKeyMap) {
-            switch (typeof(aKeyMap[i])) {
+        for (key in aKeyMap) {
+            switch (typeof(aKeyMap[key])) {
             case "function":
-                var pad = (aKeySequence.length  == 0) ? "" : " ";
+                var pad = (aKeySequence.length == 0) ? "" : " ";
                 aContentHolder.push("<tr><td>" +
                                     this.modules.html
-                                    .escapeTag(aKeySequence.join(" ") + pad + i) +
+                                    .escapeTag(aKeySequence.join(" ") + pad + key) +
                                     "</td>" + "<td>" +
                                     this.modules.html
-                                    .escapeTag(aKeyMap[i].ksDescription) +
+                                    .escapeTag(aKeyMap[key].ksDescription) +
                                     "</td></tr>");
                 break;
             case "object":
-                aKeySequence.push(i);
-                this.generateKeyBindingRows(aContentHolder, aKeyMap[i], aKeySequence);
+                aKeySequence.push(key);
+                this.generateKeyBindingRows(aContentHolder, aKeyMap[key], aKeySequence);
                 aKeySequence.pop();
                 break;
             }
@@ -1025,52 +1025,9 @@ KeySnail.Key = {
         }
     },
 
-    // Display beginning with ... help
-    interactiveHelp: function () {
-        var contentHolder = ['<h1>Key Bindings Starting With ' +
-                             this.currentKeySequence.join(" ") + '</h1><hr />'];
-
-        this.generateKeyBindingTable(contentHolder,
-                                     "Global Bindings Starting With "
-                                     + this.currentKeySequence.join(" "),
-                                     this.modes.GLOBAL,
-                                     this.trailByKeySequence(this.keyMapHolder[this.modes.GLOBAL],
-                                                             this.currentKeySequence),
-                                     this.currentKeySequence);
-
-        this.generateKeyBindingTable(contentHolder,
-                                     "View mode Bindings Starting With "
-                                     + this.currentKeySequence.join(" "),
-                                     this.modes.VIEW,
-                                     this.trailByKeySequence(this.keyMapHolder[this.modes.VIEW],
-                                                             this.currentKeySequence),
-                                     this.currentKeySequence);
-
-        this.generateKeyBindingTable(contentHolder,
-                                     "Edit mode Bindings Starting With "
-                                     + this.currentKeySequence.join(" "),
-                                     this.modes.EDIT,
-                                     this.trailByKeySequence(this.keyMapHolder[this.modes.EDIT],
-                                                             this.currentKeySequence),
-                                     this.currentKeySequence);
-
-        this.generateKeyBindingTable(contentHolder,
-                                     "Caret mode Bindings Starting With "
-                                     + this.currentKeySequence.join(" "),
-                                     this.modes.CARET,
-                                     this.trailByKeySequence(this.keyMapHolder[this.modes.CARET],
-                                                             this.currentKeySequence),
-                                     this.currentKeySequence);
-
-        var contentSource = this.modules.html
-            .createHTMLSource("Interactive Help", contentHolder.join("\n"));
-        var contentPath = this.modules.html
-            .createHTML(contentSource);
-
-        this.viewURI(contentPath);
-    },
-
-    // List all key bindings
+    /**
+     * List all key bindings
+     */
     listKeyBindings: function () {
         var contentHolder = ['<h1>All key bindings</h1><hr />',
                              '<ul>',
@@ -1153,12 +1110,259 @@ KeySnail.Key = {
         this.viewURI(contentPath);
     },
 
+    // Display beginning with ... help
+    interactiveHelp: function () {
+        var contentHolder = ['<h1>Key Bindings Starting With ' +
+                             this.currentKeySequence.join(" ") + '</h1><hr />'];
+
+        this.generateKeyBindingTable(contentHolder,
+                                     "Global Bindings Starting With "
+                                     + this.currentKeySequence.join(" "),
+                                     this.modes.GLOBAL,
+                                     this.trailByKeySequence(this.keyMapHolder[this.modes.GLOBAL],
+                                                             this.currentKeySequence),
+                                     this.currentKeySequence);
+
+        this.generateKeyBindingTable(contentHolder,
+                                     "View mode Bindings Starting With "
+                                     + this.currentKeySequence.join(" "),
+                                     this.modes.VIEW,
+                                     this.trailByKeySequence(this.keyMapHolder[this.modes.VIEW],
+                                                             this.currentKeySequence),
+                                     this.currentKeySequence);
+
+        this.generateKeyBindingTable(contentHolder,
+                                     "Edit mode Bindings Starting With "
+                                     + this.currentKeySequence.join(" "),
+                                     this.modes.EDIT,
+                                     this.trailByKeySequence(this.keyMapHolder[this.modes.EDIT],
+                                                             this.currentKeySequence),
+                                     this.currentKeySequence);
+
+        this.generateKeyBindingTable(contentHolder,
+                                     "Caret mode Bindings Starting With "
+                                     + this.currentKeySequence.join(" "),
+                                     this.modes.CARET,
+                                     this.trailByKeySequence(this.keyMapHolder[this.modes.CARET],
+                                                             this.currentKeySequence),
+                                     this.currentKeySequence);
+
+        var contentSource = this.modules.html
+            .createHTMLSource("Interactive Help", contentHolder.join("\n"));
+        var contentPath = this.modules.html
+            .createHTML(contentSource);
+
+        this.viewURI(contentPath);
+    },
+
     viewURI: function (aURI) {
         var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
             .getService(Components.interfaces.nsIWindowMediator);
         var mainWindow = wm.getMostRecentWindow("navigator:browser");
 
         mainWindow.getBrowser().loadOneTab(aURI, null, null, null, false, false);
+    },
+
+    // ==================== Init File ==================== //
+
+    initFileSpecialKeys: function () {
+        var keys = {
+            quitKey              : this.quitKey,
+            helpKey              : this.helpKey,
+            escapeKey            : this.escapeKey,
+            macroStartKey        : this.macroStartKey,
+            macroEndKey          : this.macroEndKey,
+            universalArgumentKey : this.universalArgumentKey,
+            negativeArgument1Key : this.negativeArgument1Key,
+            negativeArgument2Key : this.negativeArgument2Key,
+            negativeArgument3Key : this.negativeArgument3Key,
+            suspendKey           : this.suspendKey
+        };
+
+        var specialKeySettings = [];
+        var maxLen = Math.max.apply(null, [str.length for each (str in
+                                                                (function (obj) {
+                                                                     for (var key in obj) yield key;
+                                                                 })(keys))]);
+        for (var key in keys) {
+            var padding = Math.max(maxLen - key.length, 0) + 2;
+            specialKeySettings.push('key.' + key +
+                                    new Array(padding).join(" ") +
+                                    '= "' + keys[key] + '";');
+        }
+
+        return specialKeySettings.join("\n");
+    },
+
+    /**
+     * String => 'String'
+     * @param {string} aStr
+     * @returns {string}
+     */
+    toStringForm: function (aStr) {
+        return "'" + aStr.replace("\\", "\\\\") + "'";
+    },
+
+    /**
+     * Generate keymaps settings
+     * @param {[string]} aContentHolder setting string stored to
+     * @param {[string]} aKeyMap keymap to generate the setting
+     * @param {[string]} aKeySequence current key sequence (with ' both side e.g. ['C-x', 'k'])
+     */
+    initFileKeyBinding: function (aContentHolder, aKeyMapName, aKeyMap, aKeySequence) {
+        if (!aKeyMap) {
+            return;
+        }
+
+        if (!aKeySequence) {
+            aKeySequence = [];
+        }
+
+        for (key in aKeyMap) {
+            switch (typeof(aKeyMap[key])) {
+            case "function":
+                var func = aKeyMap[key];
+
+                var keySetting = (aKeySequence.length == 0) ?
+                    this.toStringForm(key) :
+                    '[' + aKeySequence.join(", ") + ', ' + this.toStringForm(key) + ']';
+
+                var ksNoRepeatString = (func.ksNoRepeat) ? ", true" : "";
+
+                aContentHolder.push("set" + aKeyMapName + "Key(" + keySetting + ", " +
+                                    // function body
+                                    func.toString() +
+                                    // description
+                                    ", " + this.toStringForm(func.ksDescription) + ksNoRepeatString +
+                                    ");\n");
+                break;
+            case "object":
+                aKeySequence.push(this.toStringForm(key));
+                this.initFileKeyBinding(aContentHolder, aKeyMapName, aKeyMap[key], aKeySequence);
+                aKeySequence.pop();
+                break;
+            }
+        }
+    },
+
+    initFileHooks: function () {
+        var contentHolder = [];
+
+        for (var hookName in this.modules.hook.hookList) {
+            contentHolder.push("");
+
+            var hook = this.modules.hook.hookList[hookName];
+
+            for (var i = 0; i < hook.length; ++i) {
+                var method = (i == 0) ? "set" : "addTo";
+                contentHolder.push("hook." + method + "Hook(" +
+                                   this.toStringForm(hookName) + ", " +
+                                   hook[i].toString() + ");");
+            }
+        }
+
+        return contentHolder.join("\n");
+    },
+
+    initFileModule: function () {
+        var contentHolder = [];
+        var userModules = [str for each (str in
+                                         (function (o) {
+                                              for (var k in o) yield k;
+                                          })(this.modules))]
+            .filter(
+                function (aModuleName) {
+                    return typeof(KeySnail.modules[aModuleName].init) == 'function'
+                        && !KeySnail.moduleObjects.some(
+                            function (aProper) {
+                                return aProper.toLowerCase() == aModuleName;
+                            });
+                });
+
+        for (var i = 0; i < userModules.length; ++i) {
+            this.message(userModules[i]);
+        }
+
+        contentHolder.push("");
+        for (var member in KeySnail) {
+            if (userModules.some(
+                    function (aModuleName) {
+                        return (KeySnail.modules[aModuleName] == KeySnail[member]);
+                    })) {
+                contentHolder.push("var KeySnail." + member + " = " +
+                                   KeySnail[member].toSource() + ";");
+            }
+        }
+
+        return contentHolder.join("\n");
+    },
+
+    /**
+     * Generate init file from current keymap, special key bindings and hook.
+     */
+    generateInitFile: function () {
+        var contentHolder = ["// ================ KeySnail Init File ================ //"];
+
+        // 1. Special keys
+
+        contentHolder.push("");
+        contentHolder.push("// ================ Special Keys ====================== //");
+        contentHolder.push(this.initFileSpecialKeys());
+        contentHolder.push("");
+
+        // 2. Hooks
+
+        contentHolder.push("// ================ Hooks ============================= //");
+        contentHolder.push(this.initFileHooks());
+        contentHolder.push("");
+
+        // 3. Black List Settings
+
+        if (this.blackList) {
+            contentHolder.push("key.blackList = [");
+            for (var i = 0; i < this.blackList.length; ++i) {
+                var commma = (i == this.blackList.length - 1) ? "" : ",";
+                contentHolder.push("    " + this.toStringForm(this.blackList[i]) + commma);
+            }
+            contentHolder.push("];");
+            contentHolder.push("");
+        }
+
+        // 4. KeyBindings
+
+        contentHolder.push("// ================ Key Bindings ====================== //");
+        contentHolder.push("");
+
+        // 4-a. Global keys
+
+        contentHolder.push("// ---------------- Global keys ----------------------- //");
+        this.initFileKeyBinding(contentHolder, this.modes.GLOBAL, this.keyMapHolder[this.modes.GLOBAL]);
+
+        // 4-b. View keys
+
+        contentHolder.push("// ---------------- View keys ------------------------- //");
+        this.initFileKeyBinding(contentHolder, this.modes.VIEW, this.keyMapHolder[this.modes.VIEW]);
+
+        // 4-c. Edit keys
+
+        contentHolder.push("// ---------------- Edit keys ------------------------- //");
+        this.initFileKeyBinding(contentHolder, this.modes.EDIT, this.keyMapHolder[this.modes.EDIT]);
+
+        // 4-d. Caret keys
+
+        contentHolder.push("// ---------------- Caret keys ------------------------ //");
+        this.initFileKeyBinding(contentHolder, this.modes.CARET, this.keyMapHolder[this.modes.CARET]);
+
+        // 5. Modules
+        // contentHolder.push("// ================ Modules =========================== //");
+        // contentHolder.push(this.initFileModule());
+
+        // now process it
+        var output = this.modules.util
+            .convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
+
+        this.modules.util.writeText(output, "/tmp/hoge.js");
+        return output;
     },
 
     message: KeySnail.message

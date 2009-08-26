@@ -7,6 +7,7 @@
 
 var KeySnail = {
     modules: {},
+    moduleObjects: null,
 
     get windowType () {
         return window.document.documentElement.getAttribute("windowtype");
@@ -25,6 +26,7 @@ var KeySnail = {
                              "Key",
                              // UserScript must be the last
                              "UserScript"];
+        this.moduleObjects = moduleObjects;
 
         this.modules.modules = this.modules;
 
