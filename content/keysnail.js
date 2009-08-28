@@ -5,6 +5,8 @@
  * @license The MIT License
  */
 
+// var _ksLast = new Date();
+
 var KeySnail = {
     modules: {},
     moduleObjects: null,
@@ -14,6 +16,8 @@ var KeySnail = {
     },
 
     init: function () {
+        // this.showElapsedTime("KeySnail.init called");
+
         // unfortunately, changes in this order
         // may cause the undefined error
         // Added (07/10 09)
@@ -36,8 +40,10 @@ var KeySnail = {
         for (i = 0; i < len; ++i) {
             this.registerModule.call(this, moduleObjects[i]);
         }
+        // this.showElapsedTime("Register Modules end");
         for (i = 0; i < len; ++i) {
             this.initModule.call(this, moduleObjects[i]);
+            // this.showElapsedTime("[" + moduleObjects[i] + "] init end");
         }
 
         // now, run the keyhandler

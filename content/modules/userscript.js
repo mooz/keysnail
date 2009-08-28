@@ -26,8 +26,8 @@ KeySnail.UserScript = {
     // may access from other modules
     initFileLoaded: false,
 
-    // line number of the Function() consctuctor
-    userScriptOffset: 40,
+    // line number of the Function() constructor
+    userScriptOffset: 41,
 
     // ==================== Loader ==================== //
 
@@ -36,12 +36,19 @@ KeySnail.UserScript = {
      * @param {string} aScriptPath
      */
     jsFileLoader: function (aScriptPath) {
+        // if (KeySnail.windowType == "navigator:browser") {
         var code = this.modules.util.readTextFile(aScriptPath).value;
-        new Function("with (KeySnail.modules) {" + code + " }")();
-        // var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-        //     .getService(Components.interfaces.mozIJSSubScriptLoader);
-        // loader.loadSubScript(this.modules.util.pathToURL(aScriptPath),
-        //                      KeySnail.modules);
+        Function("with (KeySnail.modules) {" + code + " }")();
+        // } else {
+        //     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+        //         .getService(Components.interfaces.nsIWindowMediator);
+        //     var browserWindow = wm.getMostRecentWindow("navigator:browser");
+        //     this.initFileFunc = browserWindow.KeySnail.UserScript.initFileFunc;
+        //     var testFunc = new Function("return;");
+        //     this.initFileFunc.__parent__= testFunc.__parent__;
+        //     this.initFileFunc.__proto__= testFunc.__proto__;
+        // }
+        // this.initFileFunc();
     },
 
     /**
@@ -427,6 +434,7 @@ KeySnail.UserScript = {
 
             userLocale = {
                 "ja-JP": "ja",
+                "ja-JP-mac": "ja",
                 "ja_JP": "ja",
                 "JP":    "ja",
                 "en-US": "en"

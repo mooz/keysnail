@@ -23,19 +23,26 @@ KeySnail.Prompt = {
     // Options
     substrMatch: true,
 
+    currentHead: null,
+    // compIndex: null,
+    // compIndexList: null,
+    inNormalCompletion: false,
+
     // History
     historyHolder: null,
     history: {
         list: null,
         index: 0,
-        state: false
+        state: false,
+        name: "History"
     },
 
     // Completion
     completion : {
         list: null,
         index: 0,
-        state: false
+        state: false,
+        name: "Completion"
     },
 
     init: function () {
@@ -56,6 +63,9 @@ KeySnail.Prompt = {
         case 'keypress':
             this.handleKeyPress(aEvent);
             break;
+        case 'keydown':
+            this.handleKeyDown(aEvent);
+            break;
         case 'blur':
             this.onBlur();
             break;
@@ -64,6 +74,20 @@ KeySnail.Prompt = {
 
     onBlur: function () {
         this.finish(true);
+    },
+
+    handleKeyDown: function (aEvent) {
+        // Some KeyPress event is grabbed by KeySnail and stopped.
+        // So we need to listen the keydown event for resetting the misc values.
+        switch (aEvent.keyCode) {
+        case KeyEvent.DOM_VK_TAB:
+        case KeyEvent.DOM_VK_SHIFT:
+            break;
+        default:
+            this.currentHead = null;
+            this.inNormalCompletion = false;
+            break;
+        }        
     },
 
     handleKeyPress: function (aEvent) {
@@ -77,7 +101,7 @@ KeySnail.Prompt = {
             break;
         case KeyEvent.DOM_VK_UP:
             if (this.history.state) {
-                this.fetchItem(this.history, -1);
+                this.fetchItem(this.history, 1);
             } else {
                 this.fetchItem(this.history, 0);
                 this.history.state = true;
@@ -98,9 +122,9 @@ KeySnail.Prompt = {
         case KeyEvent.DOM_VK_TAB:
             this.modules.util.stopEventPropagation(aEvent);
             if (this.completion.state) {
-                this.fetchItem(this.completion, aEvent.shiftKey ? -1 : 1);
+                this.fetchItem(this.completion, aEvent.shiftKey ? -1 : 1, true, true);
             } else {
-                this.fetchItem(this.completion, 0);
+                this.fetchItem(this.completion, 0, true, true);
                 this.completion.state = true;
             }
             // reset history index
@@ -111,6 +135,8 @@ KeySnail.Prompt = {
             this.resetState(this.history);
             // reset completion index
             this.resetState(this.completion);
+            // this.currentHead = null;
+            // this.inNormalCompletion = false;
             break;
         }
     },
@@ -120,7 +146,7 @@ KeySnail.Prompt = {
         aType.state = false;
     },
 
-    fetchItem: function (aType, aDirection) {
+    fetchItem: function (aType, aDirection, aMoveCaret, aRing) {
         if (!aType || !aType.list.length)
             return;
 
@@ -132,23 +158,51 @@ KeySnail.Prompt = {
 
         var start = this.textbox.selectionStart;
 
-        if (start > 0) {
-            // substr matched item only
-            var header = this.textbox.value.slice(0, start);
+        if (start == 0 || this.inNormalCompletion) {
+            // normal completion
+            this.inNormalCompletion = true;
+        } else {
+            // header / substring match
+            var header;
+            if (this.currentHead != null) {
+                header = this.currentHead;
+            } else {
+                header = this.textbox.value.slice(0, start);
+                this.currentHead = header;
+            }
+
             var listLen = aType.list.length;
             var delta = (aDirection >= 0) ? 1 : -1;
             var i = index;
             var substrIndex;
 
+            // while ((aDirection >= 0) ? (i < listLen) : (i >= 0)) {
+            //     if (aType.list[i].slice(0, start) == header) {
+            //         index = i;
+            //         break;
+            //     }
+
+            //     i += delta;
+            // }
+
+            // if (this.compListIndex.length == 0) {
+            //     // stay current position
+            //     // index = aType.index;
+            //     this.modules.display.echoStatusBar("No further match for [" + this.currentHead + "]");
+            //     return;
+            // }
+
+            // index = compIndexList[i];
+
             while ((aDirection >= 0) ? (i < listLen) : (i >= 0)) {
-                if (aType.list[i].slice(0, start) == header) {
+                if (aType.list[i].slice(0, header.length) == header) {
                     index = i;
                     break;                    
                 }
                 if (this.substrMatch &&
                     (substrIndex = aType.list[i].indexOf(header)) != -1) {
                     index = i;
-                    // quick hack (changing start value not good)
+                    // quick hack (changing start value is not good)
                     start = substrIndex + header.length;
                     break;
                 }
@@ -157,50 +211,34 @@ KeySnail.Prompt = {
 
             if ((aDirection >= 0 && i == listLen) ||
                 (aDirection < 0  && i == -1)) {
+
+                if (aRing) {
+                    aType.index =
+                        (aDirection == 0) ? 0 :
+                        (aDirection > 0)  ? -1 : listLen;
+
+                    this.fetchItem(aType, aDirection, aMoveCaret, false);
+                    return;
+                }
+
                 // stay current position
                 // index = aType.index;
+                this.modules.display.echoStatusBar("No further match for [" + this.currentHead + "]");
                 return;
             }
+        }
+
+        if (this.currentHead) {
+            this.modules.display.echoStatusBar(aType.name + " Match for [" + this.currentHead + "]");
+        } else {
+            this.modules.display.echoStatusBar(aType.name + " (" + (index + 1) +  " / " + aType.list.length + ")");
         }
 
         this.textbox.value = aType.list[index];
         aType.index = index;
 
-        this.textbox.selectionStart = this.textbox.selectionEnd = start;
-    },
-
-    cleanUp: function () {
-        this.textbox.removeEventListener('blur', this, false);
-        this.textbox.removeEventListener('keypress', this, false);
-
-        this.textbox.value = "";
-        this.label.value = "";
-
-        this.currentCallback = null;
-        this.currentUserArg = null;
-        this.promptbox.hidden = true;
-
-        if (this.savedFocusedElement) {
-            this.savedFocusedElement.focus();
-            this.savedFocusedElement = null;
-        }
-    },
-
-    /**
-     * Finish inputting and current the prompt and If user can
-     * @param {boolean} aCancelled true, if user cancelled the prompt
-     */
-    finish: function (aCancelled) {
-        if (this.currentCallback) {
-            var readStr = aCancelled ? null : this.textbox.value;
-
-            this.currentCallback(readStr, this.currentUserArg);
-
-            if (!aCancelled && readStr.length)
-                this.history.list.unshift(readStr);
-        }
-
-        this.cleanUp();
+        this.textbox.selectionStart = this.textbox.selectionEnd =
+            aMoveCaret ? this.textbox.value.length : start;
     },
 
     /**
@@ -218,7 +256,11 @@ KeySnail.Prompt = {
      * @param {string} aGroup history group
      */
     read: function (aMsg, aCallback, aUserArg, aCollection, aInitialInput, aInitialCount, aGroup) {
-        if (!this.promptbox) {
+        if (!this.promptbox)
+            return;
+
+        if (this.currentCallback) {
+            this.modules.display.echoStatusBar("Prompt is already used by another command");
             return;
         }
 
@@ -251,6 +293,47 @@ KeySnail.Prompt = {
         // add event listener
         this.textbox.addEventListener('blur', this, false);
         this.textbox.addEventListener('keypress', this, false);
+        this.textbox.addEventListener('keydown', this, false);
+    },
+
+    /**
+     * Finish inputting and current the prompt and If user can
+     * @param {boolean} aCancelled true, if user cancelled the prompt
+     */
+    finish: function (aCancelled) {
+        this.textbox.removeEventListener('blur', this, false);
+        this.textbox.removeEventListener('keypress', this, false);
+        this.textbox.removeEventListener('keydown', this, false);
+
+        // We need to call focus() here
+        // because the callback sometimes change the current selected tab
+        // e.g. opening the URL in a new tab, 
+        // and the window.focus() does not work that time.
+        if (this.savedFocusedElement) {
+            this.savedFocusedElement.focus();
+            this.savedFocusedElement = null;
+        }
+
+        if (this.currentCallback) {
+            var readStr = aCancelled ? null : this.textbox.value;
+
+            this.currentCallback(readStr, this.currentUserArg);
+
+            if (!aCancelled && readStr.length)
+                this.history.list.unshift(readStr);
+
+            this.currentCallback = null;
+        }
+
+        this.currentUserArg = null;
+
+        this.currentHead = null;
+        this.inNormalCompletion = false;
+
+        this.promptbox.hidden = true;
+
+        this.textbox.value = "";
+        this.label.value = "";
     },
 
     message: KeySnail.message

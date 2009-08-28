@@ -11,9 +11,7 @@ var ksPreference = {
 
     onLoad: function () {
         if (!this.modules.util.getUnicharPref(this.editorKey)) {
-            if (this.modules.util.getUnicharPref("greasemonkey.editor")) {
-                this.modules.userscript.syncEditorWithGM();
-            }
+            this.modules.userscript.syncEditorWithGM();
         }
         this.updateAllFileFields();
     },
@@ -61,10 +59,8 @@ var ksPreference = {
 
         switch (aType) {
         case 'INITFILE':
-            var initFileLocation = nsPreferences
-                .getLocalizedUnicharPref(this.initFileKey)
-                || nsPreferences
-                .copyUnicharPref(this.initFileKey);
+            var initFileLocation = nsPreferences.getLocalizedUnicharPref(this.initFileKey)
+                || nsPreferences.copyUnicharPref(this.initFileKey);
 
             fp.init(window, "Select a directory", nsIFilePicker.modeGetFolder);
             fp.displayDirectory = this.openFile(initFileLocation);
@@ -73,31 +69,38 @@ var ksPreference = {
         case 'EDITOR':
             fp.init(window, "Select Editor", nsIFilePicker.modeOpen);
             fp.appendFilters(Components.interfaces.nsIFilePicker.filterApps);
+            fp.appendFilters(nsIFilePicker.filterAll);
             prefKey = this.editorKey;
             break;
         }
 
         response = fp.show();
-        if (response == nsIFilePicker.returnOK) {
-            if (aType == 'INITFILE') {
-                if (!this.modules.util.isDirHasFiles(fp.file.path,
-                                                     this.modules.userscript.directoryDelimiter,
-                                                     this.modules.userscript.defaultInitFileNames)) {
+        if (response != nsIFilePicker.returnOK)
+            return;
+
+        switch (aType) {
+        case 'INITFILE':
+            with (this.modules) {
+                if (!util.isDirHasFiles(fp.file.path,
+                                        userscript.directoryDelimiter,
+                                        userscript.defaultInitFileNames)) {
                     // directory has no rc file.
-                    this.modules.util.alert(window, "keysnail:dialog",
-                                            this.modules.util.getLocaleString("selectDirectoryContainsInitFile",
-                                                                              [fp.file.path]));
+                    util.alert(window, "keysnail:dialog",
+                               util.getLocaleString("selectDirectoryContainsInitFile", [fp.file.path]));
                     return;
                 }
             }
-
             nsPreferences.setUnicharPref(prefKey, fp.file.path);
-
-            if (aType == 'INITFILE') {
-                this.updateFileField(this.initFileKey, "keysnail.preference.userscript.location");                
-            } else {
-                this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");                
+            this.updateFileField(this.initFileKey, "keysnail.preference.userscript.location");
+            break;
+        case 'EDITOR':
+            if (!fp.file.exists() || !fp.file.isExecutable()) {
+                alert("Please select the valid editor");
+                return;
             }
+            nsPreferences.setUnicharPref(prefKey, fp.file.path);
+            this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");                
+            break;
         }
     }
 };

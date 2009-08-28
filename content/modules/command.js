@@ -34,6 +34,46 @@ KeySnail.Command = {
         }
     },
 
+    // ==================== Command interpreter ====================
+
+    createCommandList: function () {
+        if (this.commandList) {
+            return this.commandList;
+        }
+
+        var moduleList = [str for each (str in
+                                        (function (o) {
+                                             for (var k in o) yield k;
+                                         })(KeySnail.modules))];
+
+        var commandList = [];
+
+        moduleList.forEach(
+            function (aModuleName) {
+                for (var property in this.modules[aModuleName]) {
+                    var cand = this.modules[aModuleName][property]; 
+                    if (typeof(cand) == 'function') {
+                        var arg = cand.toString().split('\n')[0].match(/\(.*\)/);
+                        commandList.push(aModuleName + "." + property + arg + ";");
+                    }
+                }
+            }, this);
+
+        return commandList;
+    },
+
+    interpreter: function () {
+        with (this.modules) {
+            prompt.substrMatch = false;
+            prompt.read("Command?:",
+                        function (aStr) {
+                            Function("with (KeySnail.modules) { " + aStr + " }")();
+                            prompt.substrMatch = true;
+                        }, null, this.createCommandList(),
+                        null, 0, "command");   
+        }
+    },
+
     // ==================== Walk through elements  ====================
 
     /**
@@ -255,19 +295,21 @@ KeySnail.Command = {
         } else if (this.modules.util.isMenu()) {
             // ########################################
             this.autoCompleteHandleKey(aDOMKey);
-        } else if (typeof(hBookmark.TagCompleter) != 'undefined') {
-            // ########################################
-            // hateb tag completion
-            var newEvent = document.createEvent('KeyboardEvent');
-            newEvent.initKeyEvent('keydown', true, true, null,
-                                  false, false, false, false,
-                                  aDOMKey, 0);
-            // aEvent.originalTarget.dispatchEvent(newEvent);
-            hBookmark.TagCompleter.InputHandler.prototype.inputKeydownHandler(newEvent);
+        // } else if (typeof(hBookmark.TagCompleter) != 'undefined') {
+        //     // ########################################
+        //     // hateb tag completion
+        //     var newEvent = document.createEvent('KeyboardEvent');
+        //     newEvent.initKeyEvent('keydown', true, true, null,
+        //                           false, false, false, false,
+        //                           aDOMKey, 0);
+        //     // aEvent.originalTarget.dispatchEvent(newEvent);
+        //     hBookmark.TagCompleter.InputHandler.prototype.inputKeydownHandler(newEvent);
         } else {
             // ########################################
             this.modules.key
-                .generateKey(aEvent.originalTarget, aDOMKey, true);
+                .generateKey(aEvent.originalTarget, aDOMKey, true, 'keydown');
+            this.modules.key
+                .generateKey(aEvent.originalTarget, aDOMKey, true, 'keypress');
         }
     },
 

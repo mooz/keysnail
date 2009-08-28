@@ -96,8 +96,10 @@
             </description>
             <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://d.hatena.ne.jp/mooz/')">
-                Author blog (Japanese)
+                Visit Author's blog (Japanese)
             </description>
+
+            <spacer height="20px" />
         </vbox>
     </prefpane>
 
