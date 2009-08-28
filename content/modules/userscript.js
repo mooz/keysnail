@@ -402,10 +402,18 @@ KeySnail.UserScript = {
             out: null
         };
 
+        function myCenterScreen(windowWidth, windowHeight) {
+            var x = (screen.width - windowWidth) / 2;
+            var y = (screen.height - windowHeight) / 2;
+            return "left=" + x + ",top=" + y;
+        }
+
+        // width="600px"
+        // height="600px"
         // chrome,dialog,modal,centerscreen,dependent
         window.openDialog("chrome://keysnail/content/rcwizard.xul",
                           "keysnail:initFileWizard",
-                          "chrome,dialog,modal,centerscreen,dependent",
+                          "chrome,titlebar,dialog,modal," + myCenterScreen(600, 600),
                           params);
 
         if (!params.out) {
