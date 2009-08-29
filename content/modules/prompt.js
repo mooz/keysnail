@@ -13,6 +13,7 @@ KeySnail.Prompt = {
     promptbox: null,
     label: null,
     textbox: null,
+    listbox: null,
 
     // Callbacks
     currentCallback: null,
@@ -27,6 +28,8 @@ KeySnail.Prompt = {
     compIndex: null,
     compIndexList: null,
     inNormalCompletion: false,
+
+    listboxMaxRows: 10,
 
     // History
     historyHolder: null,
@@ -50,6 +53,8 @@ KeySnail.Prompt = {
             this.promptbox = document.getElementById("keysnail-prompt");
             this.label     = document.getElementById("keysnail-prompt-label");
             this.textbox   = document.getElementById("keysnail-prompt-textbox");
+
+            this.listbox   = document.getElementById("keysnail-completion-list");
 
             // this holds all history and 
             this.historyHolder = new Object;
@@ -83,11 +88,17 @@ KeySnail.Prompt = {
         case KeyEvent.DOM_VK_SHIFT:
             break;
         default:
-            this.currentHead = null;
-            this.inNormalCompletion = false;
+            if (this.textbox.selectionStart != this.oldSelectionStart) {
+                this.currentHead = null;
+                this.inNormalCompletion = false;
 
-            this.compIndexList = null;
-            this.compIndex = 0;
+                this.compIndexList = null;
+                this.compIndex = 0;
+
+                this.resetState(this.completion);
+                this.resetState(this.history);
+            }
+            this.oldSelectionStart = this.textbox.selectionStart;
             break;
         }        
     },
@@ -102,6 +113,26 @@ KeySnail.Prompt = {
             this.finish();
             break;
         case KeyEvent.DOM_VK_UP:
+            // if (this.completion.state) {
+            //     this.fetchItem(this.completion, -1, true, true, this.substrMatch, true);
+            //     return;
+            // }
+
+            if (this.history.state) {
+                this.fetchItem(this.history, -1);
+            } else {
+                this.fetchItem(this.history, 0);
+                this.history.state = true;
+            }
+
+            // reset completion index
+            this.resetState(this.completion);
+            break;
+        case KeyEvent.DOM_VK_DOWN:
+            // if (this.completion.state) {
+            //     this.fetchItem(this.completion, 1, true, true, this.substrMatch, true);
+            // }
+
             if (this.history.state) {
                 this.fetchItem(this.history, 1);
             } else {
@@ -111,36 +142,96 @@ KeySnail.Prompt = {
             // reset completion index
             this.resetState(this.completion);
             break;
-        case KeyEvent.DOM_VK_DOWN:
-            if (this.history.state) {
-                this.fetchItem(this.history, -1);
-            } else {
-                this.fetchItem(this.history, 0);
-                this.history.state = true;
-            }
-            // reset completion index
-            this.resetState(this.completion);
-            break;
         case KeyEvent.DOM_VK_TAB:
             this.modules.util.stopEventPropagation(aEvent);
+
             if (this.completion.state) {
-                this.fetchItem(this.completion, aEvent.shiftKey ? -1 : 1, true, true, this.substrMatch);
+                this.fetchItem(this.completion, aEvent.shiftKey ? -1 : 1, true, true, this.substrMatch, true);
             } else {
-                this.fetchItem(this.completion, 0, true, true, this.substrMatch);
+                this.fetchItem(this.completion, 0, true, true, this.substrMatch, true);
                 this.completion.state = true;
             }
             // reset history index
             this.resetState(this.history);
             break;
         default:
-            // reset history index
-            this.resetState(this.history);
-            // reset completion index
-            this.resetState(this.completion);
-            // this.currentHead = null;
-            // this.inNormalCompletion = false;
             break;
         }
+    },
+
+    setColumns: function (aColumn) {
+        this.removeAllChilds(this.listbox.childNodes[0]);
+        var item;
+        for (var i = 0; i < aColumn; ++i) {
+            item = document.createElement("listcol");
+            item.setAttribute("flex", 1);
+            this.listbox.childNodes[0].appendChild(item);
+        }
+    },
+
+    removeAllChilds: function (aElement) {
+        while (aElement.hasChildNodes()) {
+            aElement.removeChild(aElement.firstChild);
+        }
+    },
+
+    createRow: function () {
+        var row = document.createElement("listitem");
+
+        if (arguments.length > 1) {
+            var cell;
+
+            //   arg1 , arg2 , arg3 , ... ,
+            // | col1 | col2 | col3 | ... |
+            for (var i = 0; arguments.length; ++i) {
+                cell = document.createElement("listcell");
+                cell.setAttribute("label", arguments[i]);
+                row.appendChild(cell);
+            }    
+        } else {
+            row.setAttribute("label", arguments[0]);
+        }
+
+        return row;
+    },
+
+    setListBoxFromStringList: function (aType) {
+        var row;
+
+        while (this.listbox.hasChildNodes()) {
+            this.listbox.removeChild(this.listbox.firstChild);
+        }
+
+        for (var i = 0; i < aType.list.length; ++i) {
+            row = document.createElement("listitem");
+            row.setAttribute("label", aType.list[i]);
+            this.listbox.appendChild(row);
+        }
+    },
+
+    setListBoxFromIndexList: function (aType) {
+        var row;
+
+        while (this.listbox.hasChildNodes()) {
+            this.listbox.removeChild(this.listbox.firstChild);
+        }
+
+        for (var i = 0; i < this.compIndexList.length; ++i) {
+            row = document.createElement("listitem");
+            row.setAttribute("label", aType.list[this.compIndexList[i]]);
+            this.listbox.appendChild(row);
+        }
+    },
+
+    setListBoxSelection: function (aIndex) {
+        this.listbox.selectedIndex = aIndex;
+
+        var offset = this.listbox.getNumberOfVisibleRows() / 2;
+        var dest = Math.max(0, aIndex - offset);
+        if (dest > this.listbox.getRowCount() - 2 * offset)
+            dest = this.listbox.getRowCount() - 2 * offset;
+
+        this.listbox.scrollToIndex(dest);
     },
 
     resetState: function (aType) {
@@ -148,25 +239,55 @@ KeySnail.Prompt = {
         aType.state = false;
     },
 
-    fetchItem: function (aType, aDirection, aExpand, aRing, aSubstr) {
-        if (!aType || !aType.list.length)
+    getNextIndex: function (aCurrent, aDirection, aMin, aMax, aRing) {
+        var index = aCurrent + aDirection;
+        if (index < aMin)
+            index = aRing ? aMax - 1 : aMin;
+        if (index >= aMax)
+            index = aRing ? 0 : aMax - 1;
+
+        return index;
+    },
+
+    /**
+     * 
+     * @param {object} aType history, completion
+     * @param {int} aDirection 0, -1, 1
+     * @param {boolean} aExpand if this value is true, "head" expands greedly
+     * @param {boolean} aRing whether connect completion list head and tail or not
+     * @param {boolean} aSubstrMatch whether use substring match or not
+     * @param {boolean} aNoSit whether move caret or not
+     */
+    fetchItem: function (aType, aDirection, aExpand, aRing, aSubstrMatch, aNoSit) {
+        if (!aType.list || !aType.list.length)
             return;
 
         var index;
         // get cursor position
         var start = this.textbox.selectionStart;
 
+        // this.modules.display.prettyPrint("rows ::" + this.listbox.rows + "\n" +
+        //                                  "height ::" + this.listbox.height);
+
         if (start == 0 || this.inNormalCompletion) {
+            // get {current / next / previous} index
+            index = this.getNextIndex(aType.index, aDirection, 0, aType.list.length, aRing);
+
+            if (!this.inNormalCompletion) {
+                // at first time
+                this.setListBoxFromStringList(aType);
+                this.listbox.setAttribute("rows",
+                                          (aType.list.length < this.listboxMaxRows) ?
+                                          aType.list.length : this.listboxMaxRows);
+                this.listbox.hidden = false;
+            }
+            this.setListBoxSelection(index);
+
             // normal completion (not the substring matching)
             this.inNormalCompletion = true;
-
-            // get {current / next / previous} index
-            index = aType.index + aDirection;
-            if (index < 0)
-                index = aRing ? aType.list.length - 1 : 0;
-            if (index >= aType.list.length)
-                index = aRing ? 0 : aType.list.length - 1;
         } else {
+            this.inNormalCompletion = false;
+
             // header / substring match
             var header;
 
@@ -176,15 +297,12 @@ KeySnail.Prompt = {
 
             if (this.currentHead != null && this.compIndexList) {
                 // use current completion list
-                var nextCompIndex = this.compIndex + delta;
-
-                if (nextCompIndex < 0)
-                    nextCompIndex = aRing ? this.compIndexList.length - 1 : 0;
-                if (nextCompIndex >= this.compIndexList.length)
-                    nextCompIndex = aRing ? 0 : this.compIndexList.length - 1;
+                var nextCompIndex = this.getNextIndex(this.compIndex, aDirection,
+                                                      0, this.compIndexList.length, aRing);
 
                 index = this.compIndexList[nextCompIndex];
                 this.compIndex = nextCompIndex;
+                this.setListBoxSelection(nextCompIndex);
             } else {
                 // generate new completion list
                 this.compIndexList = [];
@@ -194,7 +312,7 @@ KeySnail.Prompt = {
 
                 for (var i = 0; i < listLen; ++i) {
                     if (aType.list[i].slice(0, header.length) == header ||
-                        (aSubstr && aType.list[i].indexOf(header) != -1)) {
+                        (aSubstrMatch && aType.list[i].indexOf(header) != -1)) {
                         this.compIndexList.push(i);
                     }
                 }
@@ -212,22 +330,36 @@ KeySnail.Prompt = {
                     var newSubstrIndex = this.getCommonSubstrIndex(aType.list, this.compIndexList);
                     this.currentHead = aType.list[index].slice(0, newSubstrIndex);
                 }
+
+                this.setListBoxFromIndexList(aType);
+                this.setListBoxSelection(0);
+
+                // show
+                this.listbox.setAttribute("rows",
+                                          (this.compIndexList.length < this.listboxMaxRows) ?
+                                          this.compIndexList.length : this.listboxMaxRows);
+                this.listbox.hidden = false;
             }
         }
 
-        if (this.compIndexList) {
+        if (this.inNormalCompletion) {
+            this.modules.display.echoStatusBar(aType.name + " (" + (index + 1) +  " / " + aType.list.length + ")");
+        } else {
             this.modules.display.echoStatusBar(aType.name + " Match for [" + this.currentHead + "]" +
                                                " (" + (this.compIndex + 1) +  " / " + this.compIndexList.length + ")");
-        } else {
-            this.modules.display.echoStatusBar(aType.name + " (" + (index + 1) +  " / " + aType.list.length + ")");
         }
 
         // set new text
         this.textbox.value = aType.list[index];
         aType.index = index;
 
-        this.textbox.selectionStart = this.textbox.selectionEnd =
-            this.currentHead ? currentHead.length : this.textbox.value.length;
+        if (aNoSit) {
+            this.textbox.selectionStart = this.textbox.selectionEnd =
+                (this.inNormalCompletion) ?
+                this.textbox.value.length : this.currentHead.length;
+        } else {
+            this.textbox.selectionStart = this.textbox.selectionEnd = start;
+        }
     },
 
     /**
@@ -333,14 +465,18 @@ KeySnail.Prompt = {
             this.savedFocusedElement = null;
         }
 
-        if (this.currentCallback) {
-            var readStr = aCancelled ? null : this.textbox.value;
+        try {
+            if (this.currentCallback) {
+                var readStr = aCancelled ? null : this.textbox.value;
 
-            this.currentCallback(readStr, this.currentUserArg);
+                this.currentCallback(readStr, this.currentUserArg);
 
-            if (!aCancelled && readStr.length)
-                this.history.list.unshift(readStr);
+                if (!aCancelled && readStr.length)
+                    this.history.list.unshift(readStr);
 
+                this.currentCallback = null;
+            }            
+        } catch (x) {
             this.currentCallback = null;
         }
 
@@ -350,6 +486,7 @@ KeySnail.Prompt = {
         this.inNormalCompletion = false;
 
         this.promptbox.hidden = true;
+        this.listbox.hidden = true;
 
         this.textbox.value = "";
         this.label.value = "";

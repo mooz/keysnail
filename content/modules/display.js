@@ -40,13 +40,6 @@ KeySnail.Display = {
         }
     },
 
-    hidePrettyPrint: function () {
-        var ksMessageId = "_ks_message";
-        var span = content.document.getElementById(ksMessageId);
-        if (span)
-            span.style.display = 'none';
-    },
-
     prettyPrint: function (msg) {
         var dBody = content.document.body;
 
@@ -58,31 +51,36 @@ KeySnail.Display = {
             var ksMessageStyle = "z-index: 500; font-size: 14px; font-family: 'Helvetica';"
                 + " padding: 3px; margin: 3px; color: white; background-color: #1e354a;"
                 + " -moz-opacity: 0.9; opacity: 0.9; position: fixed;"
-                + " bottom: 0.5em; left: 0.5em; display: inline;";
+                + " bottom: 0.5em; left: 0.5em;";
 
-            // msg = msg.replace("\n", "<br />");
+            var lines = msg.split('\n');
 
-            var span = content.document.getElementById(ksMessageId)
-                || document.getElementById(ksMessageId);
+            var container = content.document.getElementById(ksMessageId);
 
-            if (span == null) {
-                // this.message("<span> created");
-                span = document.createElement("div");
-                span.id = ksMessageId;
-                span.style.cssText = ksMessageStyle;
-                span.appendChild(document.createTextNode(msg));
+            if (!container) {
+                container = document.createElement("div");
+                container.id = ksMessageId;
+                container.style.cssText = ksMessageStyle;
 
-                dBody.appendChild(span);
+                dBody.appendChild(container);
 
-                span.onclick = function () {
+                container.onclick = function () {
                     this.style.display = 'none';
                 };
-            } else {
-                var newText = document.createTextNode(msg);
-                span.replaceChild(newText, span.childNodes[0]);
             }
 
-            span.style.display = 'inline';
+            // clear
+            while (container.hasChildNodes()) {
+                container.removeChild(container.firstChild);
+            }
+
+            for (var i = 0; i < lines.length; ++i) {
+                var p = document.createElement('p');
+                p.appendChild(document.createTextNode(lines[i]));
+                container.appendChild(p);
+            }
+
+            container.style.display = 'block';
         } else {
             this.echoStatusBar(msg);
         }

@@ -11,7 +11,7 @@
             <image id="keysnail-statusbar-icon"
 	           src="chrome://keysnail/skin/icon16gray.png"
                    onmouseup="if (event.button == 0)
-                                KeySnail.Key.toggleStatus();"/>
+                              KeySnail.Key.toggleStatus();"/>
         </statusbarpanel>
         <menupopup id="keysnail-menu"
                    onpopupshowing="KeySnail.Key.updateMenu();">
@@ -52,7 +52,11 @@
     </statusbar>
 
     <vbox id="browser-bottombox">
-        <hbox id="keysnail-prompt" insertafter="status-bar" hidden="true"
+        <listbox id="keysnail-completion-list" hidden="true" insertafter="status-bar">
+            <!-- <listcols> -->
+            <!-- </listcols> -->
+        </listbox>
+        <hbox id="keysnail-prompt" insertafter="keysnail-completion-list" hidden="true"
               align="center">
             <label class="keysnail-prompt-label"
                    id="keysnail-prompt-label"
