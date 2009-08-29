@@ -24,8 +24,8 @@ KeySnail.Prompt = {
     substrMatch: true,
 
     currentHead: null,
-    // compIndex: null,
-    // compIndexList: null,
+    compIndex: null,
+    compIndexList: null,
     inNormalCompletion: false,
 
     // History
@@ -58,7 +58,6 @@ KeySnail.Prompt = {
     },
 
     handleEvent: function (aEvent) {
-
         switch (aEvent.type) {
         case 'keypress':
             this.handleKeyPress(aEvent);
@@ -86,6 +85,9 @@ KeySnail.Prompt = {
         default:
             this.currentHead = null;
             this.inNormalCompletion = false;
+
+            this.compIndexList = null;
+            this.compIndex = 0;
             break;
         }        
     },
@@ -122,9 +124,9 @@ KeySnail.Prompt = {
         case KeyEvent.DOM_VK_TAB:
             this.modules.util.stopEventPropagation(aEvent);
             if (this.completion.state) {
-                this.fetchItem(this.completion, aEvent.shiftKey ? -1 : 1, true, true);
+                this.fetchItem(this.completion, aEvent.shiftKey ? -1 : 1, true, true, this.substrMatch);
             } else {
-                this.fetchItem(this.completion, 0, true, true);
+                this.fetchItem(this.completion, 0, true, true, this.substrMatch);
                 this.completion.state = true;
             }
             // reset history index
@@ -146,99 +148,116 @@ KeySnail.Prompt = {
         aType.state = false;
     },
 
-    fetchItem: function (aType, aDirection, aMoveCaret, aRing) {
+    fetchItem: function (aType, aDirection, aExpand, aRing, aSubstr) {
         if (!aType || !aType.list.length)
             return;
 
-        var index = aType.index + aDirection;
-        if (index < 0)
-            index = aType.list.length - 1;
-        if (index >= aType.list.length)
-            index = 0;
-
+        var index;
+        // get cursor position
         var start = this.textbox.selectionStart;
 
         if (start == 0 || this.inNormalCompletion) {
-            // normal completion
+            // normal completion (not the substring matching)
             this.inNormalCompletion = true;
+
+            // get {current / next / previous} index
+            index = aType.index + aDirection;
+            if (index < 0)
+                index = aRing ? aType.list.length - 1 : 0;
+            if (index >= aType.list.length)
+                index = aRing ? 0 : aType.list.length - 1;
         } else {
             // header / substring match
             var header;
-            if (this.currentHead != null) {
-                header = this.currentHead;
-            } else {
-                header = this.textbox.value.slice(0, start);
-                this.currentHead = header;
-            }
 
             var listLen = aType.list.length;
             var delta = (aDirection >= 0) ? 1 : -1;
-            var i = index;
             var substrIndex;
 
-            // while ((aDirection >= 0) ? (i < listLen) : (i >= 0)) {
-            //     if (aType.list[i].slice(0, start) == header) {
-            //         index = i;
-            //         break;
-            //     }
+            if (this.currentHead != null && this.compIndexList) {
+                // use current completion list
+                var nextCompIndex = this.compIndex + delta;
 
-            //     i += delta;
-            // }
+                if (nextCompIndex < 0)
+                    nextCompIndex = aRing ? this.compIndexList.length - 1 : 0;
+                if (nextCompIndex >= this.compIndexList.length)
+                    nextCompIndex = aRing ? 0 : this.compIndexList.length - 1;
 
-            // if (this.compListIndex.length == 0) {
-            //     // stay current position
-            //     // index = aType.index;
-            //     this.modules.display.echoStatusBar("No further match for [" + this.currentHead + "]");
-            //     return;
-            // }
+                index = this.compIndexList[nextCompIndex];
+                this.compIndex = nextCompIndex;
+            } else {
+                // generate new completion list
+                this.compIndexList = [];
 
-            // index = compIndexList[i];
+                header = this.textbox.value.slice(0, start);
+                this.currentHead = header;
 
-            while ((aDirection >= 0) ? (i < listLen) : (i >= 0)) {
-                if (aType.list[i].slice(0, header.length) == header) {
-                    index = i;
-                    break;                    
+                for (var i = 0; i < listLen; ++i) {
+                    if (aType.list[i].slice(0, header.length) == header ||
+                        (aSubstr && aType.list[i].indexOf(header) != -1)) {
+                        this.compIndexList.push(i);
+                    }
                 }
-                if (this.substrMatch &&
-                    (substrIndex = aType.list[i].indexOf(header)) != -1) {
-                    index = i;
-                    // quick hack (changing start value is not good)
-                    start = substrIndex + header.length;
-                    break;
-                }
-                i += delta;
-            }
 
-            if ((aDirection >= 0 && i == listLen) ||
-                (aDirection < 0  && i == -1)) {
-
-                if (aRing) {
-                    aType.index =
-                        (aDirection == 0) ? 0 :
-                        (aDirection > 0)  ? -1 : listLen;
-
-                    this.fetchItem(aType, aDirection, aMoveCaret, false);
+                if (this.compIndexList.length == 0) {
+                    this.compIndexList = null;
+                    this.modules.display.echoStatusBar("No match for [" + this.currentHead + "]");
+                    this.currentHead = null;
                     return;
                 }
 
-                // stay current position
-                // index = aType.index;
-                this.modules.display.echoStatusBar("No further match for [" + this.currentHead + "]");
-                return;
+                index = this.compIndexList[0];
+
+                if (aExpand) {
+                    var newSubstrIndex = this.getCommonSubstrIndex(aType.list, this.compIndexList);
+                    this.currentHead = aType.list[index].slice(0, newSubstrIndex);
+                }
             }
         }
 
-        if (this.currentHead) {
-            this.modules.display.echoStatusBar(aType.name + " Match for [" + this.currentHead + "]");
+        if (this.compIndexList) {
+            this.modules.display.echoStatusBar(aType.name + " Match for [" + this.currentHead + "]" +
+                                               " (" + (this.compIndex + 1) +  " / " + this.compIndexList.length + ")");
         } else {
             this.modules.display.echoStatusBar(aType.name + " (" + (index + 1) +  " / " + aType.list.length + ")");
         }
 
+        // set new text
         this.textbox.value = aType.list[index];
         aType.index = index;
 
         this.textbox.selectionStart = this.textbox.selectionEnd =
-            aMoveCaret ? this.textbox.value.length : start;
+            this.currentHead ? currentHead.length : this.textbox.value.length;
+    },
+
+    /**
+     * if these string given,
+     * command.hoge
+     * command.huga
+     * command.hoho
+     * ________^___ <= return ^ index
+     * @param {} aStringList
+     * @param {} aIndexList
+     * @returns {integer} common substring beginning index
+     */
+    getCommonSubstrIndex: function (aStringList, aIndexList) {
+        var i = 1;
+        while (true) {
+            var header = aStringList[aIndexList[0]].slice(0, i);
+
+            if (aIndexList.some(
+                    function (strIndex) {
+                        return (aStringList[strIndex].slice(0, i) != header)
+                            || (i > aStringList[strIndex].length);
+                    }
+                )) {
+                break;
+            }
+
+            i++;
+        }
+
+        return i - 1;
     },
 
     /**
@@ -334,6 +353,9 @@ KeySnail.Prompt = {
 
         this.textbox.value = "";
         this.label.value = "";
+
+        this.resetState(this.history);
+        this.resetState(this.completion);
     },
 
     message: KeySnail.message
