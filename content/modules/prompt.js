@@ -26,6 +26,7 @@ KeySnail.Prompt = function () {
     var substrMatch = true;
 
     var currentHead = null;
+    var currentSubstr = null;
     var compIndex = null;
     var compIndexList = null;
     var inNormalCompletion = false;
@@ -136,67 +137,97 @@ KeySnail.Prompt = function () {
         }
     }
 
-    // function setColumns(aColumn) {
-    //     removeAllChilds(listbox.childNodes[0]);
-    //     var item;
-    //     for (var i = 0; i < aColumn; ++i) {
-    //         item = document.createElement("listcol");
-    //         item.setAttribute("flex", 1);
-    //         listbox.childNodes[0].appendChild(item);
-    //     }
-    // },
+    function setColumns(aColumn) {
+        removeAllChilds(listbox);
 
-    // function removeAllChilds(aElement) {
-    //     while (aElement.hasChildNodes()) {
-    //         aElement.removeChild(aElement.firstChild);
-    //     }
-    // },
+        if (aColumn > 1) {
+            var listcols = document.createElement("listcols");
 
-    // function createRow() {
-    //     var row = document.createElement("listitem");
+            var item;
+            for (var i = 0; i < aColumn; ++i) {
+                item = document.createElement("listcol");
+                item.flex = 1;
+                item.setAttribute("width", (100 / aColumn).toString() + "%");
+                listcols.appendChild(item);
+            }
 
-    //     if (arguments.length > 1) {
-    //         var cell;
-
-    //         //   arg1 , arg2 , arg3 , ... ,
-    //         // | col1 | col2 | col3 | ... |
-    //         for (var i = 0; arguments.length; ++i) {
-    //             cell = document.createElement("listcell");
-    //             cell.setAttribute("label", arguments[i]);
-    //             row.appendChild(cell);
-    //         }    
-    //     } else {
-    //         row.setAttribute("label", arguments[0]);
-    //     }
-
-    //     return row;
-    // },
-
-    function setListBoxFromStringList(aType) {
-        var row;
-
-        while (listbox.hasChildNodes()) {
-            listbox.removeChild(listbox.firstChild);
-        }
-
-        for (var i = 0; i < aType.list.length; ++i) {
-            row = document.createElement("listitem");
-            row.setAttribute("label", aType.list[i]);
-            listbox.appendChild(row);
+            listbox.appendChild(listcols);
         }
     }
 
-    function setListBoxFromIndexList(aType) {
-        var row;
+    function setRows(aRow) {
+        listbox.setAttribute("rows",
+                             (aRow < listboxMaxRows) ?
+                             aRow : listboxMaxRows);
+    }
 
-        while (listbox.hasChildNodes()) {
-            listbox.removeChild(listbox.firstChild);
+    function removeAllChilds(aElement) {
+        while (aElement.hasChildNodes()) {
+            aElement.removeChild(aElement.firstChild);
+        }
+    }
+
+    function createRow(aCells) {
+        var row = document.createElement("listitem");
+
+        if (aCells.length > 1) {
+            var cell;
+
+            //   arg1 , arg2 , arg3 , ... ,
+            // | col1 | col2 | col3 | ... |
+            for (var i = 0; i < aCells.length; ++i) {
+                cell = document.createElement("listcell");
+                cell.setAttribute("label", aCells[i]);
+                row.appendChild(cell);
+            }    
+        } else {
+            row.setAttribute("label", aCells[0]);
         }
 
-        for (var i = 0; i < compIndexList.length; ++i) {
-            row = document.createElement("listitem");
-            row.setAttribute("label", aType.list[compIndexList[i]]);
-            listbox.appendChild(row);
+        return row;
+    }
+
+    function setListBoxFromStringList(aList) {
+        var row;
+
+        removeAllChilds(listbox);
+        setColumns(isMultipleList(aList) ? aList[0].length : 1);
+
+        if (isMultipleList(aList)) {
+            // multiple
+            for (var i = 0; i < aList.length; ++i) {
+                row = createRow(aList[i]);
+                listbox.appendChild(row);
+            }
+        } else {
+            // normal
+            for (var i = 0; i < aList.length; ++i) {
+                row = document.createElement("listitem");
+                row.setAttribute("label", aList[i]);
+                listbox.appendChild(row);
+            }
+        }
+    }
+
+    function setListBoxFromIndexList(aList, aIndexList) {
+        var row;
+
+        removeAllChilds(listbox);
+        setColumns(isMultipleList(aList) ? aList[0].length : 1);
+
+        if (isMultipleList(aList)) {
+            // multiple
+            for (var i = 0; i < aIndexList.length; ++i) {
+                row = createRow(aList[aIndexList[i]]);
+                listbox.appendChild(row);
+            }
+        } else {
+            // normal
+            for (var i = 0; i < aIndexList.length; ++i) {
+                row = document.createElement("listitem");
+                row.setAttribute("label", aList[aIndexList[i]]);
+                listbox.appendChild(row);
+            }
         }
     }
 
@@ -226,6 +257,19 @@ KeySnail.Prompt = function () {
         return index;
     }
 
+    function isMultipleList(aList) {
+        return (typeof(aList) == 'object' &&
+                typeof(aList[0]) == 'object');
+    }
+
+    function getListText(aList, aIndex, aCellNum) {
+        if (aCellNum == undefined)
+            aCellNum = 0;
+
+        return isMultipleList(aList) ?
+            aList[aIndex][aCellNum] : aList[aIndex];
+    }
+
     /**
      * 
      * @param {object} aType history, completion
@@ -245,19 +289,14 @@ KeySnail.Prompt = function () {
         // get cursor position
         var start = textbox.selectionStart;
 
-        // modules.display.prettyPrint("rows ::" + listbox.rows + "\n" +
-        //                                  "height ::" + listbox.height);
-
         if (start == 0 || inNormalCompletion) {
             // get {current / next / previous} index
             index = getNextIndex(aType.index, aDirection, 0, aType.list.length, aRing);
 
             if (!inNormalCompletion) {
                 // at first time
-                setListBoxFromStringList(aType);
-                listbox.setAttribute("rows",
-                                     (aType.list.length < listboxMaxRows) ?
-                                     aType.list.length : listboxMaxRows);
+                setListBoxFromStringList(aType.list);
+                setRows(aType.list.length);
                 listbox.hidden = false;
             }
             setListBoxSelection(index);
@@ -271,7 +310,6 @@ KeySnail.Prompt = function () {
             var header;
 
             var listLen = aType.list.length;
-            var delta = (aDirection >= 0) ? 1 : -1;
             var substrIndex;
 
             if (currentHead != null && compIndexList) {
@@ -285,13 +323,15 @@ KeySnail.Prompt = function () {
             } else {
                 // generate new completion list
                 compIndexList = [];
+                compIndex = 0;
 
                 header = textbox.value.slice(0, start);
                 currentHead = header;
+                currentSubstr = aSubstrMatch ? header : null;
 
                 for (var i = 0; i < listLen; ++i) {
-                    if (aType.list[i].slice(0, header.length) == header ||
-                        (aSubstrMatch && aType.list[i].indexOf(header) != -1)) {
+                    if (getListText(aType.list, i).slice(0, header.length) == header ||
+                        (aSubstrMatch && getListText(aType.list, i).indexOf(header) != -1)) {
                         compIndexList.push(i);
                     }
                 }
@@ -307,17 +347,15 @@ KeySnail.Prompt = function () {
 
                 if (aExpand) {
                     var newSubstrIndex = getCommonSubstrIndex(aType.list, compIndexList);
-                    currentHead = aType.list[index].slice(0, newSubstrIndex);
+                    currentHead = getListText(aType.list, index).slice(0, newSubstrIndex);
                     oldSelectionStart = newSubstrIndex;
                 }
 
-                setListBoxFromIndexList(aType);
+                setListBoxFromIndexList(aType.list, compIndexList);
                 setListBoxSelection(0);
 
                 // show
-                listbox.setAttribute("rows",
-                                     (compIndexList.length < listboxMaxRows) ?
-                                     compIndexList.length : listboxMaxRows);
+                setRows(compIndexList.length);
                 listbox.hidden = false;
             }
         }
@@ -325,12 +363,14 @@ KeySnail.Prompt = function () {
         if (inNormalCompletion) {
             modules.display.echoStatusBar(aType.name + " (" + (index + 1) +  " / " + aType.list.length + ")");
         } else {
-            modules.display.echoStatusBar(aType.name + " Match for [" + currentHead + "]" +
-                                               " (" + (compIndex + 1) +  " / " + compIndexList.length + ")");
+            modules.display.echoStatusBar(aType.name + (aSubstrMatch ? " Substring" : " Header") +
+                                          " Match for [" + (currentSubstr || currentHead) + "]" +
+                                          " (" + (compIndex + 1) +  " / " + compIndexList.length + ")");
         }
 
         // set new text
-        textbox.value = aType.list[index];
+     
+        textbox.value = getListText(aType.list, index);
         aType.index = index;
 
         if (aNoSit) {
@@ -355,12 +395,12 @@ KeySnail.Prompt = function () {
     function getCommonSubstrIndex(aStringList, aIndexList) {
         var i = 1;
         while (true) {
-            var header = aStringList[aIndexList[0]].slice(0, i);
+            var header = getListText(aStringList, aIndexList[0]).slice(0, i);
 
             if (aIndexList.some(
                     function (strIndex) {
-                        return (aStringList[strIndex].slice(0, i) != header)
-                            || (i > aStringList[strIndex].length);
+                        return (getListText(aStringList, strIndex).slice(0, i) != header)
+                            || (i > getListText(aStringList, strIndex).length);
                     }
                 )) {
                     break;
@@ -400,9 +440,14 @@ KeySnail.Prompt = function () {
                     history.list.unshift(readStr);
 
                 currentCallback = null;
-            }            
+            }
         } catch (x) {
             currentCallback = null;
+            aCancelled = true;
+        }
+        
+        if (aCancelled) {
+            modules.display.echoStatusBar("");
         }
 
         currentUserArg = null;
@@ -423,12 +468,9 @@ KeySnail.Prompt = function () {
     // ================ public ================ //
 
     return {
-        // ==== common ====
-
         init: function () {
             modules = this.modules;
 
-            this.message("Prompt Init called");
             if (KeySnail.windowType == "navigator:browser") {
                 promptbox = document.getElementById("keysnail-prompt");
                 label     = document.getElementById("keysnail-prompt-label");
@@ -442,20 +484,6 @@ KeySnail.Prompt = function () {
             }
         },
 
-        // handleEvent: function (aEvent) {
-        //     switch (aEvent.type) {
-        //     case 'keypress':
-        //         handleKeyPress(aEvent);
-        //         break;
-        //     case 'keydown':
-        //         handleKeyDown(aEvent);
-        //         break;
-        //     case 'blur':
-        //         onBlur();
-        //         break;
-        //     }
-        // },
-
         /**
          * Read string from prompt and execute <aCallback>
          * @param {string} aMsg message to be displayed
@@ -464,13 +492,13 @@ KeySnail.Prompt = function () {
          * <aCallback> must take two arguments like below.
          * function callback(aReadStr, aUserArg);
          * The first aReadStr becomes the string read from prompt
-         * The second arguments
+         * The second arguments becomes the <aUserArg>
          * @param {[string]} aCollection string list used to completion
-         * @param {string} aInitialInput
-         * @param {string} aInitialCount
-         * @param {string} aGroup history group
+         * @param {string} aInitialInput initial input of the prompt
+         * @param {string} aInitialCount initial completion's index
+         * @param {string} aGroup name of the history group
          */
-        read: function read(aMsg, aCallback, aUserArg, aCollection, aInitialInput, aInitialCount, aGroup) {
+        read: function (aMsg, aCallback, aUserArg, aCollection, aInitialInput, aInitialCount, aGroup) {
             if (!promptbox)
                 return;
 
@@ -510,7 +538,7 @@ KeySnail.Prompt = function () {
             textbox.addEventListener('keypress', handleKeyPress, false);
             textbox.addEventListener('keydown', handleKeyDown, false);
 
-            modules.display.echoStatusBar("[ <tab> : begin / next completion ] [shift + <tab> prev completion ] [<up>, <down> begen trailing history / trail completion]");
+            modules.display.echoStatusBar(modules.util.getLocaleString("promptKeyDescription"));
         },
 
         message: KeySnail.message

@@ -70,7 +70,7 @@ KeySnail.Command = {
                             Function("with (KeySnail.modules) { " + aStr + " }")();
                             prompt.substrMatch = true;
                         }, null, this.createCommandList(),
-                        null, 0, "command");   
+                        null, 0, "command");
         }
     },
 
@@ -249,35 +249,34 @@ KeySnail.Command = {
 
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
         var items = toolbarBookMarks.getElementsByTagName('toolbarbutton');
-        // item.length
 
         var urlList = [];
 
+        // [[url1, title1],
+        //  [url2, title2],
+        //  [url3, title3], ...]
         for (var i = 0; i < items.length; ++i) {
-            if (items[i].node.uri.match(/^https?:/))
-                urlList.push(items[i].node.uri);
+            if (items[i].node.uri.match(/^(https?|ftp):/)) {
+                urlList.push([items[i].node.uri, items[i].label]);
+            }
         }
 
         if (aArg > urlList.length - 1)
             aArg = urlList.length;
 
-        // var nameList = [item.label for each (item in items)];
-
         with (this.modules) {
         prompt.read("Places:",
-                    function (aStr, aItems) {
+                    function (aStr) {
                         if (aStr) {
                             key.viewURI(aStr);                            
                         }
                     },
-                    items,
+                    null,
                     urlList,
-                    urlList[aArg - 1],
+                    urlList[aArg - 1][0],
                     aArg - 1,
                     "url");
         }
-
-        // PlacesUIUtils.openNodeIn(items[aArg - 1].node, "tab");
     },
 
     autoCompleteHandleKey: function (aKeyEvent) {
