@@ -437,16 +437,8 @@ KeySnail.UserScript = {
             var configFileName = this.defaultInitFileNames[params.out.configFileNameIndex];
 
             var defaultInitFileBase = "chrome://keysnail/content/resources/.keysnail.js.";
-            var userLocale = this.modules.util.getUnicharPref("general.useragent.locale");
             var scheme = (params.out.selectedScheme == null) ? "" : params.out.selectedScheme + ".";
-
-            userLocale = {
-                "ja-JP": "ja",
-                "ja-JP-mac": "ja",
-                "ja_JP": "ja",
-                "JP":    "ja",
-                "en-US": "en"
-            }[userLocale] || userLocale;
+            var userLocale = params.out.selectedLocale || "en";
 
             var defaultInitFile = this.modules.util.getContents(defaultInitFileBase + scheme + userLocale);
 

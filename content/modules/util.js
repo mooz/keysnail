@@ -70,7 +70,7 @@ KeySnail.Util = {
         if (file.exists() &&
             !aForce &&
             !window.confirm(aPath + ' ' + this.getLocaleString("overWriteConfirmation")))
-            throw "Cancelled by user";
+            throw "Canceled by user";
 
         var fileStream = Components
             .classes["@mozilla.org/network/file-output-stream;1"]

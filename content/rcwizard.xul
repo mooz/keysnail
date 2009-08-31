@@ -28,7 +28,6 @@
         <description>
             &keySnail.rcWizard.selectMethodDescription;
         </description>
-        <separator />
         <menulist id="keysnail-rcwizard-selectmethod">
             <menupopup>
                 <menuitem label="&keySnail.rcWizard.createRcFile;"
@@ -84,28 +83,54 @@
     <!-- ==================== CREATE : scheme (select key scheme) ==================== -->
 
     <wizardpage pageid="rcfile-scheme"
+                onpageshow="rcWizard.updatePageScheme();"
                 description="&keySnail.rcWizard.selectScheme;"
                 next="rcfile-specialkey"
                 >
         <description>&keySnail.rcWizard.selectSchemeDescription1;</description>
-        <separator />
-        <menulist id="keysnail-rcwizard-selectscheme">
-            <menupopup>
-                <menuitem label="&keySnail.rcWizard.scheme.emacs;"
-                          name="scheme-emacs"
-                          class="menuitem-iconic"
-                          image="chrome://keysnail/skin/icon/emacs.png"/>
-                <menuitem label="&keySnail.rcWizard.scheme.empty;"
-                          name="scheme-empty"
-                          class="menuitem-iconic"
-                          image="chrome://keysnail/skin/icon/empty.png"/>
-            </menupopup>
-        </menulist>
-        <separator />
-        <checkbox id="keysnail-rcwizard-selectscheme-insert-document"
-                  label="&keySnail.rcWizard.selectScheme.insertDocument;"
-                  checked="false"
-                  />
+        <grid>
+            <columns>
+                <column />
+                <column flex="1" />
+            </columns>
+            <rows>
+                <!-- scheme -->
+                <row align="center">
+                    <label>&keySnail.rcWizard.label.scheme;: </label>
+                    <menulist id="keysnail-rcwizard-selectscheme">
+                        <menupopup>
+                            <menuitem label="&keySnail.rcWizard.scheme.emacs;"
+                                      name="scheme-emacs"
+                                      class="menuitem-iconic"
+                                      image="chrome://keysnail/skin/icon/emacs.png"/>
+                            <menuitem label="&keySnail.rcWizard.scheme.empty;"
+                                      name="scheme-empty"
+                                      class="menuitem-iconic"
+                                      image="chrome://keysnail/skin/icon/empty.png"/>
+                        </menupopup>
+                    </menulist>
+                </row>
+                <!-- locale -->
+                <row align="center">
+                    <label>&keySnail.rcWizard.label.locale;: </label>
+                    <menulist id="keysnail-rcwizard-selectlocale">
+                        <menupopup>
+                            <menuitem label="&keySnail.rcWizard.locale.en;"
+                                      name="locale-en"/>
+                            <menuitem label="&keySnail.rcWizard.locale.ja;"
+                                      name="locale-ja"/>
+                        </menupopup>
+                    </menulist>
+                </row>
+                <row>
+                    <spacer />
+                    <checkbox id="keysnail-rcwizard-selectscheme-insert-document"
+                              label="&keySnail.rcWizard.selectScheme.insertDocument;"
+                              checked="false"
+                              align="right"/>
+                </row>
+            </rows>
+        </grid>
     </wizardpage>
 
     <!-- ==================== CREATE : specialkey (select special keys) ==================== -->

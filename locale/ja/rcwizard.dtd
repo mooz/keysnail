@@ -24,8 +24,15 @@
 <!ENTITY keySnail.rcWizard.selectScheme "使用するキースキームを選んでください">
 <!ENTITY keySnail.rcWizard.selectSchemeDescription1 "あらかじめ用意されたキーバインド一式をキースキームと呼びます。">
 
+<!ENTITY keySnail.rcWizard.label.scheme "スキーム">
+<!ENTITY keySnail.rcWizard.label.locale "言語">
+
 <!ENTITY keySnail.rcWizard.scheme.emacs "Emacs や w3m などのキーバインドをエミュレートしたスキーム">
 <!ENTITY keySnail.rcWizard.scheme.empty "空のスキーム">
+
+<!ENTITY keySnail.rcWizard.selectLocaleDescription "初期化ファイルの言語を選んでください (コマンド説明やドキュメントに影響します)">
+<!ENTITY keySnail.rcWizard.locale.en "英語">
+<!ENTITY keySnail.rcWizard.locale.ja "日本語">
 
 <!ENTITY keySnail.rcWizard.selectScheme.insertDocument "ドキュメントを初期化ファイル内に挿入する">
 

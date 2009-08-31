@@ -25,8 +25,15 @@
 <!ENTITY keySnail.rcWizard.selectScheme "Select the key scheme">
 <!ENTITY keySnail.rcWizard.selectSchemeDescription1 "The set of keybindings is called `key scheme'">
 
+<!ENTITY keySnail.rcWizard.label.scheme "Scheme">
+<!ENTITY keySnail.rcWizard.label.locale "Language">
+
 <!ENTITY keySnail.rcWizard.scheme.emacs "Emacs / w3m like keybindings">
 <!ENTITY keySnail.rcWizard.scheme.empty "Empty scheme">
+
+<!ENTITY keySnail.rcWizard.selectLocaleDescription "Select language of the init file. (affects description of the command and documantation)">
+<!ENTITY keySnail.rcWizard.locale.en "English">
+<!ENTITY keySnail.rcWizard.locale.ja "Japanese">
 
 <!ENTITY keySnail.rcWizard.selectScheme.insertDocument "Insert document to init file">
 

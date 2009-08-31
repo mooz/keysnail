@@ -24,6 +24,7 @@ KeySnail.Prompt = function () {
 
     // Options
     var substrMatch = true;
+    var ignoreDuplication = true;
 
     var currentHead = null;
     var currentSubstr = null;
@@ -402,9 +403,7 @@ KeySnail.Prompt = function () {
                         return (getListText(aStringList, strIndex).slice(0, i) != header)
                             || (i > getListText(aStringList, strIndex).length);
                     }
-                )) {
-                    break;
-                }
+                )) break;
 
             i++;
         }
@@ -414,17 +413,19 @@ KeySnail.Prompt = function () {
 
     /**
      * Finish inputting and current the prompt and If user can
-     * @param {boolean} aCancelled true, if user cancelled the prompt
+     * @param {boolean} aCanceled true, if user canceled the prompt
      */
-    function finish(aCancelled) {
+    function finish(aCanceled) {
         textbox.removeEventListener('blur', onBlur, false);
         textbox.removeEventListener('keypress', handleKeyPress, false);
         textbox.removeEventListener('keydown', handleKeyDown, false);
 
-        // We need to call focus() here
-        // because the callback sometimes change the current selected tab
-        // e.g. opening the URL in a new tab, 
-        // and the window.focus() does not work that time.
+        /**
+         * We need to call focus() here
+         * because the callback sometimes change the current selected tab
+         * e.g. opening the URL in a new tab, 
+         * and the window.focus() does not work that time.
+         */
         if (savedFocusedElement) {
             savedFocusedElement.focus();
             savedFocusedElement = null;
@@ -432,21 +433,35 @@ KeySnail.Prompt = function () {
 
         try {
             if (currentCallback) {
-                var readStr = aCancelled ? null : textbox.value;
+                var readStr = aCanceled ? null : textbox.value;
 
                 currentCallback(readStr, currentUserArg);
 
-                if (!aCancelled && readStr.length)
-                    history.list.unshift(readStr);
+                if (!aCanceled && readStr.length) {
+                    // add history
+                    if (ignoreDuplication) {
+                        // remove all duplicated elements from list and add str to head
+                        var li = history.list;
+                        for (var i = 0; i < li.length; ++i) {
+                            if (readStr == li[i]) {
+                                li.splice(i, 1);
+                            }
+                        }
+                        li.unshift(readStr);
+                    } else {
+                        history.list.unshift(readStr);
+                    }
+                }
 
                 currentCallback = null;
             }
         } catch (x) {
             currentCallback = null;
-            aCancelled = true;
+            aCanceled = true;
         }
         
-        if (aCancelled) {
+        if (aCanceled) {
+            // on canceled
             modules.display.echoStatusBar("");
         }
 
@@ -482,6 +497,14 @@ KeySnail.Prompt = function () {
                 historyHolder = new Object;
                 historyHolder["default"] = [];
             }
+        },
+
+        set ignoreDuplication(aBool) {
+            ignoreDuplication = !!aBool;
+        },
+
+        get ignoreDuplication() {
+            return ignoreDuplication;
         },
 
         /**

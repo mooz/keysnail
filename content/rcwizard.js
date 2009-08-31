@@ -15,6 +15,16 @@ var rcWizard = {
     rcFilePath: null,
     rcFileObject: null,
 
+    schemeList: [
+        "emacs",
+        null
+    ],
+
+    localeList: [
+        "en",
+        "ja"
+    ],
+    
     onLoad: function () {
         // to access the utility
         this.modules = window.arguments[0].inn.modules;
@@ -38,15 +48,6 @@ var rcWizard = {
         startPage.next = ["create-rcfile", "select-rcfile"]
         [menuList.selectedIndex];
 
-        // switch (menuList.selectedIndex) {
-        // case 0:
-        //     startPage.next = "create-rcfile";
-        //     break;
-        // case 1:
-        //     startPage.next = "select-rcfile";
-        //     break;
-        // }
-
         return true;
     },
 
@@ -56,6 +57,25 @@ var rcWizard = {
         // Note: Do *NOT* change these two lines order
         fileField.file = this.rcFileObject;
         fileField.label = this.rcFilePath;
+    },
+
+    updatePageScheme: function () {
+        var selectLocale = document.getElementById("keysnail-rcwizard-selectlocale");
+
+        var userLocale = this.modules.util.getUnicharPref("general.useragent.locale");
+
+        userLocale = {
+            // ja
+            "ja"        : "ja",
+            "ja-JP"     : "ja",
+            "ja-JP-mac" : "ja",
+            "ja_JP"     : "ja",
+            "JP"        : "ja",
+            // en
+            "en-US"     : "en"
+        }[userLocale] || "en";
+
+        selectLocale.selectedIndex = this.localeList.indexOf(userLocale);
     },
 
     updatePageSelect: function () {
@@ -139,9 +159,13 @@ var rcWizard = {
             window.arguments[0].out.keys = {};
             this.setSpecialKeys(window.arguments[0].out.keys);
             // ================ scheme ================ //
-            var selectedScheme = ["emacs", null]
+            var selectedScheme = this.schemeList
             [document.getElementById("keysnail-rcwizard-selectscheme").selectedIndex];
             window.arguments[0].out.selectedScheme = selectedScheme;
+            // ================ locale ================ //
+            var selectedLocale = this.localeList
+            [document.getElementById("keysnail-rcwizard-selectlocale").selectedIndex];
+            window.arguments[0].out.selectedLocale = selectedLocale;
             // ================ document ================ //
             window.arguments[0].out.insertDocument = 
                 document.getElementById("keysnail-rcwizard-selectscheme-insert-document").checked;
