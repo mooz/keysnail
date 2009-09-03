@@ -12,12 +12,10 @@ KeySnail.Display = {
     // ==== status bar ====
     statusBar: null,            // reference to the status bar
     msgTimeOut: null,           // timeout object to the status bar
-    modeLine: null,
 
     init: function () {
         // this.modules = aModules;
         this.statusBar = document.getElementById('statusbar-display');
-        // this.modeLine = document.getElementById('keysnail-minibuffer-modeline');
     },
 
     // ==================== Display ====================
@@ -58,7 +56,7 @@ KeySnail.Display = {
             var container = content.document.getElementById(ksMessageId);
 
             if (!container) {
-                container = document.createElement("div");
+                container = content.document.createElement("div");
                 container.id = ksMessageId;
                 container.style.cssText = ksMessageStyle;
 
@@ -74,20 +72,16 @@ KeySnail.Display = {
                 container.removeChild(container.firstChild);
             }
 
-            for (var i = 0; i < lines.length; ++i) {
-                var p = document.createElement('p');
-                p.appendChild(document.createTextNode(lines[i]));
-                container.appendChild(p);
+            container.appendChild(content.document.createTextNode(lines[0]));
+            for (var i = 1; i < lines.length; ++i) {
+                container.appendChild(content.document.createElement("br"));
+                container.appendChild(content.document.createTextNode(lines[i]));
             }
 
             container.style.display = 'block';
         } else {
             this.echoStatusBar(msg);
         }
-    },
-
-    echoMiniBuffer: function (aLine) {
-        this.modeLine.value = aLine;
     },
 
     message: function (msg) {

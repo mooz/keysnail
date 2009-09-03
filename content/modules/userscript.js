@@ -62,7 +62,8 @@ KeySnail.UserScript = {
             this.jsFileLoader(aInitFilePath);
             var end = new Date();
         } catch (e) {
-            if (e.fileName ==
+            this.modules.util.listProperty(e);
+            if (!e.fileName || e.fileName ==
                 "chrome://keysnail/content/modules/userscript.js") {
                 e.fileName = aInitFilePath;
                 e.lineNumber -= (this.userScriptOffset + 1);
