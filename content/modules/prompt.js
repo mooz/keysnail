@@ -8,6 +8,9 @@
 KeySnail.Prompt = function () {
     // ================ private ================ //
 
+    const Cc = Components.classes;
+    const Ci = Components.interfaces;
+
     var modules = null;
 
     // DOM Objects

@@ -57,10 +57,10 @@ KeySnail.Key = {
 
     // ==== modes ====
     modes: {
-        GLOBAL: "Global",
-        VIEW:   "View",
-        EDIT:   "Edit",
-        CARET:  "Caret"
+        GLOBAL: "global",
+        VIEW:   "view",
+        EDIT:   "edit",
+        CARET:  "caret"
         // MENU:   "menu"
     },
 
@@ -1231,7 +1231,7 @@ KeySnail.Key = {
 
                 var ksNoRepeatString = (func.ksNoRepeat) ? ", true" : "";
 
-                aContentHolder.push("set" + aKeyMapName + "Key(" + keySetting + ", " +
+                aContentHolder.push("set" + aKeyMapName[0].toUpperCase() + aKeyMapName.slice(1) + "Key(" + keySetting + ", " +
                                     // function body
                                     func.toString() +
                                     // description
