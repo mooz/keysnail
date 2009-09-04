@@ -98,11 +98,15 @@ var ksPreference = {
                 alert("Please select the valid editor");
                 return;
             }
-            Application.console.log("fp.file.path : " + fp.file.path);
-            nsPreferences.setUnicharPref(prefKey, fp.file.path);
-            var editorPath = this.modules.util
-                .getUnicharPref("extensions.keysnail.userscript.editor");
-            Application.console.log("getUnicharPref : " + editorPath);
+            // set preference value
+            var str = Components.classes["@mozilla.org/supports-string;1"]
+                .createInstance(nsISupportsString);
+            str.data = fp.file.path;
+            pref.setComplexValue(prefKey, nsISupportsString, str);
+            // nsPreferences.setUnicharPref(prefKey, fp.file.path);
+            // var editorPath = this.modules.util
+            //     .getUnicharPref("extensions.keysnail.userscript.editor");
+            // Application.console.log("getUnicharPref : " + editorPath);
             this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");                
             break;
         }

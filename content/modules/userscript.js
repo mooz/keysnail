@@ -313,6 +313,11 @@ KeySnail.UserScript = {
      * @param {} aLineNum
      */
     editFile: function (aFilePath, aLineNum) {
+        var args = [aFilePath];
+
+        if (typeof(aLineNum) == 'number')
+            args.push("+" + aLineNum.toString());
+
         if (!aFilePath) {
             this.modules.display.prettyPrint("editor: invalid file path");
             return;
@@ -325,26 +330,37 @@ KeySnail.UserScript = {
             editorPath = this.syncEditorWithGM();
         }
 
-        try {
-            var file = this.modules.util.openFile(editorPath);
-        } catch (e) {
-            this.modules.display.prettyPrint("editor: no editor specified or error occured");
-            return;
-        }
+        var editorFile;
+        var xulRuntime = Components.classes["@mozilla.org/xre/app-info;1"]
+            .getService(Components.interfaces.nsIXULRuntime);
+        if ("Darwin" == xulRuntime.OS) {
+            // wrap with open command (inspired from GreaseMonkey)
+            args.unshift(editorPath);
+            args.unshift("-a");
 
-        if (!file.exists()) {
-            this.modules.display.prettyPrint("editor: " + file.path
-                                             + " not found. Please select the valid editor");
-            return;
+            editorFile = Components.classes["@mozilla.org/file/local;1"]
+                .createInstance(Components.interfaces.nsILocalFile);
+            editorFile.followLinks = true;
+            editorFile.initWithPath("/usr/bin/open");            
+        } else {
+            try {
+                editorFile = this.modules.util.openFile(editorPath);
+            } catch (e) {
+                this.modules.display.prettyPrint("editor: no editor specified or error occured");
+                return;
+            }
+
+            if (!editorFile.exists()) {
+                this.modules.display.prettyPrint("editor: " + editorFile.path
+                                                 + " not found. Please select the valid editor");
+                return;
+            }
         }
 
         var process = Components.classes["@mozilla.org/process/util;1"]
             .createInstance(Components.interfaces.nsIProcess);
-        process.init(file);
+        process.init(editorFile);
 
-        var args = [aFilePath];
-        if (typeof(aLineNum) == 'number')
-            args.push("+" + aLineNum.toString());
         process.run(false, args, args.length);
     },
 
