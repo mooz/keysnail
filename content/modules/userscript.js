@@ -294,6 +294,8 @@ KeySnail.UserScript = {
             nsPreferences.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
         }
 
+        this.message("editor : " + gmEditor);
+
         return gmEditor;
     },
 
