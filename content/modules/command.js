@@ -93,12 +93,20 @@ KeySnail.Command = {
         return aDocument.evaluate(xPathExp, aDocument, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     },
 
+    isNotVisible: function (aElement, aDoc) {
+        var style = aDoc.defaultView.getComputedStyle(aElement, null);
+        // var position = aElement.getBoundingClientRect();
+        return style.display == 'none'
+            || style.visibility == 'hidden'
+            || style.width[0] == '0'
+            || style.height[0] == '0';
+    },
+
     isSkippable: function (aElement, aDoc) {
         return (aElement.style.display === 'none')
             || (aElement.style.visibility === 'hidden')
             || (aElement.readOnly)
-            || aDoc.defaultView.getComputedStyle(aElement, null).width[0] == '0'
-            || aDoc.defaultView.getComputedStyle(aElement, null).height[0] == '0';
+            || this.isNotVisible(aElement, aDoc);
     },
 
     /**
@@ -121,10 +129,11 @@ KeySnail.Command = {
 
         var item = xPathResults.snapshotItem(aNum);
         while (this.isSkippable(item, doc)) {
-            if (aNum == xPathResults.snapshotLength - 1) {
+            aNum++;
+            if (aNum >= xPathResults.snapshotLength - 1) {
                 return;
             }
-            item = xPathResults.snapshotItem(aNum + 1);
+            item = xPathResults.snapshotItem(aNum);
         }
 
         item.focus();
@@ -155,6 +164,7 @@ KeySnail.Command = {
         }
 
         if (i == elemCount) {
+            // no element focused
             return;
         }
 
@@ -170,18 +180,20 @@ KeySnail.Command = {
             }
         }
 
+        var elem = xPathResults.snapshotItem(next);
+
         xPathResults.snapshotItem(next).focus();
     },
 
-    getNextIndex: function (aCurrent, aCount, aForward, aCycle) {
+    getNextIndex: function (aCurrent, aMax, aForward, aCycle) {
         var next = aForward ? aCurrent + 1 : aCurrent - 1;
 
-        if (next < 0 || next >= aCount) {
-            if (!aCycle) {
+        if (next < 0 || next >= aMax) {
+            if (!aCycle)
                 return -1;
-            }
+
             if (next < 0) {
-                next = aCount - 1;
+                next = aMax - 1;
             } else {
                 next = 0;
             }
