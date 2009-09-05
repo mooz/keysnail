@@ -95,7 +95,6 @@ KeySnail.Command = {
 
     isNotVisible: function (aElement, aDoc) {
         var style = aDoc.defaultView.getComputedStyle(aElement, null);
-        // var position = aElement.getBoundingClientRect();
         return style.display == 'none'
             || style.visibility == 'hidden'
             || style.width[0] == '0'
@@ -103,9 +102,7 @@ KeySnail.Command = {
     },
 
     isSkippable: function (aElement, aDoc) {
-        return (aElement.style.display === 'none')
-            || (aElement.style.visibility === 'hidden')
-            || (aElement.readOnly)
+        return (aElement.readOnly)
             || this.isNotVisible(aElement, aDoc);
     },
 
@@ -306,15 +303,6 @@ KeySnail.Command = {
         } else if (this.modules.util.isMenu()) {
             // ########################################
             this.autoCompleteHandleKey(aDOMKey);
-        // } else if (typeof(hBookmark.TagCompleter) != 'undefined') {
-        //     // ########################################
-        //     // hateb tag completion
-        //     var newEvent = document.createEvent('KeyboardEvent');
-        //     newEvent.initKeyEvent('keydown', true, true, null,
-        //                           false, false, false, false,
-        //                           aDOMKey, 0);
-        //     // aEvent.originalTarget.dispatchEvent(newEvent);
-        //     hBookmark.TagCompleter.InputHandler.prototype.inputKeydownHandler(newEvent);
         } else {
             // ########################################
             this.modules.key
@@ -326,23 +314,42 @@ KeySnail.Command = {
 
     // ==================== Editor Commands  ====================
 
-    // original code from XUL/Migemo
     recenter: function (aEvent) {
         var frame = document.commandDispatcher.focusedWindow
-                 || gBrowser.contentWindow;
+            || gBrowser.contentWindow;
 
-        var selection = frame.getSelection();
-        var range = frame.document.createRange();
-        var elem;
+        if (aEvent.originalTarget.localName == 'TEXTAREA') {
+            var textarea = aEvent.originalTarget;
+            var box = textarea.ownerDocument.getBoxObjectFor(textarea);
+            var style = frame.document.defaultView.getComputedStyle(textarea, null);
 
-        if (this.modules.util.isWritable()) {
-            elem = aEvent.originalTarget;
+            // get cursor line number in the textarea (zero origin)
+            var lines = textarea.value.split('\n');        
+            var selStart = textarea.selectionStart;
+            for (var i = 0, count = 0; i < lines.length; ++i) {
+                count += (lines[i].length + 1);
+                if (count > selStart) {
+                    var cursorLineNum = i;
+                    break;
+                }
+            }
 
-            var box = elem.ownerDocument.getBoxObjectFor(elem);
-            frame.scrollTo(box.x - frame.innerWidth / 2, box.y - frame.innerHeight / 2);
-        }
-        else {
-            elem = frame.document.createElement('span');
+            // fix Firefox bug (?)
+            if (textarea.scrollTop == 0 && selStart == textarea.value.length)
+                textarea.scrollTop = textarea.scrollHeight;
+
+            // get line height in pixel value
+            var lineHeight = parseInt(style.lineHeight.match("^[0-9]+"));
+            // beggining position of the textarea
+            var destX = box.x;
+            var destY = box.y + lineHeight * cursorLineNum - textarea.scrollTop;
+
+            frame.scrollTo(destX - frame.innerWidth / 2, destY - frame.innerHeight / 2);
+        } else {
+            // original code from XUL/Migemo
+            var selection = frame.getSelection();
+            var range = frame.document.createRange();
+            var elem = frame.document.createElement('span');
             range.setStart(selection.focusNode, selection.focusOffset);
             range.setEnd(selection.focusNode, selection.focusOffset);
             range.insertNode(elem);
@@ -357,18 +364,6 @@ KeySnail.Command = {
             range.detach();
         }
     },
-
-    // recenter: function (aEvent) {
-    //     var selCon = this.modules.util.getSelectionController();
-    //     this.modules.util.listProperty(selCon);
-    //     // selCon.scrollSelectionIntoView(selCon.SELECTION_NORMAL,
-    //     //                                selCon.SELECTION_ANCHOR_REGION,
-    //     //                                true);
-    //     // this.modules.util.listProperty(aEvent.target);
-    //     // // var cursor = this.getPosition(aEvent.target);
-    //     // this.message("Scroll Position : " + aEvent.target.scrollTop);
-    //     // this.message("Cursor Position : " + cursor.x + ", " + cursor.y);
-    // },
 
     // ==================== Insertion ==================== //
 
@@ -540,7 +535,7 @@ KeySnail.Command = {
      */
     processRectangle: function (aInput, aReplacement, aIsInsert, aNoExSpace, aIsKill) {
         if (aReplacement != "" && !aReplacement)
-            return;
+            return null;
 
         var oldScrollTop = aInput.scrollTop;
         var oldScrollLeft = aInput.scrollLeft;
@@ -867,6 +862,87 @@ KeySnail.Command = {
             // [nsIDOMNSHTMLInputElement.selectionStart]"
             //  nsresult: "0x80004005 (NS_ERROR_FAILURE)"
         }
+    },
+
+    // ==================== frame ==================== //
+
+    // Very inspired from functions for keyconfig
+    // http://www.pqrs.org/tekezo/firefox/extensions/functions_for_keyconfig/
+    focusOtherFrame: function (aArg) {
+        var focused = this.getFocusedWindow();
+        var topFrameWindow = this.getTopFrameWindow();
+
+        if (!focused) {
+            focused = this.topFrameWindow();
+        }
+
+        // frame
+        var currentframeindex = -1;
+        var frameWindows = this.getListFrameWindow(topFrameWindow);
+        for (var i = 0; i < frameWindows.length; ++i) {
+            if (frameWindows[i] == focused) {
+                currentframeindex = i;
+                break;
+            }
+        }
+
+        var focusTo = aArg ?
+            currentframeindex - 1 : currentframeindex + 1;
+        if (focusTo >= frameWindows.length) {
+            focusTo = 0;
+        } else if (focusTo < 0) {
+            focusTo = frameWindows.length - 1;
+        }
+
+        // set focus
+        var nextFrameWindow = frameWindows[focusTo];
+        if (nextFrameWindow) {
+            nextFrameWindow.focus();
+        }
+    },
+
+    isFrameSetWindow: function (frameWindow) {
+        if (!frameWindow) {
+            return false;
+        }
+
+        var listElem = frameWindow.document.documentElement
+            .getElementsByTagName('frameset');
+
+        return (listElem && listElem.length > 0);
+    },
+
+    getListFrameWindow: function (baseWindow) {
+        var listFrameWindow = [];
+
+        if (this.isFrameSetWindow(baseWindow)) {
+            var frameWindows = baseWindow.frames;
+
+            for (var i = 0; i < frameWindows.length; ++i) {
+                if (this.isFrameSetWindow(frameWindows[i])) {
+                    var childWindows = this.getListFrameWindow(frameWindows[i]);
+                    // 子フレームをくっつける
+                    listFrameWindow = listFrameWindow.concat(childWindows);
+                } else {
+                    listFrameWindow.push(frameWindows[i]);
+                }
+            }
+        }
+
+        return listFrameWindow;
+    },
+
+    getTopFrameWindow: function () {
+        return gBrowser.contentWindow;
+    },
+
+    getFocusedWindow: function () {
+        var focused = document.commandDispatcher.focusedWindow;
+        if (!focused) {
+            focused = null;
+        }
+
+        return focused;
     },
 
     message: KeySnail.message

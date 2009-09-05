@@ -143,7 +143,7 @@ key.setGlobalKey(["C-x", "C-c"],
                  "Firefox を終了");
 key.setGlobalKey(["C-x", "o"],
                  function (aEvent, aArg) {
-                     rc.focusOtherFrame(aArg);
+                     command.focusOtherFrame(aArg);
                  },
                  "次のフレームを選択", true);
 
@@ -557,102 +557,3 @@ key.setCaretKey("H", function () {
                     gBrowser.mTabContainer.advanceSelectedTab(-1, true);
                 }, "ひとつ左のタブへ");
 
-// ==================== Define your function (if needed) ==================== //
-// 以下のようにしてモジュールを作成して関数を定義することが出来ます.
-// ここでは RC という名前になっていますが, 他のモジュールと被らない範囲であれば
-// 自由につけてしまって構いません.
-// あらかじめ予約された名前空間は現在のところ
-// Command, Display, Hook, HTML, Key, Util, Prompt, UserScript
-// となっています.
-// モジュールへのアクセスは「小文字にしたモジュール名」で行います.
-// RC なら rc.hoge といった具合です.
-
-KeySnail.RC = {
-    init: function () {
-    },
-
-    // Very inspired from functions for keyconfig
-    // http://www.pqrs.org/tekezo/firefox/extensions/functions_for_keyconfig/
-    focusOtherFrame: function (aArg) {
-        var focused = this.getFocusedWindow();
-        var topFrameWindow = this.getTopFrameWindow();
-
-        if (!focused) {
-            focused = this.topFrameWindow();
-        }
-
-        // frame
-        var currentframeindex = -1;
-        var frameWindows = this.getListFrameWindow(topFrameWindow);
-        for (var i = 0; i < frameWindows.length; ++i) {
-            if (frameWindows[i] == focused) {
-                currentframeindex = i;
-                break;
-            }
-        }
-
-        var focusTo = aArg ?
-            currentframeindex - 1 : currentframeindex + 1;
-        if (focusTo >= frameWindows.length) {
-            focusTo = 0;
-        } else if (focusTo < 0) {
-            focusTo = frameWindows.length - 1;
-        }
-
-        // set focus
-        var nextFrameWindow = frameWindows[focusTo];
-        if (nextFrameWindow) {
-            nextFrameWindow.focus();
-            return;
-        }
-    },
-
-    isFrameSetWindow: function (frameWindow) {
-        if (!frameWindow) {
-            return false;
-        }
-
-        var listElem = frameWindow.document.documentElement
-            .getElementsByTagName('frameset');
-
-        return (listElem && listElem.length > 0);
-    },
-
-    getListFrameWindow: function (baseWindow) {
-        var listFrameWindow = [];
-
-        if (this.isFrameSetWindow(baseWindow)) {
-            var frameWindows = baseWindow.frames;
-
-            for (var i = 0; i < frameWindows.length; ++i) {
-                if (this.isFrameSetWindow(frameWindows[i])) {
-                    var childWindows = this.getListFrameWindow(frameWindows[i]);
-                    // 子フレームをくっつける
-                    listFrameWindow = listFrameWindow.concat(childWindows);
-                } else {
-                    listFrameWindow.push(frameWindows[i]);
-                }
-            }
-        }
-
-        return listFrameWindow;
-    },
-
-    getTopFrameWindow: function () {
-        return gBrowser.contentWindow;
-    },
-
-    getFocusedWindow: function () {
-        var focused = document.commandDispatcher.focusedWindow;
-        if (!focused) {
-            focused = null;
-        }
-
-        return focused;
-    }
-};
-
-// モジュールを登録
-KeySnail.registerModule("RC");
-// モジュールを初期化 (init メソッドが呼ばれる)
-KeySnail.initModule("RC");

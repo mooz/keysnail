@@ -292,7 +292,7 @@ key.setGlobalKey(["C-x", "C-c"],
                         en: '"Exit Firefox"'}[l] + """);
 key.setGlobalKey(["C-x", "o"],
                  function (aEvent, aArg) {
-                     rc.focusOtherFrame(aArg);
+                     command.focusOtherFrame(aArg);
                  },
                  """ + {ja: '"次のフレームを選択"',
                         en: '"Select next frame"'}[l] + """, true);
@@ -790,114 +790,4 @@ key.setCaretKey("H", function () {
                     gBrowser.mTabContainer.advanceSelectedTab(-1, true);
                 }, """ + {ja: '"ひとつ左のタブへ"',
                           en: '"Select previous tab"'}[l] + """);
-
-// ==================== Define your function (if needed) ==================== //
-""" + {ja: """// 以下のようにしてモジュールを作成して関数を定義することが出来ます.
-// ここでは RC という名前になっていますが, 他のモジュールと被らない範囲であれば
-// 自由につけてしまって構いません.
-// あらかじめ予約された名前空間は現在のところ
-// Command, Display, Hook, HTML, Key, Util, Prompt, UserScript
-// となっています.
-// モジュールへのアクセスは「小文字にしたモジュール名」で行います.
-// RC なら rc.hoge といった具合です.""",
-       en: """// You can create the module and define the funtions like below.
-// Although in this example the module name is RC, you can choose it freely
-// unless overlap the other modules.
-// Modules already registered are currently,
-//     Command, Display, Hook, HTML, Key, Util, Prompt, UserScript
-// so you have to choose the other names.
-// To access to the created module, use lower-cased module name.
-// RC => rc.foo"""}[l] + """
-
-KeySnail.RC = {
-    init: function () {
-    },
-
-    // Very inspired from functions for keyconfig
-    // http://www.pqrs.org/tekezo/firefox/extensions/functions_for_keyconfig/
-    focusOtherFrame: function (aArg) {
-        var focused = this.getFocusedWindow();
-        var topFrameWindow = this.getTopFrameWindow();
-
-        if (!focused) {
-            focused = this.topFrameWindow();
-        }
-
-        // frame
-        var currentframeindex = -1;
-        var frameWindows = this.getListFrameWindow(topFrameWindow);
-        for (var i = 0; i < frameWindows.length; ++i) {
-            if (frameWindows[i] == focused) {
-                currentframeindex = i;
-                break;
-            }
-        }
-
-        var focusTo = aArg ?
-            currentframeindex - 1 : currentframeindex + 1;
-        if (focusTo >= frameWindows.length) {
-            focusTo = 0;
-        } else if (focusTo < 0) {
-            focusTo = frameWindows.length - 1;
-        }
-
-        // set focus
-        var nextFrameWindow = frameWindows[focusTo];
-        if (nextFrameWindow) {
-            nextFrameWindow.focus();
-            return;
-        }
-    },
-
-    isFrameSetWindow: function (frameWindow) {
-        if (!frameWindow) {
-            return false;
-        }
-
-        var listElem = frameWindow.document.documentElement
-            .getElementsByTagName('frameset');
-
-        return (listElem && listElem.length > 0);
-    },
-
-    getListFrameWindow: function (baseWindow) {
-        var listFrameWindow = [];
-
-        if (this.isFrameSetWindow(baseWindow)) {
-            var frameWindows = baseWindow.frames;
-
-            for (var i = 0; i < frameWindows.length; ++i) {
-                if (this.isFrameSetWindow(frameWindows[i])) {
-                    var childWindows = this.getListFrameWindow(frameWindows[i]);
-                    // """ + {ja: "子フレームをくっつける",
-                              en: "Append the child frame"}[l] + """
-                    listFrameWindow = listFrameWindow.concat(childWindows);
-                } else {
-                    listFrameWindow.push(frameWindows[i]);
-                }
-            }
-        }
-
-        return listFrameWindow;
-    },
-
-    getTopFrameWindow: function () {
-        return gBrowser.contentWindow;
-    },
-
-    getFocusedWindow: function () {
-        var focused = document.commandDispatcher.focusedWindow;
-        if (!focused) {
-            focused = null;
-        }
-
-        return focused;
-    }
-};
-
-// """ + {ja: "モジュールを登録",
-          en: "Register the module"}[l] + """
-KeySnail.registerModule("RC");
-// """ + {ja: "モジュールを初期化 (init メソッドが呼ばれる)",
-          en: "Initialize the module (just call the init method)"}[l] + """
-KeySnail.initModule("RC");"""
+"""
