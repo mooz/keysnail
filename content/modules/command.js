@@ -68,7 +68,7 @@ KeySnail.Command = {
             prompt.read("Command?:",
                         function (aStr) {
                             Function("with (KeySnail.modules) { " + aStr + " }")();
-                            prompt.substrMatch = true;
+                            prompt.substrMatch = false;
                         }, null, this.createCommandList(),
                         null, 0, "command");
         }

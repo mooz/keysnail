@@ -1044,13 +1044,19 @@ KeySnail.Key = {
         with (this.modules) {
             contentHolder.push("<h2 id='special'>Special Keys</h2>");
             contentHolder.push("<table class='table-keybindings'>");
-            contentHolder.push("<tr><th>Role</th><th>Key</th></tr>");
-            contentHolder.push("<tr><td>Quit key</td><td>" + html.escapeTag(this.quitKey) + "</td></tr>");
-            contentHolder.push("<tr><td>Help key</td><td>" + html.escapeTag(this.helpKey) + "</td></tr>");
-            contentHolder.push("<tr><td>Escape key</td><td>" + html.escapeTag(this.escapeKey) + "</td></tr>");
-            contentHolder.push("<tr><td>Start key macro recording</td><td>" + html.escapeTag(this.macroStartKey) + "</td></tr>");
-            contentHolder.push("<tr><td>End key macro recording / Play key macro</td><td>" + html.escapeTag(this.macroEndKey) + "</td></tr>");
-            contentHolder.push("<tr><td>Suspension switch key</td><td>" + html.escapeTag(this.suspendKey) + "</td></tr>");
+            contentHolder.push("<tr><th>Role</th><th>Key</th><th>Description</th></tr>");
+            contentHolder.push("<tr><td>Quit key</td><td>" + html.escapeTag(this.quitKey) + "</td><td>" + 
+                               util.getLocaleString("specialKeyQuit") + "</td></tr>");
+            contentHolder.push("<tr><td>Help key</td><td>" + html.escapeTag(this.helpKey) + "</td><td>" +
+                               util.getLocaleString("specialKeyHelp") + "</td></tr>");
+            contentHolder.push("<tr><td>Escape key</td><td>" + html.escapeTag(this.escapeKey) + "</td><td>" +
+                               util.getLocaleString("specialKeyEscape") + "</td></tr>");
+            contentHolder.push("<tr><td>Start key macro recording</td><td>" + html.escapeTag(this.macroStartKey) + "</td><td>" +
+                               util.getLocaleString("specialKeyMacroStart") + "</td></tr>");
+            contentHolder.push("<tr><td>End key macro recording / Play key macro</td><td>" + html.escapeTag(this.macroEndKey) + "</td><td>" +
+                               util.getLocaleString("specialKeyMactoEnd") + "</td></tr>");
+            contentHolder.push("<tr><td>Suspension switch key</td><td>" + html.escapeTag(this.suspendKey) + "</td><td>" +
+                               util.getLocaleString("specialKeySuspend") + "</td></tr>");
             contentHolder.push("</table>\n");
 
             contentHolder.push("<h2 id='parg'>Prefix Argument Keys</h2>");
@@ -1066,12 +1072,11 @@ KeySnail.Key = {
                 // for testing
                 var eventKeys = ["C-0", "M-0", "C-M-0"];
 
-                let self = this;
                 eventKeys.forEach(function (eventKey) {
-                                      if (self.isDigitArgumentKey(self.stringToKeyEvent(eventKey))) {
+                                      if (this.isDigitArgumentKey(this.stringToKeyEvent(eventKey))) {
                                           digitKeys.push(eventKey.substr(0, eventKey.length - 1) + "[0-9]");
                                       }
-                                  });
+                                  }, this);
 
                 contentHolder.push("<tr><td>" + digitKeys.join(", ") + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
                 var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";

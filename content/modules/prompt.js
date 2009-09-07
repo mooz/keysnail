@@ -502,13 +502,11 @@ KeySnail.Prompt = function () {
             }
         },
 
-        set ignoreDuplication(aBool) {
-            ignoreDuplication = !!aBool;
-        },
+        set ignoreDuplication(aBool) { ignoreDuplication = !!aBool; },
+        get ignoreDuplication() { return ignoreDuplication; },
 
-        get ignoreDuplication() {
-            return ignoreDuplication;
-        },
+        set substrMatch(aBool) { substrMatch = !!aBool; },
+        get substrMatch() { return substrMatch; },
 
         /**
          * Read string from prompt and execute <aCallback>

@@ -39,16 +39,6 @@ KeySnail.UserScript = {
         // if (KeySnail.windowType == "navigator:browser") {
         var code = this.modules.util.readTextFile(aScriptPath).value;
         Function("with (KeySnail.modules) {" + code + " }")();
-        // } else {
-        //     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-        //         .getService(Components.interfaces.nsIWindowMediator);
-        //     var browserWindow = wm.getMostRecentWindow("navigator:browser");
-        //     this.initFileFunc = browserWindow.KeySnail.UserScript.initFileFunc;
-        //     var testFunc = new Function("return;");
-        //     this.initFileFunc.__parent__= testFunc.__parent__;
-        //     this.initFileFunc.__proto__= testFunc.__proto__;
-        // }
-        // this.initFileFunc();
     },
 
     /**
@@ -96,7 +86,7 @@ KeySnail.UserScript = {
 
         if (!this.userPath) {
             this.userPath = this.prefDirectory;
-            nsPreferences.setUnicharPref("extensions.keysnail.userscript.location", this.userPath);
+            this.modules.util.setUnicharPref("extensions.keysnail.userscript.location", this.userPath);
         }
 
         this.load();

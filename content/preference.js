@@ -59,8 +59,7 @@ var ksPreference = {
 
         switch (aType) {
         case 'INITFILE':
-            var initFileLocation = nsPreferences.getLocalizedUnicharPref(this.initFileKey)
-                || nsPreferences.copyUnicharPref(this.initFileKey);
+            var initFileLocation = this.modules.util.getUnicharPref(this.initFileKey);
 
             fp.init(window, "Select a directory", nsIFilePicker.modeGetFolder);
             fp.displayDirectory = this.openFile(initFileLocation);
@@ -90,7 +89,7 @@ var ksPreference = {
                     return;
                 }
             }
-            nsPreferences.setUnicharPref(prefKey, fp.file.path);
+            this.modules.util.setUnicharPref(prefKey, fp.file.path);
             this.updateFileField(this.initFileKey, "keysnail.preference.userscript.location");
             break;
         case 'EDITOR':
@@ -99,10 +98,7 @@ var ksPreference = {
                 return;
             }
             // set preference value
-            var str = Components.classes["@mozilla.org/supports-string;1"]
-                .createInstance(nsISupportsString);
-            str.data = fp.file.path;
-            pref.setComplexValue(prefKey, nsISupportsString, str);
+            this.modules.util.setUnicharPref(prefKey, fp.file.path);
             // nsPreferences.setUnicharPref(prefKey, fp.file.path);
             // var editorPath = this.modules.util
             //     .getUnicharPref("extensions.keysnail.userscript.editor");

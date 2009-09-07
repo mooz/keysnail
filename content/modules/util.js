@@ -241,6 +241,17 @@ KeySnail.Util = {
             || nsPreferences.copyUnicharPref(aStringKey);
     },
 
+    setUnicharPref: function (aStringKey, aValue) {
+        var prefs = Components.classes["@mozilla.org/preferences-service;1"].
+            getService(Components.interfaces.nsIPrefBranch);
+        var str = Components.classes["@mozilla.org/supports-string;1"]
+            .createInstance(Components.interfaces.nsISupportsString);
+        str.data = aValue;
+        prefs.setComplexValue(aStringKey,
+                              Components.interfaces.nsISupportsString,
+                              str);
+    },
+
     // original code from Firegestures
     // http://www.xuldev.org/firegestures/
     getLocaleString: function (aStringKey, aReplacements) {

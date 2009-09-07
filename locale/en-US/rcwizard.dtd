@@ -58,12 +58,12 @@
 <!ENTITY keySnail.rcWizard.key.negativeArgument2 "Negative argument key 2">
 <!ENTITY keySnail.rcWizard.key.negativeArgument3 "Negative argument key 3">
 
-<!ENTITY keySnail.rcWizard.key.quit.description "Used for cancelling current key input, close the findbar, etc">
-<!ENTITY keySnail.rcWizard.key.help.description "Used for listing the keybindings">
-<!ENTITY keySnail.rcWizard.key.escape.description "Escape the next key. This means that KeySnail ignore the key and pass to Firefox">
+<!ENTITY keySnail.rcWizard.key.quit.description "Cancel current key input">
+<!ENTITY keySnail.rcWizard.key.help.description "With some prefix key, display 'beginning with ...' help">
+<!ENTITY keySnail.rcWizard.key.escape.description "KeySnail will ignore the next key and pass it to the Firefox directly">
 <!ENTITY keySnail.rcWizard.key.macroStart.description "Start the key macro recording">
-<!ENTITY keySnail.rcWizard.key.macroEnd.description "Stop the key macro recording or play the recorded one">
-<!ENTITY keySnail.rcWizard.key.suspend.description "To switch the suspension state of the KeySnail">
+<!ENTITY keySnail.rcWizard.key.macroEnd.description "Stop the key macro recording or play recorded one if exists">
+<!ENTITY keySnail.rcWizard.key.suspend.description "Switch suspension state of the KeySnail">
 
 <!ENTITY keySnail.rcWizard.key.universalArgument.description "To begin input the prefix argument">
 <!ENTITY keySnail.rcWizard.key.negativeArgument.description "To begin input the negative prefix argument">
