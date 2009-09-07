@@ -1054,7 +1054,7 @@ KeySnail.Key = {
             contentHolder.push("<tr><td>Start key macro recording</td><td>" + html.escapeTag(this.macroStartKey) + "</td><td>" +
                                util.getLocaleString("specialKeyMacroStart") + "</td></tr>");
             contentHolder.push("<tr><td>End key macro recording / Play key macro</td><td>" + html.escapeTag(this.macroEndKey) + "</td><td>" +
-                               util.getLocaleString("specialKeyMactoEnd") + "</td></tr>");
+                               util.getLocaleString("specialKeyMacroEnd") + "</td></tr>");
             contentHolder.push("<tr><td>Suspension switch key</td><td>" + html.escapeTag(this.suspendKey) + "</td><td>" +
                                util.getLocaleString("specialKeySuspend") + "</td></tr>");
             contentHolder.push("</table>\n");
