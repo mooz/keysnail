@@ -63,12 +63,13 @@ KeySnail.Command = {
     },
 
     interpreter: function () {
+        var savedSubstrMatch = this.modules.prompt.substrMatch;
         with (this.modules) {
             prompt.substrMatch = false;
             prompt.read("Command?:",
                         function (aStr) {
                             Function("with (KeySnail.modules) { " + aStr + " }")();
-                            prompt.substrMatch = false;
+                            prompt.substrMatch = savedSubstrMatch;
                         }, null, this.createCommandList(),
                         null, 0, "command");
         }
@@ -83,7 +84,7 @@ KeySnail.Command = {
     elementsRetrieverTextarea: function (aDocument) {
         // var document = gBrowser.contentWindow.document;
         // Note: type="search" is Safari specific
-        var xPathExp = '//input[@type="text" or @type="password" or @type="search" or not(@type)] | //textarea';
+        var xPathExp = '//input[(@type="text" or @type="password" or @type="search" or not(@type)) and not(@type="hidden")] | //textarea';
         return aDocument.evaluate(xPathExp, aDocument, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
     },
 
@@ -119,6 +120,8 @@ KeySnail.Command = {
         if (xPathResults.snapshotLength == 0) {
             return;
         }
+
+        this.modules.display.prettyPrint("found " + xPathResults.snapshotLength);
 
         if (aNum >= xPathResults.snapshotLength) {
             aNum = xPathResults.snapshotLength - 1;
