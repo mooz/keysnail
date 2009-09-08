@@ -60,16 +60,16 @@ KeySnail.Display = {
                 container.id = ksMessageId;
                 container.style.cssText = ksMessageStyle;
 
+                container.addEventListener('click', function () {
+                                               this.style.display = 'none';
+                                           }, true);
+
                 dBody.appendChild(container);
-
-                container.onclick = function () {
-                    this.style.display = 'none';
-                };
-            }
-
-            // clear
-            while (container.hasChildNodes()) {
-                container.removeChild(container.firstChild);
+            } else {
+                // clear
+                while (container.hasChildNodes()) {
+                    container.removeChild(container.firstChild);
+                }                
             }
 
             container.appendChild(content.document.createTextNode(lines[0]));
