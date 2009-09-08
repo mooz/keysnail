@@ -49,9 +49,9 @@ KeySnail.Macro = {
                                   event.metaKey,
                                   event.keyCode,
                                   event.charCode);
-            // stack.push(this.modules.key.keyEventToString(event));
             this.getCurrentFocusedElement().dispatchEvent(newEvent);
             this.sleep(sleepTime);
+            // stack.push(this.modules.key.keyEventToString(event));
         }
         // Application.console.log(stack.join(" "));
     },

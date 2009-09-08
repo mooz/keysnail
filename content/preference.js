@@ -26,7 +26,7 @@ var ksPreference = {
             fileField.label = file.path;
         } else {
             fileField.file = null;
-            fileField.label = "No path specified";
+            fileField.label = " Not specified ";
         }
     },
 
@@ -67,7 +67,7 @@ var ksPreference = {
             break;
         case 'EDITOR':
             fp.init(window, "Select Editor", nsIFilePicker.modeOpen);
-            fp.appendFilters(Components.interfaces.nsIFilePicker.filterApps);
+            fp.appendFilters(nsIFilePicker.filterApps);
             fp.appendFilters(nsIFilePicker.filterAll);
             prefKey = this.editorKey;
             break;
@@ -99,10 +99,7 @@ var ksPreference = {
             }
             // set preference value
             this.modules.util.setUnicharPref(prefKey, fp.file.path);
-            // nsPreferences.setUnicharPref(prefKey, fp.file.path);
-            // var editorPath = this.modules.util
-            //     .getUnicharPref("extensions.keysnail.userscript.editor");
-            // Application.console.log("getUnicharPref : " + editorPath);
+            Application.console.log("fp.file.path : " + fp.file.path);
             this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");                
             break;
         }

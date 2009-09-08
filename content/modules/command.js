@@ -121,19 +121,19 @@ KeySnail.Command = {
             return;
         }
 
-        this.modules.display.prettyPrint("found " + xPathResults.snapshotLength);
+        // var msg = ["found " + xPathResults.snapshotLength];
+        // for (var i = 0; i < xPathResults.snapshotLength; ++i)
+        //     msg.push(xPathResults.snapshotItem(i).localName || "None");
+        // this.modules.display.prettyPrint(msg.join("\n"));
 
         if (aNum >= xPathResults.snapshotLength) {
             aNum = xPathResults.snapshotLength - 1;
         }
 
         var item = xPathResults.snapshotItem(aNum);
-        while (this.isSkippable(item, doc)) {
-            aNum++;
-            if (aNum >= xPathResults.snapshotLength - 1) {
-                return;
-            }
-            item = xPathResults.snapshotItem(aNum);
+        while (this.isSkippable(item, doc) &&
+               aNum < xPathResults.snapshotLength) {
+            item = xPathResults.snapshotItem(++aNum);
         }
 
         item.focus();

@@ -281,7 +281,7 @@ KeySnail.UserScript = {
     syncEditorWithGM: function () {
         var gmEditor = this.modules.util.getUnicharPref("greasemonkey.editor");
         if (gmEditor) {
-            nsPreferences.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
+            this.modules.util.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
         }
 
         this.message("editor : " + gmEditor);
@@ -316,8 +316,10 @@ KeySnail.UserScript = {
         var editorPath = this.modules.util
             .getUnicharPref("extensions.keysnail.userscript.editor");
 
-        if (!editorPath) {
-            editorPath = this.syncEditorWithGM();
+        if (!editorPath &&
+            !(editorPath = this.syncEditorWithGM())) {
+            this.modules.display.prettyPrint("No editor selected");
+            return;
         }
 
         var editorFile;
@@ -331,18 +333,18 @@ KeySnail.UserScript = {
             editorFile = Components.classes["@mozilla.org/file/local;1"]
                 .createInstance(Components.interfaces.nsILocalFile);
             editorFile.followLinks = true;
-            editorFile.initWithPath("/usr/bin/open");            
+            editorFile.initWithPath("/usr/bin/open");
         } else {
             try {
                 editorFile = this.modules.util.openFile(editorPath);
             } catch (e) {
-                this.modules.display.prettyPrint("editor: no editor specified or error occured");
+                this.modules.display.prettyPrint("Error occured while opening the editor");
                 return;
             }
 
             if (!editorFile.exists()) {
-                this.modules.display.prettyPrint("editor: " + editorFile.path
-                                                 + " not found. Please select the valid editor");
+                this.modules.display.prettyPrint(editorFile.path +
+                                                 " not found. Please select the valid editor");
                 return;
             }
         }
@@ -400,7 +402,6 @@ KeySnail.UserScript = {
     },
 
     /**
-     * 
      * @returns {boolean}
      */
     openDialog: function () {
@@ -426,8 +427,6 @@ KeySnail.UserScript = {
                           params);
 
         if (!params.out) {
-            this.message("Not params out!");
-            // so, what can we do?
             return false;
         }
 
