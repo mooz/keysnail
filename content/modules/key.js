@@ -423,10 +423,13 @@ KeySnail.Key = {
     keyEventToString: function (aEvent) {
         var key;
 
-        // this.modules.display.prettyPrint("char code : " + aEvent.charCode + "   " +
-        //                                  "key code : " + aEvent.keyCode + "   " +
-        //                                  (aEvent.ctrlKey ? "C" : "_") + (aEvent.altKey ? "M" : "_")
-        //                                 );
+        // this.modules.display.prettyPrint(
+        //     ["char code :: " + aEvent.charCode,
+        //      "key code  :: " + aEvent.keyCode,
+        //      "ctrl      :: " + (aEvent.ctrlKey ? "on" : "off"),
+        //      "alt       :: " + (aEvent.altKey ? "on" : "off"),
+        //      "meta      :: " + (aEvent.metaKey ? "on" : "off"),
+        //      "command   :: " + (aEvent.commandKey ? "on" : "off")].join("\n"));
 
         if (aEvent.charCode >= 0x20 && aEvent.charCode <= 0x7e) {
             // ASCII displayable characters (0x20 : SPC)
@@ -517,7 +520,7 @@ KeySnail.Key = {
      * @param {String} aKey string expression
      * @return {KeyboardEvent}
      */
-    stringToKeyEvent: function (aKey) {
+    stringToKeyEvent: function (aKey, aKsNoHandle) {
         var newEvent = document.createEvent('KeyboardEvent');
         var ctrlKey = false;
         var altKey = false;
@@ -617,6 +620,9 @@ KeySnail.Key = {
                               ctrlKey, altKey, false, false,
                               keyCode, charCode);
 
+        if (aKsNoHandle)
+            newEvent.ksNoHandle = true;
+
         return newEvent;
     },
 
@@ -631,19 +637,25 @@ KeySnail.Key = {
                 aEvent.charCode <= 0x39);
     },
 
-    // @return true if aKey is the valid literal key expression
-    // example)
-    // a   => valid
-    // C-t => valid
-    // M-< => valid
-    // C=C => invalid
-    // %%% => invalid
+    /**
+     * @param {} aKey
+     * @returns {boolean} true if aKey is the valid literal key expression
+     * example)
+     * a   => valid
+     * C-t => valid
+     * M-< => valid
+     * C=C => invalid
+     * %%% => invalid
+     */
     validateKey: function (aKey) {
         return true;
     },
 
-    // @return index of the invalid key in the key sequence
-    //         -1 when there are no invalid keys
+    /**
+     * @param {} aKeys
+     * @returns {integer} index of the invalid key in the k
+     *            -1 when there are no invalid keys
+     */
     seekInvalidKey: function (aKeys) {
         var i = 0;
         var len = 0;
@@ -1117,7 +1129,9 @@ KeySnail.Key = {
         this.viewURI(contentPath);
     },
 
-    // Display beginning with ... help
+    /**
+     * Display beginning with ... help
+     */
     interactiveHelp: function () {
         var contentHolder = ['<h1>Key Bindings Starting With ' +
                              this.currentKeySequence.join(" ") + '</h1><hr />'];

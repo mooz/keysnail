@@ -44,8 +44,6 @@
 <!ENTITY keySnail.rcWizard.settingRcFileDescription2 "C- means the Ctrl and Command key. M- means the Alt and Meta key.">
 <!ENTITY keySnail.rcWizard.settingRcFileDescription3 "For example, C-g means pressing Ctrl + g at the same time and C-M-r means Ctrl + Alt + r.">
 
-<!ENTITY keySnail.rcWizard.changeKey "Change">
-
 <!ENTITY keySnail.rcWizard.key.quit "Quit key">
 <!ENTITY keySnail.rcWizard.key.help "Help key">
 <!ENTITY keySnail.rcWizard.key.escape "Escape key">

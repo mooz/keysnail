@@ -4,6 +4,10 @@ radio[pane="prefpane-rcfile"] {
     list-style-image: url("chrome://keysnail/skin/script.png");
 }
 
+radio[pane="prefpane-keys"] {
+    list-style-image: url("chrome://keysnail/skin/keys.png");
+}
+
 radio[pane="prefpane-about"] {
     list-style-image: url("chrome://keysnail/skin/about.png");
 }

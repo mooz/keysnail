@@ -150,7 +150,7 @@
                      onclick="keyCustomizer.set('quit');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('quit');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -161,7 +161,7 @@
                      onclick="keyCustomizer.set('help');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('help');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -172,7 +172,7 @@
                      onclick="keyCustomizer.set('escape');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('escape');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -183,7 +183,7 @@
                      onclick="keyCustomizer.set('macroStart');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('macroStart');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -194,7 +194,7 @@
                      onclick="keyCustomizer.set('macroEnd');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('macroEnd');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -205,7 +205,7 @@
                      onclick="keyCustomizer.set('suspend');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('suspend');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -216,7 +216,7 @@
                      onclick="keyCustomizer.set('universalArgument');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('universalArgument');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -227,7 +227,7 @@
                      onclick="keyCustomizer.set('negativeArgument1');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('negativeArgument1');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -238,7 +238,7 @@
                      onclick="keyCustomizer.set('negativeArgument2');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('negativeArgument2');"
                     class="keysnail-specialkey-button"/>
         </hbox>
@@ -249,7 +249,7 @@
                      onclick="keyCustomizer.set('negativeArgument3');"
                      readonly="true"
                      class="keysnail-specialkey-textbox"/>
-            <button label="&keySnail.rcWizard.changeKey;"
+            <button label="&keySnail.rcWizard.change;"
                     oncommand="keyCustomizer.set('negativeArgument3');"
                     class="keysnail-specialkey-button"/>
         </hbox>

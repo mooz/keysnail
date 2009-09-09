@@ -43,8 +43,6 @@
 <!ENTITY keySnail.rcWizard.settingRcFileDescription2 "C- は「Ctrl や Command」と、 M- は「Alt や Meta」と同時にキーを入力することを意味します。">
 <!ENTITY keySnail.rcWizard.settingRcFileDescription3 "すなわち C-g は Ctrl + g を、 C-M-r は Ctrl + Alt + r を同時に押す、といった具合になります。">
 
-<!ENTITY keySnail.rcWizard.changeKey "変更">
-
 <!ENTITY keySnail.rcWizard.key.quit "Quit key">
 <!ENTITY keySnail.rcWizard.key.help "Help key">
 <!ENTITY keySnail.rcWizard.key.escape "Escape key">

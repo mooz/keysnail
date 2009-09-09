@@ -17,6 +17,7 @@
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;" flex="1"
               onpaneload="ksPreference.onLoad();">
+        <!-- pref values -->
         <preferences>
             <preference
                  id="extensions.keysnail.keyhandler.global_enabled"
@@ -35,57 +36,252 @@
                  name="extensions.keysnail.userscript.editor"
                  type="file"/>
         </preferences>
-        <vbox>
-            <!-- Status -->
-            <groupbox orient="vertical">
-                <caption label="&keySnail.preference.keyhandler;" />
-                <vbox flex="1">
-                    <checkbox label="&keySnail.preference.keyhandler.globalEnabled;"
-                              preference="extensions.keysnail.keyhandler.global_enabled" />
-                    <checkbox label="&keySnail.preference.keyhandler.usePrefixArgument;"
-                              preference="extensions.keysnail.keyhandler.use_prefix_argument" />
-                </vbox>
-            </groupbox>
+        <!-- Status -->
+        <groupbox orient="vertical">
+            <caption label="&keySnail.preference.keyhandler;" />
+            <vbox flex="1">
+                <checkbox label="&keySnail.preference.keyhandler.globalEnabled;"
+                          preference="extensions.keysnail.keyhandler.global_enabled" />
+                <checkbox label="&keySnail.preference.keyhandler.usePrefixArgument;"
+                          preference="extensions.keysnail.keyhandler.use_prefix_argument" />
+            </vbox>
+        </groupbox>
 
-            <!-- Init File Settings -->
-            <groupbox orient="vertical">
-                <caption label="&keySnail.preference.userscript.settings;" />
-                <vbox flex="1">
-                    <!-- init file path -->
-                    <hbox align="center">
-                        <label value="&keySnail.preference.userscript.location;"
-                               control="userScriptLocation" flex="1"/>
-                        <filefield id="keysnail.preference.userscript.location"
-                                   style="width: 25em;"
-                                   preference="extensions.keysnail.userscript.location"
-                                   type="file"/>
-                        <button label="&keySnail.preference.userscript.reference;"
-                                oncommand="ksPreference.changePathClicked('INITFILE');" />
-                    </hbox>
+        <!-- Init File Settings -->
+        <groupbox orient="vertical">
+            <caption label="&keySnail.preference.userscript.settings;" />
+            <vbox flex="1">
+                <!-- init file path -->
+                <hbox align="center">
+                    <label value="&keySnail.preference.userscript.location;"
+                           control="userScriptLocation" flex="1"/>
+                    <filefield id="keysnail.preference.userscript.location"
+                               style="width: 25em;"
+                               preference="extensions.keysnail.userscript.location"/>
+                    <button label="&keySnail.preference.userscript.reference;"
+                            oncommand="ksPreference.changePathClicked('INITFILE');" />
+                </hbox>
 
-                    <spacer height="5px" />
+                <spacer height="5px" />
 
-                    <!-- editor path -->
-                    <hbox align="center">
-                        <label value="&keySnail.preference.userscript.editor;"
-                               control="userScriptLocation" flex="1"/>
-                        <filefield id="keysnail.preference.userscript.editor"
-                                   style="width: 25em;"
-                                   preference="extensions.keysnail.userscript.editor"
-                                   type="file"/>
-                        <button label="&keySnail.preference.userscript.reference;"
-                                oncommand="ksPreference.changePathClicked('EDITOR');" />
-                    </hbox>
-                </vbox>
-            </groupbox>
+                <!-- editor path -->
+                <hbox align="center">
+                    <label value="&keySnail.preference.userscript.editor;"
+                           control="userScriptLocation" flex="1"/>
+                    <filefield id="keysnail.preference.userscript.editor"
+                               style="width: 25em;"
+                               preference="extensions.keysnail.userscript.editor"/>
+                    <button label="&keySnail.preference.userscript.reference;"
+                            oncommand="ksPreference.changePathClicked('EDITOR');" />
+                </hbox>
+            </vbox>
+        </groupbox>
 
-            <spacer height="20px" />
+        <spacer height="20px" />
+    </prefpane>
+
+    <prefpane id="prefpane-keys" label="&keySnail.preference.keys;" flex="1">
+        <!-- key bindings list -->
+        <tabbox>
+            <tabs>
+                <tab label="Key Bindings"/>
+                <tab label="Special Key"/>
+                <tab label="Blacklist Settings"/>
+                <tab label="Hook"/>
+            </tabs>
+            <tabpanels>
+                <tabpanel id="keybindings" flex="1">
+                    <vbox flex="1">
+                        <tree rows="18" id="tree-global">
+                            <treecols>
+                                <treecol id="binds-key-global"
+                                         label="&keySnail.preference.keys.treeheader.key;"
+                                         flex="1"/>
+		                <splitter class="tree-splitter" />
+                                <treecol id="binds-description-global"
+                                         label="&keySnail.preference.keys.treeheader.description;"
+                                         flex="2"/>
+                            </treecols>
+                            <treechildren></treechildren>
+                        </tree>
+                        <!-- command buttons -->
+                        <hbox align="right">
+                            <textbox></textbox>
+                            <button label="編集" />
+                            <button label="追加" />
+                            <button label="削除" />
+                        </hbox>
+                    </vbox>
+                </tabpanel>
+                <tabpanel id="special-keys">
+                    <vbox flex="1">
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.quit.description;">
+                            <description flex="1">&keySnail.preference.key.quit;:</description>
+                            <textbox id="keysnail-userscript-key-quit"
+                                     onclick="keyCustomizer.set('quit');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('quit');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- help key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.help.description;">
+                            <description flex="1">&keySnail.preference.key.help;:</description>
+                            <textbox id="keysnail-userscript-key-help"
+                                     onclick="keyCustomizer.set('help');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('help');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- escape key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.escape.description;">
+                            <description flex="1">&keySnail.preference.key.escape;:</description>
+                            <textbox id="keysnail-userscript-key-escape"
+                                     onclick="keyCustomizer.set('escape');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('escape');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- macroStart key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.macroStart.description;">
+                            <description flex="1">&keySnail.preference.key.macroStart;:</description>
+                            <textbox id="keysnail-userscript-key-macroStart"
+                                     onclick="keyCustomizer.set('macroStart');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('macroStart');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- macroEnd key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.macroEnd.description;">
+                            <description flex="1">&keySnail.preference.key.macroEnd;:</description>
+                            <textbox id="keysnail-userscript-key-macroEnd"
+                                     onclick="keyCustomizer.set('macroEnd');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('macroEnd');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- suspend key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.suspend.description;">
+                            <description flex="1">&keySnail.preference.key.suspend;:</description>
+                            <textbox id="keysnail-userscript-key-suspend"
+                                     onclick="keyCustomizer.set('suspend');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('suspend');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- universalArgument key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.universalArgument.description;">
+                            <description flex="1">&keySnail.preference.key.universalArgument;:</description>
+                            <textbox id="keysnail-userscript-key-universalArgument"
+                                     onclick="keyCustomizer.set('universalArgument');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('universalArgument');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- negativeArgument1 key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
+                            <description flex="1">&keySnail.preference.key.negativeArgument1;:</description>
+                            <textbox id="keysnail-userscript-key-negativeArgument1"
+                                     onclick="keyCustomizer.set('negativeArgument1');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('negativeArgument1');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- negativeArgument2 key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
+                            <description flex="1">&keySnail.preference.key.negativeArgument2;:</description>
+                            <textbox id="keysnail-userscript-key-negativeArgument2"
+                                     onclick="keyCustomizer.set('negativeArgument2');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('negativeArgument2');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- negativeArgument3 key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
+                            <description flex="1">&keySnail.preference.key.negativeArgument3;:</description>
+                            <textbox id="keysnail-userscript-key-negativeArgument3"
+                                     onclick="keyCustomizer.set('negativeArgument3');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('negativeArgument3');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                    </vbox>
+                </tabpanel>
+                <tabpanel id="blacklist-settings" flex="1">
+                    <vbox flex="1">
+                        <description>KeySnail を一時的に無効にしたいページの正規表現を指定して下さい。</description>
+                        <listbox id="blacklist-urls" flex="1">
+                            <listitem>http://mail\.google\.com/.*</listitem>
+                            <listitem>http://mail\.yahoo\.co.jp/.*</listitem>
+                        </listbox>
+                        <hbox>
+                            <textbox rows="1" flex="1"></textbox>
+                            <button label="追加"/>
+                        </hbox>
+                    </vbox>
+                </tabpanel>
+                <tabpanel id="hook-settings">
+                    <vbox flex="1">
+                        <hbox align="center">
+                            <label>フックを選択してください: </label>
+                            <menulist id="hook-list">
+                                <menupopup flex="1">
+                                    <menuitem label="KeyBoardQuit"
+                                              name="hook-keyboard-quit"/>
+                                    <menuitem label="LocationChanged"
+                                              name="hook-location-changed"/>
+                                </menupopup>
+                            </menulist>
+                        </hbox>
+                        <hbox flex="1">
+                            <vbox>
+                                <listbox flex="1">
+                                </listbox>
+                                <hbox>
+                                    <button label="追加"/>
+                                    <button label="削除"/>
+                                </hbox>
+                            </vbox>
+                            <textbox multiline="true" flex="1">
+                            </textbox>
+                        </hbox>
+                    </vbox>
+                </tabpanel>
+            </tabpanels>
+        </tabbox>
+        <spacer height="8px"/>
+        <!-- command buttons -->
+        <vbox align="right">
+            <hbox align="center">
+                <label>設定を保存するためには、初期化ファイルを作成する必要があります。</label>
+                <button label="現在の設定で初期化ファイルを作成" />
+            </hbox>
         </vbox>
     </prefpane>
 
     <!-- about panel -->
     <prefpane id="prefpane-about" label="&keySnail.preference.about;" flex="1">
-        <vbox align="center">
+        <spacer flex="1"/>
+        <vbox align="center" flex="1">
             <image src="chrome://keysnail/skin/logo.png" width="128" height="128"
                    tooltiptext="KeySnail" />
             <spacer height="10px" />
@@ -98,9 +294,8 @@
                          onclick="ksPreference.modules.key.viewURI('http://d.hatena.ne.jp/mooz/')">
                 Visit Author's blog (Japanese)
             </description>
-
-            <spacer height="20px" />
         </vbox>
+        <spacer flex="1"/>
     </prefpane>
 
     <!-- load preference manipulating library -->
