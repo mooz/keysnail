@@ -1242,7 +1242,7 @@ KeySnail.Key = {
      * @returns {string}
      */
     toStringForm: function (aStr) {
-        return "'" + aStr.replace("\\", "\\\\") + "'";
+        return aStr ? "'" + aStr.replace("\\", "\\\\") + "'" : "";
     },
 
     /**
