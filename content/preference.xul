@@ -16,7 +16,7 @@
             style="min-width: 41em;"
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;" flex="1"
-              onpaneload="ksPreference.onLoad();">
+              onpaneload="ksPreference.onGeneralPaneLoad();">
         <!-- pref values -->
         <preferences>
             <preference
@@ -80,33 +80,46 @@
         <spacer height="20px" />
     </prefpane>
 
-    <prefpane id="prefpane-keys" label="&keySnail.preference.keys;" flex="1">
+    <prefpane id="prefpane-keys" label="&keySnail.preference.keys;" flex="1"
+              onpaneload="ksPreference.onKeyPaneLoad();">
         <!-- key bindings list -->
-        <tabbox>
+        <tabbox flex="1">
             <tabs>
                 <tab label="Key Bindings"/>
                 <tab label="Special Key"/>
                 <tab label="Blacklist Settings"/>
                 <tab label="Hook"/>
             </tabs>
-            <tabpanels>
+            <tabpanels flex="1">
                 <tabpanel id="keybindings" flex="1">
                     <vbox flex="1">
-                        <tree rows="18" id="tree-global">
+                        <tree id="keybind-tree" flex="1" seltype="single"
+                              onselect="ksPreference.updateTreeView();"
+		              ondblclick="ksPreference.handleTreeEvent(event);"
+		              onkeypress="ksPreference.handleTreeEvent(event);">
                             <treecols>
-                                <treecol id="binds-key-global"
+                                <treecol id="binds-mode"
+                                         label="&keySnail.preference.keys.treeheader.mode;"/>
+                                <treecol id="binds-key"
                                          label="&keySnail.preference.keys.treeheader.key;"
                                          flex="1"/>
 		                <splitter class="tree-splitter" />
-                                <treecol id="binds-description-global"
+                                <treecol id="binds-description"
                                          label="&keySnail.preference.keys.treeheader.description;"
+                                         flex="3"/>
+		                <splitter class="tree-splitter" />
+                                <treecol id="binds-function"
+                                         label="&keySnail.preference.keys.treeheader.function;"
+                                         hidden="true"
                                          flex="2"/>
                             </treecols>
                             <treechildren></treechildren>
                         </tree>
                         <!-- command buttons -->
                         <hbox align="right">
-                            <textbox></textbox>
+                            <textbox id="keybind-textarea"
+                                     onkeypress="ksPreference.handleKeyBindTextareaEvent(event);">
+                            </textbox>
                             <button label="編集" />
                             <button label="追加" />
                             <button label="削除" />
@@ -272,7 +285,7 @@
         <!-- command buttons -->
         <vbox align="right">
             <hbox align="center">
-                <label>設定を保存するためには、初期化ファイルを作成する必要があります。</label>
+                <label id="notification-area">設定を保存するためには、初期化ファイルを作成する必要があります。</label>
                 <button label="現在の設定で初期化ファイルを作成" />
             </hbox>
         </vbox>
@@ -301,6 +314,7 @@
     <!-- load preference manipulating library -->
     <script type="application/x-javascript" src="chrome://global/content/nsUserSettings.js"/>
     <script type="application/x-javascript" src="chrome://keysnail/content/preference.js"/>
+    <script type="application/x-javascript" src="chrome://keysnail/content/keycustomizer.js"/>
 
 </prefwindow>
 

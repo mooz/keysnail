@@ -396,9 +396,25 @@ key.setEditKey("C-k",
                    command.killLine(aEvent);
                },
                "カーソルから先を一行カット");
-key.setEditKey("C-y",
-               function () { goDoCommand("cmd_paste"); },
-               "ペースト");
+key.setEditKey("C-y", command.yank, "クリップボードの中身を貼り付け");
+key.setEditKey("M-y", command.yankPop, "以前に貼り付けた中身を順に貼り付け");
+key.setEditKey("C-M-y", function (aEvent) {
+                   if (!command.kill.ring.length)
+                       return;
+
+                   var clipboardText = command.getClipboardText();
+                   if (clipboardText != command.kill.ring[0]) {
+                       command.pushKillRing(clipboardText);
+                   }
+
+                   prompt.read("Text to paste:",
+                               function (aReadStr) {
+                                   if (aReadStr) {
+                                       key.insertText(aReadStr);
+                                   }
+                               }, null, command.kill.ring,
+                               command.kill.ring[0], 0, "clipboard");
+               }, "以前にコピーしたテキスト一覧から選択して貼り付け");
 key.setEditKey("C-w",
                function (aEvent) {
                    goDoCommand('cmd_copy');
@@ -421,8 +437,6 @@ key.setEditKey(["C-x", "r", "t"],
                                    command.replaceRectangle(aInput, aStr);
                                },
                                aEvent.originalTarget);
-                   // var replacement = window.prompt("String rectangle", "");
-                   // command.replaceRectangle(aEvent.originalTarget, replacement);
                }, "矩形置換", true);
 
 key.setEditKey(["C-x", "r", "o"],
@@ -432,12 +446,12 @@ key.setEditKey(["C-x", "r", "o"],
 
 key.setEditKey(["C-x", "r", "k"],
                function (aEvent, aArg) {
-                   command.killBuffer = command.killRectangle(aEvent.originalTarget, !aArg);
+                   command.kill.buffer = command.killRectangle(aEvent.originalTarget, !aArg);
                }, "矩形 kill", true);
 
 key.setEditKey(["C-x", "r", "y"],
                function (aEvent) {
-                   command.yankRectangle(aEvent.originalTarget, command.killBuffer);
+                   command.yankRectangle(aEvent.originalTarget, command.kill.buffer);
                }, "矩形 yank", true);
 
 // -------------------- selection -------------------- //

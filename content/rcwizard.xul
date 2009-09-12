@@ -271,4 +271,5 @@
     </wizardpage>
 
     <script type="application/x-javascript" src="chrome://keysnail/content/rcwizard.js" />
+    <script type="application/x-javascript" src="chrome://keysnail/content/keycustomizer.js" />
 </wizard>

@@ -22,4 +22,13 @@
   <script type="application/x-javascript">
     KeySnail.init();
   </script>
+
+  <!-- clipboard watcher -->
+  <window>
+      <commandset id="update-kill-ring"
+                  commandupdater="true"
+                  events="clipboard"
+                  oncommandupdate="KeySnail.Command.clipboardChanged();"/>
+  </window>
+
 </overlay>

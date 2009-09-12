@@ -60,11 +60,24 @@ var KeySnail = {
             window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
         }
 
+        // var windowElement;
+        // windowElement = document.getElementsByTagName("prefwindow");
+        // if (windowElement.length) {
+        //     document.loadOverlay('chrome://keysnail/content/clipboard-watcher-prefwindow.xul', null);                
+        // } else {
+        //     windowElement = document.getElementsByTagName("window");
+        //     if (windowElement.length) {
+        //         document.loadOverlay('chrome://keysnail/content/clipboard-watcher-window.xul', null);
+        //     }
+        // }
+
         this.modules.key.updateStatusBar();
     },
 
     uninit: function () {
-        gBrowser.removeProgressListener(KeySnail.urlBarListener);
+        if (this.windowType == "navigator:browser") {
+            gBrowser.removeProgressListener(KeySnail.urlBarListener);
+        }
     },
 
     /**

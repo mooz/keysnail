@@ -33,6 +33,7 @@ zip -r -9 keysnail.xpi \
     chrome/keysnail.jar \
     defaults/**/*.*~(*~|.svn/*) \
     install.rdf \
+    share/*.js~(*~|.svn/*) \
     components/*.js~*~
 cp chrome.manifest.pack /tmp/chrome.manifest
 zip -j -9 keysnail.xpi /tmp/chrome.manifest

@@ -84,6 +84,39 @@ KeySnail.Display = {
         }
     },
 
+    notify: function (aMsg, aButtons) {
+        const NOTIFY_ID = "ksNotifyMessage";
+        
+        if (typeof(gBrowser) == 'undefined') {
+            this.message(aMsg);
+            return;            
+        }
+
+        if (!aButtons) {
+            aButtons = [
+                {
+                    label: "OK",
+                    callback: function (aNotification) {
+                        aNotification.close();
+                    },
+                    accessKey: "o"
+                }
+            ];
+        }
+
+        var notifyBox = gBrowser.getNotificationBox();
+        var current = notifyBox.currentNotification;
+
+        if (current && current.value == NOTIFY_ID)
+            current.close();
+
+        notifyBox.appendNotification(aMsg,
+                                     NOTIFY_ID,
+                                     "chrome://keysnail/skin/icon16.png",
+                                     "PRIORITY_WARNING_HIGH",
+                                     aButtons);
+    },
+
     message: function (msg) {
         Application.console.log(msg);
     }

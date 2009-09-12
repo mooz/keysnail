@@ -22,6 +22,8 @@
 <!ENTITY keySnail.preference.keys "キーバインド">
 <!ENTITY keySnail.preference.keys.treeheader.key "キー">
 <!ENTITY keySnail.preference.keys.treeheader.description "機能">
+<!ENTITY keySnail.preference.keys.treeheader.function "関数">
+<!ENTITY keySnail.preference.keys.treeheader.mode "モード">
 
 <!-- special keys -->
 

@@ -55,6 +55,9 @@ KeySnail.Key = {
     // ==== black list ====
     blackList: null,
 
+    // ==== last command's function ====
+    lastFunc: null,
+
     // ==== modes ====
     modes: {
         GLOBAL: "global",
@@ -108,15 +111,19 @@ KeySnail.Key = {
     toggleStatus: function () {
         if (this.status) {
             this.stop();
-        } else if (this.modules.userscript.initFileLoaded) {
-            this.run();
         } else {
-            // no initialization file is loaded
-            this.modules.display.prettyPrint(this.modules.util
-                                             .getLocaleString("noUserScriptLoaded"));
-            // window.alert(this.modules.util.
-            //              getLocaleString("noUserScriptLoaded"));
-            this.status = false;
+            if (!this.modules.userscript.initFileLoaded) {
+                // load init file
+                this.modules.userscript.load();
+            }
+            if (!this.modules.userscript.initFileLoaded) {
+                // Failed to load init file
+                // this.modules.display.notify(this.modules.util
+                //                             .getLocaleString("noUserScriptLoaded"));
+                this.status = false;
+            } else {
+                this.run();                
+            }
         }
 
         this.updateMenu();
@@ -176,6 +183,18 @@ KeySnail.Key = {
      */
     updateMenu: function () {
         var checkbox = document.getElementById("keysnail-menu-status");
+        if (!checkbox) {
+            return;
+        }
+
+        checkbox.setAttribute('checked', this.status);
+    },
+
+    /**
+     * update the tool box menu
+     */
+    updateToolMenu: function () {
+        var checkbox = document.getElementById("keysnail-tool-menu-status");
         if (!checkbox) {
             return;
         }
@@ -376,6 +395,8 @@ KeySnail.Key = {
                 this.currentKeyMap = this.currentKeyMap[key];
             }
         } else {
+            this.lastFunc = null;
+
             // call default handler or insert text
             if (this.currentKeySequence.length) {
                 this.modules.util.stopEventPropagation(aEvent);
@@ -726,12 +747,10 @@ KeySnail.Key = {
         this.defineKey(this.modes.CARET, aKeys, aFunc, aKsdescription, aKsNoRepeat);
     },
 
-    defineKey: function (aKeyMapName, aKeys, aFunc, aKsdescription, aKsNoRepeat) {
+    defineKey: function (aKeyMapName, aKeys, aFunc, aKsDescription, aKsNoRepeat) {
         var addTo = this.keyMapHolder[aKeyMapName];
-
-        // if (aKsdescription) {
-        aFunc.ksDescription = aKsdescription;
-        // }
+        
+        aFunc.ksDescription = aKsDescription;
         // true, if you want to prevent the iteration
         // of the command when prefix argument specified.
         aFunc.ksNoRepeat = aKsNoRepeat;
@@ -936,6 +955,8 @@ KeySnail.Key = {
             // one time
             aFunc.apply(KeySnail, [aEvent, aArg]);
         }
+
+        this.lastFunc = aFunc;
 
         // this.modules.hook.callHook("PostCommand", hookArg);
     },
@@ -1250,7 +1271,7 @@ KeySnail.Key = {
 
                 var ksNoRepeatString = (func.ksNoRepeat) ? ", true" : "";
 
-                aContentHolder.push("set" + aKeyMapName[0].toUpperCase() + aKeyMapName.slice(1) + "Key(" + keySetting + ", " +
+                aContentHolder.push("key.set" + aKeyMapName[0].toUpperCase() + aKeyMapName.slice(1) + "Key(" + keySetting + ", " +
                                     // function body
                                     func.toString() +
                                     // description

@@ -600,10 +600,28 @@ key.setEditKey("C-k",
                },
                """ + {ja: '"カーソルから先を一行カット"',
                       en: '"Kill the rest of the line"'}[l] + """);
-key.setEditKey("C-y",
-               function () { goDoCommand("cmd_paste"); },
-               """ + {ja: '"ペースト"',
-                      en: '"Paste"'}[l] + """);
+key.setEditKey("C-y", command.yank, """ + {ja: '"クリップボードの中身を貼り付け"',
+                                           en: '"Paste (Yank)"'}[l] + """);
+key.setEditKey("M-y", command.yankPop, """ + {ja: '"以前に貼り付けた中身を順に貼り付け"',
+                                              en: '"Paste pop (Yank pop)"'}[l] + """);
+key.setEditKey("C-M-y", function (aEvent) {
+                   if (!command.kill.ring.length)
+                       return;
+
+                   var clipboardText = command.getClipboardText();
+                   if (clipboardText != command.kill.ring[0]) {
+                       command.pushKillRing(clipboardText);
+                   }
+
+                   prompt.read("Text to paste:",
+                               function (aReadStr) {
+                                   if (aReadStr) {
+                                       key.insertText(aReadStr);
+                                   }
+                               }, null, command.kill.ring,
+                               command.kill.ring[0], 0, "clipboard");
+               }, """ + {ja: '"以前にコピーしたテキスト一覧から選択して貼り付け"',
+                         en: '"Show kill-ring and select text to paste"'}[l] + """);
 key.setEditKey("C-w",
                function (aEvent) {
                    goDoCommand('cmd_copy');
@@ -628,8 +646,6 @@ key.setEditKey(["C-x", "r", "t"],
                                    command.replaceRectangle(aInput, aStr);
                                },
                                aEvent.originalTarget);
-                   // var replacement = window.prompt("String rectangle", "");
-                   // command.replaceRectangle(aEvent.originalTarget, replacement);
                }, """ + {ja: '"矩形置換"',
                          en: '"Replace text in the region-rectangle with user inputted string"'}[l] + """, true);
 
@@ -641,13 +657,13 @@ key.setEditKey(["C-x", "r", "o"],
 
 key.setEditKey(["C-x", "r", "k"],
                function (aEvent, aArg) {
-                   command.killBuffer = command.killRectangle(aEvent.originalTarget, !aArg);
+                   command.kill.buffer = command.killRectangle(aEvent.originalTarget, !aArg);
                }, """ + {ja: '"矩形 kill"',
                          en: '"Delete the region-rectangle and save it as the last killed one"'}[l] + """, true);
 
 key.setEditKey(["C-x", "r", "y"],
                function (aEvent) {
-                   command.yankRectangle(aEvent.originalTarget, command.killBuffer);
+                   command.yankRectangle(aEvent.originalTarget, command.kill.buffer);
                }, """ + {ja: '"矩形 yank"',
                          en: '"Yank the last killed rectangle with upper left corner at point"'}[l] + """, true);
 

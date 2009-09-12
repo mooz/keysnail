@@ -397,9 +397,25 @@ key.setEditKey("C-k",
                    command.killLine(aEvent);
                },
                "Kill the rest of the line");
-key.setEditKey("C-y",
-               function () { goDoCommand("cmd_paste"); },
-               "Paste");
+key.setEditKey("C-y", command.yank, "Paste (Yank)");
+key.setEditKey("M-y", command.yankPop, "Paste pop (Yank pop)");
+key.setEditKey("C-M-y", function (aEvent) {
+                   if (!command.kill.ring.length)
+                       return;
+
+                   var clipboardText = command.getClipboardText();
+                   if (clipboardText != command.kill.ring[0]) {
+                       command.pushKillRing(clipboardText);
+                   }
+
+                   prompt.read("Text to paste:",
+                               function (aReadStr) {
+                                   if (aReadStr) {
+                                       key.insertText(aReadStr);
+                                   }
+                               }, null, command.kill.ring,
+                               command.kill.ring[0], 0, "clipboard");
+               }, "Show kill-ring and select text to paste");
 key.setEditKey("C-w",
                function (aEvent) {
                    goDoCommand('cmd_copy');
@@ -422,8 +438,6 @@ key.setEditKey(["C-x", "r", "t"],
                                    command.replaceRectangle(aInput, aStr);
                                },
                                aEvent.originalTarget);
-                   // var replacement = window.prompt("String rectangle", "");
-                   // command.replaceRectangle(aEvent.originalTarget, replacement);
                }, "Replace text in the region-rectangle with user inputted string", true);
 
 key.setEditKey(["C-x", "r", "o"],
@@ -433,12 +447,12 @@ key.setEditKey(["C-x", "r", "o"],
 
 key.setEditKey(["C-x", "r", "k"],
                function (aEvent, aArg) {
-                   command.killBuffer = command.killRectangle(aEvent.originalTarget, !aArg);
+                   command.kill.buffer = command.killRectangle(aEvent.originalTarget, !aArg);
                }, "Delete the region-rectangle and save it as the last killed one", true);
 
 key.setEditKey(["C-x", "r", "y"],
                function (aEvent) {
-                   command.yankRectangle(aEvent.originalTarget, command.killBuffer);
+                   command.yankRectangle(aEvent.originalTarget, command.kill.buffer);
                }, "Yank the last killed rectangle with upper left corner at point", true);
 
 // -------------------- selection -------------------- //

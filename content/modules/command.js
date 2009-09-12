@@ -7,7 +7,11 @@
 
 KeySnail.Command = {
     modules: null,
-    killBuffer: null,
+
+    /**
+     * Will be over ridden with the kill object in killring.jsm
+     */ 
+    kill: null,
 
     get gFindBar() {
         return typeof(gFindBar) == 'undefined' ?
@@ -19,6 +23,14 @@ KeySnail.Command = {
     },
 
     init: function () {
+        // load kill-ring
+        try {
+            Components.utils.import("resource://keysnail-share/killring.js", this);
+        } catch (x) {
+            this.message(x);
+        }
+
+        // for window which does not have goDoCommand()
         if (typeof(goDoCommand) == 'undefined') {
             document.defaultView.goDoCommand = function (aCommand) {
                 try {
@@ -26,8 +38,7 @@ KeySnail.Command = {
                         top.document.commandDispatcher.getControllerForCommand(aCommand);
                     if (controller && controller.isCommandEnabled(aCommand))
                         controller.doCommand(aCommand);
-                }
-                catch(e) {
+                } catch(e) {
                     this.message("An error " + e + " occurred executing the " + aCommand + " command\n");
                 }
             };
@@ -51,7 +62,7 @@ KeySnail.Command = {
         moduleList.forEach(
             function (aModuleName) {
                 for (var property in this.modules[aModuleName]) {
-                    var cand = this.modules[aModuleName][property]; 
+                    var cand = this.modules[aModuleName][property];
                     if (typeof(cand) == 'function') {
                         var arg = cand.toString().split('\n')[0].match(/\(.*\)/);
                         commandList.push(aModuleName + "." + property + arg + ";");
@@ -280,7 +291,7 @@ KeySnail.Command = {
         prompt.read("Places:",
                     function (aStr) {
                         if (aStr) {
-                            key.viewURI(aStr);                            
+                            key.viewURI(aStr);
                         }
                     },
                     null,
@@ -327,7 +338,7 @@ KeySnail.Command = {
             var style = frame.document.defaultView.getComputedStyle(textarea, null);
 
             // get cursor line number in the textarea (zero origin)
-            var lines = textarea.value.split('\n');        
+            var lines = textarea.value.split('\n');
             var selStart = textarea.selectionStart;
             for (var i = 0, count = 0; i < lines.length; ++i) {
                 count += (lines[i].length + 1);
@@ -383,10 +394,10 @@ KeySnail.Command = {
     /**
      * Get selection information;
      * line number and char count from head of line.
-     * @param {[string]} aLines 
+     * @param {[string]} aLines
      * @param {integer} aSelStart beggining of the selection
      * @param {integer} aSelEnd end of the selection
-     * @returns {[integer, integer, integer, integer]} 
+     * @returns {[integer, integer, integer, integer]}
      */
     getSelectionInfo: function (aLines, aSelStart, aSelEnd) {
         // detect selection start line
@@ -460,7 +471,7 @@ KeySnail.Command = {
         var padHead, padTail;
         for (var j = 0; j < aRectangle.length; ++j, ++i) {
             if (i < lines.length) {
-                padHead = lines[i].slice(0, startHeadCount);  
+                padHead = lines[i].slice(0, startHeadCount);
                 padTail = lines[i].slice(startHeadCount, lines[i].length);
             } else {
                 padHead = padTail = "";
@@ -578,7 +589,7 @@ KeySnail.Command = {
         for (i = startLineNum; i <= endLineNum; ++i) {
             // kill
             if (aIsKill) {
-                killedLines.push(lines[i].slice(from, to));                
+                killedLines.push(lines[i].slice(from, to));
             }
             // replace / delete
             padHead = lines[i].slice(0, from);
@@ -646,19 +657,203 @@ KeySnail.Command = {
 
     // ==================== Copy / Cut ==================== //
 
+
+    /**
+     * store <aText> to the system clipboard
+     * @param {} aText
+     */
+    setClipboardText: function (aText) {
+        var ss = Components.classes['@mozilla.org/supports-string;1']
+            .createInstance(Components.interfaces.nsISupportsString);
+        if (!ss)
+            return;
+
+        var trans = Components.classes['@mozilla.org/widget/transferable;1']
+            .createInstance(Components.interfaces.nsITransferable);
+        if (!trans)
+            return;
+
+        var clipid = Components.interfaces.nsIClipboard;
+        var clip = Components.classes['@mozilla.org/widget/clipboard;1'].getService(clipid);
+        if (!clip)
+
+            return;
+
+        ss.data = aText;
+        trans.addDataFlavor('text/unicode');
+        trans.setTransferData('text/unicode', ss, aText.length * 2);
+        clip.setData(trans, null, clipid.kGlobalClipboard);
+    },
+
+    getClipboardText: function () {
+        var clip = Components.classes["@mozilla.org/widget/clipboard;1"]
+            .getService(Components.interfaces.nsIClipboard);
+        if (!clip) return false;
+
+        var trans = Components.classes["@mozilla.org/widget/transferable;1"]
+            .createInstance(Components.interfaces.nsITransferable);
+        if (!trans) return false;
+        trans.addDataFlavor("text/unicode");  
+
+        clip.getData(trans, clip.kGlobalClipboard);
+
+        var str       = new Object();
+        var strLength = new Object();
+
+        trans.getTransferData("text/unicode", str, strLength);
+
+        if (str)
+            str = str.value.QueryInterface(Components.interfaces.nsISupportsString);
+        if (!str)
+            return null;
+
+        return str.data.substring(0, strLength.value / 2);
+    },
+
+    pushKillRing: function (aText) {
+        if (aText.length) {
+            if (this.kill.ring.length >= this.kill.max) {
+                this.kill.ring.pop();
+            }
+            this.kill.ring.unshift(aText);
+        }        
+    },
+
+    /**
+     * Notified when the clipboard content changed
+     */
+    clipboardChanged: function () {
+        var text = this.getClipboardText();
+
+        if (!this.kill.ring.length || this.kill.ring.length && text != this.kill.ring[0])
+            this.pushKillRing(text);
+    },
+
+    copySelectedText: function (aInput) {
+        goDoCommand('cmd_copy');
+        // if (aInput.selectionStart != aInput.selectionEnd) {
+        //     var region = aInput.value.slice(aInput.selectionStart,
+        //                                     aInput.selectionEnd);
+
+        //     // ignore duplication
+        //     if (!this.kill.ring.length ||
+        //         this.kill.ring.length && region != this.kill.ring[0])
+        //         this.pushKillRing(region);
+        // }
+    },
+
+    insertKillRingText: function (aInput, aIndex, aSelect) {
+        var oldScrollTop = aInput.scrollTop;
+        var oldScrollLeft = aInput.scrollLeft;
+
+        if (aIndex < 0) {
+            // reset to the original text
+            aInput.value = this.kill.originalText;
+            aInput.selectionStart = aInput.selectionEnd = this.kill.originalSelStart;
+        } else {
+            // normal insersion
+            aInput.value = this.kill.originalText.slice(0, this.kill.originalSelStart)
+                + this.kill.ring[aIndex]
+                + this.kill.originalText.slice(this.kill.originalSelStart, this.kill.originalText.length);            
+            if (aSelect) {
+                aInput.selectionStart = this.kill.originalSelStart;
+                aInput.selectionEnd = aInput.selectionStart + this.kill.ring[aIndex].length;
+            } else {
+                aInput.selectionStart = this.kill.originalSelStart + this.kill.ring[aIndex].length;
+                aInput.selectionEnd = aInput.selectionStart;
+            }
+        }
+
+        aInput.scrollTop = oldScrollTop;
+        aInput.scrollLeft = oldScrollLeft;
+    },
+
+    /**
+     * 
+     * @param {KeyBoardEvent} aEvent
+     */
+    yank: function (aEvent, aArg) {
+        var i = aArg || 0;
+        var input = aEvent.originalTarget;
+
+        // yank() and yankPop() is directly passed to the key.set*Key()
+        // so 'this' value becomes KeySnail
+        with (this.modules.command) {
+            var clipboardText = getClipboardText();
+
+            if (!clipboardText && !kill.ring.length) {
+                this.modules.display.echoStatusBar("Kill ring empty", 2000);
+                return;
+            }
+
+            // copied outside the Firefox
+            if (!kill.ring.length || clipboardText != kill.ring[0]) {
+                pushKillRing(clipboardText);
+            }
+
+            kill.originalText = input.value;
+            kill.originalSelStart = input.selectionStart;
+            kill.index = i;
+            insertKillRingText(input, i);
+        }
+    },
+
+    /**
+     * 
+     * @param {KeyBoardEvent} aEvent
+     */
+    yankPop: function (aEvent) {
+        var input = aEvent.originalTarget;
+        var lastFunc = this.modules.key.lastFunc;
+
+        if ((lastFunc != this.modules.command.yank && lastFunc != this.modules.command.yankPop)
+            || (lastFunc == this.modules.command.yankPop && this.modules.command.kill.popFailed)) {
+            this.modules.display.echoStatusBar("Previous command was not a yank", 2000);
+            this.modules.command.kill.popFailed = true;
+            return;
+        }
+        this.modules.command.kill.popFailed = false;
+
+        with (this.modules.command) {
+            if (!kill.ring.length) {
+                modules.display.echoStatusBar("Kill ring is empty", 2000);
+                originalText = null;
+                return;
+            }
+
+            kill.index++;
+            if (kill.index >= kill.ring.length) {
+                // modules.display.echoStatusBar("No further items in kill ring", 2000);
+                // insertKillRingText(input, -1, true);
+                // originalText = null;
+                // return;
+                kill.index = 0;
+            }
+
+            insertKillRingText(input, kill.index, true);
+            modules.display.echoStatusBar("Yank pop (" + (kill.index + 1) + " / " + kill.ring.length + ")");
+        }
+    },
+
     killLine: function (aEvent) {
         if (this.marked(aEvent)) {
             this.resetMark(aEvent);
         }
 
         goDoCommand('cmd_selectEndLine');
-        goDoCommand('cmd_copy');
+        this.copySelectedText(aEvent.originalTarget);
         goDoCommand('cmd_deleteToEndOfLine');
     },
 
     copyRegion: function (aEvent) {
-        goDoCommand('cmd_copy');
+        this.copySelectedText(aEvent.originalTarget);
         this.resetMark(aEvent);
+    },
+
+    cutRegion: function (aEvent) {
+        goDoCommand('cmd_copy');
+        goDoCommand("cmd_delete");
+        command.resetMark(aEvent);
     },
 
     // ==================== Select ==================== //

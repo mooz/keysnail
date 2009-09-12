@@ -56,7 +56,7 @@ KeySnail.UserScript = {
             if (!e.fileName || e.fileName ==
                 "chrome://keysnail/content/modules/userscript.js") {
                 e.fileName = aInitFilePath;
-                e.lineNumber -= (this.userScriptOffset + 1);
+                e.lineNumber -= (this.userScriptOffset - 1);
             }
             throw e;
         }
@@ -224,8 +224,20 @@ KeySnail.UserScript = {
                 var msgstr = this.modules.util
                     .getLocaleString("userScriptError", [e.fileName, e.lineNumber]);
                 msgstr += " [" + e.message + "]";
-                this.modules.display.prettyPrint(msgstr);
-                this.message(msgstr);
+
+                var buttons;
+                if (e.fileName.indexOf("://") == -1) {
+                    let self = this;
+                    buttons = [{
+                                   label: this.modules.util.getLocaleString("openErrorOccuredPlace"),
+                                   callback: function (aNotification) {
+                                       self.editFile(e.fileName, e.lineNumber);
+                                       aNotification.close();
+                                   },
+                                   accessKey: "o"
+                               }];
+                }
+                this.modules.display.notify(msgstr, buttons);
                 return -2;
             }
         }
@@ -284,8 +296,6 @@ KeySnail.UserScript = {
             this.modules.util.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
         }
 
-        this.message("editor : " + gmEditor);
-
         return gmEditor;
     },
 
@@ -309,7 +319,8 @@ KeySnail.UserScript = {
             args.push("+" + aLineNum.toString());
 
         if (!aFilePath) {
-            this.modules.display.prettyPrint("editor: invalid file path");
+            this.modules.display.notify(this.modules.util
+                                        .getLocaleString("invalidFilePath"));
             return;
         }
 
@@ -318,7 +329,8 @@ KeySnail.UserScript = {
 
         if (!editorPath &&
             !(editorPath = this.syncEditorWithGM())) {
-            this.modules.display.prettyPrint("No editor selected");
+            this.modules.display.notify(this.modules.util
+                                        .getLocaleString("noEditorSelected"));
             return;
         }
 
@@ -327,6 +339,7 @@ KeySnail.UserScript = {
             .getService(Components.interfaces.nsIXULRuntime);
         if ("Darwin" == xulRuntime.OS) {
             // wrap with open command (inspired from GreaseMonkey)
+
             args.unshift(editorPath);
             args.unshift("-a");
 
@@ -338,13 +351,14 @@ KeySnail.UserScript = {
             try {
                 editorFile = this.modules.util.openFile(editorPath);
             } catch (e) {
-                this.modules.display.prettyPrint("Error occured while opening the editor");
+                this.modules.display.notify(this.modules.util
+                                            .getLocaleString("editorErrorOccured"));
                 return;
             }
 
             if (!editorFile.exists()) {
-                this.modules.display.prettyPrint(editorFile.path +
-                                                 " not found. Please select the valid editor");
+                this.modules.display.notify(this.modules.util
+                                            .getLocaleString("editorNotFound", [editorFile.path]));
                 return;
             }
         }
@@ -455,7 +469,8 @@ KeySnail.UserScript = {
             }
 
             if (!defaultInitFile) {
-                this.modules.display.prettyPrint("rc file wizard: failed to open the default init file");
+                this.modules.display.notify(this.modules.util
+                                            .getLocaleString("failedToOpenDefaultInitFile"));
                 return false;
             }
 
@@ -491,7 +506,8 @@ KeySnail.UserScript = {
                 this.modules.util.writeText(defaultInitFile,
                                             rcFilePlace + this.directoryDelimiter + configFileName);
             } catch (e) {
-                this.message("openDialog: " + e);
+                this.modules.display.notify(this.modules.util
+                                            .getLocaleString("failedToWriteText"));
                 return false;
             }
             break;
