@@ -11,3 +11,20 @@ radio[pane="prefpane-keys"] {
 radio[pane="prefpane-about"] {
     list-style-image: url("chrome://keysnail/skin/about.png");
 }
+
+treechildren::-moz-tree-cell-text {
+    margin-left: 6px;
+    margin-right: 2px;
+}
+
+.ks-notify-red {
+    color: #a10000;
+}
+
+.ks-notify-green {
+    color: #50a100;
+}
+
+.ks-notify-blue {
+    color: #221d8e;
+}

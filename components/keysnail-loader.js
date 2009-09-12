@@ -69,7 +69,7 @@ KeySnailLoader.prototype = {
             break;
             // black list
         case 'chrome://keysnail/content/rcwizard.xul':
-        case 'chrome://keysnail/content/preference.xul':
+        // case 'chrome://keysnail/content/preference.xul':
         case 'chrome://keysnail/content/keyGrabber.xul':
         case 'chrome://browser/content/aboutDialog.xul':
         case 'chrome://mozapps/content/downloads/unknownContentType.xul':
@@ -92,13 +92,6 @@ KeySnailLoader.prototype = {
             aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
             // this.message(aEvent.target.documentURI + " => Enabled");
         }
-
-        // windowType == "navigator:browser"
-        // this.browserWindow = aEvent.target;
-        // this.listProperty(this.browserWindow);
-        // this.listProperty(this.browserWindow.defaultView);
-        // aEvent.target.defaultView.KeySnail = this.browserWindow.defaultView.KeySnail;
-        // aEvent.target.defaultView.addEventListener("keypress", aEvent.target.defaultView.KeySnail.Key, true);
     },
 
     // hasInput: function (aDocument) {

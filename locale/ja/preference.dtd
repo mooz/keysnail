@@ -20,10 +20,21 @@
 <!-- # KEY SETTINGS # -->
 
 <!ENTITY keySnail.preference.keys "キーバインド">
+
+<!ENTITY keySnail.preference.keys.keybindings "キーバインド">
+<!ENTITY keySnail.preference.keys.specialkey "特殊キー">
+<!ENTITY keySnail.preference.keys.blacklist "ブラックリスト">
+<!ENTITY keySnail.preference.keys.hook "フック">
+
 <!ENTITY keySnail.preference.keys.treeheader.key "キー">
 <!ENTITY keySnail.preference.keys.treeheader.description "機能">
 <!ENTITY keySnail.preference.keys.treeheader.function "関数">
 <!ENTITY keySnail.preference.keys.treeheader.mode "モード">
+
+<!ENTITY keySnail.preference.keys.apply "反映">
+<!ENTITY keySnail.preference.keys.edit "編集">
+<!ENTITY keySnail.preference.keys.add "追加">
+<!ENTITY keySnail.preference.keys.delete "削除">
 
 <!-- special keys -->
 
@@ -48,6 +59,18 @@
 
 <!ENTITY keySnail.preference.key.universalArgument.description "前置引数の入力を開始します">
 <!ENTITY keySnail.preference.key.negativeArgument.description "負の前置引数の入力を開始します">
+
+<!-- black list -->
+
+<!ENTITY keySnail.preference.key.blacklist.description "KeySnail を一時的に無効にしたいページの正規表現を指定して下さい。">
+
+<!-- hook -->
+
+<!ENTITY keySnail.preference.key.hook.select "フックを選択してください: ">
+
+<!-- create -->
+
+<!ENTITY keySnail.preference.key.create "現在の設定で初期化ファイルを作成">
 
 <!-- # ABOUT # -->
 <!ENTITY keySnail.preference.about "情報">

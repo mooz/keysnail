@@ -29,7 +29,7 @@ KeySnail.Display = {
             this.msgTimeOut = null;
         }
 
-        var self = this;
+        let self = this;
 
         self.statusBar.label = msg;
         if (time) {
@@ -86,7 +86,7 @@ KeySnail.Display = {
 
     notify: function (aMsg, aButtons) {
         const NOTIFY_ID = "ksNotifyMessage";
-        
+
         if (typeof(gBrowser) == 'undefined') {
             this.message(aMsg);
             return;            

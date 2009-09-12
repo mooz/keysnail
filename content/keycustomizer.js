@@ -36,8 +36,16 @@ var keyCustomizer = {
 
         if (output.keyStr != "") {
             this.setTextBoxValue(aKeyName, output.keyStr);
+            this.modules.key[aKeyName] = output.keyStr;
         } else {
             this.setTextBoxValue(aKeyName, "Not defined");
+        }
+    },
+
+    apply: function () {
+        var keys = this.keys;
+        for (var i = 0; i < keys.length; ++i) {
+            this.modules.key[keys[i] + "Key"] = this.getTextBoxValue(keys[i]) || "";
         }
     },
 
