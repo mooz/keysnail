@@ -1,14 +1,8 @@
 // ==================== KeySnail configuration file ==================== //
 ####REPLACE_WITH_DOC####
-// ==================== special keys ==================== //
-####REPLACE_WITH_SPECIAL_KEYS####
-// macro.setSleepTime(100); // key macro interval
-
-// ==================== load modules ==================== //
-// You can split the init file into mutliple files.
-// userscript.addLoadPath("~/.keysnail.d");
-// userscript.require("module1.js");
-// userscript.require("module2.js");
+// You can preserve your code in this area when generating the init file using GUI.
+// Put all your code except special key, set*key, hook, blacklist.
+//{{%PRESERVE%
 
 // ==================== prefix ==================== //
 // You can use view-mode keybindings in edit-mode by adding
@@ -16,15 +10,15 @@
 // key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
 // ==================== set about:config value ==================== //
-// util.setPrefs(
-//     {
-//         "ui.key.generalAccessKey": 0, // kill access key (for Mac User)
-//         "ui.caretWidth": 5,           // Make caret bolder
-//         "ui.caretBlinkTime": 0,       // Stop caret blink
-//         "accessibility.typeaheadfind": true, // Enable "Find As You Type"
-//         "accessibility.typeaheadfind.linksonly": true // Only for links
-//     }
-// );
+// util.setPrefs({"ui.key.generalAccessKey" : 0, // kill access key (for Mac User)
+//                "ui.caretWidth"           : 5, // Make caret bolder
+//                "ui.caretBlinkTime"       : 0  // Stop caret blink
+//               });
+//}}%PRESERVE%
+
+// ==================== special keys ==================== //
+####REPLACE_WITH_SPECIAL_KEYS####
+// macro.setSleepTime(100); // key macro interval
 
 // ==================== set hooks ==================== //
 hook.setHook("KeyBoardQuit",

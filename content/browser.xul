@@ -15,17 +15,29 @@
               >
             <menupopup onpopupshowing="KeySnail.Key.updateToolMenu();"
                        >
+	        <menuitem id="keysnail-tool-menu-status"
+                          label="&keySnail.statusbar.isEnabled;"
+                          accesskey="t"
+                          type="checkbox"
+		          oncommand="KeySnail.Key.toggleStatus();"/>
+	        <menuitem id="keysnail-tool-menu-open-preference"
+	                  label="&keySnail.statusbar.openPreference;"
+                          accesskey="c"
+	                  oncommand="KeySnail.openPreference();"
+                          class="menuitem-iconic"
+                          src="chrome://keysnail/skin/icon/preference.png"/>
+                <menuseparator/>
 	        <menuitem id="keysnail-tool-menu-reload-userscript"
 		          label="&keySnail.statusbar.reloadUserScript;"
                           accesskey="r"
 		          oncommand="KeySnail.UserScript.reload();"
                           class="menuitem-iconic"
                           src="chrome://keysnail/skin/icon/reload.png"/>
-                <menuseparator/>
 	        <menuitem id="keysnail-tool-menu-list-keybinds"
 		          label="&keySnail.statusbar.listKeyBindings;"
                           accesskey="v"
 		          oncommand="KeySnail.Key.listKeyBindings();"/>
+                <menuseparator/>
 	        <menuitem id="keysnail-tool-menu-edit-init-file"
 	                  label="&keySnail.statusbar.editInitFile;"
                           accesskey="e"
@@ -38,18 +50,6 @@
 	                  oncommand="KeySnail.UserScript.beginRcFileWizard();"
                           class="menuitem-iconic"
                           src="chrome://keysnail/skin/icon/create.png"/>
-	        <menuitem id="keysnail-tool-menu-open-preference"
-	                  label="&keySnail.statusbar.openPreference;"
-                          accesskey="c"
-	                  oncommand="KeySnail.openPreference();"
-                          class="menuitem-iconic"
-                          src="chrome://keysnail/skin/icon/preference.png"/>
-                <menuseparator/>
-	        <menuitem id="keysnail-tool-menu-status"
-                          label="&keySnail.statusbar.isEnabled;"
-                          accesskey="t"
-                          type="checkbox"
-		          oncommand="KeySnail.Key.toggleStatus();"/>
             </menupopup>
         </menu>
     </menupopup>

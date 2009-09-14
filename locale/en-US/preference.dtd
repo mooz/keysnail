@@ -1,18 +1,87 @@
 <!ENTITY keySnail.preference.title "KeySnail Settings">
 
+<!ENTITY keySnail.preference.change "Change">
+<!ENTITY keySnail.preference.userscript.reference "Browse">
+
+<!-- # GENERAL SETTINGS # -->
+
 <!-- User Script -->
 <!ENTITY keySnail.preference.userscript "Settings">
 <!ENTITY keySnail.preference.userscript.settings "Init file Settings">
 <!ENTITY keySnail.preference.userscript.location "Location: ">
 <!ENTITY keySnail.preference.userscript.editor "Editor: ">
 
-<!ENTITY keySnail.preference.userscript.reference "Change">
-
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "Key Handler Settings">
 <!ENTITY keySnail.preference.keyhandler.enabled "Enabled">
 <!ENTITY keySnail.preference.keyhandler.globalEnabled "Use KeySnail outside the browser window (enable globally)">
 <!ENTITY keySnail.preference.keyhandler.usePrefixArgument "Use Emacs-like prefix argument system">
+
+<!-- # KEY SETTINGS # -->
+
+<!ENTITY keySnail.preference.keys "Key Bindings">
+
+<!ENTITY keySnail.preference.keys.keybindings "Key Bindings">
+<!ENTITY keySnail.preference.keys.specialkey "Special Keys">
+<!ENTITY keySnail.preference.keys.blacklist "Blacklist Settings">
+
+<!-- tree -->
+
+<!ENTITY keySnail.preference.keys.treeDescription1 "If you want to change key binding, enter keys to the textbox on the lower left-hand side.">
+<!ENTITY keySnail.preference.keys.treeDescription2 "Enter Backspace to delete a left key. Use button on right to enter the backspace itself.">
+<!ENTITY keySnail.preference.keys.treeDescription3 "By double clicking on the command or clicking the edit button, you can move to the edit area.">
+
+<!ENTITY keySnail.preference.keys.treeheader.mode "Mode">
+<!ENTITY keySnail.preference.keys.treeheader.key "Key">
+<!ENTITY keySnail.preference.keys.treeheader.description "Description">
+<!ENTITY keySnail.preference.keys.treeheader.function "Function">
+<!ENTITY keySnail.preference.keys.treeheader.argument "Prefix argument handling">
+
+<!ENTITY keySnail.preference.keys.apply "Apply">
+<!ENTITY keySnail.preference.keys.edit "Edit">
+<!ENTITY keySnail.preference.keys.add "Add">
+<!ENTITY keySnail.preference.keys.delete "Delete">
+
+<!-- command edit box -->
+
+<!ENTITY keySnail.preference.edit.noRepeat "Don't repeat command when prefix argument is given">
+<!ENTITY keySnail.preference.edit.function "Function">
+<!ENTITY keySnail.preference.edit.backToTree "Back to the keybinding list">
+<!ENTITY keySnail.preference.edit.beautifyCode "Beautify the code">
+
+<!-- special keys -->
+
+<!ENTITY keySnail.preference.keys.specialKeyDescription1 "You can change special keys here. Note that you can't use keys specified here in the keybinding">
+<!ENTITY keySnail.preference.keys.specialKeyDescription2 "Move mouse cursor to each row and description of the key will be displayed.">
+
+<!ENTITY keySnail.preference.key.quit "Quit key">
+<!ENTITY keySnail.preference.key.help "Help key">
+<!ENTITY keySnail.preference.key.escape "Escape key">
+<!ENTITY keySnail.preference.key.macroStart "Macro Start key">
+<!ENTITY keySnail.preference.key.macroEnd "Macro End / Play key">
+<!ENTITY keySnail.preference.key.suspend "Suspension switch key">
+
+<!ENTITY keySnail.preference.key.universalArgument "Universal argument key">
+<!ENTITY keySnail.preference.key.negativeArgument1 "Negative argument key 1">
+<!ENTITY keySnail.preference.key.negativeArgument2 "Negative argument key 2">
+<!ENTITY keySnail.preference.key.negativeArgument3 "Negative argument key 3">
+
+<!ENTITY keySnail.preference.key.quit.description "Cancel current key input">
+<!ENTITY keySnail.preference.key.help.description "With some prefix key, display 'beginning with ...' help">
+<!ENTITY keySnail.preference.key.escape.description "KeySnail will ignore the next key and pass it to the Firefox directly">
+<!ENTITY keySnail.preference.key.macroStart.description "Start the key macro recording">
+<!ENTITY keySnail.preference.key.macroEnd.description "Stop the key macro recording or play recorded one if exists">
+<!ENTITY keySnail.preference.key.suspend.description "Switch suspension state of the KeySnail">
+
+<!ENTITY keySnail.preference.key.universalArgument.description "To begin input the prefix argument">
+<!ENTITY keySnail.preference.key.negativeArgument.description "To begin input the negative prefix argument">
+
+<!-- black list -->
+
+<!ENTITY keySnail.preference.key.blacklist.description "Specify URL or Regular Expression of the page you want KeySnail to suspend.">
+
+<!-- create -->
+<!ENTITY keySnail.preference.key.create "Apply changes (Overwrite the init file)">
 
 <!-- ABOUT -->
 <!ENTITY keySnail.preference.about "About">

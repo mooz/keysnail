@@ -12,8 +12,6 @@ KeySnail.HTML = {
     htmlTemplate: '<html>\n' +
         '<head>\n' +
         '<title>##HTMLTITLE##</title>\n' +
-        // '<link rel="stylesheet" type="text/css"' +
-        // ' charset="utf-8" media="all" href="##CSSPATH##"' +
         '<style type="text/css">\n' +
         '##CSS##' +
         '</style>\n' +

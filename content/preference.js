@@ -9,16 +9,17 @@ var ksPreference = {
     initFileKey: "extensions.keysnail.userscript.location",
     editorKey: "extensions.keysnail.userscript.editor",
 
-    keybindTreeBox: null,
-    keybindTextarea: null,
-    editButton: null,
-    deleteButton: null,
+    keybindTreeBox      : null,
+    keybindTextarea     : null,
+    dropMarker          : null,
+    editButton          : null,
+    deleteButton        : null,
 
-    keybindEditBox: null,
-    descriptionTextarea: null,
-    functionTextarea: null,
-    norepeatCheckbox: null,
-    modeMenuList: null,
+    keybindEditBox      : null,
+    descriptionTextarea : null,
+    functionTextarea    : null,
+    norepeatCheckbox    : null,
+    modeMenuList        : null,
 
     onGeneralPaneLoad: function () {
         if (!this.modules.util.getUnicharPref(this.editorKey)) {
@@ -43,6 +44,28 @@ var ksPreference = {
         this.norepeatCheckbox    = document.getElementById("keybind-function-norepeat");
         this.modeMenuList        = document.getElementById("keybind-function-mode");
 
+        this.insertKeyMenu = document.getElementById("insert-key-menu");
+        this.dropMarker    = document.getElementById("keybind-button-insert");
+
+        var keys = [
+            "<backspace>",
+            "C-<backspace>",
+            "M-<backspace>",
+            "S-<backspace>"
+        ];
+        keys.forEach(
+            function (key) {
+                var item = document.createElement("menuitem");
+                item.setAttribute("label", key);
+                item.onmouseup = function () {
+                    if (!ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex) &&
+                        ksKeybindTreeView.currentIndex >= 0) {
+                        ksPreference.insertKey(key);
+                    }
+                };
+                this.insertKeyMenu.appendChild(item);
+            } ,this);
+
         // init special key pane
         keyCustomizer.initPane();
 
@@ -50,13 +73,18 @@ var ksPreference = {
         this.initBlackList();
     },
 
-    onFinish: function () {
-        // apply special key change
-        keyCustomizer.apply();
-        // apply keybindings change
-        ksKeybindTreeView.applyToKeyMap();
-        // blacklist's are automatically applied
+    onInitFileCreate: function () {
+        var error;
+        if ((error = ksKeybindTreeView.checkSyntax())) {
+            this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+            return;
+        }
+        var output = this.generateInitFile();
+        this.modules.util.writeText(output, this.modules.userscript.initFilePath);
+        this.modules.userscript.reload();
     },
+
+    // ============================== Event Handlers ============================== //
 
     handleTreeEvent: function (aEvent) {
         aEvent.preventDefault();
@@ -74,6 +102,11 @@ var ksPreference = {
         case "keypress":
             switch (aEvent.keyCode) {
             case aEvent.DOM_VK_RETURN: 
+            case aEvent.DOM_VK_ENTER: 
+                aEvent.preventDefault();
+                if (aEvent.target.localName == "treechildren") {
+                    this.toggleEditView();
+                }
                 break;
             case aEvent.DOM_VK_DELETE: 
                 ksKeybindTreeView.deleteSelectedItem();
@@ -93,11 +126,12 @@ var ksPreference = {
     handleKeyBindTextareaEvent: function (aEvent) {
         switch (aEvent.type) {
         case "mousedown":
-            aEvent.preventDefault();
+            // aEvent.preventDefault();
+            // this.keybindTextarea.focus();
             // go down
         case "focus":
             // move caret to end of the line
-            var textarea = aEvent.originalTarget;
+            var textarea = this.keybindTextarea;
             var end = textarea.value.length;
             textarea.selectionStart = textarea.selectionEnd = end;
             // if keysnail is enabled, suspend
@@ -133,13 +167,21 @@ var ksPreference = {
             if (!key)
                 return;
 
-            row[KS_KEY_STRING] += ((row[KS_KEY_STRING] ? " " : "") + key);
-            this.keybindTextarea.value = row[KS_KEY_STRING];
-
-            ksKeybindTreeView.update();
-            ksKeybindTreeView.changed = true;
+            this.insertKey(key);
             break;
         }
+    },
+
+    insertKey: function (aKey) {
+        Application.console.log(aKey);
+        
+        var row = ksKeybindTreeView.data[ksKeybindTreeView.currentIndex];
+
+        row[KS_KEY_STRING] += ((row[KS_KEY_STRING] ? " " : "") + aKey);
+        this.keybindTextarea.value = row[KS_KEY_STRING];
+
+        ksKeybindTreeView.update();
+        ksKeybindTreeView.changed = true;
     },
 
     handleFunctionTextarea: function (aEvent) {
@@ -149,6 +191,11 @@ var ksPreference = {
             var row = ksKeybindTreeView.data[i];
             row[KS_FUNCTION] = this.functionTextarea.value;
             break;
+        case "keypress":
+            if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
+                aEvent.preventDefault();
+            }
+            break;
         }
     },
 
@@ -157,8 +204,14 @@ var ksPreference = {
         case "change":
             var i = this.keybindEditBox.ksSelectedIndex;
             var row = ksKeybindTreeView.data[i];
-            row[KS_FUNCTION].ksDescription = this.descriptionTextarea.value;
-            row[KS_DESC] = row[KS_FUNCTION].ksDescription;
+            row[KS_DESC] = this.descriptionTextarea.value;
+            break;
+        case "keypress":
+            if (aEvent.keyCode == aEvent.DOM_VK_RETURN ||
+                aEvent.keyCode == aEvent.DOM_VK_ENTER) {
+                aEvent.preventDefault();
+                this.toggleEditView();
+            }
             break;
         }
     },
@@ -173,10 +226,15 @@ var ksPreference = {
         }
     },
 
-    toggleNoRepeat: function () {
+    // ============================== Update Form ============================== //
+
+    /**
+     * Apply ksNoRepeat checkbox value to the data
+     */
+    noRepeatToggled: function () {
         var i = this.keybindEditBox.ksSelectedIndex;
         var row = ksKeybindTreeView.data[i];
-        row[KS_FUNCTION].ksNoRepeat = !row[KS_FUNCTION].ksNoRepeat;
+        row[KS_ARGUMENT] = !row[KS_ARGUMENT];
     },
 
     toggleEditView: function () {
@@ -184,23 +242,35 @@ var ksPreference = {
             return;
 
         var editBoxHidden = this.keybindEditBox.hidden;
-
-        this.keybindEditBox.hidden = !editBoxHidden;
-        this.keybindTreeBox.hidden = editBoxHidden;
+        var destination;
 
         if (editBoxHidden) {
             // editbox will be displayed
             this.keybindEditBox.ksSelectedIndex = ksKeybindTreeView.currentIndex;
+            destination = this.descriptionTextarea;
         } else {
             // treeview will be displayed
+            var error;
+            if ((error = ksKeybindTreeView.checkSyntax())) {
+                this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+                return;
+            }
+            this.notify("");
+            destination = this.keybindTextarea;
         }
+
+        this.keybindEditBox.hidden = !editBoxHidden;
+        this.keybindTreeBox.hidden = editBoxHidden;
+        if (destination)
+            destination.focus();
     },
 
     updateKeyBindButtons: function () {
         var index = ksKeybindTreeView.currentIndex;
 
-        this.editButton.disabled = ksKeybindTreeView.isSeparator(index);
+        this.editButton.disabled   = ksKeybindTreeView.isSeparator(index);
         this.deleteButton.disabled = this.editButton.disabled;
+        this.dropMarker.setAttribute("disabled", this.editButton.disabled);
     },
 
     updateKeyBindTextarea: function () {
@@ -226,9 +296,9 @@ var ksPreference = {
         } else {
             var row = ksKeybindTreeView.data[index];
             this.modeMenuList.selectedIndex = row[KS_MODE];
-            this.descriptionTextarea.value = row[KS_FUNCTION].ksDescription || "";
+            this.descriptionTextarea.value = row[KS_DESC] || "";
             this.functionTextarea.value = row[KS_FUNCTION];
-            this.norepeatCheckbox.checked = row[KS_FUNCTION].ksNoRepeat;
+            this.norepeatCheckbox.checked = row[KS_ARGUMENT];
         }
     },
 
@@ -238,7 +308,7 @@ var ksPreference = {
         this.functionTextarea.value = beauty;
     },
 
-    // ============================== general pane ============================== //
+    // ============================== General Pane ============================== //
 
     updateFileField: function (aPrefKey, aID) {
         var location = this.modules.util.getUnicharPref(aPrefKey);
@@ -329,31 +399,28 @@ var ksPreference = {
 
     // ============================== Black List ============================== //
 
-    /**
-     * Blacklist Settings
-     */
-    blacklistbox: null,
-    blacklisturl: null,
-    blacklist: null,
+    blackListBox: null,
+    blackListURL: null,
+    blackList: null,
 
     initBlackList: function () {
-        if (typeof(this.modules.key.blacklist) == "undefined") {
-            this.modules.key.blacklist = [];
+        if (!this.modules.key.blackList) {
+            this.blackList = [];
+        } else {
+            this.blackList = this.modules.key.blackList.slice(0);
         }
 
-        this.blacklist = this.modules.key.blacklist;
+        var blackListBox = document.getElementById("blacklist-listbox");
+        this.blackListBox = blackListBox;
+        this.removeAllChilds(blackListBox);
 
-        var blacklistbox = document.getElementById("blacklist-listbox");
-        this.blacklistbox = blacklistbox;
-        this.removeAllChilds(blacklistbox);
-
-        if (this.blacklist.length) {
-            for (var i = 0; i < this.blacklist.length; ++i) {
-                this.blacklistbox.appendItem(this.blacklist[i]);
+        if (this.blackList.length) {
+            for (var i = 0; i < this.blackList.length; ++i) {
+                this.blackListBox.appendItem(this.blackList[i]);
             }
         }
         
-        this.blacklisturl = document.getElementById("blacklist-url");
+        this.blackListURL = document.getElementById("blacklist-url");
     },
 
     removeAllChilds: function (aElement) {
@@ -363,35 +430,35 @@ var ksPreference = {
     },
 
     addBlackList: function () {
-        var url = this.blacklisturl.value;
-        if (!url)
+        var URL = this.blackListURL.value;
+        if (!URL)
             return;
 
-        if (this.blacklist.every(function (str) { return url != str; })) {
-            this.blacklist.push(url);
-            this.blacklistbox.appendItem(url);
-            this.blacklisturl.value = "";
+        if (this.blackList.every(function (str) { return URL != str; })) {
+            this.blackList.push(URL);
+            this.blackListBox.appendItem(URL);
+            this.blackListURL.value = "";
         } else {
             this.notify("Item already exists in the list", 4000);
         }
     },
 
     deleteBlackList: function () {
-        var i = this.blacklistbox.selectedIndex;
+        var i = this.blackListBox.selectedIndex;
         if (i >= 0) {
-            this.blacklistbox.removeItemAt(i);
-            this.blacklist.splice(i, 1);
+            this.blackListBox.removeItemAt(i);
+            this.blackList.splice(i, 1);
         }
     },
 
     handleBlackListBoxEvent: function (aEvent) {
         switch (aEvent.type) {
         case 'select':
-            if (this.blacklistbox.selectedItem) {
-                this.blacklisturl.value = this.blacklistbox.selectedItem.label;
+            if (this.blackListBox.selectedItem) {
+                this.blackListURL.value = this.blackListBox.selectedItem.label;
                 document.getElementById("blacklist-button-delete").disabled = false;
             } else {
-                this.blacklisturl.value = "";
+                this.blackListURL.value = "";
                 document.getElementById("blacklist-button-delete").disabled = true;
             }
             break;
@@ -425,21 +492,171 @@ var ksPreference = {
         }
     },
 
+    // ============================== Generate init file ============================== //
+
+    generateInitFile: function () {
+        var contentHolder = ["// ================ KeySnail Init File ================ //"];
+
+        // 0. Preserved code
+        var preserve = this.modules.userscript.preserve;
+
+        contentHolder.push("");
+        contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription1"));
+        contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription2"));
+        contentHolder.push(preserve.beginSign);
+        if (preserve.code) {
+            contentHolder.push(preserve.code);            
+        }
+        contentHolder.push(preserve.endSign);
+
+        // 1. Special keys
+        contentHolder.push("");
+        contentHolder.push("// ================ Special Keys ====================== //");
+        this.generateSpecialKeySettings(contentHolder);
+        contentHolder.push("");
+
+        // 2. Hooks
+
+        contentHolder.push("// ================ Hooks ============================= //");
+        this.generateHookSettings(contentHolder);
+        contentHolder.push("");
+
+        // 3. Black List Settings
+
+        this.generateBlackListSettings(contentHolder);
+
+        // 4. KeyBindings
+
+        contentHolder.push("// ================ Key Bindings ====================== //");
+        contentHolder.push("");
+
+        this.generateKeyBindSettings(contentHolder);
+
+        // now process it
+        var output = this.modules.util
+            .convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
+
+        return output;
+    },
+
+    /**
+     * String => 'String'
+     * @param {string} aStr
+     * @returns {string}
+     */
+    toStringForm: function (aStr) {
+        return aStr ? "'" + aStr.replace("\\", "\\\\") + "'" : "";
+    },
+
+    generateSpecialKeySettings: function (aContentHolder) {
+        aContentHolder.push("");
+
+        var keys = keyCustomizer.getSpecialKeys();
+
+        var maxLen = Math.max.apply(null, [str.length for each (str in
+                                                                (function (obj) {
+                                                                     for (var key in obj) yield key;
+                                                                 })(keys))]);
+        for (var key in keys) {
+            var padding = Math.max(maxLen - key.length, 0) + 2;
+            aContentHolder.push('key.' + key +
+                                new Array(padding).join(" ") +
+                                '= "' + keys[key] + '";');
+        }
+    },
+
+    generateHookSettings: function (aContentHolder) {
+        for (var hookName in this.modules.hook.hookList) {
+            aContentHolder.push("");
+
+            var hook = this.modules.hook.hookList[hookName];
+
+            for (var i = 0; i < hook.length; ++i) {
+                var funcStr = js_beautify(hook[i].toString());
+
+                // ignore blacklist hook (will be added in generateBlackListSettings)
+                if (hookName == "LocationChange" &&
+                    funcStr.indexOf("key.suspendWhenMatched") != -1) {
+                    continue;
+                }
+
+                var method = (i == 0) ? "set" : "addTo";
+                aContentHolder.push("hook." + method + "Hook(" +
+                                    this.toStringForm(hookName) + ", " +
+                                    funcStr + ");");
+            }
+        }
+    },
+
+    generateBlackListSettings: function (aContentHolder) {
+        if (this.blackList.length) {
+            aContentHolder.push("// ================ Black List ======================== //");
+            aContentHolder.push("");
+            aContentHolder.push(js_beautify(['hook.setHook("LocationChange",',
+                                             'function (aNsURI) {',
+                                             'var URL = aNsURI ? aNsURI.spec : null;',
+                                             'key.suspendWhenMatched(URL, key.blackList);});'].join("\n")));
+            aContentHolder.push("");
+
+            aContentHolder.push("key.blackList = [");
+            for (var i = 0; i < this.blackList.length; ++i) {
+                var commma = (i == this.blackList.length - 1) ? "" : ",";
+                aContentHolder.push("    " + this.toStringForm(this.blackList[i]) + commma);
+            }
+            aContentHolder.push("];");
+            aContentHolder.push("");
+        }
+    },
+
+    generateKeyBindSettings: function (aContentHolder) {
+        var row;
+        var data = ksKeybindTreeView.data;
+
+        for (var i = 0; i < data.length; ++i) {
+            row = data[i];
+
+            // ignore separator
+            if (row[0] == null)
+                continue;
+
+            // ignore unbound command
+            if (row[KS_KEY_STRING].length) {
+                var sequence = row[KS_KEY_STRING].split(" ");
+                var keySetting = '[' + sequence.map(this.toStringForm).join(", ") + ']';
+                var ksNoRepeatString = row[KS_ARGUMENT] ? ", true" : "";
+
+                var src = "key.set" + ksKeybindTreeView.modes[row[KS_MODE]]+ "Key(" +
+                    keySetting +
+                    ", " + row[KS_FUNCTION] +
+                    (row[KS_DESC] ? ", " + this.toStringForm(row[KS_DESC]) : "") +
+                    ksNoRepeatString + ");\n";
+
+                aContentHolder.push(src);
+            }
+        }
+    },
+
     msgTimeOut: null,
     notify: function (aMsg, aTime) {
         var messageBox = document.getElementById("notification-area");
+        var createButtonArea = document.getElementById("create-button-area");
 
         if (this.msgTimeOut) {
             clearTimeout(this.msgTimeOut);
             this.msgTimeOut = null;
         }
 
-        var oldMsg = messageBox.value;
-
         messageBox.value = aMsg;
+
+        messageBox.hidden       = !aMsg;
+        createButtonArea.hidden = !messageBox.hidden;
+
         let self = this;
         if (aTime) {
-            this.msgTimeOut = setTimeout(function () { self.notify(oldMsg, 0); }, aTime);
+            this.msgTimeOut = setTimeout(
+                function () {
+                    self.notify("", 0);
+                }, aTime);
         }
     }
 };
@@ -448,7 +665,8 @@ const KS_MODE         = 0;
 const KS_KEY_STRING   = 1;
 const KS_DESC         = 2;
 const KS_FUNCTION     = 3;
-const KS_TREE_COUNT   = 4;
+const KS_ARGUMENT     = 4;
+const KS_TREE_COUNT   = 5;
 
 var ksKeybindTreeView = {
     modules: null,
@@ -466,7 +684,6 @@ var ksKeybindTreeView = {
      * nsITreeBoxObject
      */
     _treeBoxObject: null,
-
     
     /**
      * Generate array of keymap as data
@@ -487,6 +704,9 @@ var ksKeybindTreeView = {
         this.currentModeIndex++;
         this.initKeyBindingData(this.data, this.modules.key.keyMapHolder[this.modules.key.modes.CARET]);
         this.currentModeIndex = 0;
+
+        this.repeatYes = this.modules.util.getLocaleString("repeatWhenPrefixArgumentGivenYes");
+        this.repeatNo = this.modules.util.getLocaleString("repeatWhenPrefixArgumentGivenNo");
     },
 
     /**
@@ -512,17 +732,20 @@ var ksKeybindTreeView = {
                 var keyString = aKeySequence.length ? aKeySequence.join(" ") + ' ' + key : key;
 
                 var row = new Array(KS_TREE_COUNT);
+
                 row[KS_MODE] = this.currentModeIndex;
                 row[KS_KEY_STRING] = keyString;
-                row[KS_DESC] = null;
+                row[KS_DESC] = func.ksDescription;
+                row[KS_ARGUMENT] = func.ksNoRepeat;
 
                 var property = this.isMemberOf(func, this.modules.command);
                 if (property) {
-                    row[KS_FUNCTION] = new String("command." + property);
-                    row[KS_FUNCTION].ksNoRepeat = func.ksNoRepeat;
-                    row[KS_FUNCTION].ksDescription = func.ksDescription;
+                    /**
+                     * special functions like yank / yankPop, member of KeySnail.Command
+                     */
+                    row[KS_FUNCTION] = "command." + property;
                 } else {
-                    row[KS_FUNCTION] = func;                    
+                    row[KS_FUNCTION] = js_beautify(func.toString());
                 }
 
                 aData.push(row);
@@ -536,9 +759,23 @@ var ksKeybindTreeView = {
         }
     },
 
+    checkSyntax: function () {
+        var i = this.currentIndex;
+        var src = this.data[i][KS_FUNCTION];
+
+        try {
+            with (this.modules) {
+                eval("(function(f){})(" + src + ")");
+            }
+        } catch (x) {
+            return x.message;
+        }
+        return null;
+    },
+
     applyToKeyMap: function () {
-        if (!this.changed)
-            return;
+        // if (!this.changed)
+        //     return null;
 
         var begin = new Date();
         with (this.modules) {
@@ -550,21 +787,50 @@ var ksKeybindTreeView = {
             key.currentKeyMap = key.keyMapHolder[key.modes.GLOBAL];
 
             var row;
-            var sequence;
-            var modes = [4];
+            var modes = [];
 
             modes[0] = key.modes.GLOBAL;
             modes[1] = key.modes.VIEW;
             modes[2] = key.modes.EDIT;
-            modes[3] = key.modes.CARET;
+            modes[3] = key.modes.CARET; 
+
+            var strmodes = [
+                "key.modes.GLOBAL",
+                "key.modes.VIEW",  
+                "key.modes.EDIT",  
+                "key.modes.CARET"
+            ];
+
             for (var i = 0; i < this.data.length; ++i) {
                 row = this.data[i];
+
                 if (row[0] == null)
                     continue;
-                sequence = row[KS_KEY_STRING].split(" ");
-                if (sequence.length) {
-                    key.defineKey(modes[row[KS_MODE]], sequence, row[KS_FUNCTION],
-                                  row[KS_FUNCTION].ksDescription, row[KS_FUNCTION].ksNoRepeat);
+
+                if (row[KS_KEY_STRING].length) {
+                    var sequence = row[KS_KEY_STRING].split(" ");
+                    var keySetting = '[' + sequence.map(key.toStringForm).join(", ") + ']';
+                    var ksNoRepeatString = row[KS_ARGUMENT] ? ", true" : "";
+
+                    var src = "key.defineKey(" + strmodes[row[KS_MODE]] + ", " +
+                        keySetting +
+                        ", " + row[KS_FUNCTION] +
+                        (row[KS_DESC] ? "," + key.toStringForm(row[KS_DESC]) : "")
+                        + ksNoRepeatString + ");";
+                    
+                    Application.console.log(src);
+
+                    try {
+                        this.browserWindow.eval(src);
+                    } catch (x) {
+                        return [i, x.message];
+                    }
+
+                    // key.defineKey(modes[row[KS_MODE]],
+                    //               sequence,
+                    //               row[KS_FUNCTION],
+                    //               row[KS_DESC],
+                    //               row[KS_ARGUMENT]);
                 }
             }
         }
@@ -572,6 +838,8 @@ var ksKeybindTreeView = {
         this.changed = false;
         var end = new Date();
         Application.console.log((end - begin) + " msec");
+
+        return null;
     },
 
     deleteSelectedItem: function () {
@@ -581,6 +849,22 @@ var ksKeybindTreeView = {
             this._treeBoxObject.rowCountChanged(i, -1);
             this.update();
         }
+    },
+
+    appendItem: function () {
+        var newItem = new Array(4);
+        newItem[KS_KEY_STRING] = "";
+        newItem[KS_DESC]       = "";
+        newItem[KS_ARGUMENT]   = false;
+        newItem[KS_FUNCTION]   = "function () {\n\n}";
+        newItem[KS_MODE]       = 0;
+
+        this.data.push(newItem);
+        var newIdx = this.rowCount - 1;
+        this._treeBoxObject.rowCountChanged(newIdx, 1);
+        this.selection.select(newIdx);
+        this._treeBoxObject.ensureRowIsVisible(newIdx);
+        ksPreference.keybindTextarea.focus();
     },
 
     /**
@@ -605,7 +889,7 @@ var ksKeybindTreeView = {
         return this.selection.currentIndex;
     },
 
-    // interfaces
+    // Tree view interfaces
     get rowCount() {
         return this.data.length;
     },
@@ -619,7 +903,7 @@ var ksKeybindTreeView = {
     isSeparator: function (index) {
         if (index < 0)
             return true;
-        return this.data[index][0] == null;
+        return this.data[index][KS_KEY_STRING] == null;
     },
     isSorted: function () { return false; },
     canDrop: function (targetIndex, orientation) { return false; },
@@ -637,9 +921,11 @@ var ksKeybindTreeView = {
             case KS_KEY_STRING:
             return this.data[row][KS_KEY_STRING] || "";
             case KS_DESC:
-            return this.data[row][KS_FUNCTION] ? this.data[row][KS_FUNCTION].ksDescription : ("row :: " + row);
+            return this.data[row][KS_DESC];
             case KS_FUNCTION:
-            return this.data[row][KS_FUNCTION].toString();
+            return this.data[row][KS_FUNCTION];
+            case KS_ARGUMENT:
+            return this.data[row][KS_ARGUMENT] ? this.repeatNo : this.repeatYes;
             default:
             return "";
         }
@@ -666,4 +952,5 @@ var ksKeybindTreeView = {
      var browserWindow = wm.getMostRecentWindow("navigator:browser");
      ksPreference.modules = browserWindow.KeySnail.modules;
      ksKeybindTreeView.modules = browserWindow.KeySnail.modules;
+     ksKeybindTreeView.browserWindow = browserWindow;
  })();

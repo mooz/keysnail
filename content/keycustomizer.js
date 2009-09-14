@@ -49,6 +49,29 @@ var keyCustomizer = {
         }
     },
 
+    getSpecialKeys: function () {
+        var specialKeys = {
+            quitKey              : null,
+            helpKey              : null,
+            escapeKey            : null,
+            macroStartKey        : null,
+            macroEndKey          : null,
+            universalArgumentKey : null,
+            negativeArgument1Key : null,
+            negativeArgument2Key : null,
+            negativeArgument3Key : null,
+            suspendKey           : null
+        };
+
+        for (var key in specialKeys) {
+            specialKeys[key] = 
+                document.getElementById(this.prefPrefix +
+                                        key.slice(0, key.length - 3)).value || "";
+        }
+
+        return specialKeys;
+    },
+
     setTextBoxValue: function (aKeyName, aValue) {
         var textBox = document.getElementById(this.prefPrefix + aKeyName);
         textBox.value = aValue;

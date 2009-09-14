@@ -42,24 +42,6 @@ KeySnailLoader.prototype = {
 
     handleEvent: function (aEvent) {
         aEvent.currentTarget.removeEventListener('load', this, false);
-        // var windowType = aEvent.target.documentElement.getAttribute("windowtype");
-
-        // if (!windowType) {
-        //     // this.message(windowType);
-        //     // this.listProperty(aEvent.target);
-        // }
-        // this.message(aEvent.target.name);
-        // this.message(windowType);
-
-        // this.message(aEvent.target.documentURI);
-
-        // var elem = aEvent.target.defaultView
-        //     .QueryInterface(Components.interfaces.nsIDOMNSEditableElement);
-        // if (elem) {
-        //     this.message("Editable found [" + aEvent.target.documentURI + "]");
-        // }
-        
-        // this.message(aEvent.target.documentURI);
 
         switch (aEvent.target.documentURI) {
             // white list
@@ -75,16 +57,12 @@ KeySnailLoader.prototype = {
         case 'chrome://mozapps/content/downloads/unknownContentType.xul':
             return;
             break;
-            // special case
-        // case 'chrome://global/content/commonDialog.xul':
-        //     // this.listProperty(aEvent.target.defaultView.document);
-        //     // this.listProperty(aEvent.target);
-        //     // this.listProperty(aEvent.target.document);
-        //     if (this.hasInput(aEvent.target.defaultView.window)) {
-        //         aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
-        //     }
-        //     return;
-        //     break;
+        case 'chrome://global/content/commonDialog.xul':
+            if (this.hasInput(aEvent.target)) {
+                aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
+            }
+            return;
+            break;
         }
 
         // when keysail is enabled globally
@@ -94,17 +72,26 @@ KeySnailLoader.prototype = {
         }
     },
 
-    // hasInput: function (aDocument) {
-    //     var xPathExp = '//textbox';
-    //     var xPathResults = aDocument.evaluate(xPathExp, aDocument,
-    //                                           null,
-    //                                           7,
-    //                                           null);
-        
-    //     this.message((xPathResults || []).length);
+    hasInput: function (aDocument) {
+        var ids = ["loginContainer",
+                   "password1Container",
+                   "password2Container"];
 
-    //     return (xPathResults.snapshotLength > 0);
-    // },
+        var elem;
+        for (var i = 0; i < ids.length; ++i) {
+            elem = aDocument.getElementById(ids[i]);
+            if (elem && !elem.hidden)
+                return true;
+        }
+
+        return false;
+        // var textboxes = aDocument.getElementsByTagName("textbox");
+        // for (var i = 0; i < textboxes.length; ++i) {
+        //     if (!textboxes[i].hidden)
+        //         return true;
+        // }
+        // return false;
+    },
 
     // list all the properties of the aObject
     // @param aObject
@@ -112,16 +99,15 @@ KeySnailLoader.prototype = {
     //     if (!aObject) {
     //         this.message("listProperty: undefined object passed");
     //     } else {
+    //         try {
     //         for (var property in aObject) {
-    //             // this.message(property);
-    //             try {
-    //                 this.message("[" + property + "] = "
-    //                              + aObject[property]
-    //                             );
-    //             } catch (x) {
-    //                 this.message(x);
-    //             }
+    //             this.message("[" + property + "] = "
+    //                          + aObject[property]
+    //                         );
     //         }
+    //         } catch (x) {
+    //             this.message(x);
+    //     }
     //     }
     // },
 

@@ -13,8 +13,11 @@
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
             xmlns:html="http://www.w3.org/1999/xhtml"
             title="&keySnail.preference.title;"
+            minwidth="600px"
+            minheight="600px"
             >
-    <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;" flex="1"
+    <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;"
+              flex="1"
               onpaneload="ksPreference.onGeneralPaneLoad();">
         <!-- pref values -->
         <preferences>
@@ -26,14 +29,6 @@
                  id="extensions.keysnail.keyhandler.use_prefix_argument"
                  name="extensions.keysnail.keyhandler.use_prefix_argument"
                  type="bool"/>
-            <preference
-                 id="extensions.keysnail.userscript.location"
-                 name="extensions.keysnail.userscript.location"
-                 type="file"/>
-            <preference
-                 id="extensions.keysnail.userscript.editor"
-                 name="extensions.keysnail.userscript.editor"
-                 type="file"/>
         </preferences>
         <!-- Status -->
         <groupbox orient="vertical">
@@ -49,55 +44,43 @@
         <!-- Init File Settings -->
         <groupbox orient="vertical">
             <caption label="&keySnail.preference.userscript.settings;" />
-            <vbox flex="1">
-                <!-- init file path -->
-                <hbox align="center">
-                    <label value="&keySnail.preference.userscript.location;"
-                           control="userScriptLocation" flex="1"/>
-                    <filefield id="keysnail.preference.userscript.location"
-                               style="width: 25em;"
-                               preference="extensions.keysnail.userscript.location"/>
-                    <button label="&keySnail.preference.userscript.reference;"
-                            oncommand="ksPreference.changePathClicked('INITFILE');" />
-                </hbox>
-
-                <spacer height="5px" />
-
-                <!-- editor path -->
-                <hbox align="center">
-                    <label value="&keySnail.preference.userscript.editor;"
-                           control="userScriptLocation" flex="1"/>
-                    <filefield id="keysnail.preference.userscript.editor"
-                               style="width: 25em;"
-                               preference="extensions.keysnail.userscript.editor"/>
-                    <button label="&keySnail.preference.userscript.reference;"
-                            oncommand="ksPreference.changePathClicked('EDITOR');" />
-                </hbox>
-
-                <spacer height="5px" />
-
-                <!-- editor option -->
-                <!-- <hbox align="center"> -->
-                <!--     <label value="&keySnail.preference.userscript.option;" -->
-                <!--            control="userScriptLocation" flex="1"/> -->
-                <!--     <textbox id="keysnail.preference.userscript.option" -->
-                <!--              style="width: 25em;" -->
-                <!--              preference="extensions.keysnail.userscript.editor"/> -->
-                <!--     <button label="&keySnail.preference.userscript.reference;" -->
-                <!--             oncommand="ksPreference.changePathClicked('EDITOR');" /> -->
-                <!-- </hbox> -->
-            </vbox>
+            <grid flex="1">
+                <columns>
+                    <column />
+                    <column flex="1"/>
+                    <column />
+                </columns>
+                <rows>
+                    <row align="center" flex="1">
+                        <label value="&keySnail.preference.userscript.location;"
+                               control="userScriptLocation"/>
+                        <filefield id="keysnail.preference.userscript.location" flex="1"/>
+                        <button label="&keySnail.preference.userscript.reference;"
+                                oncommand="ksPreference.changePathClicked('INITFILE');" />
+                    </row>
+                    <row>
+                        <spacer height="5px" />
+                    </row>
+                    <row align="center" flex="1">
+                        <label value="&keySnail.preference.userscript.editor;"
+                               control="userScriptLocation"/>
+                        <filefield id="keysnail.preference.userscript.editor" flex="1"/>
+                        <button label="&keySnail.preference.userscript.reference;"
+                                oncommand="ksPreference.changePathClicked('EDITOR');" />
+                    </row>
+                </rows>
+            </grid>
         </groupbox>
-
-        <spacer height="20px" />
     </prefpane>
 
     <!-- Init file -->
     <prefpane id="prefpane-keys" label="&keySnail.preference.keys;"
+              flex="1"
               onpaneload="ksPreference.onKeyPaneLoad();">
+        <preferences></preferences>
         <vbox flex="1">
             <!-- key bindings list -->
-            <tabbox flex="2">
+            <tabbox flex="1">
                 <tabs>
                     <tab label="&keySnail.preference.keys.keybindings;"/>
                     <tab label="&keySnail.preference.keys.specialkey;"/>
@@ -108,34 +91,43 @@
                         <vbox flex="1">
                             <vbox flex="1"
                                   id="keybind-tree-box">
+                                <description width="600px">&keySnail.preference.keys.treeDescription1;</description>
+                                <description width="600px">&keySnail.preference.keys.treeDescription2;</description>
+                                <description width="600px">&keySnail.preference.keys.treeDescription3;</description>
                                 <tree id="keybind-tree" flex="1"
                                       seltype="single"
-                                      rows="17"
 		                      onselect="ksPreference.handleTreeEvent(event);"
 		                      onclick="ksPreference.handleTreeEvent(event);"
 		                      ondblclick="ksPreference.handleTreeEvent(event);"
 		                      onkeypress="ksPreference.handleTreeEvent(event);">
                                     <treecols>
                                         <treecol id="binds-mode"
-                                                 label="&keySnail.preference.keys.treeheader.mode;"/>
+                                                 label="&keySnail.preference.keys.treeheader.mode;"
+                                                 flex="1"/>
                                         <treecol id="binds-key"
                                                  label="&keySnail.preference.keys.treeheader.key;"
-                                                 flex="1"/>
+                                                 flex="2"/>
 		                        <splitter class="tree-splitter" />
                                         <treecol id="binds-description"
                                                  label="&keySnail.preference.keys.treeheader.description;"
-                                                 flex="3"/>
+                                                 flex="4"/>
 		                        <splitter class="tree-splitter" />
                                         <treecol id="binds-function"
                                                  label="&keySnail.preference.keys.treeheader.function;"
                                                  hidden="true"
                                                  flex="2"/>
+		                        <splitter class="tree-splitter" />
+                                        <treecol id="binds-argument"
+                                                 label="&keySnail.preference.keys.treeheader.argument;"
+                                                 hidden="true"
+                                                 flex="1"/>
                                     </treecols>
                                     <treechildren></treechildren>
                                 </tree>
                                 <!-- command buttons -->
                                 <separator height="7px"/>
-                                <hbox>
+                                <hbox align="center">
+                                    <label>&keySnail.preference.keys.treeheader.key;: </label>
                                     <textbox id="keybind-textarea"
                                              onkeypress="ksPreference.handleKeyBindTextareaEvent(event);"
                                              onfocus="ksPreference.handleKeyBindTextareaEvent(event);"
@@ -144,14 +136,22 @@
                                              readonly="true"
                                              >
                                     </textbox>
+                                    <popupset>
+                                        <menupopup id="insert-key-menu">
+                                        </menupopup>
+                                    </popupset>
+                                    <dropmarker id="keybind-button-insert"
+                                                disabled="true"
+                                                popup="insert-key-menu"/>
+                                    <spacer flex="1" />
                                     <button label="&keySnail.preference.keys.edit;"
                                             id="keybind-button-edit"
                                             disabled="true"
                                             oncommand="ksPreference.toggleEditView.call(ksPreference);"
                                             accesskey="e"
                                             />
-                                    <spacer flex="1" />
                                     <button label="&keySnail.preference.keys.add;"
+                                            oncommand="ksKeybindTreeView.appendItem();"
                                             accesskey="a"
                                             />
                                     <button label="&keySnail.preference.keys.delete;"
@@ -166,14 +166,15 @@
                                   id="keybind-edit-box"
                                   hidden="true">
                                 <hbox align="center">
-                                    <label>機能名: </label>
+                                    <label>&keySnail.preference.keys.treeheader.description;: </label>
                                     <textbox flex="1"
                                              onchange="ksPreference.handleDescriptionTextarea(event);"
+                                             onkeypress="ksPreference.handleDescriptionTextarea(event);"
                                              id="keybind-function-description">
                                     </textbox>
                                 </hbox>
                                 <hbox align="center">
-                                    <label>モード: </label>
+                                    <label>&keySnail.preference.keys.treeheader.mode;: </label>
                                     <menulist id="keybind-function-mode"
                                               oncommand="ksPreference.handleModeMenuList(event);">
                                         <menupopup>
@@ -185,29 +186,32 @@
                                     </menulist>
                                     <separator width="10px"/>
                                     <checkbox id="keybind-function-norepeat"
-                                              label="前置引数付与時にコマンドを繰り返さない"
-                                              onclick="ksPreference.toggleNoRepeat();"
+                                              label="&keySnail.preference.edit.noRepeat;"
+                                              onclick="ksPreference.noRepeatToggled();"
                                               checked="false"/>
                                 </hbox>
-                                <description>関数: </description>
+                                <description>&keySnail.preference.edit.function;:</description>
                                 <textbox id="keybind-function-body"
                                          onchange="ksPreference.handleFunctionTextarea(event);"
+                                         onkeypress="ksPreference.handleFunctionTextarea(event);"
                                          multiline="true" flex="3">
                                 </textbox>
                                 <hbox>
-                                    <button label="キーバインド一覧表示へ戻る"
+                                    <button label="&keySnail.preference.edit.backToTree;"
                                             oncommand="ksPreference.toggleEditView.call(ksPreference);"
                                             accesskey="v"/>
-                                    <!-- <separator flex="1"/> -->
-                                    <!-- <button label="コードを整形" -->
-                                    <!--         oncommand="ksPreference.beautify.call(ksPreference);" -->
-                                    <!--         accesskey="b"/> -->
+                                    <spacer flex="1"/>
+                                    <button label="&keySnail.preference.edit.beautifyCode;"
+                                            oncommand="ksPreference.beautify.call(ksPreference);"
+                                            accesskey="b"/>
                                 </hbox>
                             </vbox>
                         </vbox>
                     </tabpanel>
                     <tabpanel id="special-keys">
                         <vbox flex="1">
+                            <description width="600px">&keySnail.preference.keys.specialKeyDescription1;</description>
+                            <description width="600px">&keySnail.preference.keys.specialKeyDescription2;</description>
                             <hbox align="center" tooltiptext="&keySnail.preference.key.quit.description;">
                                 <description flex="1">&keySnail.preference.key.quit;:</description>
                                 <textbox id="keysnail-userscript-key-quit"
@@ -321,7 +325,7 @@
                     </tabpanel>
                     <tabpanel id="blacklist-settings" flex="1">
                         <vbox flex="1">
-                            <description>&keySnail.preference.key.blacklist.description;</description>
+                            <description width="600px">&keySnail.preference.key.blacklist.description;</description>
                             <listbox id="blacklist-listbox" flex="1"
                                      onselect="ksPreference.handleBlackListBoxEvent(event);"
                                      onkeypress="ksPreference.handleBlackListBoxEvent(event);"
@@ -350,17 +354,19 @@
             </tabbox>
             <spacer height="8px"/>
             <!-- command buttons -->
-            <hbox>
-                <label id="notification-area"></label>
+            <label width="600px" id="notification-area" style="color:#b80011;font-weight:bold;" hidden="true"></label>
+            <hbox id="create-button-area" align="center">
                 <spacer flex="2" />
                 <button label="&keySnail.preference.key.create;"
-                        oncommand="ksPreference.onFinish();"/>
+                        accesskey="c"
+                        oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>
             </hbox>
         </vbox>
     </prefpane>
 
     <!-- about panel -->
     <prefpane id="prefpane-about" label="&keySnail.preference.about;" flex="1">
+        <preferences></preferences>
         <spacer flex="1"/>
         <vbox align="center" flex="1">
             <image src="chrome://keysnail/skin/logo.png" width="128" height="128"
@@ -373,6 +379,14 @@
             <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://d.hatena.ne.jp/mooz/')"
                          >Visit Author's blog (Japanese)</description>
+            <spacer height="10px"/>
+            <description>KeySnail using ...</description>
+            <description class="text-link"
+                         onclick="ksPreference.modules.key.viewURI('http://jsbeautifier.org/')"
+                         >Javascript beautifier</description>
+            <description class="text-link"
+                         onclick="ksPreference.modules.key.viewURI('http://tango.freedesktop.org/Tango_Desktop_Project')"
+                         >Tango icon</description>
         </vbox>
         <spacer flex="1"/>
     </prefpane>
@@ -381,7 +395,7 @@
     <script type="application/x-javascript" src="chrome://global/content/nsUserSettings.js"/>
     <script type="application/x-javascript" src="chrome://keysnail/content/preference.js"/>
     <script type="application/x-javascript" src="chrome://keysnail/content/keycustomizer.js"/>
-    <!-- <script type="application/x-javascript" src="chrome://keysnail/content/beautify.js"/> -->
+    <script type="application/x-javascript" src="chrome://keysnail/content/beautify.js"/>
 
 </prefwindow>
 

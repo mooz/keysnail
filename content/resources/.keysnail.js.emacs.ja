@@ -1,29 +1,23 @@
 // ==================== KeySnail configuration file ==================== //
 ####REPLACE_WITH_DOC####
-// ==================== special keys ==================== //
-####REPLACE_WITH_SPECIAL_KEYS####
-// macro.setSleepTime(100); // key macro interval
-
-// ==================== load modules ==================== //
-// 初期化ファイルを複数のファイルに分割し, 読み込むことが出来る.
-// userscript.addLoadPath("~/.keysnail.d");
-// userscript.require("module1.js");
-// userscript.require("module2.js");
+// この領域は, GUI により初期化ファイルを生成した際にも引き継がれます
+// 特殊キー, キーバインド定義, フック, ブラックリスト以外のコードは, この中に書くようにして下さい
+//{{%PRESERVE%
 
 // ==================== prefix ==================== //
 // エディットモードで C-z を入力すると, ビューモードのキーバインドが使える
 // key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
 // ==================== set about:config value ==================== //
-// util.setPrefs(
-//     {
-//         "ui.key.generalAccessKey": 0, // kill access key (for Mac User)
-//         "ui.caretWidth": 5,           // Make caret bolder
-//         "ui.caretBlinkTime": 0,       // Stop caret blink
-//         "accessibility.typeaheadfind": true, // Enable "Find As You Type"
-//         "accessibility.typeaheadfind.linksonly": true // Only for links
-//     }
-// );
+// util.setPrefs({"ui.key.generalAccessKey" : 0, // kill access key (for Mac User)
+//                "ui.caretWidth"           : 5, // Make caret bolder
+//                "ui.caretBlinkTime"       : 0  // Stop caret blink
+//               });
+//}}%PRESERVE%
+
+// ==================== special keys ==================== //
+####REPLACE_WITH_SPECIAL_KEYS####
+// macro.setSleepTime(100); // key macro interval
 
 // ==================== set hooks ==================== //
 hook.setHook("KeyBoardQuit",

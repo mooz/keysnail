@@ -142,7 +142,7 @@ KeySnail.Key = {
 
         if (aURL) {
             this.suspended =
-                aBlackList.some(function (elem) { return !!aURL.match(elem); });
+                aBlackList.some(function (elem) { return (aURL == elem || !!aURL.match(elem)); });
         } else {
             // about:blank ...
             this.suspended = false;
@@ -227,6 +227,8 @@ KeySnail.Key = {
         // ----------------------------------------
 
         var key = this.keyEventToString(aEvent);
+
+        // this.modules.display.prettyPrint("key :: " + key);
 
         if (key == this.suspendKey) {
             this.suspended = !this.suspended;
@@ -434,6 +436,10 @@ KeySnail.Key = {
         return aEvent.altKey || aEvent.metaKey;
     },
 
+    isDisplayableKey: function (aEvent) {
+        return aEvent.charCode >= 0x20 && aEvent.charCode <= 0x7e;
+    },
+
     // ==================== key event => string ==================== //
 
     /**
@@ -452,7 +458,7 @@ KeySnail.Key = {
         //      "meta      :: " + (aEvent.metaKey ? "on" : "off"),
         //      "command   :: " + (aEvent.commandKey ? "on" : "off")].join("\n"));
 
-        if (aEvent.charCode >= 0x20 && aEvent.charCode <= 0x7e) {
+        if (this.isDisplayableKey(aEvent)) {
             // ASCII displayable characters (0x20 : SPC)
             key = String.fromCharCode(aEvent.charCode);
             if (aEvent.charCode == 0x20) {
@@ -510,6 +516,9 @@ KeySnail.Key = {
             case KeyEvent.DOM_VK_INSERT:
                 key = "<insert>";
                 break;
+            case KeyEvent.DOM_VK_PAUSE:
+                key = "<pause>";
+                break;
             case KeyEvent.DOM_VK_DELETE:
                 key = "<delete>";
             case 0xE2:
@@ -521,17 +530,22 @@ KeySnail.Key = {
                 if (aEvent.ctrlKey)
                     key = "_";
                 break;
+            default:
+                key = "";
+                break;
             }
         }
 
+        if (!key)
+            return "";
+
         // append modifier
-        if (this.isControlKey(aEvent) && this.isMetaKey(aEvent)) {
-            key = "C-M-" + key;
-        } else if (this.isMetaKey(aEvent)) {
+        if (this.isMetaKey(aEvent))
             key = "M-" + key;
-        } else if (this.isControlKey(aEvent)) {
+        if (this.isControlKey(aEvent))
             key = "C-" + key;
-        }
+        if (aEvent.shiftKey && !this.isDisplayableKey(aEvent))
+            key = "S-" + key;
 
         return key;
     },
@@ -545,18 +559,22 @@ KeySnail.Key = {
         var newEvent = document.createEvent('KeyboardEvent');
         var ctrlKey = false;
         var altKey = false;
+        var shiftKey = false;
         var keyCode = 0;
         var charCode = 0;
 
         // process modifier
         if (aKey.length > 1 && aKey.charAt(1) == '-') {
-            while (aKey.charAt(0) == 'C' || aKey.charAt(0) == 'M') {
+            while (aKey.charAt(0) == 'C' || aKey.charAt(0) == 'M' || aKey.charAt(0) == 'S') {
                 switch (aKey.charAt(0)) {
                 case 'C':
                     ctrlKey = true;
                     break;
                 case 'M':
                     altKey = true;
+                    break;
+                case 'S':
+                    shiftKey = true;
                     break;
                 }
                 aKey = aKey.slice(2);
@@ -613,6 +631,9 @@ KeySnail.Key = {
                 case "<insert>":
                     keyCode = KeyEvent.DOM_VK_INSERT;
                     break;
+                case "<pause>":
+                    keyCode = KeyEvent.DOM_VK_PAUSE;
+                    break;
                 case "<delete>":
                     keyCode = KeyEvent.DOM_VK_DELETE;
                     break;
@@ -638,7 +659,7 @@ KeySnail.Key = {
         }
 
         newEvent.initKeyEvent('keypress', true, true, null,
-                              ctrlKey, altKey, false, false,
+                              ctrlKey, altKey, shiftKey, false,
                               keyCode, charCode);
 
         if (aKsNoHandle)
@@ -775,10 +796,7 @@ KeySnail.Key = {
     },
 
     declareKeyMap: function (aKeyMapName) {
-        if (this.keyMapHolder[aKeyMapName] == undefined) {
-            // undefined keyMap
-            this.keyMapHolder[aKeyMapName] = new Object();
-        }
+        this.keyMapHolder[aKeyMapName] = new Object();
     },
 
     copyKeyMap: function (aTargetKeyMapName, aDestinationKeyMapName) {
@@ -1275,7 +1293,8 @@ KeySnail.Key = {
                                     // function body
                                     func.toString() +
                                     // description
-                                    ", " + this.toStringForm(func.ksDescription) + ksNoRepeatString +
+                                    (func.ksDescription ? ", " + this.toStringForm(func.ksDescription) : "") +
+                                    ksNoRepeatString +
                                     ");\n");
                 break;
             case "object":
@@ -1403,7 +1422,6 @@ KeySnail.Key = {
         var output = this.modules.util
             .convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
 
-        this.modules.util.writeText(output, "/tmp/hoge.js");
         return output;
     },
 

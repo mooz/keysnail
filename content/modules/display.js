@@ -46,10 +46,10 @@ KeySnail.Display = {
 
         if (dBody) {
             var ksMessageId = "_ks_message";
-            var ksMessageStyle = "z-index: 500; font-size: 14px; font-family: 'Helvetica';"
-                + " padding: 3px; margin: 3px; color: white; background-color: #1e354a;"
-                + " -moz-opacity: 0.9; opacity: 0.9; position: fixed;"
-                + " bottom: 0.5em; left: 0.5em;";
+            var ksMessageStyle = "z-index: 500; font-size: 30px; font-family: 'Bitstream Vera Sans Mono';"
+                + " padding: 10px; margin: 3px; color: #ff5e61; background-color: #111111;"
+                + " -moz-opacity: 0.7; opacity: 0.7; position: fixed; -moz-border-radius: 5px;"
+                + " top: 0.5em; right: 0.5em;";
 
             var lines = msg.split('\n');
 

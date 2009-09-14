@@ -69,7 +69,7 @@ KeySnail.Util = {
 
         if (file.exists() &&
             !aForce &&
-            !window.confirm(aPath + ' ' + this.getLocaleString("overWriteConfirmation")))
+            !this.confirm(aPath + ' ' + this.getLocaleString("overWriteConfirmation")))
             throw "Canceled by user";
 
         var fileStream = Components
@@ -83,6 +83,14 @@ KeySnail.Util = {
         }
 
         fileStream.close();
+    },
+
+    confirm: function (aMessage) {
+        var saved = nsPreferences.getBoolPref('extensions.keysnail.keyhandler.global_enabled');
+        nsPreferences.setBoolPref('extensions.keysnail.keyhandler.global_enabled', false);
+        var ret = window.confirm(aMessage);
+        nsPreferences.setBoolPref('extensions.keysnail.keyhandler.global_enabled', saved);
+        return ret;
     },
 
     // original code by Torisugari

@@ -26,8 +26,14 @@ KeySnail.UserScript = {
     // may access from other modules
     initFileLoaded: false,
 
+    preserve: {
+        beginSign : "//{{%PRESERVE%",
+        endSign   : "//}}%PRESERVE%",
+        code: null
+    },
+
     // line number of the Function() constructor
-    userScriptOffset: 41,
+    userScriptOffset: 49,
 
     // ==================== Loader ==================== //
 
@@ -38,6 +44,8 @@ KeySnail.UserScript = {
     jsFileLoader: function (aScriptPath) {
         // if (KeySnail.windowType == "navigator:browser") {
         var code = this.modules.util.readTextFile(aScriptPath).value;
+        if (KeySnail.windowType == "navigator:browser")
+            this.preserveCode(code);
         Function("with (KeySnail.modules) {" + code + " }")();
     },
 
@@ -188,6 +196,7 @@ KeySnail.UserScript = {
     reload: function () {
         // clear current keymaps
         this.modules.key.keyMapHolder = {};
+        this.modules.key.blackList = [];
         this.modules.key.init();
         this.load();
     },
@@ -371,6 +380,23 @@ KeySnail.UserScript = {
     },
 
     // ==================== util / wizard ==================== //
+
+    /**
+     * Preserve the code in init file, specified area
+     * @param {string} aCode whole code of init file
+     */
+    preserveCode: function (aCode) {
+        var beginPos = aCode.indexOf(this.preserve.beginSign);
+        var endPos = aCode.indexOf(this.preserve.endSign);
+
+        if (beginPos != -1 && endPos != -1) {
+            beginPos += this.preserve.beginSign.length + 1;
+            endPos--;
+            this.preserve.code = aCode.slice(beginPos, endPos);
+        } else {
+            this.preserve.code = "";
+        }
+    },
 
     /**
      * 

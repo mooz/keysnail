@@ -121,16 +121,11 @@ if scheme == 'doc':
 if scheme != 'doc':
     print """// ==================== KeySnail configuration file ==================== //
 ####REPLACE_WITH_DOC####
-// ==================== special keys ==================== //
-####REPLACE_WITH_SPECIAL_KEYS####
-// macro.setSleepTime(100); // key macro interval
-
-// ==================== load modules ==================== //
-// """ + {ja: "初期化ファイルを複数のファイルに分割し, 読み込むことが出来る.",
-          en: "You can split the init file into mutliple files."}[l] + """
-// userscript.addLoadPath("~/.keysnail.d");
-// userscript.require("module1.js");
-// userscript.require("module2.js");
+// """ + {ja: "この領域は, GUI により初期化ファイルを生成した際にも引き継がれます",
+          en: "You can preserve your code in this area when generating the init file using GUI."}[l] + """
+// """ + {ja: "特殊キー, キーバインド定義, フック, ブラックリスト以外のコードは, この中に書くようにして下さい",
+          en: "Put all your code except special key, set*key, hook, blacklist."}[l] + """
+//{{%PRESERVE%
 
 // ==================== prefix ==================== //
 // """ + {ja: "エディットモードで C-z を入力すると, ビューモードのキーバインドが使える",
@@ -139,15 +134,15 @@ if scheme != 'doc':
 // key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
 
 // ==================== set about:config value ==================== //
-// util.setPrefs(
-//     {
-//         "ui.key.generalAccessKey": 0, // kill access key (for Mac User)
-//         "ui.caretWidth": 5,           // Make caret bolder
-//         "ui.caretBlinkTime": 0,       // Stop caret blink
-//         "accessibility.typeaheadfind": true, // Enable "Find As You Type"
-//         "accessibility.typeaheadfind.linksonly": true // Only for links
-//     }
-// );
+// util.setPrefs({"ui.key.generalAccessKey" : 0, // kill access key (for Mac User)
+//                "ui.caretWidth"           : 5, // Make caret bolder
+//                "ui.caretBlinkTime"       : 0  // Stop caret blink
+//               });
+//}}%PRESERVE%
+
+// ==================== special keys ==================== //
+####REPLACE_WITH_SPECIAL_KEYS####
+// macro.setSleepTime(100); // key macro interval
 
 // ==================== set hooks ==================== //
 hook.setHook("KeyBoardQuit",

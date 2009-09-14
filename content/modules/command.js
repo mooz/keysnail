@@ -9,7 +9,7 @@ KeySnail.Command = {
     modules: null,
 
     /**
-     * Will be over ridden with the kill object in killring.jsm
+     * Will be overridden with the kill object in killring.jsm
      */ 
     kill: null,
 
@@ -131,11 +131,6 @@ KeySnail.Command = {
         if (xPathResults.snapshotLength == 0) {
             return;
         }
-
-        // var msg = ["found " + xPathResults.snapshotLength];
-        // for (var i = 0; i < xPathResults.snapshotLength; ++i)
-        //     msg.push(xPathResults.snapshotItem(i).localName || "None");
-        // this.modules.display.prettyPrint(msg.join("\n"));
 
         if (aNum >= xPathResults.snapshotLength) {
             aNum = xPathResults.snapshotLength - 1;
@@ -307,7 +302,7 @@ KeySnail.Command = {
     },
 
     inputHandleKey: function (aEvent, aCommand, aSelectedCommand, aDOMKey) {
-        if (aEvent.originalTarget.localName == 'TEXTAREA') {
+        if (aEvent.originalTarget.localName.toUpperCase() == 'TEXTAREA') {
             // ########################################
             if (this.marked(aEvent)) {
                 goDoCommand(aSelectedCommand);
@@ -332,7 +327,7 @@ KeySnail.Command = {
         var frame = document.commandDispatcher.focusedWindow
             || gBrowser.contentWindow;
 
-        if (aEvent.originalTarget.localName == 'TEXTAREA') {
+        if (aEvent.originalTarget.localName.toUpperCase() == 'TEXTAREA') {
             var textarea = aEvent.originalTarget;
             var box = textarea.ownerDocument.getBoxObjectFor(textarea);
             var style = frame.document.defaultView.getComputedStyle(textarea, null);
@@ -787,10 +782,11 @@ KeySnail.Command = {
             }
 
             // copied outside the Firefox
-            if (!kill.ring.length || clipboardText != kill.ring[0]) {
+            if (kill.ring.length == 0 || clipboardText != kill.ring[0]) {
                 pushKillRing(clipboardText);
             }
 
+            i = Math.min(i, kill.ring.length - 1);
             kill.originalText = input.value;
             kill.originalSelStart = input.selectionStart;
             kill.index = i;
@@ -863,8 +859,6 @@ KeySnail.Command = {
         goDoCommand('cmd_moveBottom');
         goDoCommand('cmd_selectTop');
         orig.ksMarked = orig.selectionEnd;
-        // this.modules.util.print(orig.selectionStart);
-        // this.modules.util.print(orig.selectionEnd);
     },
 
     // ==================== By line ==================== //
@@ -966,6 +960,12 @@ KeySnail.Command = {
     // },
 
     processForwardWord: function (aInput, aFilter) {
+        // for (var property in aInput) {
+        //     if (property.match("^scroll")) {
+        //         this.message(property + " = " + aInput[property]);
+        //     }
+        // }
+        
         var oldScrollTop = aInput.scrollTop;
         var oldScrollLeft = aInput.scrollLeft;
 
@@ -1037,7 +1037,11 @@ KeySnail.Command = {
         var mark = orig.ksMarked;
 
         if (mark == undefined) {
-            goDoCommand('cmd_selectNone');
+            try {
+                goDoCommand('cmd_selectNone');                
+            } catch (x) {
+                
+            }
             return;
         }
 
@@ -1119,7 +1123,6 @@ KeySnail.Command = {
             for (var i = 0; i < frameWindows.length; ++i) {
                 if (this.isFrameSetWindow(frameWindows[i])) {
                     var childWindows = this.getListFrameWindow(frameWindows[i]);
-                    // 子フレームをくっつける
                     listFrameWindow = listFrameWindow.concat(childWindows);
                 } else {
                     listFrameWindow.push(frameWindows[i]);

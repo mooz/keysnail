@@ -24,19 +24,35 @@
 <!ENTITY keySnail.preference.keys.keybindings "キーバインド">
 <!ENTITY keySnail.preference.keys.specialkey "特殊キー">
 <!ENTITY keySnail.preference.keys.blacklist "ブラックリスト">
-<!ENTITY keySnail.preference.keys.hook "フック">
 
-<!ENTITY keySnail.preference.keys.treeheader.key "キー">
-<!ENTITY keySnail.preference.keys.treeheader.description "機能">
-<!ENTITY keySnail.preference.keys.treeheader.function "関数">
+<!-- tree -->
+
+<!ENTITY keySnail.preference.keys.treeDescription1 "キーバインドを変更したい場合は、左下のテキストボックス内にキーを打ち込んで下さい。">
+<!ENTITY keySnail.preference.keys.treeDescription2 "バックスペースで左のキーをひとつ削除します。バックスペース自身は、その右のボタンをクリックして入力することができます。">
+<!ENTITY keySnail.preference.keys.treeDescription3 "コマンドの上でダブルクリックするか編集ボタンをクリックすると、編集画面へ移動します。">
+
 <!ENTITY keySnail.preference.keys.treeheader.mode "モード">
+<!ENTITY keySnail.preference.keys.treeheader.key "キー">
+<!ENTITY keySnail.preference.keys.treeheader.description "コマンド名">
+<!ENTITY keySnail.preference.keys.treeheader.function "関数">
+<!ENTITY keySnail.preference.keys.treeheader.argument "前置引数の扱い">
 
 <!ENTITY keySnail.preference.keys.apply "反映">
 <!ENTITY keySnail.preference.keys.edit "編集">
 <!ENTITY keySnail.preference.keys.add "追加">
 <!ENTITY keySnail.preference.keys.delete "削除">
 
+<!-- command edit box -->
+
+<!ENTITY keySnail.preference.edit.noRepeat "前置引数付与時にコマンドを繰り返さない">
+<!ENTITY keySnail.preference.edit.function "関数">
+<!ENTITY keySnail.preference.edit.backToTree "キーバインド一覧表示へ戻る">
+<!ENTITY keySnail.preference.edit.beautifyCode "コードを整形">
+
 <!-- special keys -->
+
+<!ENTITY keySnail.preference.keys.specialKeyDescription1 "特殊キーの設定を行います。ここで指定したキーは基本的に関数割り当て中で使用できなくなることに注意してください。">
+<!ENTITY keySnail.preference.keys.specialKeyDescription2 "各キーの説明はマウスオーバーで表示されます。">
 
 <!ENTITY keySnail.preference.key.quit "Quit key">
 <!ENTITY keySnail.preference.key.help "Help key">
@@ -62,15 +78,10 @@
 
 <!-- black list -->
 
-<!ENTITY keySnail.preference.key.blacklist.description "KeySnail を一時的に無効にしたいページの正規表現を指定して下さい。">
-
-<!-- hook -->
-
-<!ENTITY keySnail.preference.key.hook.select "フックを選択してください: ">
+<!ENTITY keySnail.preference.key.blacklist.description "KeySnail を一時的に無効にしたいページの URL か正規表現を指定して下さい。">
 
 <!-- create -->
-
-<!ENTITY keySnail.preference.key.create "現在の設定で初期化ファイルを作成">
+<!ENTITY keySnail.preference.key.create "変更の反映 (初期化ファイルを上書きします)">
 
 <!-- # ABOUT # -->
 <!ENTITY keySnail.preference.about "情報">
