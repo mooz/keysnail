@@ -42,6 +42,9 @@
 <!ENTITY keySnail.preference.keys.add "追加">
 <!ENTITY keySnail.preference.keys.delete "削除">
 
+<!ENTITY keySnail.preference.command.builtin "組み込みコマンド">
+<!ENTITY keySnail.preference.command.original "オリジナルのコマンド">
+
 <!-- command edit box -->
 
 <!ENTITY keySnail.preference.edit.noRepeat "前置引数付与時にコマンドを繰り返さない">

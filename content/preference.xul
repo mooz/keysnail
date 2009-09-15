@@ -13,7 +13,6 @@
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
             xmlns:html="http://www.w3.org/1999/xhtml"
             title="&keySnail.preference.title;"
-            minwidth="600px"
             minheight="600px"
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;"
@@ -91,9 +90,9 @@
                         <vbox flex="1">
                             <vbox flex="1"
                                   id="keybind-tree-box">
-                                <description width="600px">&keySnail.preference.keys.treeDescription1;</description>
-                                <description width="600px">&keySnail.preference.keys.treeDescription2;</description>
-                                <description width="600px">&keySnail.preference.keys.treeDescription3;</description>
+                                <description class="long-description">&keySnail.preference.keys.treeDescription1;</description>
+                                <description class="long-description">&keySnail.preference.keys.treeDescription2;</description>
+                                <description class="long-description">&keySnail.preference.keys.treeDescription3;</description>
                                 <tree id="keybind-tree" flex="1"
                                       seltype="single"
 		                      onselect="ksPreference.handleTreeEvent(event);"
@@ -128,6 +127,7 @@
                                 <separator height="7px"/>
                                 <hbox align="center">
                                     <label>&keySnail.preference.keys.treeheader.key;: </label>
+                                    <!-- key input area -->
                                     <textbox id="keybind-textarea"
                                              onkeypress="ksPreference.handleKeyBindTextareaEvent(event);"
                                              onfocus="ksPreference.handleKeyBindTextareaEvent(event);"
@@ -144,16 +144,27 @@
                                                 disabled="true"
                                                 popup="insert-key-menu"/>
                                     <spacer flex="1" />
+                                    <!-- edit button -->
                                     <button label="&keySnail.preference.keys.edit;"
                                             id="keybind-button-edit"
                                             disabled="true"
                                             oncommand="ksPreference.toggleEditView.call(ksPreference);"
                                             accesskey="e"
                                             />
+                                    <!-- add button -->
+                                    <popupset>
+                                        <menupopup id="add-command-menu">
+                                            <menuitem label="&keySnail.preference.command.builtin;"
+                                                      oncommand="ksPreference.addBuiltinCommand();"/>
+                                            <menuitem label="&keySnail.preference.command.original;"
+                                                      oncommand="ksKeybindTreeView.appendItem();"/>
+                                        </menupopup>
+                                    </popupset>
                                     <button label="&keySnail.preference.keys.add;"
-                                            oncommand="ksKeybindTreeView.appendItem();"
+                                            popup="add-command-menu"
                                             accesskey="a"
                                             />
+                                    <!-- delete button -->
                                     <button label="&keySnail.preference.keys.delete;"
                                             id="keybind-button-delete"
                                             oncommand="ksKeybindTreeView.deleteSelectedItem();"
@@ -210,8 +221,8 @@
                     </tabpanel>
                     <tabpanel id="special-keys">
                         <vbox flex="1">
-                            <description width="600px">&keySnail.preference.keys.specialKeyDescription1;</description>
-                            <description width="600px">&keySnail.preference.keys.specialKeyDescription2;</description>
+                            <description class="long-description">&keySnail.preference.keys.specialKeyDescription1;</description>
+                            <description class="long-description">&keySnail.preference.keys.specialKeyDescription2;</description>
                             <hbox align="center" tooltiptext="&keySnail.preference.key.quit.description;">
                                 <description flex="1">&keySnail.preference.key.quit;:</description>
                                 <textbox id="keysnail-userscript-key-quit"
@@ -325,7 +336,7 @@
                     </tabpanel>
                     <tabpanel id="blacklist-settings" flex="1">
                         <vbox flex="1">
-                            <description width="600px">&keySnail.preference.key.blacklist.description;</description>
+                            <description class="long-description">&keySnail.preference.key.blacklist.description;</description>
                             <listbox id="blacklist-listbox" flex="1"
                                      onselect="ksPreference.handleBlackListBoxEvent(event);"
                                      onkeypress="ksPreference.handleBlackListBoxEvent(event);"
@@ -354,13 +365,15 @@
             </tabbox>
             <spacer height="8px"/>
             <!-- command buttons -->
-            <label width="600px" id="notification-area" style="color:#b80011;font-weight:bold;" hidden="true"></label>
-            <hbox id="create-button-area" align="center">
-                <spacer flex="2" />
-                <button label="&keySnail.preference.key.create;"
-                        accesskey="c"
-                        oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>
-            </hbox>
+            <vbox>
+                <label id="notification-area" style="color:#b80011;font-weight:bold;" hidden="true" flex="1"></label>
+                <hbox id="create-button-area" align="center" flex="1">
+                    <spacer flex="2" />
+                    <button label="&keySnail.preference.key.create;"
+                            accesskey="c"
+                            oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>
+                </hbox>
+            </vbox>
         </vbox>
     </prefpane>
 

@@ -17,14 +17,6 @@ treechildren::-moz-tree-cell-text {
     margin-right: 2px;
 }
 
-.ks-notify-red {
-    color: #a10000;
-}
-
-.ks-notify-green {
-    color: #50a100;
-}
-
-.ks-notify-blue {
-    color: #221d8e;
+.long-description {
+    max-width: 600px;
 }

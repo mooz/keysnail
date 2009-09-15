@@ -24,11 +24,11 @@
   </script>
 
   <!-- clipboard watcher -->
-  <window>
+  <hbox>
       <commandset id="update-kill-ring"
                   commandupdater="true"
                   events="clipboard"
                   oncommandupdate="KeySnail.Command.clipboardChanged();"/>
-  </window>
+  </hbox>
 
 </overlay>

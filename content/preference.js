@@ -79,6 +79,14 @@ var ksPreference = {
             this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
             return;
         }
+
+        // var output1 = this.generateCommands();
+        // var output2 = this.generateStringBundle();
+        // this.modules.util.writeText(output2, "/tmp/bundle.js");
+        // this.modules.util.writeText(output, "/tmp/hoge.js");
+
+        // this.generateBuiltinMenu();
+
         var output = this.generateInitFile();
         this.modules.util.writeText(output, this.modules.userscript.initFilePath);
         this.modules.userscript.reload();
@@ -101,14 +109,14 @@ var ksPreference = {
             break;
         case "keypress":
             switch (aEvent.keyCode) {
-            case aEvent.DOM_VK_RETURN: 
-            case aEvent.DOM_VK_ENTER: 
+            case aEvent.DOM_VK_RETURN:
+            case aEvent.DOM_VK_ENTER:
                 aEvent.preventDefault();
                 if (aEvent.target.localName == "treechildren") {
                     this.toggleEditView();
                 }
                 break;
-            case aEvent.DOM_VK_DELETE: 
+            case aEvent.DOM_VK_DELETE:
                 ksKeybindTreeView.deleteSelectedItem();
                 this.updateKeyBindTextarea();
                 break;
@@ -174,7 +182,7 @@ var ksPreference = {
 
     insertKey: function (aKey) {
         Application.console.log(aKey);
-        
+
         var row = ksKeybindTreeView.data[ksKeybindTreeView.currentIndex];
 
         row[KS_KEY_STRING] += ((row[KS_KEY_STRING] ? " " : "") + aKey);
@@ -392,7 +400,7 @@ var ksPreference = {
             // set preference value
             this.modules.util.setUnicharPref(prefKey, fp.file.path);
             Application.console.log("fp.file.path : " + fp.file.path);
-            this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");                
+            this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");
             break;
         }
     },
@@ -419,7 +427,7 @@ var ksPreference = {
                 this.blackListBox.appendItem(this.blackList[i]);
             }
         }
-        
+
         this.blackListURL = document.getElementById("blacklist-url");
     },
 
@@ -467,7 +475,7 @@ var ksPreference = {
             case aEvent.DOM_VK_RETURN:
                 aEvent.preventDefault();
                 break;
-            case aEvent.DOM_VK_DELETE: 
+            case aEvent.DOM_VK_DELETE:
                 this.deleteBlackList();
                 break;
             }
@@ -494,6 +502,103 @@ var ksPreference = {
 
     // ============================== Generate init file ============================== //
 
+    formatDescription: function (desc) {
+        desc = desc.replace(/\(.*\)/g, "");
+        desc = desc.replace(/\//g, "");
+        desc = desc.replace(/\s+$/g, "");
+        desc = desc.replace(/\s+/g, "_");
+        desc = desc.replace(/[,-]/g, "_");
+        desc = desc.toLowerCase();
+
+        return desc;
+    },
+
+    generateStringBundle: function () {
+        var contentHolder = [];
+
+        var duplicateChecker = new Object();
+        var row;
+        var data = ksKeybindTreeView.data;
+        var mode = 0;
+
+        for (var i = 0; i < data.length; ++i) {
+            row = data[i];
+
+            // ignore separator
+            if (row[0] == null)
+                continue;
+
+            if (row[KS_MODE] != mode) {
+                contentHolder.push("\n## =========================================================================== ##\n");
+                mode = row[KS_MODE];
+            }
+
+            var desc = this.formatDescription(row[KS_DESC]);
+
+            if (typeof(duplicateChecker[desc]) == "object") {
+                if (duplicateChecker[desc][row[KS_MODE]]) {
+                    // ignore
+                    duplicateChecker[desc][row[KS_MODE]]++;
+                    continue;
+                }
+                duplicateChecker[desc][row[KS_MODE]] = 1;
+            } else {
+                duplicateChecker[desc] = new Object();
+                duplicateChecker[desc][row[KS_MODE]] = 1;
+            }
+
+            var src = "=" + row[KS_DESC];
+            // var src = desc + "=" + row[KS_DESC];
+            contentHolder.push(src);
+        }
+
+        return this.modules.util
+            .convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
+    },
+
+    generateCommands: function () {
+        var contentHolder = [];
+
+        var duplicateChecker = new Object();
+        var row;
+        var data = ksKeybindTreeView.data;
+        var mode = 0;
+
+        for (var i = 0; i < data.length; ++i) {
+            row = data[i];
+
+            // ignore separator
+            if (row[0] == null)
+                continue;
+
+            if (row[KS_MODE] != mode) {
+                contentHolder.push("// =========================================================================== //");
+                mode = row[KS_MODE];
+            }
+
+            var desc = this.formatDescription(row[KS_DESC]);
+
+            if (typeof(duplicateChecker[desc]) == "object") {
+                if (duplicateChecker[desc][row[KS_MODE]]) {
+                    // ignore
+                    duplicateChecker[desc][row[KS_MODE]]++;
+                    continue;
+                }
+                duplicateChecker[desc][row[KS_MODE]] = 1;
+            } else {
+                duplicateChecker[desc] = new Object();
+                duplicateChecker[desc][row[KS_MODE]] = 1;
+            }
+
+            var ksNoRepeatString = row[KS_ARGUMENT] ? ", true" : ", false";
+            var src = desc + ": [\n" + row[KS_FUNCTION] + ksNoRepeatString + "],\n";
+            contentHolder.push(src);
+        }
+
+        return this.modules.util
+            .convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
+    },
+
     generateInitFile: function () {
         var contentHolder = ["// ================ KeySnail Init File ================ //"];
 
@@ -505,7 +610,7 @@ var ksPreference = {
         contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription2"));
         contentHolder.push(preserve.beginSign);
         if (preserve.code) {
-            contentHolder.push(preserve.code);            
+            contentHolder.push(preserve.code);
         }
         contentHolder.push(preserve.endSign);
 
@@ -619,21 +724,42 @@ var ksPreference = {
             if (row[0] == null)
                 continue;
 
-            // ignore unbound command
+            var sequence, keySetting;
+
             if (row[KS_KEY_STRING].length) {
-                var sequence = row[KS_KEY_STRING].split(" ");
-                var keySetting = '[' + sequence.map(this.toStringForm).join(", ") + ']';
-                var ksNoRepeatString = row[KS_ARGUMENT] ? ", true" : "";
-
-                var src = "key.set" + ksKeybindTreeView.modes[row[KS_MODE]]+ "Key(" +
-                    keySetting +
-                    ", " + row[KS_FUNCTION] +
-                    (row[KS_DESC] ? ", " + this.toStringForm(row[KS_DESC]) : "") +
-                    ksNoRepeatString + ");\n";
-
-                aContentHolder.push(src);
+                sequence = row[KS_KEY_STRING].split(" ");
+                keySetting = '[' + sequence.map(this.toStringForm).join(", ") + ']';
+            } else {
+                keySetting = "''";
             }
+
+            var ksNoRepeatString = row[KS_ARGUMENT] ? ", true" : "";
+
+            var src = "key.set" + ksKeybindTreeView.modes[row[KS_MODE]]+ "Key(" +
+                keySetting +
+                ", " + row[KS_FUNCTION] +
+                (row[KS_DESC] ? ", " + this.toStringForm(row[KS_DESC]) : "") +
+                ksNoRepeatString + ");\n";
+
+            aContentHolder.push(src);
         }
+    },
+
+    // ============================== Add builtin command ============================== //
+
+    addBuiltinCommand: function () {
+        var params = {
+            out: null
+        };
+
+        var features = "chrome,modal,all,resizable";
+	document.documentElement.openSubDialog("chrome://keysnail/content/builtinviewer.xul",
+                                               features, params);
+
+        if (!params.out)
+            return;
+
+        ksKeybindTreeView.appendItem(params.out);
     },
 
     msgTimeOut: null,
@@ -684,7 +810,7 @@ var ksKeybindTreeView = {
      * nsITreeBoxObject
      */
     _treeBoxObject: null,
-    
+
     /**
      * Generate array of keymap as data
      */
@@ -761,6 +887,9 @@ var ksKeybindTreeView = {
 
     checkSyntax: function () {
         var i = this.currentIndex;
+        if (i < 0)
+            return null;
+
         var src = this.data[i][KS_FUNCTION];
 
         try {
@@ -773,75 +902,6 @@ var ksKeybindTreeView = {
         return null;
     },
 
-    applyToKeyMap: function () {
-        // if (!this.changed)
-        //     return null;
-
-        var begin = new Date();
-        with (this.modules) {
-            key.keyMapHolder = {};
-            key.declareKeyMap(key.modes.GLOBAL);
-            key.declareKeyMap(key.modes.VIEW);
-            key.declareKeyMap(key.modes.EDIT);
-            key.declareKeyMap(key.modes.CARET);
-            key.currentKeyMap = key.keyMapHolder[key.modes.GLOBAL];
-
-            var row;
-            var modes = [];
-
-            modes[0] = key.modes.GLOBAL;
-            modes[1] = key.modes.VIEW;
-            modes[2] = key.modes.EDIT;
-            modes[3] = key.modes.CARET; 
-
-            var strmodes = [
-                "key.modes.GLOBAL",
-                "key.modes.VIEW",  
-                "key.modes.EDIT",  
-                "key.modes.CARET"
-            ];
-
-            for (var i = 0; i < this.data.length; ++i) {
-                row = this.data[i];
-
-                if (row[0] == null)
-                    continue;
-
-                if (row[KS_KEY_STRING].length) {
-                    var sequence = row[KS_KEY_STRING].split(" ");
-                    var keySetting = '[' + sequence.map(key.toStringForm).join(", ") + ']';
-                    var ksNoRepeatString = row[KS_ARGUMENT] ? ", true" : "";
-
-                    var src = "key.defineKey(" + strmodes[row[KS_MODE]] + ", " +
-                        keySetting +
-                        ", " + row[KS_FUNCTION] +
-                        (row[KS_DESC] ? "," + key.toStringForm(row[KS_DESC]) : "")
-                        + ksNoRepeatString + ");";
-                    
-                    Application.console.log(src);
-
-                    try {
-                        this.browserWindow.eval(src);
-                    } catch (x) {
-                        return [i, x.message];
-                    }
-
-                    // key.defineKey(modes[row[KS_MODE]],
-                    //               sequence,
-                    //               row[KS_FUNCTION],
-                    //               row[KS_DESC],
-                    //               row[KS_ARGUMENT]);
-                }
-            }
-        }
-
-        this.changed = false;
-        var end = new Date();
-        Application.console.log((end - begin) + " msec");
-
-        return null;
-    },
-
     deleteSelectedItem: function () {
         var i = this.currentIndex;
         if (!this.isSeparator(i)) {
@@ -851,13 +911,21 @@ var ksKeybindTreeView = {
         }
     },
 
-    appendItem: function () {
+    appendItem: function (aInit) {
         var newItem = new Array(4);
+
         newItem[KS_KEY_STRING] = "";
-        newItem[KS_DESC]       = "";
-        newItem[KS_ARGUMENT]   = false;
-        newItem[KS_FUNCTION]   = "function () {\n\n}";
-        newItem[KS_MODE]       = 0;
+        if (aInit) {
+            newItem[KS_DESC]     = aInit.desc;
+            newItem[KS_ARGUMENT] = aInit.arg;
+            newItem[KS_FUNCTION] = aInit.func;
+            newItem[KS_MODE]     = aInit.mode;
+        } else {
+            newItem[KS_DESC]     = "";
+            newItem[KS_ARGUMENT] = false;
+            newItem[KS_FUNCTION] = "function (ev, arg) {\n\n}";
+            newItem[KS_MODE]     = 0;            
+        }
 
         this.data.push(newItem);
         var newIdx = this.rowCount - 1;

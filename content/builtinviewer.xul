@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/builtinviewer.dtd">
+
+<dialog id="keysnail-builtin-viewer"
+        title="&keySnail.builtinViewer.title;"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        buttons="accept,cancel"
+        onload="ksBuiltinViewer.onLoad();"
+        ondialogaccept="return ksBuiltinViewer.onFinish();"
+        minheight="500px"
+        minwidth="600px"
+        >
+    <vbox flex="1">
+        <hbox flex="1">
+            <!-- caretogory box -->
+            <vbox id="category-box">
+                <label>&keySnail.builtinViewer.category;: </label>
+                <listbox id="category-listbox" flex="1"
+                         onselect="ksBuiltinViewer.handleCategoryListBox(event);"
+                         rows="7">
+                </listbox>
+            </vbox>
+            <!-- command -->
+            <vbox id="commands-box" flex="1">
+                <label>&keySnail.builtinViewer.commands;: </label>
+                <listbox id="commands-listbox" flex="1"
+                         onselect="ksBuiltinViewer.handleCommandsListBox(event);">
+                </listbox>
+            </vbox>
+        </hbox>
+        <!-- function body box -->
+        <vbox id="function-box" flex="1">
+            <label>&keySnail.builtinViewer.function;: </label>
+            <textbox id="function-textbox" flex="1"
+                     readonly="true" multiline="true">
+            </textbox>
+        </vbox>
+    </vbox>
+
+    <script type="application/x-javascript" src="chrome://keysnail/content/builtinviewer.js"/>
+    <script type="application/x-javascript" src="chrome://keysnail/content/builtin/functions.js"/>
+</dialog>

@@ -6,6 +6,7 @@ var kill = {
     // kill-ring
     originalText: null,
     originalSelStart: 0,
+    originalSelEnd: 0,
     ring: [],
     index: 0,
     max: 10,

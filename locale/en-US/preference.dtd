@@ -42,6 +42,9 @@
 <!ENTITY keySnail.preference.keys.add "Add">
 <!ENTITY keySnail.preference.keys.delete "Delete">
 
+<!ENTITY keySnail.preference.command.builtin "Builtin command">
+<!ENTITY keySnail.preference.command.original "Original command">
+
 <!-- command edit box -->
 
 <!ENTITY keySnail.preference.edit.noRepeat "Don't repeat command when prefix argument is given">

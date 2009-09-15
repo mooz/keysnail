@@ -51,7 +51,7 @@ KeySnailLoader.prototype = {
             break;
             // black list
         case 'chrome://keysnail/content/rcwizard.xul':
-        // case 'chrome://keysnail/content/preference.xul':
+        case 'chrome://keysnail/content/builtinviewer.xul':
         case 'chrome://keysnail/content/keyGrabber.xul':
         case 'chrome://browser/content/aboutDialog.xul':
         case 'chrome://mozapps/content/downloads/unknownContentType.xul':
