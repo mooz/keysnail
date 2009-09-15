@@ -717,8 +717,9 @@ KeySnail.Command = {
     /**
      * Notified when the clipboard content changed
      */
-    clipboardChanged: function () {
+    clipboardChanged: function (msg) {
         var text = this.getClipboardText();
+        // window.alert(msg + " :: " + text);
 
         if (!this.kill.ring.length || this.kill.ring.length && text != this.kill.ring[0])
             this.pushKillRing(text);
@@ -747,9 +748,10 @@ KeySnail.Command = {
             aInput.selectionStart = aInput.selectionEnd = this.kill.originalSelStart;
         } else {
             // normal insersion
+            
             aInput.value = this.kill.originalText.slice(0, this.kill.originalSelStart)
                 + this.kill.ring[aIndex]
-                + this.kill.originalText.slice(this.kill.originalSelStart, this.kill.originalText.length);            
+                + this.kill.originalText.slice(this.kill.originalSelEnd, this.kill.originalText.length);
             if (aSelect) {
                 aInput.selectionStart = this.kill.originalSelStart;
                 aInput.selectionEnd = aInput.selectionStart + this.kill.ring[aIndex].length;
@@ -789,6 +791,7 @@ KeySnail.Command = {
             i = Math.min(i, kill.ring.length - 1);
             kill.originalText = input.value;
             kill.originalSelStart = input.selectionStart;
+            kill.originalSelEnd = input.selectionEnd;
             kill.index = i;
             insertKillRingText(input, i);
         }
