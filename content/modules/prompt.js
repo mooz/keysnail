@@ -678,7 +678,7 @@ KeySnail.Prompt = function () {
 
     // ================ public ================ //
 
-    return {
+    var self = {
         init: function () {
             modules = this.modules;
 
@@ -838,4 +838,6 @@ KeySnail.Prompt = function () {
 
         message: KeySnail.message
     };
+
+    return self;
 }();

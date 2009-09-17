@@ -22,8 +22,7 @@
 
 <!-- PAGE a-2 -->
 
-<!ENTITY keySnail.rcWizard.selectScheme "Select the key scheme">
-<!ENTITY keySnail.rcWizard.selectSchemeDescription1 "The set of keybindings is called `key scheme'">
+<!ENTITY keySnail.rcWizard.selectSchemeDescription1 "The set of keybindings is called 'key scheme'">
 
 <!ENTITY keySnail.rcWizard.label.scheme "Scheme">
 <!ENTITY keySnail.rcWizard.label.locale "Language">

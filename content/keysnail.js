@@ -63,7 +63,7 @@ var KeySnail = {
         // var windowElement;
         // windowElement = document.getElementsByTagName("prefwindow");
         // if (windowElement.length) {
-        //     document.loadOverlay('chrome://keysnail/content/clipboard-watcher-prefwindow.xul', null);                
+        //     document.loadOverlay('chrome://keysnail/content/clipboard-watcher-prefwindow.xul', null);
         // } else {
         //     windowElement = document.getElementsByTagName("window");
         //     if (windowElement.length) {
@@ -115,7 +115,8 @@ var KeySnail = {
      */
     openPreference: function () {
         window.openDialog("chrome://keysnail/content/preference.xul", "Preferences",
-                          "chrome,titlebar,toolbar,centerscreen", "prefpane-rcfile");
+                          "chrome=yes,titlebar=yes,toolbar=yes,centerscreen=yes,resizable=yes,scrollbars=yes",
+                          "prefpane-rcfile");
     },
 
     showElapsedTime: function (aTag) {

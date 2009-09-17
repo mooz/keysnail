@@ -78,6 +78,16 @@
               onpaneload="ksPreference.onKeyPaneLoad();">
         <preferences></preferences>
         <vbox flex="1">
+            <!-- command buttons -->
+            <vbox>
+                <label id="notification-area" style="color:#b80011;font-weight:bold;" hidden="true" flex="1"></label>
+                <hbox id="create-button-area" align="center" flex="1">
+                    <spacer flex="2" />
+                    <button label="&keySnail.preference.key.create;"
+                            accesskey="c"
+                            oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>
+                </hbox>
+            </vbox>
             <!-- key bindings list -->
             <tabbox flex="1">
                 <tabs>
@@ -363,17 +373,6 @@
                     </tabpanel>
                 </tabpanels>
             </tabbox>
-            <spacer height="8px"/>
-            <!-- command buttons -->
-            <vbox>
-                <label id="notification-area" style="color:#b80011;font-weight:bold;" hidden="true" flex="1"></label>
-                <hbox id="create-button-area" align="center" flex="1">
-                    <spacer flex="2" />
-                    <button label="&keySnail.preference.key.create;"
-                            accesskey="c"
-                            oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>
-                </hbox>
-            </vbox>
         </vbox>
     </prefpane>
 

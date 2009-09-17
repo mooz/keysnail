@@ -29,6 +29,7 @@
                 <label>&keySnail.builtinViewer.commands;: </label>
                 <listbox id="commands-listbox" flex="1"
                          onselect="ksBuiltinViewer.handleCommandsListBox(event);"
+                         ondblclick="ksBuiltinViewer.handleCommandsListBox(event);"
                          >
                 </listbox>
             </vbox>
@@ -43,5 +44,4 @@
     </vbox>
 
     <script type="application/x-javascript" src="chrome://keysnail/content/builtinviewer.js"/>
-    <script type="application/x-javascript" src="chrome://keysnail/content/functions.js"/>
 </dialog>

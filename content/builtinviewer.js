@@ -1,5 +1,10 @@
 var ksBuiltinViewer = {
     onLoad: function () {
+        try {
+            Components.utils.import("resource://keysnail-share/functions.js");
+        } catch (x) {
+        }
+
         this.categoryListBox = document.getElementById("category-listbox");
         this.functionTextBox = document.getElementById("function-textbox");
         this.commandsListBox = document.getElementById("commands-listbox");
@@ -19,7 +24,9 @@ var ksBuiltinViewer = {
             window.arguments[0].out = {
                 desc: this.commandsListBox.selectedItem.label,
                 arg: ksBuiltin[category][name][1],
-                func: ksBuiltin[category][name][0],
+                // without toString, the value will be passed as reference and
+                // become undefined cause the Js-Submodule limitation
+                func: ksBuiltin[category][name][0].toString(),
                 mode: ksBuiltin[category].__mode__
             };
         }
@@ -71,6 +78,9 @@ var ksBuiltinViewer = {
                 this.functionTextBox.value = "";
             }
             break;
+        case 'dblclick':
+            document.getElementById("keysnail-builtin-viewer").acceptDialog();
+            break;
         }
     },
 
@@ -89,7 +99,7 @@ var ksBuiltinViewer = {
             this.stringBundle = bundleSvc.createBundle(kBundleURI);
         }
         try {
-            return this.stringBundle.GetStringFromName(aStringKey);    
+            return this.stringBundle.GetStringFromName(aStringKey);
         } catch (x) {
             return aStringKey;
         }

@@ -14,14 +14,13 @@
 
 <!-- PAGE a-1 -->
 
-<!ENTITY keySnail.rcWizard.createRcFileDescription "初期化ファイルの名前と作成先を選んでください">
+<!ENTITY keySnail.rcWizard.createRcFileDescription "初期化ファイルの設定">
+<!ENTITY keySnail.rcWizard. "初期化ファイルの設定">
+
 <!ENTITY keySnail.rcWizard.rcFileDestination "作成先: ">
 <!ENTITY keySnail.rcWizard.filenameDotDiscription "UNIX 等で一般的なドットファイルです">
 <!ENTITY keySnail.rcWizard.filenameUBDiscription "ドットの代わりにアンダーバーを使ったタイプのものです">
 
-<!-- PAGE a-2 -->
-
-<!ENTITY keySnail.rcWizard.selectScheme "使用するキースキームを選んでください">
 <!ENTITY keySnail.rcWizard.selectSchemeDescription1 "あらかじめ用意されたキーバインド一式をキースキームと呼びます。">
 
 <!ENTITY keySnail.rcWizard.label.scheme "スキーム">

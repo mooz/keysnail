@@ -42,95 +42,94 @@
         </menulist>
     </wizardpage>
 
-    <!-- ==================== CREATE : select path ==================== -->
+    <!-- ==================== CREATE : settings ==================== -->
 
     <wizardpage pageid="create-rcfile"
-                onpageshow="rcWizard.updatePageCreate();"
+                onpageshow="rcWizard.updatePageCreate();rcWizard.updatePageScheme();"
                 description="&keySnail.rcWizard.createRcFileDescription;"
-                next="rcfile-scheme">
-        <grid flex="1">
-            <columns>
-                <column />
-                <column flex="1" />
-            </columns>
-            <rows>
-                <row align="center">
-                    <label value="&keySnail.rcWizard.rcFileDestination;" />
-                    <hbox align="center">
-                        <filefield id="keysnail-userscript-destination"
-                                   style="width: 25em;"
-                                   flex="2" />
-                        <button label="&keySnail.rcWizard.change;"
-                                oncommand="rcWizard.changePathClicked(rcWizard.updatePageCreate);" />
-                    </hbox>
-                </row>
-                <row align="center">
-                    <label value="&keySnail.rcWizard.filename;" />
-                    <radiogroup id="keysnail-userscript-filename-candidates">
-                        <radio id="keysnail-userscript-filename-dot"
-                               label=".keysnail.js" selected="true"
-                               tooltiptext="&keySnail.rcWizard.filenameDotDiscription;"
-                               />
-                        <radio id="keysnail-userscript-filename-underbar"
-                               label="_keysnail.js"
-                               tooltiptext="&keySnail.rcWizard.filenameUBDiscription;"/>
-                    </radiogroup>
-                </row>
-            </rows>
-        </grid>
-    </wizardpage>
-
-    <!-- ==================== CREATE : scheme (select key scheme) ==================== -->
-
-    <wizardpage pageid="rcfile-scheme"
-                onpageshow="rcWizard.updatePageScheme();"
-                description="&keySnail.rcWizard.selectScheme;"
-                next="rcfile-specialkey"
-                >
-        <description>&keySnail.rcWizard.selectSchemeDescription1;</description>
-        <grid>
-            <columns>
-                <column />
-                <column flex="1" />
-            </columns>
-            <rows>
-                <!-- scheme -->
-                <row align="center">
-                    <label>&keySnail.rcWizard.label.scheme;: </label>
-                    <menulist id="keysnail-rcwizard-selectscheme">
-                        <menupopup>
-                            <menuitem label="&keySnail.rcWizard.scheme.emacs;"
-                                      name="scheme-emacs"
-                                      class="menuitem-iconic"
-                                      image="chrome://keysnail/skin/icon/emacs.png"/>
-                            <menuitem label="&keySnail.rcWizard.scheme.empty;"
-                                      name="scheme-empty"
-                                      class="menuitem-iconic"
-                                      image="chrome://keysnail/skin/icon/empty.png"/>
-                        </menupopup>
-                    </menulist>
-                </row>
-                <!-- locale -->
-                <row align="center">
-                    <label>&keySnail.rcWizard.label.locale;: </label>
-                    <menulist id="keysnail-rcwizard-selectlocale">
-                        <menupopup>
-                            <menuitem label="&keySnail.rcWizard.locale.en;"
-                                      name="locale-en"/>
-                            <menuitem label="&keySnail.rcWizard.locale.ja;"
-                                      name="locale-ja"/>
-                        </menupopup>
-                    </menulist>
-                </row>
-                <row>
-                    <spacer />
-                    <checkbox id="keysnail-rcwizard-selectscheme-insert-document"
-                              label="&keySnail.rcWizard.selectScheme.insertDocument;"
-                              checked="false"
-                              align="right"/>
-                </row>
-            </rows>
-        </grid>
+                next="rcfile-specialkey">
+        <vbox flex="1">
+            <groupbox>
+                <caption label="Place"/>
+                <grid flex="1">
+                    <columns>
+                        <column />
+                        <column flex="1" />
+                    </columns>
+                    <rows>
+                        <row align="center">
+                            <label value="&keySnail.rcWizard.rcFileDestination;" />
+                            <hbox align="center">
+                                <filefield id="keysnail-userscript-destination"
+                                           style="width: 25em;"
+                                           flex="2" />
+                                <button label="&keySnail.rcWizard.change;"
+                                        oncommand="rcWizard.changePathClicked(rcWizard.updatePageCreate);" />
+                            </hbox>
+                        </row>
+                        <row align="center">
+                            <label value="&keySnail.rcWizard.filename;" />
+                            <radiogroup id="keysnail-userscript-filename-candidates">
+                                <radio id="keysnail-userscript-filename-dot"
+                                       label=".keysnail.js" selected="true"
+                                       tooltiptext="&keySnail.rcWizard.filenameDotDiscription;"
+                                       />
+                                <radio id="keysnail-userscript-filename-underbar"
+                                       label="_keysnail.js"
+                                       tooltiptext="&keySnail.rcWizard.filenameUBDiscription;"/>
+                            </radiogroup>
+                        </row>
+                    </rows>
+                </grid>
+            </groupbox>
+            <!-- scheme -->
+            <groupbox>
+                <caption label="Options"/>
+                <grid flex="1">
+                    <columns>
+                        <column />
+                        <column flex="1" />
+                    </columns>
+                    <rows>
+                        <row align="center">
+                            <label>&keySnail.rcWizard.label.scheme;: </label>
+                            <menulist id="keysnail-rcwizard-selectscheme"
+                                      tooltiptext="&keySnail.rcWizard.selectSchemeDescription1;">
+                                <menupopup>
+                                    <menuitem label="&keySnail.rcWizard.scheme.emacs;"
+                                              name="scheme-emacs"
+                                              class="menuitem-iconic"
+                                              image="chrome://keysnail/skin/icon/emacs.png"/>
+                                    <menuitem label="&keySnail.rcWizard.scheme.empty;"
+                                              name="scheme-empty"
+                                              class="menuitem-iconic"
+                                              image="chrome://keysnail/skin/icon/empty.png"/>
+                                </menupopup>
+                            </menulist>
+                        </row>
+                        <!-- locale -->
+                        <row align="center">
+                            <label>&keySnail.rcWizard.label.locale;: </label>
+                            <menulist id="keysnail-rcwizard-selectlocale">
+                                <menupopup>
+                                    <menuitem label="&keySnail.rcWizard.locale.en;"
+                                              name="locale-en"/>
+                                    <menuitem label="&keySnail.rcWizard.locale.ja;"
+                                              name="locale-ja"/>
+                                </menupopup>
+                            </menulist>
+                        </row>
+                        <row>
+                            <spacer />
+                            <checkbox id="keysnail-rcwizard-selectscheme-insert-document"
+                                      label="&keySnail.rcWizard.selectScheme.insertDocument;"
+                                      checked="false"
+                                      align="right"/>
+                        </row>
+                    </rows>
+                </grid>
+            </groupbox>
+        </vbox>
     </wizardpage>
 
     <!-- ==================== CREATE : specialkey (select special keys) ==================== -->

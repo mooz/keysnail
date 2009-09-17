@@ -259,7 +259,7 @@ KeySnail.UserScript = {
      * load script specified by <aFileName> in the load path
      * scripts are executed under the KeySnail.modules scope
      * @param {String} aFileName
-     * @augments 
+     * @augments
      */
     require: function (aFileName) {
         var baseDir;
@@ -309,7 +309,7 @@ KeySnail.UserScript = {
     },
 
     /**
-     * 
+     *
      * @param {} aLineNum
      */
     editInitFile: function (aLineNum) {
@@ -317,7 +317,7 @@ KeySnail.UserScript = {
     },
 
     /**
-     * 
+     *
      * @param {} aFilePath
      * @param {} aLineNum
      */
@@ -399,7 +399,7 @@ KeySnail.UserScript = {
     },
 
     /**
-     * 
+     *
      * @returns
      */
     getPrefDirectory: function () {
@@ -463,7 +463,7 @@ KeySnail.UserScript = {
         // chrome,dialog,modal,centerscreen,dependent
         window.openDialog("chrome://keysnail/content/rcwizard.xul",
                           "keysnail:initFileWizard",
-                          "chrome,titlebar,dialog,modal," + myCenterScreen(600, 600),
+                          "chrome=yes,titlebar=yes,dialog=yes,modal=yes,resizable=yes,scrollbars=yes," + myCenterScreen(600, 600),
                           params);
 
         if (!params.out) {
@@ -483,6 +483,12 @@ KeySnail.UserScript = {
             // where default-userscript copied.
             // now copy default configuration file to there.
             var configFileName = this.defaultInitFileNames[params.out.configFileNameIndex];
+
+            // var tank = {};
+            // try {
+            //     Components.utils.import("resource://keysnail-share/functions.js", tank);
+            // } catch (x) {
+            // }
 
             var defaultInitFileBase = "chrome://keysnail/content/resources/.keysnail.js.";
             var scheme = (params.out.selectedScheme == null) ? "" : params.out.selectedScheme + ".";
