@@ -60,7 +60,7 @@ var ksBuiltinViewer = {
 
     handleCommandsListBox: function (aEvent) {
         switch (aEvent.type) {
-            case 'select':
+        case 'select':
             var i = this.commandsListBox.selectedIndex;
             var item = this.commandsListBox.selectedItem;
             if (item) {
@@ -94,4 +94,4 @@ var ksBuiltinViewer = {
             return aStringKey;
         }
     }
-}
+};

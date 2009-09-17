@@ -10,7 +10,7 @@ KeySnail.Command = {
 
     /**
      * Will be overridden with the kill object in killring.jsm
-     */ 
+     */
     kill: null,
 
     get gFindBar() {
@@ -262,8 +262,8 @@ KeySnail.Command = {
     },
 
     bookMarkToolBarJumpTo: function (aEvent, aArg) {
-        if (!aArg || aArg < 0)
-            aArg = 1;
+        // if (!aArg || aArg < 0)
+        //     aArg = 1;
 
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
         var items = toolbarBookMarks.getElementsByTagName('toolbarbutton');
@@ -279,22 +279,32 @@ KeySnail.Command = {
             }
         }
 
-        if (aArg > urlList.length - 1)
-            aArg = urlList.length;
+        // if (aArg > urlList.length - 1)
+        //     aArg = urlList.length;
 
         with (this.modules) {
-        prompt.read("Places:",
-                    function (aStr) {
-                        if (aStr) {
-                            key.viewURI(aStr);
-                        }
-                    },
-                    null,
-                    urlList,
-                    urlList[aArg - 1][0],
-                    aArg - 1,
-                    "url");
+            prompt.selector("Pattern: ",
+                            function (aStr) {
+                                if (aStr) {
+                                    key.viewURI(aStr);
+                                }
+                            },
+                            urlList);
         }
+
+        // with (this.modules) {
+        // prompt.read("Places:",
+        //             function (aStr) {
+        //                 if (aStr) {
+        //                     key.viewURI(aStr);
+        //                 }
+        //             },
+        //             null,
+        //             urlList,
+        //             urlList[aArg - 1][0],
+        //             aArg - 1,
+        //             "url");
+        // }
     },
 
     autoCompleteHandleKey: function (aKeyEvent) {
@@ -688,7 +698,7 @@ KeySnail.Command = {
         var trans = Components.classes["@mozilla.org/widget/transferable;1"]
             .createInstance(Components.interfaces.nsITransferable);
         if (!trans) return false;
-        trans.addDataFlavor("text/unicode");  
+        trans.addDataFlavor("text/unicode");
 
         clip.getData(trans, clip.kGlobalClipboard);
 
@@ -711,7 +721,7 @@ KeySnail.Command = {
                 this.kill.ring.pop();
             }
             this.kill.ring.unshift(aText);
-        }        
+        }
     },
 
     /**
@@ -748,7 +758,7 @@ KeySnail.Command = {
             aInput.selectionStart = aInput.selectionEnd = this.kill.originalSelStart;
         } else {
             // normal insersion
-            
+
             aInput.value = this.kill.originalText.slice(0, this.kill.originalSelStart)
                 + this.kill.ring[aIndex]
                 + this.kill.originalText.slice(this.kill.originalSelEnd, this.kill.originalText.length);
@@ -766,7 +776,7 @@ KeySnail.Command = {
     },
 
     /**
-     * 
+     *
      * @param {KeyBoardEvent} aEvent
      */
     yank: function (aEvent, aArg) {
@@ -798,7 +808,7 @@ KeySnail.Command = {
     },
 
     /**
-     * 
+     *
      * @param {KeyBoardEvent} aEvent
      */
     yankPop: function (aEvent) {
@@ -968,7 +978,7 @@ KeySnail.Command = {
         //         this.message(property + " = " + aInput[property]);
         //     }
         // }
-        
+
         var oldScrollTop = aInput.scrollTop;
         var oldScrollLeft = aInput.scrollLeft;
 
@@ -1041,9 +1051,9 @@ KeySnail.Command = {
 
         if (mark == undefined) {
             try {
-                goDoCommand('cmd_selectNone');                
+                goDoCommand('cmd_selectNone');
             } catch (x) {
-                
+
             }
             return;
         }

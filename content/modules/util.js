@@ -69,8 +69,10 @@ KeySnail.Util = {
 
         if (file.exists() &&
             !aForce &&
-            !this.confirm(aPath + ' ' + this.getLocaleString("overWriteConfirmation")))
+            !this.confirm(this.getLocaleString("overWriteConfirmationTitle"),
+                          aPath + ' ' + this.getLocaleString("overWriteConfirmation"))) {
             throw "Canceled by user";
+        }
 
         var fileStream = Components
             .classes["@mozilla.org/network/file-output-stream;1"]
@@ -85,12 +87,31 @@ KeySnail.Util = {
         fileStream.close();
     },
 
-    confirm: function (aMessage) {
-        var saved = nsPreferences.getBoolPref('extensions.keysnail.keyhandler.global_enabled');
-        nsPreferences.setBoolPref('extensions.keysnail.keyhandler.global_enabled', false);
-        var ret = window.confirm(aMessage);
-        nsPreferences.setBoolPref('extensions.keysnail.keyhandler.global_enabled', saved);
-        return ret;
+    confirm: function (aTitle, aMessage) {
+        var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+            .getService(Components.interfaces.nsIPromptService);
+
+        return prompts.confirm(null, aTitle, aMessage);
+    },
+
+    confirmCheck: function (aTitle, aMessage, aCheckMessage, aId) {
+        var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+            .getService(Components.interfaces.nsIPromptService);
+
+        var key = "extensions.keysnail." + aID;
+
+        if (nsPreferences.getBoolPref(key))
+            return true;
+
+        var check = {value: false};
+        var result = prompts.confirmCheck(null,
+                                          aTitle,
+                                          aMessage,
+                                          aCheckMessage,
+                                          check);
+        nsPreferences.setBoolPref(key, check.value);
+
+        return result;
     },
 
     // original code by Torisugari

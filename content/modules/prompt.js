@@ -11,34 +11,41 @@ KeySnail.Prompt = function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
 
-    var modules = null;
+    var modules;
+
+    // event listener remover
+    var eventListenerRemover;
 
     // DOM Objects
-    var promptbox = null;
-    var label = null;
-    var textbox = null;
-    var listbox = null;
+    var promptbox;
+    var container;
+    var label;
+    var textbox;
+    var listbox;
 
     // Callbacks
-    var currentCallback = null;
-    var currentUserArg = null;
+    var currentCallback;
+    var currentUserArg;
 
-    var savedFocusedElement = null;
+    var savedFocusedElement;
 
     // Options
+    var isSelector = false;
+    var itemIndexToUse = 0;
+
     var substrMatch = true;
     var ignoreDuplication = true;
 
-    var currentHead = null;
-    var currentSubstr = null;
-    var compIndex = null;
-    var compIndexList = null;
+    var currentHead;
+    var currentSubstr;
+    var compIndex;
+    var compIndexList;
     var inNormalCompletion = false;
 
     var listboxMaxRows = 10;
 
     // History
-    var historyHolder = null;
+    var historyHolder;
     var history = {
         list: null,
         index: 0,
@@ -58,8 +65,20 @@ KeySnail.Prompt = function () {
         finish(true);
     }
 
+    function resetReadState() {
+        currentHead = null;
+        inNormalCompletion = false;
+
+        // reset completion list index
+        compIndexList = null;
+        compIndex = 0;
+
+        resetState(completion);
+        resetState(history);
+    }
+
     var oldSelectionStart = 0;
-    function handleKeyDown(aEvent) {
+    function handleKeyDownRead(aEvent) {
         // Some KeyPress event is grabbed by KeySnail and stopped.
         // So we need to listen the keydown event for resetting the misc values.
         switch (aEvent.keyCode) {
@@ -67,24 +86,23 @@ KeySnail.Prompt = function () {
         case KeyEvent.DOM_VK_SHIFT:
             break;
         default:
-            if (textbox.selectionStart != oldSelectionStart &&
-                textbox.selectionStart != textbox.value.length) {
-                currentHead = null;
-                inNormalCompletion = false;
-
-                // reset completion list index
-                compIndexList = null;
-                compIndex = 0;
-
-                resetState(completion);
-                resetState(history);
-            }
-            oldSelectionStart = textbox.selectionStart;
+            // when the keydown event occured,
+            // the textbox value is old (keyevent is not applied)
+            // so we need to delay to know the correct selection
+            setTimeout(function () {
+                           // modules.display.prettyPrint("old :: " + oldSelectionStart + "\n"
+                           //                             + "now :: " + textbox.selectionStart);
+                           if (textbox.selectionStart != oldSelectionStart &&
+                               textbox.selectionStart != textbox.value.length) {
+                               resetReadState();
+                           }
+                           oldSelectionStart = textbox.selectionStart;
+                       }, 0);
             break;
         }
     }
 
-    function handleKeyPress(aEvent) {
+    function handleKeyPressRead(aEvent) {
         switch (aEvent.keyCode) {
         case KeyEvent.DOM_VK_ESCAPE:
             finish(true);
@@ -141,6 +159,62 @@ KeySnail.Prompt = function () {
         }
     }
 
+    function handleKeyDownSelector(aEvent) {
+        switch (aEvent.keyCode) {
+        default:
+            setTimeout(function () {
+                           if (textbox.value.length != oldTextLength) {
+                               if (delayedCommandTimeout) {
+                                   clearTimeout(delayedCommandTimeout);
+                               }
+
+                               // add delay
+                               delayedCommandTimeout = setTimeout(
+                                   function () {
+                                       createCompletionList();
+                                       delayedCommandTimeout = null;
+                                   },
+                                   displayDelayTime);
+                           }
+
+                           oldTextLength = textbox.value.length;
+                       }, 0);
+            break;
+        }
+    }
+
+    var oldTextLength = 0;
+    var displayDelayTime = 300;
+    var delayedCommandTimeout;
+
+    /**
+     * KeyPress Event handler for dynamic completing selector
+     * @param {} aEvent
+     */
+    function handleKeyPressSelector(aEvent) {
+        switch (aEvent.keyCode) {
+        case KeyEvent.DOM_VK_ESCAPE:
+            // cancel
+            finish(true);
+            break;
+        case KeyEvent.DOM_VK_RETURN:
+        case KeyEvent.DOM_VK_ENTER:
+            finish();
+            break;
+        case KeyEvent.DOM_VK_UP:
+            selectNextCompletion(-1, true);
+            break;
+        case KeyEvent.DOM_VK_DOWN:
+            selectNextCompletion(1, true);
+            break;
+        case KeyEvent.DOM_VK_TAB:
+            modules.util.stopEventPropagation(aEvent);
+            break;
+        default:
+            break;
+        }
+    }
+
     function setColumns(aColumn) {
         removeAllChilds(listbox);
 
@@ -183,7 +257,7 @@ KeySnail.Prompt = function () {
                 cell = document.createElement("listcell");
                 cell.setAttribute("label", aCells[i]);
                 row.appendChild(cell);
-            }    
+            }
         } else {
             row.setAttribute("label", aCells[0]);
         }
@@ -193,6 +267,8 @@ KeySnail.Prompt = function () {
 
     function setListBoxFromStringList(aList) {
         var row;
+
+        // var a = new Date();
 
         removeAllChilds(listbox);
         setColumns(isMultipleList(aList) ? aList[0].length : 1);
@@ -211,6 +287,10 @@ KeySnail.Prompt = function () {
                 listbox.appendChild(row);
             }
         }
+
+        // var b = new Date();
+
+        // modules.display.prettyPrint("time :: " + (b - a));
     }
 
     function setListBoxFromIndexList(aList, aIndexList) {
@@ -236,6 +316,7 @@ KeySnail.Prompt = function () {
     }
 
     function setListBoxSelection(aIndex) {
+        listbox.currentIndex = aIndex;
         listbox.selectedIndex = aIndex;
 
         var offset = listbox.getNumberOfVisibleRows() / 2;
@@ -275,7 +356,7 @@ KeySnail.Prompt = function () {
     }
 
     /**
-     * 
+     *
      * @param {object} aType history, completion
      * @param {int} aDirection 0, -1, 1
      * @param {boolean} aExpand if this value is true, "head" expands greedly
@@ -286,9 +367,10 @@ KeySnail.Prompt = function () {
     function fetchItem(aType, aDirection, aExpand, aRing, aSubstrMatch, aNoSit) {
         if (!aType.list || !aType.list.length) {
             modules.display.echoStatusBar("No " + aType.name + " found", 1000);
-            return;            
+            return;
         }
 
+        var listBoxSelectionIndex;
         var index;
         // get cursor position
         var start = textbox.selectionStart;
@@ -303,7 +385,7 @@ KeySnail.Prompt = function () {
                 setRows(aType.list.length);
                 listbox.hidden = false;
             }
-            setListBoxSelection(index);
+            listBoxSelectionIndex = index;
 
             // normal completion (not the substring matching)
             inNormalCompletion = true;
@@ -323,7 +405,7 @@ KeySnail.Prompt = function () {
 
                 index = compIndexList[nextCompIndex];
                 compIndex = nextCompIndex;
-                setListBoxSelection(nextCompIndex);
+                listBoxSelectionIndex = nextCompIndex;
             } else {
                 // generate new completion list
                 compIndexList = [];
@@ -333,9 +415,11 @@ KeySnail.Prompt = function () {
                 currentHead = header;
                 currentSubstr = aSubstrMatch ? header : null;
 
+                // modules.display.prettyPrint(header);
+
                 for (var i = 0; i < listLen; ++i) {
-                    if (getListText(aType.list, i).slice(0, header.length) == header ||
-                        (aSubstrMatch && getListText(aType.list, i).indexOf(header) != -1)) {
+                    var foundIndex = getListText(aType.list, i).indexOf(header);
+                    if (foundIndex == 0 || (aSubstrMatch && foundIndex != -1)) {
                         compIndexList.push(i);
                     }
                 }
@@ -352,11 +436,12 @@ KeySnail.Prompt = function () {
                 if (aExpand) {
                     var newSubstrIndex = getCommonSubstrIndex(aType.list, compIndexList);
                     currentHead = getListText(aType.list, index).slice(0, newSubstrIndex);
+
                     oldSelectionStart = newSubstrIndex;
                 }
 
                 setListBoxFromIndexList(aType.list, compIndexList);
-                setListBoxSelection(0);
+                listBoxSelectionIndex = 0;
 
                 // show
                 setRows(compIndexList.length);
@@ -373,7 +458,7 @@ KeySnail.Prompt = function () {
         }
 
         // set new text
-     
+
         textbox.value = getListText(aType.list, index);
         aType.index = index;
 
@@ -384,6 +469,92 @@ KeySnail.Prompt = function () {
         } else {
             textbox.selectionStart = textbox.selectionEnd = start;
         }
+
+        setListBoxSelection(listBoxSelectionIndex);
+    }
+
+    var currentRegexp;
+    function selectorDisplayStatusbarLine(aQuery, aIndex, aTotalLength) {
+        modules.display.echoStatusBar("Completion Regexp Match for [" + aQuery + "]" +
+                                      " (" + (aIndex + 1) +  " / " + aTotalLength + ")");
+    }
+
+    function selectNextCompletion(aDirection, aRing) {
+        var nextIndex, totalLength;
+        if (compIndexList) {
+            totalLength = compIndexList.length;
+            nextIndex = getNextIndex(compIndex, aDirection, 0,
+                                     compIndexList.length, aRing);
+            compIndex = nextIndex;
+        } else {
+            totalLength = completion.list.length;
+            nextIndex = getNextIndex(listbox.currentIndex, aDirection, 0,
+                                     completion.list.length, aRing);
+        }
+
+        setListBoxSelection(nextIndex);
+        selectorDisplayStatusbarLine(currentRegexp, nextIndex, totalLength);
+    }
+
+    function createCompletionList() {
+        if (!completion.list || !completion.list.length) {
+            modules.display.echoStatusBar("No " + completion.name + " found", 1000);
+            return;
+        }
+
+        var index;
+        // get cursor position
+        var start = textbox.selectionStart;
+
+        if (start == 0) {
+            // create list of whole completion
+            compIndexList = null;
+            setListBoxFromStringList(completion.list);
+            setRows(completion.list.length);
+            listbox.hidden = false;
+            compIndex = 0;
+            currentRegexp = "";
+        } else {
+            var listLen = completion.list.length;
+            var regexp = textbox.value;
+
+            var substrIndex;
+
+            // generate new completion list
+            compIndexList = [];
+            compIndex = 0;
+
+            var keywords = regexp.split(" ");
+
+            for (var i = 0; i < listLen; ++i) {
+                if (keywords.every(function (keyword) {
+                                      return getListText(completion.list, i).match(keyword, "i");
+                                  })) {
+                    compIndexList.push(i);
+                }
+            }
+
+            if (compIndexList.length == 0) {
+                compIndexList = null;
+                removeAllChilds(listbox);
+                modules.display.echoStatusBar("No match for [" + regexp + "]");
+                return;
+            }
+
+            index = compIndexList[0];
+            currentRegexp = regexp;
+
+            setListBoxFromIndexList(completion.list, compIndexList);
+
+
+            // show
+            setRows(compIndexList.length);
+            listbox.hidden = false;
+        }
+
+        setListBoxSelection(0);
+        selectorDisplayStatusbarLine(currentRegexp, compIndex,
+                                     compIndexList ? compIndexList.length : completion.list.length);
     }
 
     /**
@@ -411,6 +582,8 @@ KeySnail.Prompt = function () {
             i++;
         }
 
+        // modules.display.prettyPrint(getListText(aStringList, aIndexList[0]).slice(0, i - 1));
+
         return i - 1;
     }
 
@@ -419,14 +592,13 @@ KeySnail.Prompt = function () {
      * @param {boolean} aCanceled true, if user canceled the prompt
      */
     function finish(aCanceled) {
-        textbox.removeEventListener('blur', onBlur, false);
-        textbox.removeEventListener('keypress', handleKeyPress, false);
-        textbox.removeEventListener('keydown', handleKeyDown, false);
+        clearTimeout(delayedCommandTimeout);
+        eventListenerRemover();
 
         /**
          * We need to call focus() here
          * because the callback sometimes change the current selected tab
-         * e.g. opening the URL in a new tab, 
+         * e.g. opening the URL in a new tab,
          * and the window.focus() does not work that time.
          */
         if (savedFocusedElement) {
@@ -434,11 +606,50 @@ KeySnail.Prompt = function () {
             savedFocusedElement = null;
         }
 
-        try {
-            if (currentCallback) {
-                var readStr = aCanceled ? null : textbox.value;
+        // ==================== temporary preservation ==================== //
 
-                currentCallback(readStr, currentUserArg);
+        var savedCallback = currentCallback;
+        var savedUserArg  = currentUserArg;
+
+        var readStr;
+        if (aCanceled) {
+            readStr = null;
+        } else {
+            if (isSelector) {
+                var item = compIndexList ?
+                    completion.list[compIndexList[listbox.currentIndex]] :
+                    completion.list[listbox.currentIndex];
+                readStr = (typeof(item) == "string") ? item : item[itemIndexToUse];
+            } else {
+                readStr = textbox.value;
+            }
+        }
+
+        // ==================== reset states ==================== //
+
+        if (isSelector)
+            delayedCommandTimeout = null;
+
+        currentCallback    = null;
+        currentUserArg     = null;
+
+        currentHead        = null;
+        inNormalCompletion = false;
+
+        promptbox.hidden   = true;
+        listbox.hidden     = true;
+
+        textbox.value      = "";
+        label.value        = "";
+
+        resetState(history);
+        resetState(completion);
+
+        // ==================== execute callback ==================== //
+
+        if (savedCallback) {
+            try {
+                savedCallback(readStr, savedUserArg);
 
                 if (!aCanceled && readStr.length) {
                     // add history
@@ -455,32 +666,14 @@ KeySnail.Prompt = function () {
                         history.list.unshift(readStr);
                     }
                 }
-
-                currentCallback = null;
+            } catch (x) {
+                aCanceled = true;
             }
-        } catch (x) {
-            currentCallback = null;
-            aCanceled = true;
         }
-        
-        if (aCanceled) {
-            // on canceled
+
+        // if canceled or error occured in callback, reset statusbar
+        if (aCanceled)
             modules.display.echoStatusBar("");
-        }
-
-        currentUserArg = null;
-
-        currentHead = null;
-        inNormalCompletion = false;
-
-        promptbox.hidden = true;
-        listbox.hidden = true;
-
-        textbox.value = "";
-        label.value = "";
-
-        resetState(history);
-        resetState(completion);
     }
 
     // ================ public ================ //
@@ -493,10 +686,11 @@ KeySnail.Prompt = function () {
                 promptbox = document.getElementById("keysnail-prompt");
                 label     = document.getElementById("keysnail-prompt-label");
                 textbox   = document.getElementById("keysnail-prompt-textbox");
+                container = document.getElementById("browser-bottombox");
 
                 listbox   = document.getElementById("keysnail-completion-list");
 
-                // this holds all history and 
+                // this holds all history and
                 historyHolder = new Object;
                 historyHolder["default"] = [];
             }
@@ -507,6 +701,14 @@ KeySnail.Prompt = function () {
 
         set substrMatch(aBool) { substrMatch = !!aBool; },
         get substrMatch() { return substrMatch; },
+
+        set rows(aNum) {
+            if (typeof(aNum) == "number")
+                listboxMaxRows = Math.round(aNum);
+        },
+        get rows() {
+            return listboxMaxRows;
+        },
 
         /**
          * Read string from prompt and execute <aCallback>
@@ -533,6 +735,8 @@ KeySnail.Prompt = function () {
 
             savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
 
+            isSelector = false;
+
             // set up history
             history.index = 0;
             aGroup = aGroup || "default";
@@ -557,12 +761,79 @@ KeySnail.Prompt = function () {
 
             // now focus to the input area
             textbox.focus();
+
             // add event listener
-            textbox.addEventListener('blur', onBlur, false);
-            textbox.addEventListener('keypress', handleKeyPress, false);
-            textbox.addEventListener('keydown', handleKeyDown, false);
+            // textbox.addEventListener('blur', onBlur, false);
+            textbox.addEventListener('keypress', handleKeyPressRead, false);
+            textbox.addEventListener('keydown', handleKeyDownRead, false);
+            // textbox.addEventListener('input', handleInputRead, false);
+            eventListenerRemover = function () {
+                // textbox.removeEventListener('blur', onBlur, false);
+                textbox.removeEventListener('keypress', handleKeyPressRead, false);
+                textbox.removeEventListener('keydown', handleKeyDownRead, false);
+                // textbox.removeEventListener('input', handleInputRead, false);
+            };
 
             modules.display.echoStatusBar(modules.util.getLocaleString("promptKeyDescription"));
+        },
+
+        /**
+         * Read string from prompt and execute <aCallback>
+         * @param {string} aMsg message to be displayed
+         * @param {function} aCallback function to execute after read
+         * @param {[string]} aCollection string list used to completion
+         * @param {string} aInitialInput initial input of the prompt
+         * @param {string} aInitialCount initial completion's index
+         */
+        selector: function (aMsg, aCallback, aCollection, aItemIndexToUse) {
+            if (!promptbox)
+                return;
+
+            if (currentCallback) {
+                this.modules.display.echoStatusBar("Prompt is already used by another command");
+                return;
+            }
+
+            savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
+
+            // tell current command is the selector
+            isSelector = true;
+
+            // set up completion
+            completion.list = aCollection;
+
+            // set up callbacks
+            currentCallback = aCallback;
+
+            // display prompt box
+            label.value = aMsg;
+            promptbox.hidden = false;
+            // do not set selection value till textbox appear (cause crash)
+            textbox.selectionStart = textbox.selectionEnd = 0;
+
+            // now focus to the input area
+            textbox.focus();
+
+            // add event listener
+            textbox.addEventListener('keypress', handleKeyPressSelector, false);
+            textbox.addEventListener('keydown', handleKeyDownSelector, false);
+            eventListenerRemover = function () {
+                textbox.removeEventListener('keypress', handleKeyPressSelector, false);
+                textbox.removeEventListener('keydown', handleKeyDownSelector, false);
+            };
+
+            oldTextLength = 0;
+
+            if (isMultipleList(aCollection)) {
+                if (aItemIndexToUse)
+                    itemIndexToUse = (aItemIndexToUse < aCollection.length) ? aItemIndexToUse : 0;
+                else
+                    itemIndexToUse = 0;
+            }
+
+            modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
+
+            createCompletionList();
         },
 
         message: KeySnail.message

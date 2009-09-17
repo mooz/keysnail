@@ -88,8 +88,11 @@ var ksPreference = {
         // this.generateBuiltinMenu();
 
         var output = this.generateInitFile();
-        this.modules.util.writeText(output, this.modules.userscript.initFilePath);
-        this.modules.userscript.reload();
+        try {
+            this.modules.util.writeText(output, this.modules.userscript.initFilePath);
+            this.modules.userscript.reload();
+        } catch (x) {
+        }
     },
 
     // ============================== Event Handlers ============================== //
@@ -181,8 +184,6 @@ var ksPreference = {
     },
 
     insertKey: function (aKey) {
-        Application.console.log(aKey);
-
         var row = ksKeybindTreeView.data[ksKeybindTreeView.currentIndex];
 
         row[KS_KEY_STRING] += ((row[KS_KEY_STRING] ? " " : "") + aKey);
@@ -399,7 +400,6 @@ var ksPreference = {
             }
             // set preference value
             this.modules.util.setUnicharPref(prefKey, fp.file.path);
-            Application.console.log("fp.file.path : " + fp.file.path);
             this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");
             break;
         }
@@ -717,7 +717,12 @@ var ksPreference = {
         var row;
         var data = ksKeybindTreeView.data;
 
+        var doneIndexList = [];
         for (var i = 0; i < data.length; ++i) {
+            if (doneIndexList.some(function (aIndex) {return aIndex == i;})) {
+                continue;
+            }
+
             row = data[i];
 
             // ignore separator
@@ -725,12 +730,43 @@ var ksPreference = {
                 continue;
 
             var sequence, keySetting;
+            var func = row[KS_FUNCTION];
+            var sameCommandKeys = [];
 
-            if (row[KS_KEY_STRING].length) {
-                sequence = row[KS_KEY_STRING].split(" ");
-                keySetting = '[' + sequence.map(this.toStringForm).join(", ") + ']';
+            // seek for same command
+            for (var j = i + 1; j < data.length; ++j) {
+                if (row[KS_MODE] == data[j][KS_MODE] &&
+                    row[KS_FUNCTION] == data[j][KS_FUNCTION] &&
+                    row[KS_ARGUMENT] == data[j][KS_ARGUMENT] &&
+                    row[KS_DESC] == data[j][KS_DESC] &&
+                    doneIndexList.every(function (aIndex) {return aIndex != j;})) {
+                    //
+                    sameCommandKeys.push(data[j][KS_KEY_STRING]);
+                    doneIndexList.push(j);
+                }
+            }
+
+            if (sameCommandKeys.length) {
+                // multiple definition
+                sameCommandKeys.unshift(row[KS_KEY_STRING]);
+                var multiKeySetting = [];
+                sameCommandKeys.forEach(function (aKey) {
+                                            var sequence = aKey.split(" ");
+                                            multiKeySetting.push('[' + sequence.map(this.toStringForm).join(", ") + ']');
+                                        }, this);
+                keySetting = "[" + multiKeySetting.join(", ") + "]";
             } else {
-                keySetting = "''";
+                // normal
+                if (row[KS_KEY_STRING].length) {
+                    sequence = row[KS_KEY_STRING].split(" ");
+                    if (sequence.length > 1) {
+                        keySetting = '[' + sequence.map(this.toStringForm).join(", ") + ']';
+                    } else {
+                        keySetting = this.toStringForm(row[KS_KEY_STRING]);
+                    }
+                } else {
+                    keySetting = "''";
+                }
             }
 
             var ksNoRepeatString = row[KS_ARGUMENT] ? ", true" : "";
@@ -902,13 +938,18 @@ var ksKeybindTreeView = {
         return null;
     },
 
-    deleteSelectedItem: function () {
+    deleteItemAt: function (aIndex) {
         var i = this.currentIndex;
-        if (!this.isSeparator(i)) {
-            this.data.splice(i, 1);
-            this._treeBoxObject.rowCountChanged(i, -1);
+        if (!this.isSeparator(aIndex)) {
+            this.data.splice(aIndex, 1);
+            this._treeBoxObject.rowCountChanged(aIndex, -1);
+            this.selection.select(aIndex < this.data.length ? aIndex : this.data.length - 1);
             this.update();
         }
+    },
+
+    deleteSelectedItem: function () {
+        this.deleteItemAt(this.currentIndex);
     },
 
     appendItem: function (aInit) {
@@ -918,13 +959,13 @@ var ksKeybindTreeView = {
         if (aInit) {
             newItem[KS_DESC]     = aInit.desc;
             newItem[KS_ARGUMENT] = aInit.arg;
-            newItem[KS_FUNCTION] = aInit.func;
+            newItem[KS_FUNCTION] = js_beautify(aInit.func);
             newItem[KS_MODE]     = aInit.mode;
         } else {
             newItem[KS_DESC]     = "";
             newItem[KS_ARGUMENT] = false;
             newItem[KS_FUNCTION] = "function (ev, arg) {\n\n}";
-            newItem[KS_MODE]     = 0;            
+            newItem[KS_MODE]     = 0;
         }
 
         this.data.push(newItem);
