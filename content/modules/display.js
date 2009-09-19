@@ -39,10 +39,13 @@ KeySnail.Display = {
     },
 
     prettyPrint: function (msg) {
-        var dBody = content.document.body;
+        if (!content || this.modules.util.isFrameSetWindow(content)) {
+            this.message(msg);
+            return;
+        }
 
-        if (this.modules.util.isFrameSetWindow(content))
-            dBody = null;
+        var doc = content.document;
+        var dBody = doc.body;
 
         if (dBody) {
             var ksMessageId = "_ks_message";
@@ -53,10 +56,10 @@ KeySnail.Display = {
 
             var lines = msg.split('\n');
 
-            var container = content.document.getElementById(ksMessageId);
+            var container = doc.getElementById(ksMessageId);
 
             if (!container) {
-                container = content.document.createElement("div");
+                container = doc.createElement("div");
                 container.id = ksMessageId;
                 container.style.cssText = ksMessageStyle;
 
@@ -72,10 +75,10 @@ KeySnail.Display = {
                 }                
             }
 
-            container.appendChild(content.document.createTextNode(lines[0]));
+            container.appendChild(doc.createTextNode(lines[0]));
             for (var i = 1; i < lines.length; ++i) {
-                container.appendChild(content.document.createElement("br"));
-                container.appendChild(content.document.createTextNode(lines[i]));
+                container.appendChild(doc.createElement("br"));
+                container.appendChild(doc.createTextNode(lines[i]));
             }
 
             container.style.display = 'block';

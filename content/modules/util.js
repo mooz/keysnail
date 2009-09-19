@@ -174,14 +174,18 @@ KeySnail.Util = {
 
     // original code from Firemacs
     // http://www.mew.org/~kazu/proj/firemacs/
-    isWritable: function () {
-        // return this.isCommandUsable("cmd_insertText");
-        // for performance reason
-        var insertTextController = document.commandDispatcher
+    isWritable: function (aEvent) {
+        if (!this.insertTextController)
+            this.insertTextController = document.commandDispatcher
             .getControllerForCommand("cmd_insertText");
 
-        return (insertTextController &&
-                insertTextController.isCommandEnabled("cmd_insertText"));
+        try {
+            return (this.insertTextController &&
+                    this.insertTextController.isCommandEnabled("cmd_insertText"));            
+        } catch (x) {
+            var localName = aEvent.originalTarget.localName.toLowerCase();
+            return (localName == 'input' || localName == 'textarea');
+        }
     },
 
     // original code from Firemacs

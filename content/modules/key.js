@@ -228,7 +228,9 @@ KeySnail.Key = {
 
         var key = this.keyEventToString(aEvent);
 
-        // this.modules.display.prettyPrint("key :: " + key);
+        // this.modules.display.prettyPrint(["orig :: " + aEvent.originalTarget.localName, 
+        //                                   "targ :: " + aEvent.target.localName,
+        //                                   "curr :: " + aEvent.currentTarget.localName].join("\n"));
 
         if (key == this.suspendKey) {
             this.suspended = !this.suspended;
@@ -337,7 +339,7 @@ KeySnail.Key = {
             // decide which keymap to use
             var modeName;
 
-            if (this.modules.util.isWritable()) {
+            if (this.modules.util.isWritable(aEvent)) {
                 modeName = this.modes.EDIT;
             } else {
                 modeName = this.modules.util.isCaretEnabled()
@@ -405,7 +407,7 @@ KeySnail.Key = {
                 this.backToNeutral(this.currentKeySequence.join(" ")
                                    + " " + key + " is undefined", 3000);
             } else {
-                if (this.prefixArgument > 0 && this.modules.util.isWritable()) {
+                if (this.prefixArgument > 0 && this.modules.util.isWritable(aEvent)) {
                     this.modules.util.stopEventPropagation(aEvent);
                     // insert repeated string
                     this.insertText(new Array(this.prefixArgument + 1)
@@ -956,13 +958,13 @@ KeySnail.Key = {
      * @param aArg   prefix argument to be passed
      */
     executeFunction: function (aFunc, aEvent, aArg) {
-        // var hookArg = {
-        //     "event": aEvent,
-        //     "func":  aFunc,
-        //     "arg":   aArg
-        // };
+        var hookArg = {
+            func  : aFunc,
+            event : aEvent,
+            arg   : aArg
+        };
 
-        // this.modules.hook.callHook("PreCommand", hookArg);
+        this.modules.hook.callHook("PreCommand", hookArg);
 
         if (!aFunc.ksNoRepeat && aArg) {
             // iterate
@@ -976,7 +978,7 @@ KeySnail.Key = {
 
         this.lastFunc = aFunc;
 
-        // this.modules.hook.callHook("PostCommand", hookArg);
+        this.modules.hook.callHook("PostCommand", hookArg);
     },
 
     /**
@@ -1427,13 +1429,3 @@ KeySnail.Key = {
 
     message: KeySnail.message
 };
-
-// event.altKey   -- Alt key
-// event.ctrlKey  -- Control key
-// event.shiftKey
-// event.metaKey
-
-// event.keyCode
-
-// "\C-n" => ctrl + n
-// "\C-np" => (ctrl + n), p

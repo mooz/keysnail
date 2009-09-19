@@ -220,6 +220,7 @@ KeySnail.Prompt = function () {
             break;
         case KeyEvent.DOM_VK_TAB:
             modules.util.stopEventPropagation(aEvent);
+            selectNextCompletion(aEvent.shiftKey ? -1 : 1, true);
             break;
         default:
             break;
@@ -280,8 +281,6 @@ KeySnail.Prompt = function () {
         aOffset = aOffset || 0;
         var count = Math.min(listboxMaxRows, aList.length) + aOffset;
 
-        // var a = new Date();
-
         removeAllChilds(listbox);
 
         if (isMultipleList(aList)) {
@@ -301,6 +300,8 @@ KeySnail.Prompt = function () {
             }
         }
 
+        // var a = new Date();
+
         // var b = new Date();
         // modules.display.prettyPrint("whole time :: " + (b - a));
 
@@ -319,7 +320,7 @@ KeySnail.Prompt = function () {
 
         if (isMultipleList(aList)) {
             // multiple
-            setColumns(aIndexList[0].length);
+            setColumns(aList[0].length);
             for (var i = aOffset; i < count; ++i) {
                 row = createRow(aList[aIndexList[i]]);
                 listbox.appendChild(row);
@@ -582,10 +583,16 @@ KeySnail.Prompt = function () {
 
             var keywords = regexp.split(" ");
 
+            var matcher = isMultipleList(completion.list) ?
+                function (keyword) {
+                    return completion.list[i].some(function (item) {return item.match(keyword, "i");});
+                }
+            : function (keyword) {
+                return completion.list[i].match(keyword, "i");
+            };
+
             for (var i = 0; i < listLen; ++i) {
-                if (keywords.every(function (keyword) {
-                                      return getListText(completion.list, i).match(keyword, "i");
-                                  })) {
+                if (keywords.every(matcher)) {
                     compIndexList.push(i);
                 }
             }
@@ -672,10 +679,10 @@ KeySnail.Prompt = function () {
             readStr = null;
         } else {
             if (isSelector) {
-                var item = compIndexList ?
-                    completion.list[compIndexList[listbox.currentIndex]] :
-                    completion.list[listbox.currentIndex];
-                readStr = (typeof(item) == "string") ? item : item[itemIndexToUse];
+                var item = listbox.selectedItem;
+                readStr = isMultipleList(completion.list) ? 
+                    item.childNodes[itemIndexToUse].getAttribute("label") :
+                    item.getAttribute("label");
             } else {
                 readStr = textbox.value;
             }
@@ -836,12 +843,12 @@ KeySnail.Prompt = function () {
         /**
          * Read string from prompt and execute <aCallback>
          * @param {string} aMsg message to be displayed
-         * @param {function} aCallback function to execute after read
+         * @param {function} aCallback function to execute after selection
          * @param {[string]} aCollection string list used to completion
-         * @param {string} aInitialInput initial input of the prompt
-         * @param {string} aInitialCount initial completion's index
+         * @param {[integer]} aItemIndexToUse index of the item in <aCollection>,
+         * which will be passed to the callback
          */
-        selector: function (aMsg, aCallback, aCollection, aItemIndexToUse) {
+        selector: function (aContext) {
             if (!promptbox)
                 return;
 
@@ -849,6 +856,11 @@ KeySnail.Prompt = function () {
                 this.modules.display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
+
+            var aMsg            = aContext.message;
+            var aCallback       = aContext.callback;
+            var aCollection     = aContext.collection;
+            var aItemIndexToUse = aContext.itemIndexToUse;
 
             savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
 

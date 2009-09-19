@@ -98,10 +98,9 @@ var ksPreference = {
     },
 
     onFinish: function () {
-        Application.console.log("ほげ");
-
         if ((this.needsApply || ksKeybindTreeView.changed || keyCustomizer.changed) &&
-            this.modules.util.confirm("Changed", "設定が変更されています。初期化ファイルに反映させますか？")) {
+            this.modules.util.confirm(this.modules.util.getLocaleString("settingsChanged"),
+                                      this.modules.util.getLocaleString("settingsChangedApplyChange"))) {
             this.onInitFileCreate();
         }
 
@@ -112,6 +111,7 @@ var ksPreference = {
 
     handleTreeEvent: function (aEvent) {
         aEvent.preventDefault();
+
         switch (aEvent.type) {
         case "dblclick":
             if (aEvent.target.localName == "treechildren") {
@@ -119,15 +119,14 @@ var ksPreference = {
             }
             break;
         case "click":
-            aEvent.preventDefault();
-            if (!ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex))
+            if (!ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex)) {
                 ksPreference.keybindTextarea.focus();
+            }
             break;
         case "keypress":
             switch (aEvent.keyCode) {
             case aEvent.DOM_VK_RETURN:
             case aEvent.DOM_VK_ENTER:
-                aEvent.preventDefault();
                 if (aEvent.target.localName == "treechildren") {
                     this.toggleEditView();
                 }
@@ -253,6 +252,8 @@ var ksPreference = {
             var i = this.keybindEditBox.ksSelectedIndex;
             var row = ksKeybindTreeView.data[i];
             row[KS_MODE] = this.modeMenuList.selectedIndex;
+
+            this.needsApply = true;
             break;
         }
     },
@@ -266,10 +267,13 @@ var ksPreference = {
         var i = this.keybindEditBox.ksSelectedIndex;
         var row = ksKeybindTreeView.data[i];
         row[KS_ARGUMENT] = !row[KS_ARGUMENT];
+
+        this.needsApply = true;
     },
 
     toggleEditView: function () {
-        if (ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex))
+        if (ksKeybindTreeView.currentIndex < 0 ||
+            ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex))
             return;
 
         var editBoxHidden = this.keybindEditBox.hidden;
@@ -298,6 +302,7 @@ var ksPreference = {
 
     updateKeyBindButtons: function () {
         var index = ksKeybindTreeView.currentIndex;
+        if (index < 0) return;
 
         this.editButton.disabled   = ksKeybindTreeView.isSeparator(index);
         this.deleteButton.disabled = this.editButton.disabled;
@@ -306,6 +311,7 @@ var ksPreference = {
 
     updateKeyBindTextarea: function () {
         var index = ksKeybindTreeView.currentIndex;
+        if (index < 0) return;
 
         if (ksKeybindTreeView.isSeparator(index)) {
             this.keybindTextarea.readOnly = true;
@@ -318,6 +324,7 @@ var ksPreference = {
 
     updateKeyBindEditBox: function () {
         var index = ksKeybindTreeView.currentIndex;
+        if (index < 0) return;
 
         if (ksKeybindTreeView.isSeparator(index)) {
             this.modeMenuList.selectedIndex = 0;
@@ -724,7 +731,7 @@ var ksPreference = {
         if (this.blackList.length) {
             aContentHolder.push("// ================ Black List ======================== //");
             aContentHolder.push("");
-            aContentHolder.push(js_beautify(['hook.setHook("LocationChange",',
+            aContentHolder.push(js_beautify(['hook.addToHook("LocationChange",',
                                              'function (aNsURI) {',
                                              'var URL = aNsURI ? aNsURI.spec : null;',
                                              'key.suspendWhenMatched(URL, key.blackList);});'].join("\n")));
@@ -762,10 +769,10 @@ var ksPreference = {
 
             // seek for same command
             for (var j = i + 1; j < data.length; ++j) {
-                if (row[KS_MODE] == data[j][KS_MODE] &&
+                if (row[KS_MODE]     == data[j][KS_MODE]     &&
                     row[KS_FUNCTION] == data[j][KS_FUNCTION] &&
                     row[KS_ARGUMENT] == data[j][KS_ARGUMENT] &&
-                    row[KS_DESC] == data[j][KS_DESC] &&
+                    row[KS_DESC]     == data[j][KS_DESC]     &&
                     doneIndexList.every(function (aIndex) {return aIndex != j;})) {
                     //
                     sameCommandKeys.push(data[j][KS_KEY_STRING]);
@@ -995,7 +1002,11 @@ var ksKeybindTreeView = {
         } else {
             newItem[KS_DESC]     = "";
             newItem[KS_ARGUMENT] = false;
-            newItem[KS_FUNCTION] = "function (ev, arg) {\n\n}";
+            newItem[KS_FUNCTION] =
+                "function (ev, arg) {\n" +
+                "    // " + ksPreference.modules.util.getLocaleString("putYourCodesHere") +
+                "\n" +
+                "\n}";
             newItem[KS_MODE]     = 0;
         }
 
@@ -1005,6 +1016,9 @@ var ksKeybindTreeView = {
         this.selection.select(newIdx);
         this._treeBoxObject.ensureRowIsVisible(newIdx);
         ksPreference.keybindTextarea.focus();
+
+        if (!aInit)
+            ksPreference.toggleEditView();
 
         this.changed = true;
     },
@@ -1028,7 +1042,7 @@ var ksKeybindTreeView = {
     },
 
     get currentIndex()  {
-        return this.selection.currentIndex;
+        return (this.selection.count) ? this.selection.currentIndex : -1;
     },
 
     // Tree view interfaces
@@ -1045,7 +1059,7 @@ var ksKeybindTreeView = {
     isSeparator: function (index) {
         if (index < 0)
             return true;
-        return this.data[index][KS_KEY_STRING] == null;
+        return (this.data[index][KS_KEY_STRING] == null);
     },
     isSorted: function () { return false; },
     canDrop: function (targetIndex, orientation) { return false; },

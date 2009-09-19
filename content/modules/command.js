@@ -283,13 +283,14 @@ KeySnail.Command = {
         //     aArg = urlList.length;
 
         with (this.modules) {
-            prompt.selector("Pattern: ",
-                            function (aStr) {
-                                if (aStr) {
-                                    key.viewURI(aStr);
-                                }
-                            },
-                            urlList);
+            prompt.selector({message: "Pattern: ",
+                             collection: urlList,
+                             callback: function (aStr) {
+                                 if (aStr) {
+                                     key.viewURI(aStr);
+                                 }
+                             }
+                            });
         }
 
         // with (this.modules) {
