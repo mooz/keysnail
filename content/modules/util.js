@@ -69,6 +69,10 @@ KeySnail.Util = {
 
         if (file.exists() &&
             !aForce &&
+            // !this.confirmCheck(this.getLocaleString("overWriteConfirmationTitle"),
+            //                    aPath + ' ' + this.getLocaleString("overWriteConfirmation"),
+            //                    aCheckMessage,
+            //                    "no_overwrite_file_confirmation")) {
             !this.confirm(this.getLocaleString("overWriteConfirmationTitle"),
                           aPath + ' ' + this.getLocaleString("overWriteConfirmation"))) {
             throw "Canceled by user";
@@ -95,13 +99,15 @@ KeySnail.Util = {
     },
 
     confirmCheck: function (aTitle, aMessage, aCheckMessage, aId) {
-        var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-            .getService(Components.interfaces.nsIPromptService);
-
         var key = "extensions.keysnail." + aID;
 
-        if (nsPreferences.getBoolPref(key))
+        this.message(key+" :: "+nsPreferences.getBoolPref(key, false));
+
+        if (nsPreferences.getBoolPref(key, false))
             return true;
+
+        var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+            .getService(Components.interfaces.nsIPromptService);
 
         var check = {value: false};
         var result = prompts.confirmCheck(null,

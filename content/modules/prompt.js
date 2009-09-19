@@ -43,6 +43,11 @@ KeySnail.Prompt = function () {
     var inNormalCompletion = false;
 
     var listboxMaxRows = 10;
+    var listboxRows;
+
+    // ListBox settings
+    var currentList;
+    var currentIndexList;
 
     // History
     var historyHolder;
@@ -207,6 +212,12 @@ KeySnail.Prompt = function () {
         case KeyEvent.DOM_VK_DOWN:
             selectNextCompletion(1, true);
             break;
+        case KeyEvent.DOM_VK_PAGE_DOWN:
+            selectNextCompletion(listboxRows, true);
+            break;
+        case KeyEvent.DOM_VK_PAGE_UP:
+            selectNextCompletion(-listboxRows, true);
+            break;
         case KeyEvent.DOM_VK_TAB:
             modules.util.stopEventPropagation(aEvent);
             break;
@@ -234,9 +245,8 @@ KeySnail.Prompt = function () {
     }
 
     function setRows(aRow) {
-        listbox.setAttribute("rows",
-                             (aRow < listboxMaxRows) ?
-                             aRow : listboxMaxRows);
+        listboxRows = (aRow < listboxMaxRows) ? aRow : listboxMaxRows; 
+        listbox.setAttribute("rows", listboxRows);
     }
 
     function removeAllChilds(aElement) {
@@ -265,23 +275,26 @@ KeySnail.Prompt = function () {
         return row;
     }
 
-    function setListBoxFromStringList(aList) {
+    function setListBoxFromStringList(aList, aOffset) {
         var row;
+        aOffset = aOffset || 0;
+        var count = Math.min(listboxMaxRows, aList.length) + aOffset;
 
         // var a = new Date();
 
         removeAllChilds(listbox);
-        setColumns(isMultipleList(aList) ? aList[0].length : 1);
 
         if (isMultipleList(aList)) {
             // multiple
-            for (var i = 0; i < aList.length; ++i) {
+            setColumns(aList[0].length);
+            for (var i = aOffset; i < count; ++i) {
                 row = createRow(aList[i]);
                 listbox.appendChild(row);
             }
         } else {
             // normal
-            for (var i = 0; i < aList.length; ++i) {
+            setColumns(1);
+            for (var i = aOffset; i < count; ++i) {
                 row = document.createElement("listitem");
                 row.setAttribute("label", aList[i]);
                 listbox.appendChild(row);
@@ -289,43 +302,85 @@ KeySnail.Prompt = function () {
         }
 
         // var b = new Date();
+        // modules.display.prettyPrint("whole time :: " + (b - a));
 
-        // modules.display.prettyPrint("time :: " + (b - a));
+        currentList      = aList;
+        currentIndexList = null;
     }
 
-    function setListBoxFromIndexList(aList, aIndexList) {
+    function setListBoxFromIndexList(aList, aIndexList, aOffset) {
         var row;
+        aOffset = aOffset || 0;
+        var count = Math.min(listboxMaxRows, aIndexList.length) + aOffset;
+
+        // var a = new Date();
 
         removeAllChilds(listbox);
-        setColumns(isMultipleList(aList) ? aList[0].length : 1);
 
         if (isMultipleList(aList)) {
             // multiple
-            for (var i = 0; i < aIndexList.length; ++i) {
+            setColumns(aIndexList[0].length);
+            for (var i = aOffset; i < count; ++i) {
                 row = createRow(aList[aIndexList[i]]);
                 listbox.appendChild(row);
             }
         } else {
             // normal
-            for (var i = 0; i < aIndexList.length; ++i) {
+            setColumns(1);
+            for (var i = aOffset; i < count; ++i) {
                 row = document.createElement("listitem");
                 row.setAttribute("label", aList[aIndexList[i]]);
                 listbox.appendChild(row);
             }
         }
+
+        // var b = new Date();
+        // modules.display.prettyPrint("comp time :: " + (b - a));
+
+        currentList      = aList;
+        currentIndexList = aIndexList;
     }
 
     function setListBoxSelection(aIndex) {
-        listbox.currentIndex = aIndex;
-        listbox.selectedIndex = aIndex;
+        var center = listboxRows / 2; 
+        var pos;
+        var listLen = currentIndexList ? currentIndexList.length : currentList.length;
 
-        var offset = listbox.getNumberOfVisibleRows() / 2;
-        var dest = Math.max(0, aIndex - offset);
-        if (dest > listbox.getRowCount() - 2 * offset)
-            dest = listbox.getRowCount() - 2 * offset;
+        if (listLen <= listboxRows) {
+            listbox.currentIndex = listbox.selectedIndex = aIndex;            
+            return;
+        }
 
-        listbox.scrollToIndex(dest);
+        function setupList(offset, pos) {
+            if (currentIndexList) {
+                setListBoxFromIndexList(currentList, currentIndexList, offset);                
+            } else {
+                setListBoxFromStringList(currentList, offset);                
+            }
+
+            listbox.currentIndex = listbox.selectedIndex = pos;
+        }
+
+        if (aIndex <= center) {
+            setupList(0, aIndex);
+        } else if (aIndex >= listLen - center) {
+            setupList(listLen - listboxRows, listboxRows - (listLen - aIndex));
+        } else {
+            setupList(aIndex - center, center);
+        }
     }
+
+    // function setListBoxSelection(aIndex) {
+    //     listbox.currentIndex = aIndex;
+    //     listbox.selectedIndex = aIndex;
+
+    //     var offset = listbox.getNumberOfVisibleRows() / 2;
+    //     var dest = Math.max(0, aIndex - offset);
+    //     if (dest > listbox.getRowCount() - 2 * offset)
+    //         dest = listbox.getRowCount() - 2 * offset;
+
+    //     listbox.scrollToIndex(dest);
+    // }
 
     function resetState(aType) {
         aType.index = 0;
@@ -488,8 +543,9 @@ KeySnail.Prompt = function () {
             compIndex = nextIndex;
         } else {
             totalLength = completion.list.length;
-            nextIndex = getNextIndex(listbox.currentIndex, aDirection, 0,
+            nextIndex = getNextIndex(completion.index, aDirection, 0,
                                      completion.list.length, aRing);
+            completion.index = nextIndex;
         }
 
         setListBoxSelection(nextIndex);

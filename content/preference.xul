@@ -13,7 +13,8 @@
             xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
             xmlns:html="http://www.w3.org/1999/xhtml"
             title="&keySnail.preference.title;"
-            minheight="600px"
+            ondialogcancel="return ksPreference.onFinish();"
+            minheight="670px"
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;"
               flex="1"
@@ -77,302 +78,303 @@
               flex="1"
               onpaneload="ksPreference.onKeyPaneLoad();">
         <preferences></preferences>
-        <vbox flex="1">
-            <!-- command buttons -->
-            <vbox>
-                <label id="notification-area" style="color:#b80011;font-weight:bold;" hidden="true" flex="1"></label>
-                <hbox id="create-button-area" align="center" flex="1">
-                    <spacer flex="2" />
-                    <button label="&keySnail.preference.key.create;"
-                            accesskey="c"
-                            oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>
-                </hbox>
-            </vbox>
-            <!-- key bindings list -->
-            <tabbox flex="1">
-                <tabs>
-                    <tab label="&keySnail.preference.keys.keybindings;"/>
-                    <tab label="&keySnail.preference.keys.specialkey;"/>
-                    <tab label="&keySnail.preference.keys.blacklist;"/>
-                </tabs>
-                <tabpanels flex="1">
-                    <tabpanel id="keybindings" flex="1">
-                        <vbox flex="1">
-                            <vbox flex="1"
-                                  id="keybind-tree-box">
-                                <description class="long-description">&keySnail.preference.keys.treeDescription1;</description>
-                                <description class="long-description">&keySnail.preference.keys.treeDescription2;</description>
-                                <description class="long-description">&keySnail.preference.keys.treeDescription3;</description>
-                                <tree id="keybind-tree" flex="1"
-                                      seltype="single"
-		                      onselect="ksPreference.handleTreeEvent(event);"
-		                      onclick="ksPreference.handleTreeEvent(event);"
-		                      ondblclick="ksPreference.handleTreeEvent(event);"
-		                      onkeypress="ksPreference.handleTreeEvent(event);">
-                                    <treecols>
-                                        <treecol id="binds-mode"
-                                                 label="&keySnail.preference.keys.treeheader.mode;"
-                                                 flex="1"/>
-                                        <treecol id="binds-key"
-                                                 label="&keySnail.preference.keys.treeheader.key;"
-                                                 flex="2"/>
-		                        <splitter class="tree-splitter" />
-                                        <treecol id="binds-description"
-                                                 label="&keySnail.preference.keys.treeheader.description;"
-                                                 flex="4"/>
-		                        <splitter class="tree-splitter" />
-                                        <treecol id="binds-function"
-                                                 label="&keySnail.preference.keys.treeheader.function;"
-                                                 hidden="true"
-                                                 flex="2"/>
-		                        <splitter class="tree-splitter" />
-                                        <treecol id="binds-argument"
-                                                 label="&keySnail.preference.keys.treeheader.argument;"
-                                                 hidden="true"
-                                                 flex="1"/>
-                                    </treecols>
-                                    <treechildren></treechildren>
-                                </tree>
-                                <!-- command buttons -->
-                                <separator height="7px"/>
-                                <hbox align="center">
-                                    <label>&keySnail.preference.keys.treeheader.key;: </label>
-                                    <!-- key input area -->
-                                    <textbox id="keybind-textarea"
-                                             onkeypress="ksPreference.handleKeyBindTextareaEvent(event);"
-                                             onfocus="ksPreference.handleKeyBindTextareaEvent(event);"
-                                             onblur="ksPreference.handleKeyBindTextareaEvent(event);"
-                                             onmousedown="ksPreference.handleKeyBindTextareaEvent(event);"
-                                             readonly="true"
-                                             >
-                                    </textbox>
-                                    <popupset>
-                                        <menupopup id="insert-key-menu">
-                                        </menupopup>
-                                    </popupset>
-                                    <dropmarker id="keybind-button-insert"
-                                                disabled="true"
-                                                popup="insert-key-menu"/>
-                                    <spacer flex="1" />
-                                    <!-- edit button -->
-                                    <button label="&keySnail.preference.keys.edit;"
-                                            id="keybind-button-edit"
-                                            disabled="true"
-                                            oncommand="ksPreference.toggleEditView.call(ksPreference);"
-                                            accesskey="e"
-                                            />
-                                    <!-- add button -->
-                                    <popupset>
-                                        <menupopup id="add-command-menu">
-                                            <menuitem label="&keySnail.preference.command.builtin;"
-                                                      oncommand="ksPreference.addBuiltinCommand();"/>
-                                            <menuitem label="&keySnail.preference.command.original;"
-                                                      oncommand="ksKeybindTreeView.appendItem();"/>
-                                        </menupopup>
-                                    </popupset>
-                                    <button label="&keySnail.preference.keys.add;"
-                                            popup="add-command-menu"
-                                            accesskey="a"
-                                            />
-                                    <!-- delete button -->
-                                    <button label="&keySnail.preference.keys.delete;"
-                                            id="keybind-button-delete"
-                                            oncommand="ksKeybindTreeView.deleteSelectedItem();"
-                                            disabled="true"
-                                            accesskey="d"
-                                            />
-                                </hbox>
-                            </vbox>
-                            <vbox flex="1"
-                                  id="keybind-edit-box"
-                                  hidden="true">
-                                <hbox align="center">
-                                    <label>&keySnail.preference.keys.treeheader.description;: </label>
-                                    <textbox flex="1"
-                                             onchange="ksPreference.handleDescriptionTextarea(event);"
-                                             onkeypress="ksPreference.handleDescriptionTextarea(event);"
-                                             id="keybind-function-description">
-                                    </textbox>
-                                </hbox>
-                                <hbox align="center">
-                                    <label>&keySnail.preference.keys.treeheader.mode;: </label>
-                                    <menulist id="keybind-function-mode"
-                                              oncommand="ksPreference.handleModeMenuList(event);">
-                                        <menupopup>
-                                            <menuitem label="Global"/>
-                                            <menuitem label="View"/>
-                                            <menuitem label="Edit"/>
-                                            <menuitem label="Caret"/>
-                                        </menupopup>
-                                    </menulist>
-                                    <separator width="10px"/>
-                                    <checkbox id="keybind-function-norepeat"
-                                              label="&keySnail.preference.edit.noRepeat;"
-                                              onclick="ksPreference.noRepeatToggled();"
-                                              checked="false"/>
-                                </hbox>
-                                <description>&keySnail.preference.edit.function;:</description>
-                                <textbox id="keybind-function-body"
-                                         onchange="ksPreference.handleFunctionTextarea(event);"
-                                         onkeypress="ksPreference.handleFunctionTextarea(event);"
-                                         multiline="true" flex="3">
-                                </textbox>
-                                <hbox>
-                                    <button label="&keySnail.preference.edit.backToTree;"
-                                            oncommand="ksPreference.toggleEditView.call(ksPreference);"
-                                            accesskey="v"/>
-                                    <spacer flex="1"/>
-                                    <button label="&keySnail.preference.edit.beautifyCode;"
-                                            oncommand="ksPreference.beautify.call(ksPreference);"
-                                            accesskey="b"/>
-                                </hbox>
-                            </vbox>
-                        </vbox>
-                    </tabpanel>
-                    <tabpanel id="special-keys">
-                        <vbox flex="1">
-                            <description class="long-description">&keySnail.preference.keys.specialKeyDescription1;</description>
-                            <description class="long-description">&keySnail.preference.keys.specialKeyDescription2;</description>
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.quit.description;">
-                                <description flex="1">&keySnail.preference.key.quit;:</description>
-                                <textbox id="keysnail-userscript-key-quit"
-                                         onclick="keyCustomizer.set('quit');"
+        <!-- key bindings list -->
+        <tabbox flex="1">
+            <tabs>
+                <tab label="&keySnail.preference.keys.keybindings;"/>
+                <tab label="&keySnail.preference.keys.specialkey;"/>
+                <tab label="&keySnail.preference.keys.blacklist;"/>
+            </tabs>
+            <tabpanels flex="1">
+                <tabpanel id="keybindings" flex="1">
+                    <vbox flex="1">
+                        <vbox flex="1"
+                              id="keybind-tree-box">
+                            <description class="long-description">&keySnail.preference.keys.treeDescription1;</description>
+                            <description class="long-description">&keySnail.preference.keys.treeDescription2;</description>
+                            <description class="long-description">&keySnail.preference.keys.treeDescription3;</description>
+                            <tree id="keybind-tree" flex="1"
+                                  seltype="single"
+                                  rows="10"
+		                  onselect="ksPreference.handleTreeEvent(event);"
+		                  onclick="ksPreference.handleTreeEvent(event);"
+		                  ondblclick="ksPreference.handleTreeEvent(event);"
+		                  onkeypress="ksPreference.handleTreeEvent(event);">
+                                <treecols>
+                                    <treecol id="binds-mode"
+                                             label="&keySnail.preference.keys.treeheader.mode;"
+                                             flex="1"/>
+                                    <treecol id="binds-key"
+                                             label="&keySnail.preference.keys.treeheader.key;"
+                                             flex="2"/>
+		                    <splitter class="tree-splitter" />
+                                    <treecol id="binds-description"
+                                             label="&keySnail.preference.keys.treeheader.description;"
+                                             flex="4"/>
+		                    <splitter class="tree-splitter" />
+                                    <treecol id="binds-function"
+                                             label="&keySnail.preference.keys.treeheader.function;"
+                                             hidden="true"
+                                             flex="2"/>
+		                    <splitter class="tree-splitter" />
+                                    <treecol id="binds-argument"
+                                             label="&keySnail.preference.keys.treeheader.argument;"
+                                             hidden="true"
+                                             flex="1"/>
+                                </treecols>
+                                <treechildren></treechildren>
+                            </tree>
+                            <!-- command buttons -->
+                            <separator height="7px"/>
+                            <hbox align="center">
+                                <label>&keySnail.preference.keys.treeheader.key;: </label>
+                                <!-- key input area -->
+                                <textbox id="keybind-textarea"
+                                         onkeypress="ksPreference.handleKeyBindTextareaEvent(event);"
+                                         onfocus="ksPreference.handleKeyBindTextareaEvent(event);"
+                                         onblur="ksPreference.handleKeyBindTextareaEvent(event);"
+                                         onmousedown="ksPreference.handleKeyBindTextareaEvent(event);"
                                          readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('quit');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- help key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.help.description;">
-                                <description flex="1">&keySnail.preference.key.help;:</description>
-                                <textbox id="keysnail-userscript-key-help"
-                                         onclick="keyCustomizer.set('help');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('help');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- escape key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.escape.description;">
-                                <description flex="1">&keySnail.preference.key.escape;:</description>
-                                <textbox id="keysnail-userscript-key-escape"
-                                         onclick="keyCustomizer.set('escape');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('escape');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- macroStart key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.macroStart.description;">
-                                <description flex="1">&keySnail.preference.key.macroStart;:</description>
-                                <textbox id="keysnail-userscript-key-macroStart"
-                                         onclick="keyCustomizer.set('macroStart');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('macroStart');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- macroEnd key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.macroEnd.description;">
-                                <description flex="1">&keySnail.preference.key.macroEnd;:</description>
-                                <textbox id="keysnail-userscript-key-macroEnd"
-                                         onclick="keyCustomizer.set('macroEnd');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('macroEnd');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- suspend key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.suspend.description;">
-                                <description flex="1">&keySnail.preference.key.suspend;:</description>
-                                <textbox id="keysnail-userscript-key-suspend"
-                                         onclick="keyCustomizer.set('suspend');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('suspend');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- universalArgument key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.universalArgument.description;">
-                                <description flex="1">&keySnail.preference.key.universalArgument;:</description>
-                                <textbox id="keysnail-userscript-key-universalArgument"
-                                         onclick="keyCustomizer.set('universalArgument');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('universalArgument');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- negativeArgument1 key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
-                                <description flex="1">&keySnail.preference.key.negativeArgument1;:</description>
-                                <textbox id="keysnail-userscript-key-negativeArgument1"
-                                         onclick="keyCustomizer.set('negativeArgument1');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('negativeArgument1');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- negativeArgument2 key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
-                                <description flex="1">&keySnail.preference.key.negativeArgument2;:</description>
-                                <textbox id="keysnail-userscript-key-negativeArgument2"
-                                         onclick="keyCustomizer.set('negativeArgument2');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('negativeArgument2');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                            <!-- negativeArgument3 key -->
-                            <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
-                                <description flex="1">&keySnail.preference.key.negativeArgument3;:</description>
-                                <textbox id="keysnail-userscript-key-negativeArgument3"
-                                         onclick="keyCustomizer.set('negativeArgument3');"
-                                         readonly="true"
-                                         class="keysnail-specialkey-textbox"/>
-                                <button label="&keySnail.preference.change;"
-                                        oncommand="keyCustomizer.set('negativeArgument3');"
-                                        class="keysnail-specialkey-button"/>
-                            </hbox>
-                        </vbox>
-                    </tabpanel>
-                    <tabpanel id="blacklist-settings" flex="1">
-                        <vbox flex="1">
-                            <description class="long-description">&keySnail.preference.key.blacklist.description;</description>
-                            <listbox id="blacklist-listbox" flex="1"
-                                     onselect="ksPreference.handleBlackListBoxEvent(event);"
-                                     onkeypress="ksPreference.handleBlackListBoxEvent(event);"
-                                     >
-                            </listbox>
-                            <hbox>
-                                <textbox rows="1" flex="1"
-                                         id="blacklist-url"
-                                         type="autocomplete"
-                                         enablehistory="true"
-                                         autocompletesearch="history"
-                                         onkeypress="ksPreference.handleBlackListInputEvent(event);"
                                          >
                                 </textbox>
-                                <button id="blacklist-button-add"
-                                        label="&keySnail.preference.keys.add;"
-                                        oncommand="ksPreference.addBlackList();"/>
-                                <button id="blacklist-button-delete"
-                                        label="&keySnail.preference.keys.delete;"
+                                <popupset>
+                                    <menupopup id="insert-key-menu">
+                                    </menupopup>
+                                </popupset>
+                                <dropmarker id="keybind-button-insert"
+                                            disabled="true"
+                                            popup="insert-key-menu"/>
+                                <spacer flex="1" />
+                                <!-- edit button -->
+                                <button label="&keySnail.preference.keys.edit;"
+                                        id="keybind-button-edit"
                                         disabled="true"
-                                        oncommand="ksPreference.deleteBlackList();"/>
+                                        oncommand="ksPreference.toggleEditView.call(ksPreference);"
+                                        accesskey="e"
+                                        />
+                                <!-- add button -->
+                                <popupset>
+                                    <menupopup id="add-command-menu">
+                                        <menuitem label="&keySnail.preference.command.builtin;"
+                                                  oncommand="ksPreference.addBuiltinCommand();"/>
+                                        <menuitem label="&keySnail.preference.command.original;"
+                                                  oncommand="ksKeybindTreeView.appendItem();"/>
+                                    </menupopup>
+                                </popupset>
+                                <button label="&keySnail.preference.keys.add;"
+                                        popup="add-command-menu"
+                                        accesskey="a"
+                                        />
+                                <!-- delete button -->
+                                <button label="&keySnail.preference.keys.delete;"
+                                        id="keybind-button-delete"
+                                        oncommand="if (ksKeybindTreeView.deleteSelectedItem() >= 0)
+                                                   ksPreference.updateKeyBindTextarea();ksPreference.needsApply = true;"
+                                        disabled="true"
+                                        accesskey="d"
+                                        />
                             </hbox>
                         </vbox>
-                    </tabpanel>
-                </tabpanels>
-            </tabbox>
+                        <vbox flex="1"
+                              id="keybind-edit-box"
+                              hidden="true">
+                            <hbox align="center">
+                                <label>&keySnail.preference.keys.treeheader.description;: </label>
+                                <textbox flex="1"
+                                         onchange="ksPreference.handleDescriptionTextarea(event);"
+                                         onkeypress="ksPreference.handleDescriptionTextarea(event);"
+                                         id="keybind-function-description">
+                                </textbox>
+                            </hbox>
+                            <hbox align="center">
+                                <label>&keySnail.preference.keys.treeheader.mode;: </label>
+                                <menulist id="keybind-function-mode"
+                                          oncommand="ksPreference.handleModeMenuList(event);">
+                                    <menupopup>
+                                        <menuitem label="Global"/>
+                                        <menuitem label="View"/>
+                                        <menuitem label="Edit"/>
+                                        <menuitem label="Caret"/>
+                                    </menupopup>
+                                </menulist>
+                                <separator width="10px"/>
+                                <checkbox id="keybind-function-norepeat"
+                                          label="&keySnail.preference.edit.noRepeat;"
+                                          onclick="ksPreference.noRepeatToggled();"
+                                          checked="false"/>
+                            </hbox>
+                            <description>&keySnail.preference.edit.function;:</description>
+                            <textbox id="keybind-function-body"
+                                     onchange="ksPreference.handleFunctionTextarea(event);"
+                                     onkeypress="ksPreference.handleFunctionTextarea(event);"
+                                     multiline="true" flex="3">
+                            </textbox>
+                            <hbox>
+                                <button label="&keySnail.preference.edit.backToTree;"
+                                        oncommand="ksPreference.toggleEditView.call(ksPreference);"
+                                        accesskey="v"/>
+                                <spacer flex="1"/>
+                                <button label="&keySnail.preference.edit.beautifyCode;"
+                                        oncommand="ksPreference.beautify.call(ksPreference);"
+                                        accesskey="b"/>
+                            </hbox>
+                        </vbox>
+                    </vbox>
+                </tabpanel>
+                <tabpanel id="special-keys">
+                    <vbox flex="1">
+                        <description class="long-description">&keySnail.preference.keys.specialKeyDescription1;</description>
+                        <description class="long-description">&keySnail.preference.keys.specialKeyDescription2;</description>
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.quit.description;">
+                            <description flex="1">&keySnail.preference.key.quit;:</description>
+                            <textbox id="keysnail-userscript-key-quit"
+                                     onclick="keyCustomizer.set('quit');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('quit');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- help key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.help.description;">
+                            <description flex="1">&keySnail.preference.key.help;:</description>
+                            <textbox id="keysnail-userscript-key-help"
+                                     onclick="keyCustomizer.set('help');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('help');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- escape key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.escape.description;">
+                            <description flex="1">&keySnail.preference.key.escape;:</description>
+                            <textbox id="keysnail-userscript-key-escape"
+                                     onclick="keyCustomizer.set('escape');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('escape');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- macroStart key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.macroStart.description;">
+                            <description flex="1">&keySnail.preference.key.macroStart;:</description>
+                            <textbox id="keysnail-userscript-key-macroStart"
+                                     onclick="keyCustomizer.set('macroStart');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('macroStart');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- macroEnd key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.macroEnd.description;">
+                            <description flex="1">&keySnail.preference.key.macroEnd;:</description>
+                            <textbox id="keysnail-userscript-key-macroEnd"
+                                     onclick="keyCustomizer.set('macroEnd');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('macroEnd');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- suspend key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.suspend.description;">
+                            <description flex="1">&keySnail.preference.key.suspend;:</description>
+                            <textbox id="keysnail-userscript-key-suspend"
+                                     onclick="keyCustomizer.set('suspend');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('suspend');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- universalArgument key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.universalArgument.description;">
+                            <description flex="1">&keySnail.preference.key.universalArgument;:</description>
+                            <textbox id="keysnail-userscript-key-universalArgument"
+                                     onclick="keyCustomizer.set('universalArgument');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('universalArgument');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- negativeArgument1 key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
+                            <description flex="1">&keySnail.preference.key.negativeArgument1;:</description>
+                            <textbox id="keysnail-userscript-key-negativeArgument1"
+                                     onclick="keyCustomizer.set('negativeArgument1');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('negativeArgument1');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- negativeArgument2 key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
+                            <description flex="1">&keySnail.preference.key.negativeArgument2;:</description>
+                            <textbox id="keysnail-userscript-key-negativeArgument2"
+                                     onclick="keyCustomizer.set('negativeArgument2');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('negativeArgument2');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                        <!-- negativeArgument3 key -->
+                        <hbox align="center" tooltiptext="&keySnail.preference.key.negativeArgument.description;">
+                            <description flex="1">&keySnail.preference.key.negativeArgument3;:</description>
+                            <textbox id="keysnail-userscript-key-negativeArgument3"
+                                     onclick="keyCustomizer.set('negativeArgument3');"
+                                     readonly="true"
+                                     class="keysnail-specialkey-textbox"/>
+                            <button label="&keySnail.preference.change;"
+                                    oncommand="keyCustomizer.set('negativeArgument3');"
+                                    class="keysnail-specialkey-button"/>
+                        </hbox>
+                    </vbox>
+                </tabpanel>
+                <tabpanel id="blacklist-settings" flex="1">
+                    <vbox flex="1">
+                        <description class="long-description">&keySnail.preference.key.blacklist.description;</description>
+                        <listbox id="blacklist-listbox" flex="1"
+                                 onselect="ksPreference.handleBlackListBoxEvent(event);"
+                                 onkeypress="ksPreference.handleBlackListBoxEvent(event);"
+                                 >
+                        </listbox>
+                        <hbox>
+                            <textbox rows="1" flex="1"
+                                     id="blacklist-url"
+                                     type="autocomplete"
+                                     enablehistory="true"
+                                     autocompletesearch="history"
+                                     onkeypress="ksPreference.handleBlackListInputEvent(event);"
+                                     >
+                            </textbox>
+                            <button id="blacklist-button-add"
+                                    label="&keySnail.preference.keys.add;"
+                                    oncommand="ksPreference.addBlackList();"/>
+                            <button id="blacklist-button-delete"
+                                    label="&keySnail.preference.keys.delete;"
+                                    disabled="true"
+                                    oncommand="ksPreference.deleteBlackList();"/>
+                        </hbox>
+                    </vbox>
+                </tabpanel>
+            </tabpanels>
+        </tabbox>
+        <!-- command buttons -->
+        <vbox>
+            <label id="notification-area" style="color:#b80011;font-weight:bold;" hidden="true" flex="1"></label>
+            <spacer height="5px" />
+            <hbox id="create-button-area" align="center" flex="1">
+                <spacer flex="2" />
+                <button label="&keySnail.preference.key.create;"
+                        accesskey="c"
+                        oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>
+            </hbox>
         </vbox>
     </prefpane>
 

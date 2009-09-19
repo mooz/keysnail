@@ -18,6 +18,8 @@ var keyCustomizer = {
         for (var i = 0; i < keys.length; ++i) {
             this.setTextBoxValue(keys[i], this.modules.key[keys[i] + "Key"]);
         }
+
+        this.changed = false;
     },
 
     set: function (aKeyName) {
@@ -74,6 +76,8 @@ var keyCustomizer = {
 
     setTextBoxValue: function (aKeyName, aValue) {
         var textBox = document.getElementById(this.prefPrefix + aKeyName);
+        if (textBox.value != aValue)
+            this.changed = true;
         textBox.value = aValue;
     },
 

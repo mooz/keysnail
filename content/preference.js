@@ -91,8 +91,21 @@ var ksPreference = {
         try {
             this.modules.util.writeText(output, this.modules.userscript.initFilePath);
             this.modules.userscript.reload();
+
+            this.needsApply = ksKeybindTreeView.changed = keyCustomizer.changed = false;
         } catch (x) {
         }
+    },
+
+    onFinish: function () {
+        Application.console.log("ほげ");
+
+        if ((this.needsApply || ksKeybindTreeView.changed || keyCustomizer.changed) &&
+            this.modules.util.confirm("Changed", "設定が変更されています。初期化ファイルに反映させますか？")) {
+            this.onInitFileCreate();
+        }
+
+        return true;
     },
 
     // ============================== Event Handlers ============================== //
@@ -120,8 +133,10 @@ var ksPreference = {
                 }
                 break;
             case aEvent.DOM_VK_DELETE:
-                ksKeybindTreeView.deleteSelectedItem();
-                this.updateKeyBindTextarea();
+                if (ksKeybindTreeView.deleteSelectedItem() >= 0) {
+                    this.updateKeyBindTextarea();
+                    this.needsApply = true;
+                }
                 break;
             }
             break;
@@ -170,6 +185,8 @@ var ksPreference = {
                     this.keybindTextarea.value = after;
                     row[KS_KEY_STRING] = after;
                     ksKeybindTreeView.update();
+
+                    this.needsApply = true;
                 }
                 return;
             }
@@ -179,6 +196,7 @@ var ksPreference = {
                 return;
 
             this.insertKey(key);
+
             break;
         }
     },
@@ -190,7 +208,7 @@ var ksPreference = {
         this.keybindTextarea.value = row[KS_KEY_STRING];
 
         ksKeybindTreeView.update();
-        ksKeybindTreeView.changed = true;
+        this.needsApply = true;
     },
 
     handleFunctionTextarea: function (aEvent) {
@@ -199,6 +217,8 @@ var ksPreference = {
             var i = this.keybindEditBox.ksSelectedIndex;
             var row = ksKeybindTreeView.data[i];
             row[KS_FUNCTION] = this.functionTextarea.value;
+
+            this.needsApply = true;
             break;
         case "keypress":
             if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
@@ -214,6 +234,8 @@ var ksPreference = {
             var i = this.keybindEditBox.ksSelectedIndex;
             var row = ksKeybindTreeView.data[i];
             row[KS_DESC] = this.descriptionTextarea.value;
+            
+            this.needsApply = true;
             break;
         case "keypress":
             if (aEvent.keyCode == aEvent.DOM_VK_RETURN ||
@@ -410,6 +432,7 @@ var ksPreference = {
     blackListBox: null,
     blackListURL: null,
     blackList: null,
+    needsApply: false,
 
     initBlackList: function () {
         if (!this.modules.key.blackList) {
@@ -446,6 +469,8 @@ var ksPreference = {
             this.blackList.push(URL);
             this.blackListBox.appendItem(URL);
             this.blackListURL.value = "";
+
+            this.needsApply = true;
         } else {
             this.notify("Item already exists in the list", 4000);
         }
@@ -456,6 +481,8 @@ var ksPreference = {
         if (i >= 0) {
             this.blackListBox.removeItemAt(i);
             this.blackList.splice(i, 1);
+
+            this.needsApply = true;
         }
     },
 
@@ -855,16 +882,17 @@ var ksKeybindTreeView = {
         this.initKeyBindingData(this.data, this.modules.key.keyMapHolder[this.modules.key.modes.GLOBAL]);
         this.data.push([null, null, null, null]);
 
-        this.currentModeIndex++;
+        this.currentModeIndex = 1;
         this.initKeyBindingData(this.data, this.modules.key.keyMapHolder[this.modules.key.modes.VIEW]);
         this.data.push([null, null, null, null]);
 
-        this.currentModeIndex++;
+        this.currentModeIndex = 2;
         this.initKeyBindingData(this.data, this.modules.key.keyMapHolder[this.modules.key.modes.EDIT]);
         this.data.push([null, null, null, null]);
 
-        this.currentModeIndex++;
+        this.currentModeIndex = 3;
         this.initKeyBindingData(this.data, this.modules.key.keyMapHolder[this.modules.key.modes.CARET]);
+
         this.currentModeIndex = 0;
 
         this.repeatYes = this.modules.util.getLocaleString("repeatWhenPrefixArgumentGivenYes");
@@ -895,10 +923,10 @@ var ksKeybindTreeView = {
 
                 var row = new Array(KS_TREE_COUNT);
 
-                row[KS_MODE] = this.currentModeIndex;
+                row[KS_MODE]       = this.currentModeIndex;
                 row[KS_KEY_STRING] = keyString;
-                row[KS_DESC] = func.ksDescription;
-                row[KS_ARGUMENT] = func.ksNoRepeat;
+                row[KS_DESC]       = func.ksDescription;
+                row[KS_ARGUMENT]   = func.ksNoRepeat;
 
                 var property = this.isMemberOf(func, this.modules.command);
                 if (property) {
@@ -939,17 +967,20 @@ var ksKeybindTreeView = {
     },
 
     deleteItemAt: function (aIndex) {
-        var i = this.currentIndex;
         if (!this.isSeparator(aIndex)) {
             this.data.splice(aIndex, 1);
             this._treeBoxObject.rowCountChanged(aIndex, -1);
             this.selection.select(aIndex < this.data.length ? aIndex : this.data.length - 1);
             this.update();
+
+            return aIndex;
         }
+
+        return -1;
     },
 
     deleteSelectedItem: function () {
-        this.deleteItemAt(this.currentIndex);
+        return this.deleteItemAt(this.currentIndex);
     },
 
     appendItem: function (aInit) {
@@ -974,6 +1005,8 @@ var ksKeybindTreeView = {
         this.selection.select(newIdx);
         this._treeBoxObject.ensureRowIsVisible(newIdx);
         ksPreference.keybindTextarea.focus();
+
+        this.changed = true;
     },
 
     /**
