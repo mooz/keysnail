@@ -175,13 +175,12 @@ KeySnail.Util = {
     // original code from Firemacs
     // http://www.mew.org/~kazu/proj/firemacs/
     isWritable: function (aEvent) {
-        if (!this.insertTextController)
-            this.insertTextController = document.commandDispatcher
+        var insertTextController= document.commandDispatcher
             .getControllerForCommand("cmd_insertText");
 
         try {
-            return (this.insertTextController &&
-                    this.insertTextController.isCommandEnabled("cmd_insertText"));            
+            return (insertTextController &&
+                    insertTextController.isCommandEnabled("cmd_insertText"));            
         } catch (x) {
             var localName = aEvent.originalTarget.localName.toLowerCase();
             return (localName == 'input' || localName == 'textarea');
