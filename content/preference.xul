@@ -14,6 +14,7 @@
             xmlns:html="http://www.w3.org/1999/xhtml"
             title="&keySnail.preference.title;"
             ondialogcancel="return ksPreference.onFinish();"
+            ondialogok="return ksPreference.onFinish();"
             minheight="670px"
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;"
@@ -90,12 +91,14 @@
                     <vbox flex="1">
                         <vbox flex="1"
                               id="keybind-tree-box">
-                            <description class="long-description">&keySnail.preference.keys.treeDescription1;</description>
-                            <description class="long-description">&keySnail.preference.keys.treeDescription2;</description>
-                            <description class="long-description">&keySnail.preference.keys.treeDescription3;</description>
-                            <tree id="keybind-tree" flex="1"
+                            <vbox>
+                                <description class="long-description">&keySnail.preference.keys.treeDescription1;</description>
+                                <description class="long-description">&keySnail.preference.keys.treeDescription2;</description>
+                                <description class="long-description">&keySnail.preference.keys.treeDescription3;</description>
+                            </vbox>
+                            <tree id="keybind-tree"
+                                  flex="1"
                                   seltype="single"
-                                  rows="10"
 		                  onselect="ksPreference.handleTreeEvent(event);"
 		                  onclick="ksPreference.handleTreeEvent(event);"
 		                  ondblclick="ksPreference.handleTreeEvent(event);"
@@ -119,7 +122,6 @@
 		                    <splitter class="tree-splitter" />
                                     <treecol id="binds-argument"
                                              label="&keySnail.preference.keys.treeheader.argument;"
-                                             hidden="true"
                                              flex="1"/>
                                 </treecols>
                                 <treechildren></treechildren>
@@ -177,7 +179,7 @@
                         </vbox>
                         <vbox flex="1"
                               id="keybind-edit-box"
-                              hidden="true">
+                              collapsed="true">
                             <hbox align="center">
                                 <label>&keySnail.preference.keys.treeheader.description;: </label>
                                 <textbox flex="1"
@@ -221,6 +223,7 @@
                         </vbox>
                     </vbox>
                 </tabpanel>
+
                 <tabpanel id="special-keys">
                     <vbox flex="1">
                         <description class="long-description">&keySnail.preference.keys.specialKeyDescription1;</description>
@@ -336,6 +339,7 @@
                         </hbox>
                     </vbox>
                 </tabpanel>
+
                 <tabpanel id="blacklist-settings" flex="1">
                     <vbox flex="1">
                         <description class="long-description">&keySnail.preference.key.blacklist.description;</description>
@@ -367,10 +371,11 @@
         </tabbox>
         <!-- command buttons -->
         <vbox>
-            <label id="notification-area" style="color:#b80011;font-weight:bold;" hidden="true" flex="1"></label>
+            <label id="notification-area" style="color:#b80011;font-weight:bold;" collapsed="true" flex="1">
+            </label>
             <spacer height="5px" />
             <hbox id="create-button-area" align="center" flex="1">
-                <spacer flex="2" />
+                <spacer flex="2"/>
                 <button label="&keySnail.preference.key.create;"
                         accesskey="c"
                         oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>

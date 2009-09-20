@@ -18,5 +18,5 @@ treechildren::-moz-tree-cell-text {
 }
 
 .long-description {
-    max-width: 600px;
+    /* max-width: 600px; */
 }

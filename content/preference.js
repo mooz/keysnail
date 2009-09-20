@@ -76,8 +76,10 @@ var ksPreference = {
     onInitFileCreate: function () {
         var error;
         if ((error = ksKeybindTreeView.checkSyntax())) {
-            this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
-            return;
+            this.modules.util.alert(null, "Syntax error",
+                                    this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+            // this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+            return false;
         }
 
         // var output1 = this.generateCommands();
@@ -95,13 +97,15 @@ var ksPreference = {
             this.needsApply = ksKeybindTreeView.changed = keyCustomizer.changed = false;
         } catch (x) {
         }
+
+        return true;
     },
 
     onFinish: function () {
         if ((this.needsApply || ksKeybindTreeView.changed || keyCustomizer.changed) &&
             this.modules.util.confirm(this.modules.util.getLocaleString("settingsChanged"),
                                       this.modules.util.getLocaleString("settingsChangedApplyChange"))) {
-            this.onInitFileCreate();
+            return this.onInitFileCreate();
         }
 
         return true;
@@ -114,12 +118,13 @@ var ksPreference = {
 
         switch (aEvent.type) {
         case "dblclick":
-            if (aEvent.target.localName == "treechildren") {
+            if (ksKeybindTreeView.currentIndex >= 0 && aEvent.target.localName == "treechildren") {
                 this.toggleEditView();
             }
             break;
         case "click":
-            if (!ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex)) {
+            if (ksKeybindTreeView.currentIndex >= 0 &&
+                !ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex)) {
                 ksPreference.keybindTextarea.focus();
             }
             break;
@@ -145,6 +150,7 @@ var ksPreference = {
                 this.updateKeyBindTextarea();
                 this.updateKeyBindEditBox();
             }
+            break;
         }
     },
 
@@ -160,12 +166,16 @@ var ksPreference = {
             var end = textarea.value.length;
             textarea.selectionStart = textarea.selectionEnd = end;
             // if keysnail is enabled, suspend
-            if (typeof(KeySnail) != 'undefined')
+            if (typeof(KeySnail) != 'undefined' && KeySnail.Key.status) {
+                this.savedKeySnailState = KeySnail.Key.status;
                 KeySnail.Key.stop();
+            }
             break;
         case "blur":
-            if (typeof(KeySnail) != 'undefined')
-                KeySnail.Key.run();
+            if (typeof(KeySnail) != 'undefined') {
+                if (this.savedKeySnailState)
+                    KeySnail.Key.run();
+            }
             break;
         case "keypress":
             aEvent.preventDefault();
@@ -276,10 +286,10 @@ var ksPreference = {
             ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex))
             return;
 
-        var editBoxHidden = this.keybindEditBox.hidden;
+        var editBoxCollapsed = this.keybindEditBox.collapsed;
         var destination;
 
-        if (editBoxHidden) {
+        if (editBoxCollapsed) {
             // editbox will be displayed
             this.keybindEditBox.ksSelectedIndex = ksKeybindTreeView.currentIndex;
             destination = this.descriptionTextarea;
@@ -287,15 +297,19 @@ var ksPreference = {
             // treeview will be displayed
             var error;
             if ((error = ksKeybindTreeView.checkSyntax())) {
-                this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+                this.modules.util.alert(null, "Syntax error",
+                                        this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+                this.functionTextarea.focus();
+                // this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
                 return;
             }
-            this.notify("");
+            // this.notify("");
             destination = this.keybindTextarea;
         }
 
-        this.keybindEditBox.hidden = !editBoxHidden;
-        this.keybindTreeBox.hidden = editBoxHidden;
+        this.keybindEditBox.collapsed = !editBoxCollapsed;
+        this.keybindTreeBox.collapsed = editBoxCollapsed;
+
         if (destination)
             destination.focus();
     },
@@ -479,7 +493,7 @@ var ksPreference = {
 
             this.needsApply = true;
         } else {
-            this.notify("Item already exists in the list", 4000);
+            this.notify("Item already exists in the list", 1000);
         }
     },
 
@@ -844,8 +858,8 @@ var ksPreference = {
 
         messageBox.value = aMsg;
 
-        messageBox.hidden       = !aMsg;
-        createButtonArea.hidden = !messageBox.hidden;
+        messageBox.collapsed       = !aMsg;
+        createButtonArea.collapsed = !messageBox.collapsed;
 
         let self = this;
         if (aTime) {

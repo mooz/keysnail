@@ -24,15 +24,13 @@
 	                  label="&keySnail.statusbar.openPreference;"
                           accesskey="c"
 	                  oncommand="KeySnail.openPreference();"
-                          class="menuitem-iconic"
-                          src="chrome://keysnail/skin/icon/preference.png"/>
+                          />
                 <menuseparator/>
 	        <menuitem id="keysnail-tool-menu-reload-userscript"
 		          label="&keySnail.statusbar.reloadUserScript;"
                           accesskey="r"
 		          oncommand="KeySnail.UserScript.reload();"
-                          class="menuitem-iconic"
-                          src="chrome://keysnail/skin/icon/reload.png"/>
+                          />
 	        <menuitem id="keysnail-tool-menu-list-keybinds"
 		          label="&keySnail.statusbar.listKeyBindings;"
                           accesskey="v"
@@ -42,14 +40,12 @@
 	                  label="&keySnail.statusbar.editInitFile;"
                           accesskey="e"
 	                  oncommand="KeySnail.UserScript.editInitFile();"
-                          class="menuitem-iconic"
-                          src="chrome://keysnail/skin/icon/edit.png"/>
+                          />
 	        <menuitem id="keysnail-tool-menu-open-wizard"
 	                  label="&keySnail.statusbar.wizard;"
                           accesskey="w"
 	                  oncommand="KeySnail.UserScript.beginRcFileWizard();"
-                          class="menuitem-iconic"
-                          src="chrome://keysnail/skin/icon/create.png"/>
+                          />
             </menupopup>
         </menu>
     </menupopup>
