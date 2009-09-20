@@ -98,10 +98,16 @@ KeySnail.Util = {
         return prompts.confirm(null, aTitle, aMessage);
     },
 
+    /**
+     * Confirm dialog with the "don't ask me again" checkbox
+     * @param {string} aTitle title of the dialog
+     * @param {string} aMessage message of the dialog
+     * @param {string} aCheckMessage message displayed near the checkbox 
+     * @param {string} aId preference key to save the "don't ask me again" value
+     * @returns {boolean} true when user pressed OK, and false when Canceled
+     */
     confirmCheck: function (aTitle, aMessage, aCheckMessage, aId) {
-        var key = "extensions.keysnail." + aID;
-
-        this.message(key+" :: "+nsPreferences.getBoolPref(key, false));
+        var key = "extensions.keysnail." + aId;
 
         if (nsPreferences.getBoolPref(key, false))
             return true;
@@ -120,10 +126,13 @@ KeySnail.Util = {
         return result;
     },
 
-    // original code by Torisugari
-    // http://forums.mozillazine.org/viewtopic.php?p=921150
-    // read file contained in the package (jar)
-    // @return String
+    /**
+     * read file contained in the package (jar)
+     * original code by Torisugari
+     * http://forums.mozillazine.org/viewtopic.php?p=921150
+     * @param {string} aURL location of the file
+     * @returns {string} content of the file
+     */
     getContents: function (aURL) {
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]
             .getService(Components.interfaces.nsIIOService);
@@ -148,8 +157,10 @@ KeySnail.Util = {
         return str;
     },
 
-    // list all the properties of the aObject
-    // @param aObject
+    /**
+     * list all properties of the object
+     * @param {object} aObject target object
+     */
     listProperty: function (aObject) {
         if (!aObject) {
             this.message("listProperty: undefined object passed");
@@ -162,8 +173,11 @@ KeySnail.Util = {
         }
     },
 
-    // @param aCommand
-    // @return true if aCommand is usable in current situation
+    /**
+     * check if the command is usable
+     * @param {string} aCommand command name
+     * @returns {boolean} true if aCommand is usable in current situation
+     */
     isCommandUsable: function (aCommand) {
         var controller = document.commandDispatcher
             .getControllerForCommand(aCommand);
@@ -172,8 +186,13 @@ KeySnail.Util = {
 
     // ==================== Predicatives ====================
 
-    // original code from Firemacs
-    // http://www.mew.org/~kazu/proj/firemacs/
+    /**
+     * check if user can input any text in current situation
+     * original code from Firemacs
+     * http://www.mew.org/~kazu/proj/firemacs/
+     * @param {event} aEvent keypress (or any) event with property originalTarget
+     * @returns {boolean} true if text is insertable
+     */
     isWritable: function (aEvent) {
         var insertTextController= document.commandDispatcher
             .getControllerForCommand("cmd_insertText");
@@ -187,8 +206,12 @@ KeySnail.Util = {
         }
     },
 
-    // original code from Firemacs
-    // http://www.mew.org/~kazu/proj/firemacs/
+    /**
+     * check if cursor is in the autocomplete menu or not
+     * original code from Firemacs
+     * http://www.mew.org/~kazu/proj/firemacs/
+     * @returns {boolean} true if cursor is in the autocomplete menu
+     */
     isMenu: function () {
         var autoCompleteController =
             Components.classes['@mozilla.org/autocomplete/controller;1']
@@ -207,10 +230,19 @@ KeySnail.Util = {
         return false;
     },
 
+    /**
+     * check if the caret is visible or not
+     * @returns {boolean} true if caret is visible
+     */
     isCaretEnabled: function () {
         return this.getSelectionController().getCaretEnabled();
     },
 
+    /**
+     * check if the current document is consist of frameset or not
+     * @param {window} aFrameWindow
+     * @returns {boolean} true if current document is consist of frameset
+     */
     isFrameSetWindow: function (aFrameWindow) {
         if (!aFrameWindow) {
             return false;
@@ -249,6 +281,10 @@ KeySnail.Util = {
 
     // ==================== event ==================== //
 
+    /**
+     * stop event propagation and prevent browser default behavior
+     * @param {event} aEvent event to stop
+     */
     stopEventPropagation: function (aEvent) {
         aEvent.stopPropagation();
         aEvent.preventDefault();
@@ -256,6 +292,10 @@ KeySnail.Util = {
 
     // ==================== pref ==================== //
 
+    /**
+     * set preference value at a stroke
+     * @param {object} aPrefList {key : value} pair
+     */
     setPrefs: function (aPrefList) {
         var value;
         for (var prefKey in aPrefList) {
@@ -274,11 +314,22 @@ KeySnail.Util = {
         }
     },
 
+    /**
+     * get unicode string preference value. when localized version is available,
+     * that one is used.
+     * @param {string} aStringKey key of the preference
+     * @returns {string} fetched preference value specified by <aStringKey>
+     */
     getUnicharPref: function (aStringKey) {
         return nsPreferences.getLocalizedUnicharPref(aStringKey)
             || nsPreferences.copyUnicharPref(aStringKey);
     },
 
+    /**
+     * set unicode string preference value
+     * @param {string} aStringKey key of the preference
+     * @param {string} aValue value of the preference specified by <aStringKey>
+     */
     setUnicharPref: function (aStringKey, aValue) {
         var prefs = Components.classes["@mozilla.org/preferences-service;1"].
             getService(Components.interfaces.nsIPrefBranch);
@@ -290,8 +341,14 @@ KeySnail.Util = {
                               str);
     },
 
-    // original code from Firegestures
-    // http://www.xuldev.org/firegestures/
+    /**
+     * get localized string
+     * original code from Firegestures
+     * http://www.xuldev.org/firegestures/
+     * @param {string} aStringKey string bundle key
+     * @param {[string]} aReplacements arguments be to replace the %S in format
+     * @returns {string} localized key on success and string key on failure
+     */
     getLocaleString: function (aStringKey, aReplacements) {
         if (!this._stringBundle) {
             const kBundleURI = "chrome://keysnail/locale/keysnail.properties";
@@ -312,8 +369,13 @@ KeySnail.Util = {
         }
     },
 
-    // @return true if the directory specified aPath has any file
-    //         contained in aFileNames.
+    /**
+     * check if the directory has certain files
+     * @param {string} aPath
+     * @param {string} aDirectoryDelimiter
+     * @param {[string]} aFileNames
+     * @returns {boolean} true if the directory specified <aPath> has any file contained in <aFileNames>.
+     */
     isDirHasFiles: function (aPath, aDirectoryDelimiter, aFileNames) {
         var file;
 
@@ -328,7 +390,12 @@ KeySnail.Util = {
         return false;
     },
 
-    // original function from sage
+    /**
+     * get extension's special directory
+     * original function from sage
+     * @param {string} aProp special directory type
+     * @returns {file} special directory
+     */
     getSpecialDir: function (aProp) {
         var dirService = Components.classes['@mozilla.org/file/directory_service;1']
             .getService(Components.interfaces.nsIProperties);
@@ -336,7 +403,13 @@ KeySnail.Util = {
         return dirService.get(aProp, Components.interfaces.nsILocalFile);
     },
 
-    // original function from sage
+    /**
+     * convert given string's char code
+     * original function from sage
+     * @param {string} aString target string
+     * @param {string} aCharCode aimed charcode
+     * @returns {string} charcode converted string
+     */
     convertCharCodeFrom: function (aString, aCharCode) {
         var UConvID = "@mozilla.org/intl/scriptableunicodeconverter";
         var UConvIF  = Components.interfaces.nsIScriptableUnicodeConverter;
@@ -357,6 +430,11 @@ KeySnail.Util = {
             getService(Components.interfaces.nsIPropertyBag2);
     },
 
+    /**
+     * get system environment value
+     * @param {string} aName name of the environment value
+     * @returns {string} environment value or null when not found
+     */
     getEnv: function (aName) {
         var env = Components.classes['@mozilla.org/process/environment;1']
             .getService(Components.interfaces.nsIEnvironment);
@@ -365,10 +443,12 @@ KeySnail.Util = {
     },
 
     // ==================== Path / URL ====================
-    // original code by SHIMODA Hiroshi
-    // http://www.clear-code.com/
 
-    // @return URL expression of aPath
+    /**
+     * convert local file path to the URL expression
+     * @param {string} aPath local file path
+     * @returns {string} URL expression of aPath
+     */
     pathToURL: function (aPath) {
         var file = this.openFile(aPath);
         var ioService = Components
@@ -380,7 +460,11 @@ KeySnail.Util = {
         return fileURL;
     },
 
-    // @return Local path expression of chrome URL
+    /**
+     * convert URL to the local file path 
+     * @param {string} aUrl URL of the file
+     * @returns {string} Local path expression of chrome URL
+     */
     urlToPath: function (aUrl) {
         var ioService = Components
             .classes['@mozilla.org/network/io-service;1']
@@ -393,9 +477,13 @@ KeySnail.Util = {
         return path;
     },
 
-    // original code by Jfingland
-    // http://forums.mozillazine.org/viewtopic.php?p=921150
-    // convert chrome://hoge => /foo/bar/.../hoge
+    /**
+     * convert chrome://hoge => /foo/bar/.../hoge
+     * original code by Jfingland
+     * http://forums.mozillazine.org/viewtopic.php?p=921150
+     * @param {string} aUrl chrome url to the local file path
+     * @returns {string} local file path
+     */
     chromeToPath: function (aUrl) {
         if (!aUrl || !(/^chrome:/.test(aUrl)))
             return null;
@@ -414,15 +502,6 @@ KeySnail.Util = {
             rv = this.urlToPath("file://"+rv);
 
         return rv;
-    },
-
-    // ==================== debug ====================
-    print: function (aVal) {
-        if (aVal != undefined) {
-            this.message(aVal.toString() + " : " + aVal);
-        } else {
-            this.message("print: undefined");
-        }
     },
 
     message: KeySnail.message
