@@ -49,6 +49,10 @@ KeySnail.Prompt = function () {
     var currentList;
     var currentIndexList;
 
+    // Migemo
+    var useMigemo = true;
+    // var XMigemoCore;
+
     // History
     var historyHolder;
     var history = {
@@ -583,16 +587,51 @@ KeySnail.Prompt = function () {
 
             var keywords = regexp.split(" ");
 
-            var matcher = isMultipleList(completion.list) ?
-                function (keyword) {
-                    return completion.list[i].some(function (item) {return item.match(keyword, "i");});
-                }
-            : function (keyword) {
-                return completion.list[i].match(keyword, "i");
-            };
+            if (useMigemo && window.xulMigemoCore)
+                var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
 
+            var matcher;
+            if (isMultipleList(completion.list)) {
+                // multiple cols
+                matcher = (useMigemo && window.xulMigemoCore) ?
+                    // use migemo
+                    function () {
+                        return completion.list[i].some(
+                            function (item) {
+                                return item.match(migexp, "i");
+                            });
+                    }
+                // multiple regexp matching
+                : function () {
+                    return keywords.every(
+                        function (keyword) {
+                            return completion.list[i].some(
+                                function (item) {
+                                    return item.match(keyword, "i");
+                                }
+                            );
+                        }
+                    );
+                };
+            } else {
+                // single col
+                matcher = (useMigemo && window.xulMigemoCore) ?
+                    // use migemo
+                    function () {
+                        return completion.list[i].match(migexp, "i");
+                    }
+                // normal
+                : function () {
+                    return keywords.every(
+                        function (keyword) {
+                            return completion.list[i].match(keyword, "i");
+                        }
+                    );
+                };
+            }
+             
             for (var i = 0; i < listLen; ++i) {
-                if (keywords.every(matcher)) {
+                if (matcher()) {
                     compIndexList.push(i);
                 }
             }
@@ -773,6 +812,10 @@ KeySnail.Prompt = function () {
             return listboxMaxRows;
         },
 
+        set useMigemo(aBool) {
+            useMigemo = !!aBool;
+        },
+
         /**
          * Read string from prompt and execute <aCallback>
          * @param {string} aMsg message to be displayed
@@ -898,6 +941,16 @@ KeySnail.Prompt = function () {
                 else
                     itemIndexToUse = 0;
             }
+
+            // setup XUL / Migemo
+            // if (typeof(window.xulMigemoCore) != 'undefined' && useMigemo) {
+            //     var XMigemoCore = Components
+            //         .classes['@piro.sakura.ne.jp/xmigemo/factory;1']
+            //         .getService(Components.interfaces.pIXMigemoFactory)
+            //         .getService("ja");                
+            // } else {
+            //     XMigemoCore = null;
+            // }
 
             modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
 

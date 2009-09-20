@@ -14,6 +14,7 @@
 
 <!-- PAGE a-1 -->
 
+<!ENTITY keySnail.rcWizard.places "場所">
 <!ENTITY keySnail.rcWizard.createRcFileDescription "初期化ファイルの設定">
 <!ENTITY keySnail.rcWizard. "初期化ファイルの設定">
 
@@ -21,13 +22,14 @@
 <!ENTITY keySnail.rcWizard.filenameDotDiscription "UNIX 等で一般的なドットファイルです">
 <!ENTITY keySnail.rcWizard.filenameUBDiscription "ドットの代わりにアンダーバーを使ったタイプのものです">
 
+<!ENTITY keySnail.rcWizard.options "オプション">
 <!ENTITY keySnail.rcWizard.selectSchemeDescription1 "あらかじめ用意されたキーバインド一式をキースキームと呼びます。">
 
 <!ENTITY keySnail.rcWizard.label.scheme "スキーム">
 <!ENTITY keySnail.rcWizard.label.locale "言語">
 
-<!ENTITY keySnail.rcWizard.scheme.emacs "Emacs や w3m などのキーバインドをエミュレートしたスキーム">
-<!ENTITY keySnail.rcWizard.scheme.empty "空のスキーム">
+<!ENTITY keySnail.rcWizard.scheme.emacs "Emacs / w3m のキーバインドをエミュレート">
+<!ENTITY keySnail.rcWizard.scheme.empty "無し">
 
 <!ENTITY keySnail.rcWizard.selectLocaleDescription "初期化ファイルの言語を選んでください (コマンド説明やドキュメントに影響します)">
 <!ENTITY keySnail.rcWizard.locale.en "英語">

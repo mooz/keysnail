@@ -21,6 +21,10 @@ var ksPreference = {
     norepeatCheckbox    : null,
     modeMenuList        : null,
 
+    beautifyCode: function (aCode) {
+        return js_beautify(aCode, {space_after_anon_function: true});
+    },
+
     onGeneralPaneLoad: function () {
         if (!this.modules.util.getUnicharPref(this.editorKey)) {
             this.modules.userscript.syncEditorWithGM();
@@ -86,17 +90,21 @@ var ksPreference = {
         // var output2 = this.generateStringBundle();
         // this.modules.util.writeText(output2, "/tmp/bundle.js");
         // this.modules.util.writeText(output, "/tmp/hoge.js");
-
         // this.generateBuiltinMenu();
+
+        var createButton = document.getElementById("create-button");
+        createButton.disabled = true;
 
         var output = this.generateInitFile();
         try {
-            this.modules.util.writeText(output, this.modules.userscript.initFilePath);
+            this.modules.util.writeText(output, this.modules.userscript.initFilePath, false, "preference.ask_when_overwrite");
             this.modules.userscript.reload();
 
             this.needsApply = ksKeybindTreeView.changed = keyCustomizer.changed = false;
         } catch (x) {
         }
+
+        createButton.disabled = false;
 
         return true;
     },
@@ -356,7 +364,7 @@ var ksPreference = {
 
     beautify: function() {
         var code = this.functionTextarea.value;
-        var beauty = js_beautify(code);
+        var beauty = ksPreference.beautifyCode(code);
         this.functionTextarea.value = beauty;
     },
 
@@ -493,7 +501,8 @@ var ksPreference = {
 
             this.needsApply = true;
         } else {
-            this.notify("Item already exists in the list", 1000);
+            this.modules.util.alert(null, "Notice", "Item already exists in the list");
+            // this.notify("Item already exists in the list", 1000);
         }
     },
 
@@ -725,7 +734,7 @@ var ksPreference = {
             var hook = this.modules.hook.hookList[hookName];
 
             for (var i = 0; i < hook.length; ++i) {
-                var funcStr = js_beautify(hook[i].toString());
+                var funcStr = ksPreference.beautifyCode(hook[i].toString());
 
                 // ignore blacklist hook (will be added in generateBlackListSettings)
                 if (hookName == "LocationChange" &&
@@ -745,7 +754,7 @@ var ksPreference = {
         if (this.blackList.length) {
             aContentHolder.push("// ================ Black List ======================== //");
             aContentHolder.push("");
-            aContentHolder.push(js_beautify(['hook.addToHook("LocationChange",',
+            aContentHolder.push(ksPreference.beautifyCode(['hook.addToHook("LocationChange",',
                                              'function (aNsURI) {',
                                              'var URL = aNsURI ? aNsURI.spec : null;',
                                              'key.suspendWhenMatched(URL, key.blackList);});'].join("\n")));
@@ -956,7 +965,7 @@ var ksKeybindTreeView = {
                      */
                     row[KS_FUNCTION] = "command." + property;
                 } else {
-                    row[KS_FUNCTION] = js_beautify(func.toString());
+                    row[KS_FUNCTION] = ksPreference.beautifyCode(func.toString());
                 }
 
                 aData.push(row);
@@ -1011,7 +1020,7 @@ var ksKeybindTreeView = {
         if (aInit) {
             newItem[KS_DESC]     = aInit.desc;
             newItem[KS_ARGUMENT] = aInit.arg;
-            newItem[KS_FUNCTION] = js_beautify(aInit.func);
+            newItem[KS_FUNCTION] = ksPreference.beautifyCode(aInit.func);
             newItem[KS_MODE]     = aInit.mode;
         } else {
             newItem[KS_DESC]     = "";

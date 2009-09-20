@@ -542,6 +542,13 @@ KeySnail.UserScript = {
                                             .getLocaleString("failedToWriteText"));
                 return false;
             }
+
+            // ================ add misc setting ================ //
+            var prefixArgumentKey = "extensions.keysnail.keyhandler.use_prefix_argument";
+            if (params.out.selectedScheme == "emacs") {
+                nsPreferences.setBoolPref(prefixArgumentKey, true);
+            }
+
             break;
         }
 

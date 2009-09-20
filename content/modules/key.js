@@ -771,6 +771,10 @@ KeySnail.Key = {
     },
 
     defineKey: function (aKeyMapName, aKeys, aFunc, aKsDescription, aKsNoRepeat) {
+        if (!aKeyMapName || !aKeys || !aFunc) {
+            return;
+        }
+
         var addTo = this.keyMapHolder[aKeyMapName];
         
         aFunc.ksDescription = aKsDescription;

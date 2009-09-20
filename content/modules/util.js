@@ -64,17 +64,19 @@ KeySnail.Util = {
         return out;
     },
 
-    writeText: function (aString, aPath, aForce) {
+    writeText: function (aString, aPath, aForce, aCheckID) {
         var file = this.openFile(aPath);
 
         if (file.exists() &&
             !aForce &&
-            // !this.confirmCheck(this.getLocaleString("overWriteConfirmationTitle"),
-            //                    aPath + ' ' + this.getLocaleString("overWriteConfirmation"),
-            //                    aCheckMessage,
-            //                    "no_overwrite_file_confirmation")) {
-            !this.confirm(this.getLocaleString("overWriteConfirmationTitle"),
-                          aPath + ' ' + this.getLocaleString("overWriteConfirmation"))) {
+            (aCheckID ?
+             !this.confirmCheck(this.getLocaleString("overWriteConfirmationTitle"),
+                                this.getLocaleString("overWriteConfirmation", [aPath]),
+                                this.getLocaleString("overWriteConfirmationCheck"),
+                                aCheckID) :
+             !this.confirm(this.getLocaleString("overWriteConfirmationTitle"),
+                           this.getLocaleString("overWriteConfirmation", [aPath]))))
+        {
             throw "Canceled by user";
         }
 

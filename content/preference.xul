@@ -14,7 +14,7 @@
             xmlns:html="http://www.w3.org/1999/xhtml"
             title="&keySnail.preference.title;"
             ondialogcancel="return ksPreference.onFinish();"
-            ondialogok="return ksPreference.onFinish();"
+            ondialogaccept="return ksPreference.onFinish();"
             minheight="670px"
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;"
@@ -377,6 +377,7 @@
             <hbox id="create-button-area" align="center" flex="1">
                 <spacer flex="2"/>
                 <button label="&keySnail.preference.key.create;"
+                        id="create-button"
                         accesskey="c"
                         oncommand="event.preventDefault();ksPreference.onInitFileCreate();"/>
             </hbox>

@@ -138,17 +138,17 @@ var ksBuiltin = {
 
         text_zoom_reduce: [
             function () {
-                document.getElementById("cmd_textZoomReduce").doCommand();
+                ZoomManager.reduce();
             }, false],
 
         text_zoom_enlarge: [
             function () {
-                document.getElementById("cmd_textZoomEnlarge").doCommand();
+                ZoomManager.enlarge();
             }, false],
 
         text_zoom_reset: [
             function () {
-                document.getElementById("cmd_textZoomReset").doCommand();
+                ZoomManager.reset();
             }, false]
     },
 
@@ -249,7 +249,7 @@ var ksBuiltin = {
             }, true]
     },
 
-    categoryMisc: {
+    categoryFirefox: {
         __mode__: 0,
 
         display_firefox_help: [
@@ -257,39 +257,28 @@ var ksBuiltin = {
                 openHelpLink("firefox-help");
             }, false],
 
-        start_lol: [
-            function(aEvent) {
-                hah.enterStartKey(aEvent);
-            }, false],
-
         exit_firefox: [
             function() {
                 goQuitApplication();
             }, false],
 
-        select_next_frame: [
-            function(aEvent, aArg) {
-                command.focusOtherFrame(aArg);
-            }, true],
+        restart_firefox: [
+            function () {
+                Application.restart();
+            }, false]
+    },
 
-        show_current_frame_only: [
-            function(aEvent) {
-                window.loadURI(aEvent.target.ownerDocument.location.href);
-            }, false],
+    categoryMisc: {
+        __mode__: 0,
 
-        save_current_page_to_the_file: [
+        incremental_search_forward: [
             function() {
-                saveDocument(window.content.document);
+                command.iSearchForward();
             }, false],
 
-        open_the_local_file: [
+        incremental_search_backward: [
             function() {
-                BrowserOpenFileWindow();
-            }, false],
-
-        generate_the_return_key_code: [
-            function(aEvent) {
-                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_RETURN, true);
+                command.iSearchBackward();
             }, false],
 
         open_the_bookmark_toolbar_item: [
@@ -302,14 +291,29 @@ var ksBuiltin = {
                 command.copyRegion(aEvent);
             }, false],
 
-        incremental_search_forward: [
-            function() {
-                command.iSearchForward();
+        select_next_frame: [
+            function(aEvent, aArg) {
+                command.focusOtherFrame(aArg);
+            }, true],
+
+        show_current_frame_only: [
+            function(aEvent) {
+                window.loadURI(aEvent.target.ownerDocument.location.href);
             }, false],
 
-        incremental_search_backward: [
+        open_the_local_file: [
             function() {
-                command.iSearchBackward();
+                BrowserOpenFileWindow();
+            }, false],
+
+        save_current_page_to_the_file: [
+            function() {
+                saveDocument(window.content.document);
+            }, false],
+
+        generate_the_return_key_code: [
+            function(aEvent) {
+                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_RETURN, true);
             }, false],
 
         display_javascript_console: [
@@ -325,6 +329,11 @@ var ksBuiltin = {
         display_page_information: [
             function() {
                 BrowserPageInfo();
+            }, false],
+
+        start_lol: [
+            function(aEvent) {
+                hah.enterStartKey(aEvent);
             }, false]
     },
 

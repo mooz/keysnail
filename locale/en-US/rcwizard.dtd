@@ -15,6 +15,7 @@
 
 <!-- PAGE a-1 -->
 
+<!ENTITY keySnail.rcWizard.places "Place">
 <!ENTITY keySnail.rcWizard.createRcFileDescription "Select the initialization file name and destination.">
 <!ENTITY keySnail.rcWizard.rcFileDestination "Destination: ">
 <!ENTITY keySnail.rcWizard.filenameDotDiscription "Dot file genelally used in UNIX-like operating system.">
@@ -22,6 +23,7 @@
 
 <!-- PAGE a-2 -->
 
+<!ENTITY keySnail.rcWizard.options "Option">
 <!ENTITY keySnail.rcWizard.selectSchemeDescription1 "The set of keybindings is called 'key scheme'">
 
 <!ENTITY keySnail.rcWizard.label.scheme "Scheme">

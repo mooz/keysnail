@@ -50,7 +50,7 @@
                 next="rcfile-specialkey">
         <vbox flex="1">
             <groupbox>
-                <caption label="Place"/>
+                <caption label="&keySnail.rcWizard.places;"/>
                 <grid flex="1">
                     <columns>
                         <column />
@@ -84,7 +84,7 @@
             </groupbox>
             <!-- scheme -->
             <groupbox>
-                <caption label="Options"/>
+                <caption label="&keySnail.rcWizard.options;"/>
                 <grid flex="1">
                     <columns>
                         <column />
