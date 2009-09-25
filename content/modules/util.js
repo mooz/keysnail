@@ -123,7 +123,8 @@ KeySnail.Util = {
                                           aMessage,
                                           aCheckMessage,
                                           check);
-        nsPreferences.setBoolPref(key, check.value);
+        if (result)
+            nsPreferences.setBoolPref(key, check.value);
 
         return result;
     },

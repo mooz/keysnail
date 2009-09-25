@@ -24,6 +24,7 @@
 <!ENTITY keySnail.preference.keys.keybindings "Key Bindings">
 <!ENTITY keySnail.preference.keys.specialkey "Special Keys">
 <!ENTITY keySnail.preference.keys.blacklist "Blacklist Settings">
+<!ENTITY keySnail.preference.keys.preserved "Preserved codes">
 
 <!-- tree -->
 
@@ -82,6 +83,9 @@
 <!-- black list -->
 
 <!ENTITY keySnail.preference.key.blacklist.description "Specify URL or Regular Expression of the page you want KeySnail to suspend.">
+
+<!ENTITY keySnail.preference.key.preserved.description1 "You can preserve your code in this area when generating the init file using GUI.">
+<!ENTITY keySnail.preference.key.preserved.description2 "Put all your code except special key, set*key, hook, blacklist.">
 
 <!-- create -->
 <!ENTITY keySnail.preference.key.create "Apply changes (Overwrite the init file)">

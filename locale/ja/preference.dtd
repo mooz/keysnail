@@ -24,6 +24,7 @@
 <!ENTITY keySnail.preference.keys.keybindings "キーバインド">
 <!ENTITY keySnail.preference.keys.specialkey "特殊キー">
 <!ENTITY keySnail.preference.keys.blacklist "ブラックリスト">
+<!ENTITY keySnail.preference.keys.preserved "保存されるコード">
 
 <!-- tree -->
 
@@ -82,6 +83,9 @@
 <!-- black list -->
 
 <!ENTITY keySnail.preference.key.blacklist.description "KeySnail を一時的に無効にしたいページの URL か正規表現を指定して下さい。">
+
+<!ENTITY keySnail.preference.key.preserved.description1 "以下のテキストボックス内に記述されたコードは、初期化ファイルを再生成する際にも引き継がれます。">
+<!ENTITY keySnail.preference.key.preserved.description2 "特殊キー, キーバインド定義, フック, ブラックリスト以外のコードは, この中に書くようにして下さい">
 
 <!-- create -->
 <!ENTITY keySnail.preference.key.create "変更の反映 (初期化ファイルを上書きします)">

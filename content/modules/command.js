@@ -77,7 +77,7 @@ KeySnail.Command = {
         var savedSubstrMatch = this.modules.prompt.substrMatch;
         with (this.modules) {
             prompt.substrMatch = false;
-            prompt.read("Command?:",
+            prompt.read("Command:",
                         function (aStr) {
                             Function("with (KeySnail.modules) { " + aStr + " }")();
                             prompt.substrMatch = savedSubstrMatch;
@@ -717,8 +717,10 @@ KeySnail.Command = {
     },
 
     pushKillRing: function (aText) {
-        if (aText.length) {
-            if (this.kill.ring.length >= this.kill.max) {
+        var textLen = aText.length;
+
+        if (textLen && (this.kill.textLengthMax < 0 || textLen <= this.kill.textLengthMax)) {
+            if (this.kill.ring.length >= this.kill.killRingMax) {
                 this.kill.ring.pop();
             }
             this.kill.ring.unshift(aText);
@@ -728,25 +730,17 @@ KeySnail.Command = {
     /**
      * Notified when the clipboard content changed
      */
-    clipboardChanged: function (msg) {
+    clipboardChanged: function () {
         var text = this.getClipboardText();
-        // window.alert(msg + " :: " + text);
 
         if (!this.kill.ring.length || this.kill.ring.length && text != this.kill.ring[0])
             this.pushKillRing(text);
+
+        this.modules.hook.callHook("ClipboardChanged", text);
     },
 
     copySelectedText: function (aInput) {
         goDoCommand('cmd_copy');
-        // if (aInput.selectionStart != aInput.selectionEnd) {
-        //     var region = aInput.value.slice(aInput.selectionStart,
-        //                                     aInput.selectionEnd);
-
-        //     // ignore duplication
-        //     if (!this.kill.ring.length ||
-        //         this.kill.ring.length && region != this.kill.ring[0])
-        //         this.pushKillRing(region);
-        // }
     },
 
     insertKillRingText: function (aInput, aIndex, aSelect) {
@@ -796,6 +790,10 @@ KeySnail.Command = {
 
             // copied outside the Firefox
             if (kill.ring.length == 0 || clipboardText != kill.ring[0]) {
+                if (clipboardText.length > kill.textLengthMax) {
+                    goDoCommand('cmd_paste');
+                    return;                    
+                }
                 pushKillRing(clipboardText);
             }
 

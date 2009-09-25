@@ -32,7 +32,17 @@ var ksPreference = {
         this.updateAllFileFields();
     },
 
+    // showElapsedTime: function (aMsg) {
+    //     var b = new Date();
+
+    //     Application.console.log(aMsg + " :: " + (b - this._old));
+
+    //     this._old = b;
+    // },
+
     onKeyPaneLoad: function () {
+        // this._old = new Date();
+
         // init key-binds tree
         ksKeybindTreeView.init();
         document.getElementById("keybind-tree").view = ksKeybindTreeView;
@@ -42,15 +52,57 @@ var ksPreference = {
         this.editButton      = document.getElementById("keybind-button-edit");
         this.deleteButton    = document.getElementById("keybind-button-delete");
 
+        /**
+         * We need to add event listener to window not to the keybindTextarea.
+         * Because the default Firefox behaviour e.g. C-w to close the window
+         * can't be canceled by the event listener of local elements.
+         */
+        window.addEventListener("keypress",
+                                function (aEvent) {
+                                    if (aEvent.target == ksPreference.keybindTextarea) {
+                                        aEvent.preventDefault();
+                                        aEvent.stopPropagation();
+
+                                        // ignore separator
+                                        if (ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex))
+                                            return;
+
+                                        var row = ksKeybindTreeView.data[ksKeybindTreeView.currentIndex];
+
+                                        if (aEvent.keyCode == aEvent.DOM_VK_BACK_SPACE) {
+                                            if (row[KS_KEY_STRING]) {
+                                                var tmp = row[KS_KEY_STRING].split(' ');
+                                                tmp.pop();
+                                                var after = tmp.join(' ');
+                                                ksPreference.keybindTextarea.value = after;
+                                                row[KS_KEY_STRING] = after;
+                                                ksKeybindTreeView.update();
+
+                                                ksPreference.needsApply = true;
+                                            }
+                                            return;
+                                        }
+
+                                        var key = ksPreference.modules.key.keyEventToString(aEvent);
+                                        if (!key)
+                                            return;
+
+                                        ksPreference.insertKey(key);
+                                    }
+                                }, true);
+
         this.keybindEditBox      = document.getElementById("keybind-edit-box");
         this.descriptionTextarea = document.getElementById("keybind-function-description");
         this.functionTextarea    = document.getElementById("keybind-function-body");
         this.norepeatCheckbox    = document.getElementById("keybind-function-norepeat");
         this.modeMenuList        = document.getElementById("keybind-function-mode");
 
+        this.preservedEditBox    = document.getElementById("preserved-code");
+        this.preservedEditBox.value = this.modules.userscript.preserve ? this.modules.userscript.preserve.code : "";
+
         this.insertKeyMenu = document.getElementById("insert-key-menu");
         this.dropMarker    = document.getElementById("keybind-button-insert");
-
+        
         var keys = [
             "<backspace>",
             "C-<backspace>",
@@ -112,6 +164,9 @@ var ksPreference = {
     onFinish: function () {
         this.updateFunctionData();
         this.updateDescriptionData();
+
+        if (this.preservedEditBox.value != this.modules.userscript.preserve.code)
+            this.needsApply = true;
 
         if ((this.needsApply || ksKeybindTreeView.changed || keyCustomizer.changed) &&
             this.modules.util.confirm(this.modules.util.getLocaleString("settingsChanged"),
@@ -187,36 +242,6 @@ var ksPreference = {
                 if (this.savedKeySnailState)
                     KeySnail.Key.run();
             }
-            break;
-        case "keypress":
-            aEvent.preventDefault();
-
-            // ignore separator
-            if (ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex))
-                return;
-
-            var row = ksKeybindTreeView.data[ksKeybindTreeView.currentIndex];
-
-            if (aEvent.keyCode == aEvent.DOM_VK_BACK_SPACE) {
-                if (row[KS_KEY_STRING]) {
-                    var tmp = row[KS_KEY_STRING].split(' ');
-                    tmp.pop();
-                    var after = tmp.join(' ');
-                    this.keybindTextarea.value = after;
-                    row[KS_KEY_STRING] = after;
-                    ksKeybindTreeView.update();
-
-                    this.needsApply = true;
-                }
-                return;
-            }
-
-            var key = this.modules.key.keyEventToString(aEvent);
-            if (!key)
-                return;
-
-            this.insertKey(key);
-
             break;
         }
     },
@@ -694,7 +719,7 @@ var ksPreference = {
         contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription2"));
         contentHolder.push(preserve.beginSign);
         if (preserve.code) {
-            contentHolder.push(preserve.code);
+            contentHolder.push(this.preservedEditBox.value);
         }
         contentHolder.push(preserve.endSign);
 
@@ -992,7 +1017,7 @@ var ksKeybindTreeView = {
                      */
                     row[KS_FUNCTION] = "command." + property;
                 } else {
-                    row[KS_FUNCTION] = ksPreference.beautifyCode(func.toString());
+                    row[KS_FUNCTION] = func.toString();
                 }
 
                 aData.push(row);

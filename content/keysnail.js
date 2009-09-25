@@ -18,9 +18,6 @@ var KeySnail = {
     init: function () {
         // this.showElapsedTime("KeySnail.init called");
 
-        // unfortunately, changes in this order
-        // may cause the undefined error
-        // Added (07/10 09)
         var moduleObjects = ["Util",
                              "Display",
                              "Command",
@@ -59,17 +56,6 @@ var KeySnail = {
             // arrange destructor
             window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
         }
-
-        // var windowElement;
-        // windowElement = document.getElementsByTagName("prefwindow");
-        // if (windowElement.length) {
-        //     document.loadOverlay('chrome://keysnail/content/clipboard-watcher-prefwindow.xul', null);
-        // } else {
-        //     windowElement = document.getElementsByTagName("window");
-        //     if (windowElement.length) {
-        //         document.loadOverlay('chrome://keysnail/content/clipboard-watcher-window.xul', null);
-        //     }
-        // }
 
         this.modules.key.updateStatusBar();
     },
@@ -114,7 +100,8 @@ var KeySnail = {
      * Open preference dialog
      */
     openPreference: function () {
-        window.openDialog("chrome://keysnail/content/preference.xul", "Preferences",
+        window.openDialog("chrome://keysnail/content/preference.xul",
+                          "Preferences",
                           "chrome=yes,titlebar=yes,toolbar=yes,centerscreen=yes,resizable=yes,scrollbars=yes",
                           "prefpane-rcfile");
     },

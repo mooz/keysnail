@@ -85,6 +85,7 @@
                 <tab label="&keySnail.preference.keys.keybindings;"/>
                 <tab label="&keySnail.preference.keys.specialkey;"/>
                 <tab label="&keySnail.preference.keys.blacklist;"/>
+                <tab label="&keySnail.preference.keys.preserved;"/>
             </tabs>
             <tabpanels flex="1">
                 <tabpanel id="keybindings" flex="1">
@@ -132,7 +133,6 @@
                                 <label>&keySnail.preference.keys.treeheader.key;: </label>
                                 <!-- key input area -->
                                 <textbox id="keybind-textarea"
-                                         onkeypress="ksPreference.handleKeyBindTextareaEvent(event);"
                                          onfocus="ksPreference.handleKeyBindTextareaEvent(event);"
                                          onblur="ksPreference.handleKeyBindTextareaEvent(event);"
                                          onmousedown="ksPreference.handleKeyBindTextareaEvent(event);"
@@ -363,6 +363,18 @@
                                     disabled="true"
                                     oncommand="ksPreference.deleteBlackList();"/>
                         </hbox>
+                    </vbox>
+                </tabpanel>
+
+                <tabpanel id="preserved-area" flex="1">
+                    <vbox flex="1">
+                        <description class="long-description">&keySnail.preference.key.preserved.description1;</description>
+                        <description class="long-description">&keySnail.preference.key.preserved.description2;</description>
+                        <textbox flex="1"
+                                 multiline="true"
+                                 id="preserved-code"
+                                 >
+                        </textbox>
                     </vbox>
                 </tabpanel>
             </tabpanels>

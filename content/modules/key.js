@@ -1121,8 +1121,9 @@ KeySnail.Key = {
                 contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanDisable") + "</p>\n");
                 contentHolder.push("<table class='table-keybindings'>");
                 contentHolder.push("<tr><th>Key</th><th>Description</th></tr>");
-                contentHolder.push("<tr><td>" + this.universalArgumentKey + "</td><td>" +
-                                   util.getLocaleString("prefixArgumentUniv", [this.universalArgumentKey, this.universalArgumentKey]) +
+                contentHolder.push("<tr><td>" + html.escapeTag(this.universalArgumentKey) + "</td><td>" +
+                                   util.getLocaleString("prefixArgumentUniv", [html.escapeTag(this.universalArgumentKey),
+                                                                               html.escapeTag(this.universalArgumentKey)]) +
                                    "</td></tr>");
 
                 var digitKeys = [];
@@ -1137,9 +1138,9 @@ KeySnail.Key = {
 
                 contentHolder.push("<tr><td>" + digitKeys.join(", ") + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
                 var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";
-                contentHolder.push("<tr><td>" + this.negativeArgument1Key + "</td><td>" + paNegDesc);
-                contentHolder.push("<tr><td>" + this.negativeArgument2Key + "</td><td>" + paNegDesc);
-                contentHolder.push("<tr><td>" + this.negativeArgument3Key + "</td><td>" + paNegDesc);
+                contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument1Key) + "</td><td>" + paNegDesc);
+                contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument2Key) + "</td><td>" + paNegDesc);
+                contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument3Key) + "</td><td>" + paNegDesc);
                 contentHolder.push("</table>\n");
             } else {
                 contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanEnable") + "</p>\n");
@@ -1231,43 +1232,43 @@ KeySnail.Key = {
 
     // ==================== Init File ==================== //
 
-    initFileSpecialKeys: function () {
-        var keys = {
-            quitKey              : this.quitKey,
-            helpKey              : this.helpKey,
-            escapeKey            : this.escapeKey,
-            macroStartKey        : this.macroStartKey,
-            macroEndKey          : this.macroEndKey,
-            universalArgumentKey : this.universalArgumentKey,
-            negativeArgument1Key : this.negativeArgument1Key,
-            negativeArgument2Key : this.negativeArgument2Key,
-            negativeArgument3Key : this.negativeArgument3Key,
-            suspendKey           : this.suspendKey
-        };
+    // initFileSpecialKeys: function () {
+    //     var keys = {
+    //         quitKey              : this.quitKey,
+    //         helpKey              : this.helpKey,
+    //         escapeKey            : this.escapeKey,
+    //         macroStartKey        : this.macroStartKey,
+    //         macroEndKey          : this.macroEndKey,
+    //         universalArgumentKey : this.universalArgumentKey,
+    //         negativeArgument1Key : this.negativeArgument1Key,
+    //         negativeArgument2Key : this.negativeArgument2Key,
+    //         negativeArgument3Key : this.negativeArgument3Key,
+    //         suspendKey           : this.suspendKey
+    //     };
 
-        var specialKeySettings = [];
-        var maxLen = Math.max.apply(null, [str.length for each (str in
-                                                                (function (obj) {
-                                                                     for (var key in obj) yield key;
-                                                                 })(keys))]);
-        for (var key in keys) {
-            var padding = Math.max(maxLen - key.length, 0) + 2;
-            specialKeySettings.push('key.' + key +
-                                    new Array(padding).join(" ") +
-                                    '= "' + keys[key] + '";');
-        }
+    //     var specialKeySettings = [];
+    //     var maxLen = Math.max.apply(null, [str.length for each (str in
+    //                                                             (function (obj) {
+    //                                                                  for (var key in obj) yield key;
+    //                                                              })(keys))]);
+    //     for (var key in keys) {
+    //         var padding = Math.max(maxLen - key.length, 0) + 2;
+    //         specialKeySettings.push('key.' + key +
+    //                                 new Array(padding).join(" ") +
+    //                                 '= "' + keys[key] + '";');
+    //     }
 
-        return specialKeySettings.join("\n");
-    },
+    //     return specialKeySettings.join("\n");
+    // },
 
     /**
      * String => 'String'
      * @param {string} aStr
      * @returns {string}
      */
-    toStringForm: function (aStr) {
-        return aStr ? "'" + aStr.replace("\\", "\\\\") + "'" : "";
-    },
+    // toStringForm: function (aStr) {
+    //     return aStr ? "'" + aStr.replace("\\", "\\\\") + "'" : "";
+    // },
 
     /**
      * Generate keymaps settings
@@ -1275,161 +1276,162 @@ KeySnail.Key = {
      * @param {[string]} aKeyMap keymap to generate the setting
      * @param {[string]} aKeySequence current key sequence (with ' both side e.g. ['C-x', 'k'])
      */
-    initFileKeyBinding: function (aContentHolder, aKeyMapName, aKeyMap, aKeySequence) {
-        if (!aKeyMap) {
-            return;
-        }
+    // initFileKeyBinding: function (aContentHolder, aKeyMapName, aKeyMap, aKeySequence) {
+    //     if (!aKeyMap) {
+    //         return;
+    //     }
 
-        if (!aKeySequence) {
-            aKeySequence = [];
-        }
+    //     if (!aKeySequence) {
+    //         aKeySequence = [];
+    //     }
 
-        for (key in aKeyMap) {
-            switch (typeof(aKeyMap[key])) {
-            case "function":
-                var func = aKeyMap[key];
+    //     for (key in aKeyMap) {
+    //         switch (typeof(aKeyMap[key])) {
+    //         case "function":
+    //             var func = aKeyMap[key];
 
-                var keySetting = (aKeySequence.length == 0) ?
-                    this.toStringForm(key) :
-                    '[' + aKeySequence.join(", ") + ', ' + this.toStringForm(key) + ']';
+    //             var keySetting = (aKeySequence.length == 0) ?
+    //                 this.toStringForm(key) :
+    //                 '[' + aKeySequence.join(", ") + ', ' + this.toStringForm(key) + ']';
 
-                var ksNoRepeatString = (func.ksNoRepeat) ? ", true" : "";
+    //             var ksNoRepeatString = (func.ksNoRepeat) ? ", true" : "";
 
-                aContentHolder.push("key.set" + aKeyMapName[0].toUpperCase() + aKeyMapName.slice(1) + "Key(" + keySetting + ", " +
-                                    // function body
-                                    func.toString() +
-                                    // description
-                                    (func.ksDescription ? ", " + this.toStringForm(func.ksDescription) : "") +
-                                    ksNoRepeatString +
-                                    ");\n");
-                break;
-            case "object":
-                aKeySequence.push(this.toStringForm(key));
-                this.initFileKeyBinding(aContentHolder, aKeyMapName, aKeyMap[key], aKeySequence);
-                aKeySequence.pop();
-                break;
-            }
-        }
-    },
+    //             aContentHolder.push("key.set" + aKeyMapName[0].toUpperCase() + aKeyMapName.slice(1) + "Key(" + keySetting + ", " +
+    //                                 // function body
+    //                                 func.toString() +
+    //                                 // description
+    //                                 (func.ksDescription ? ", " + this.toStringForm(func.ksDescription) : "") +
+    //                                 ksNoRepeatString +
+    //                                 ");\n");
+    //             break;
+    //         case "object":
+    //             aKeySequence.push(this.toStringForm(key));
+    //             this.initFileKeyBinding(aContentHolder, aKeyMapName, aKeyMap[key], aKeySequence);
+    //             aKeySequence.pop();
+    //             break;
+    //         }
+    //     }
+    // },
 
-    initFileHooks: function () {
-        var contentHolder = [];
+    // initFileHooks: function () {
+    //     var contentHolder = [];
 
-        for (var hookName in this.modules.hook.hookList) {
-            contentHolder.push("");
+    //     for (var hookName in this.modules.hook.hookList) {
+    //         contentHolder.push("");
 
-            var hook = this.modules.hook.hookList[hookName];
+    //         var hook = this.modules.hook.hookList[hookName];
 
-            for (var i = 0; i < hook.length; ++i) {
-                var method = (i == 0) ? "set" : "addTo";
-                contentHolder.push("hook." + method + "Hook(" +
-                                   this.toStringForm(hookName) + ", " +
-                                   hook[i].toString() + ");");
-            }
-        }
+    //         for (var i = 0; i < hook.length; ++i) {
+    //             var method = (i == 0) ? "set" : "addTo";
+    //             contentHolder.push("hook." + method + "Hook(" +
+    //                                this.toStringForm(hookName) + ", " +
+    //                                hook[i].toString() + ");");
+    //         }
+    //     }
 
-        return contentHolder.join("\n");
-    },
+    //     return contentHolder.join("\n");
+    // },
 
-    initFileModule: function () {
-        var contentHolder = [];
-        var userModules = [str for each (str in
-                                         (function (o) {
-                                              for (var k in o) yield k;
-                                          })(this.modules))]
-            .filter(
-                function (aModuleName) {
-                    return typeof(KeySnail.modules[aModuleName].init) == 'function'
-                        && !KeySnail.moduleObjects.some(
-                            function (aProper) {
-                                return aProper.toLowerCase() == aModuleName;
-                            });
-                });
+    // initFileModule: function () {
+    //     var contentHolder = [];
+    //     var userModules = [str for each (str in
+    //                                      (function (o) {
+    //                                           for (var k in o) yield k;
+    //                                       })(this.modules))]
+    //         .filter(
+    //             function (aModuleName) {
+    //                 return typeof(KeySnail.modules[aModuleName].init) == 'function'
+    //                     && !KeySnail.moduleObjects.some(
+    //                         function (aProper) {
+    //                             return aProper.toLowerCase() == aModuleName;
+    //                         });
+    //             });
 
-        for (var i = 0; i < userModules.length; ++i) {
-            this.message(userModules[i]);
-        }
+    //     for (var i = 0; i < userModules.length; ++i) {
+    //         this.message(userModules[i]);
+    //     }
 
-        contentHolder.push("");
-        for (var member in KeySnail) {
-            if (userModules.some(
-                    function (aModuleName) {
-                        return (KeySnail.modules[aModuleName] == KeySnail[member]);
-                    })) {
-                contentHolder.push("var KeySnail." + member + " = " +
-                                   KeySnail[member].toSource() + ";");
-            }
-        }
+    //     contentHolder.push("");
+    //     for (var member in KeySnail) {
+    //         if (userModules.some(
+    //                 function (aModuleName) {
+    //                     return (KeySnail.modules[aModuleName] == KeySnail[member]);
+    //                 })) {
+    //             contentHolder.push("var KeySnail." + member + " = " +
+    //                                KeySnail[member].toSource() + ";");
+    //         }
+    //     }
 
-        return contentHolder.join("\n");
-    },
+    //     return contentHolder.join("\n");
+    // }
+    // ,
 
     /**
      * Generate init file from current keymap, special key bindings and hook.
      */
-    generateInitFile: function () {
-        var contentHolder = ["// ================ KeySnail Init File ================ //"];
+    // generateInitFile: function () {
+    //     var contentHolder = ["// ================ KeySnail Init File ================ //"];
 
-        // 1. Special keys
+    //     // 1. Special keys
 
-        contentHolder.push("");
-        contentHolder.push("// ================ Special Keys ====================== //");
-        contentHolder.push(this.initFileSpecialKeys());
-        contentHolder.push("");
+    //     contentHolder.push("");
+    //     contentHolder.push("// ================ Special Keys ====================== //");
+    //     contentHolder.push(this.initFileSpecialKeys());
+    //     contentHolder.push("");
 
-        // 2. Hooks
+    //     // 2. Hooks
 
-        contentHolder.push("// ================ Hooks ============================= //");
-        contentHolder.push(this.initFileHooks());
-        contentHolder.push("");
+    //     contentHolder.push("// ================ Hooks ============================= //");
+    //     contentHolder.push(this.initFileHooks());
+    //     contentHolder.push("");
 
-        // 3. Black List Settings
+    //     // 3. Black List Settings
 
-        if (this.blackList) {
-            contentHolder.push("key.blackList = [");
-            for (var i = 0; i < this.blackList.length; ++i) {
-                var commma = (i == this.blackList.length - 1) ? "" : ",";
-                contentHolder.push("    " + this.toStringForm(this.blackList[i]) + commma);
-            }
-            contentHolder.push("];");
-            contentHolder.push("");
-        }
+    //     if (this.blackList) {
+    //         contentHolder.push("key.blackList = [");
+    //         for (var i = 0; i < this.blackList.length; ++i) {
+    //             var commma = (i == this.blackList.length - 1) ? "" : ",";
+    //             contentHolder.push("    " + this.toStringForm(this.blackList[i]) + commma);
+    //         }
+    //         contentHolder.push("];");
+    //         contentHolder.push("");
+    //     }
 
-        // 4. KeyBindings
+    //     // 4. KeyBindings
 
-        contentHolder.push("// ================ Key Bindings ====================== //");
-        contentHolder.push("");
+    //     contentHolder.push("// ================ Key Bindings ====================== //");
+    //     contentHolder.push("");
 
-        // 4-a. Global keys
+    //     // 4-a. Global keys
 
-        contentHolder.push("// ---------------- Global keys ----------------------- //");
-        this.initFileKeyBinding(contentHolder, this.modes.GLOBAL, this.keyMapHolder[this.modes.GLOBAL]);
+    //     contentHolder.push("// ---------------- Global keys ----------------------- //");
+    //     this.initFileKeyBinding(contentHolder, this.modes.GLOBAL, this.keyMapHolder[this.modes.GLOBAL]);
 
-        // 4-b. View keys
+    //     // 4-b. View keys
 
-        contentHolder.push("// ---------------- View keys ------------------------- //");
-        this.initFileKeyBinding(contentHolder, this.modes.VIEW, this.keyMapHolder[this.modes.VIEW]);
+    //     contentHolder.push("// ---------------- View keys ------------------------- //");
+    //     this.initFileKeyBinding(contentHolder, this.modes.VIEW, this.keyMapHolder[this.modes.VIEW]);
 
-        // 4-c. Edit keys
+    //     // 4-c. Edit keys
 
-        contentHolder.push("// ---------------- Edit keys ------------------------- //");
-        this.initFileKeyBinding(contentHolder, this.modes.EDIT, this.keyMapHolder[this.modes.EDIT]);
+    //     contentHolder.push("// ---------------- Edit keys ------------------------- //");
+    //     this.initFileKeyBinding(contentHolder, this.modes.EDIT, this.keyMapHolder[this.modes.EDIT]);
 
-        // 4-d. Caret keys
+    //     // 4-d. Caret keys
 
-        contentHolder.push("// ---------------- Caret keys ------------------------ //");
-        this.initFileKeyBinding(contentHolder, this.modes.CARET, this.keyMapHolder[this.modes.CARET]);
+    //     contentHolder.push("// ---------------- Caret keys ------------------------ //");
+    //     this.initFileKeyBinding(contentHolder, this.modes.CARET, this.keyMapHolder[this.modes.CARET]);
 
-        // 5. Modules
-        // contentHolder.push("// ================ Modules =========================== //");
-        // contentHolder.push(this.initFileModule());
+    //     // 5. Modules
+    //     // contentHolder.push("// ================ Modules =========================== //");
+    //     // contentHolder.push(this.initFileModule());
 
-        // now process it
-        var output = this.modules.util
-            .convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
+    //     // now process it
+    //     var output = this.modules.util
+    //         .convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
 
-        return output;
-    },
+    //     return output;
+    // },
 
     message: KeySnail.message
 };

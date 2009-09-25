@@ -9,7 +9,8 @@ var kill = {
     originalSelEnd: 0,
     ring: [],
     index: 0,
-    max: 10,
+    killRingMax: 10,
+    textLengthMax: 10240,
     // prevent yanking when repeating the M-y
     popFailed: false
 };

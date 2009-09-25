@@ -73,11 +73,6 @@ var ksBuiltin = {
         }, true]
     },
 
-    // hinagata: [
-    //     function () {
-
-    //     }, true]
-
     categoryWindow: {
         __mode__: 0,
 
@@ -393,14 +388,59 @@ var ksBuiltin = {
     categoryEdit: {
         __mode__: 2,
 
-        set_the_mark: [
+        copy_selected_text: [
             function(aEvent) {
-                command.setMark(aEvent);
+                command.copyRegion(aEvent);
+            }, false],
+
+        cut_current_region: [
+            function(aEvent) {
+                goDoCommand("cmd_copy");
+                goDoCommand("cmd_delete");
+                command.resetMark(aEvent);
+            }, false],
+
+        kill_the_rest_of_the_line: [
+            function(aEvent) {
+                command.killLine(aEvent);
+            }, false],
+
+        paste: [
+            "command.yank", false],
+
+        paste_pop: [
+            "command.yankPop", false],
+
+        show_kill_ring_and_select_text_to_paste: [
+            function(aEvent) {
+                if (!command.kill.ring.length) {
+                    return;
+                }
+                var clipboardText = command.getClipboardText();
+                if (clipboardText != command.kill.ring[0]) {
+                    command.pushKillRing(clipboardText);
+                }
+                prompt.read("Text to paste:", function(aReadStr) {
+                                if (aReadStr) {
+                                    key.insertText(aReadStr);
+                                }
+                            },
+                            null, command.kill.ring, command.kill.ring[0], 0, "clipboard");
+            }, false],
+
+        select_whole_text: [
+            function(aEvent) {
+                command.selectAll(aEvent);
             }, false],
 
         open_line: [
             function(aEvent) {
                 command.openLine(aEvent);
+            }, false],
+
+        set_the_mark: [
+            function(aEvent) {
+                command.setMark(aEvent);
             }, false],
 
         undo: [
@@ -442,11 +482,6 @@ var ksBuiltin = {
             function(aEvent) {
                 command.yankRectangle(aEvent.originalTarget, command.kill.buffer);
             }, true],
-
-        select_whole_text: [
-            function(aEvent) {
-                command.selectAll(aEvent);
-            }, false],
 
         beginning_of_the_line: [
             function(aEvent) {
@@ -545,41 +580,6 @@ var ksBuiltin = {
         capitalize_the_following_word: [
             function(aEvent) {
                 command.processForwardWord(aEvent.originalTarget, command.capitalizeWord);
-            }, false],
-
-        kill_the_rest_of_the_line: [
-            function(aEvent) {
-                command.killLine(aEvent);
-            }, false],
-
-        paste: [
-            "command.yank", false],
-
-        paste_pop: [
-            "command.yankPop", false],
-
-        show_kill_ring_and_select_text_to_paste: [
-            function(aEvent) {
-                if (!command.kill.ring.length) {
-                    return;
-                }
-                var clipboardText = command.getClipboardText();
-                if (clipboardText != command.kill.ring[0]) {
-                    command.pushKillRing(clipboardText);
-                }
-                prompt.read("Text to paste:", function(aReadStr) {
-                                if (aReadStr) {
-                                    key.insertText(aReadStr);
-                                }
-                            },
-                            null, command.kill.ring, command.kill.ring[0], 0, "clipboard");
-            }, false],
-
-        cut_current_region: [
-            function(aEvent) {
-                goDoCommand("cmd_copy");
-                goDoCommand("cmd_delete");
-                command.resetMark(aEvent);
             }, false],
 
         recenter: [
@@ -692,6 +692,11 @@ var ksBuiltin = {
         list_all_keybindings: [
             function() {
                 key.listKeyBindings();
+            }, false],
+
+        command_interpreter: [
+            function () {
+                command.interpreter();
             }, false]
     }
 };
