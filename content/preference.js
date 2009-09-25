@@ -110,6 +110,9 @@ var ksPreference = {
     },
 
     onFinish: function () {
+        this.updateFunctionData();
+        this.updateDescriptionData();
+
         if ((this.needsApply || ksKeybindTreeView.changed || keyCustomizer.changed) &&
             this.modules.util.confirm(this.modules.util.getLocaleString("settingsChanged"),
                                       this.modules.util.getLocaleString("settingsChangedApplyChange"))) {
@@ -228,15 +231,35 @@ var ksPreference = {
         this.needsApply = true;
     },
 
+    updateFunctionData: function () {
+        var i = ksKeybindTreeView.currentIndex;
+        if (i < 0)
+            return;
+
+        var row = ksKeybindTreeView.data[i];
+        if (row[KS_FUNCTION] != this.functionTextarea.value) {
+            row[KS_FUNCTION] = this.functionTextarea.value;
+            this.needsApply = true;
+        }
+    },
+
+    updateDescriptionData: function () {
+        var i = ksKeybindTreeView.currentIndex;
+        if (i < 0)
+            return;
+
+        var row = ksKeybindTreeView.data[i];
+        if (row[KS_DESC] != this.descriptionTextarea.value) {
+            row[KS_DESC] = this.descriptionTextarea.value;
+            this.needsApply = true;
+        }
+    },
+
     handleFunctionTextarea: function (aEvent) {
         switch (aEvent.type) {
-        case "change":
-            var i = this.keybindEditBox.ksSelectedIndex;
-            var row = ksKeybindTreeView.data[i];
-            row[KS_FUNCTION] = this.functionTextarea.value;
-
-            this.needsApply = true;
-            break;
+        // case "change":
+        //     this.updateFunctionData();
+        //     break;
         case "keypress":
             if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
                 aEvent.preventDefault();
@@ -247,13 +270,9 @@ var ksPreference = {
 
     handleDescriptionTextarea: function (aEvent) {
         switch (aEvent.type) {
-        case "change":
-            var i = this.keybindEditBox.ksSelectedIndex;
-            var row = ksKeybindTreeView.data[i];
-            row[KS_DESC] = this.descriptionTextarea.value;
-            
-            this.needsApply = true;
-            break;
+        // case "change":
+        //     this.updateDescriptionData();
+        //     break;
         case "keypress":
             if (aEvent.keyCode == aEvent.DOM_VK_RETURN ||
                 aEvent.keyCode == aEvent.DOM_VK_ENTER) {
@@ -311,6 +330,14 @@ var ksPreference = {
                 // this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
                 return;
             }
+
+            /**
+             * 'changed' event does not occur when user paste the text
+             * so we need to check for the textbox value whether changed or not
+             */
+            this.updateFunctionData();
+            this.updateDescriptionData();
+
             // this.notify("");
             destination = this.keybindTextarea;
         }
@@ -707,7 +734,7 @@ var ksPreference = {
      * @returns {string}
      */
     toStringForm: function (aStr) {
-        return aStr ? "'" + aStr.replace("\\", "\\\\") + "'" : "";
+        return aStr ? "'" + aStr.replace("\\", "\\\\").replace("'", "\\'") + "'" : "";
     },
 
     generateSpecialKeySettings: function (aContentHolder) {

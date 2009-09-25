@@ -183,7 +183,6 @@
                             <hbox align="center">
                                 <label>&keySnail.preference.keys.treeheader.description;: </label>
                                 <textbox flex="1"
-                                         onchange="ksPreference.handleDescriptionTextarea(event);"
                                          onkeypress="ksPreference.handleDescriptionTextarea(event);"
                                          id="keybind-function-description">
                                 </textbox>
@@ -207,7 +206,6 @@
                             </hbox>
                             <description>&keySnail.preference.edit.function;:</description>
                             <textbox id="keybind-function-body"
-                                     onchange="ksPreference.handleFunctionTextarea(event);"
                                      onkeypress="ksPreference.handleFunctionTextarea(event);"
                                      multiline="true" flex="3">
                             </textbox>
