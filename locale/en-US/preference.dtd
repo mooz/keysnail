@@ -15,7 +15,12 @@
 <!ENTITY keySnail.preference.keyhandler "Key Handler Settings">
 <!ENTITY keySnail.preference.keyhandler.enabled "Enabled">
 <!ENTITY keySnail.preference.keyhandler.globalEnabled "Use KeySnail outside the browser window (enable globally)">
+
+<!-- Prefix argument -->
+<!ENTITY keySnail.preference.keyhandler.prefixArgument "Prefix argument">
 <!ENTITY keySnail.preference.keyhandler.usePrefixArgument "Use Emacs-like prefix argument system">
+<!ENTITY keySnail.preference.keyhandler.degitArgumentType "Modifier + [number] type digit argument">
+<!ENTITY keySnail.preference.keyhandler.degitArgumentDisable "Disable">
 
 <!-- # KEY SETTINGS # -->
 

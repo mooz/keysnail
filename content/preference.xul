@@ -37,8 +37,31 @@
             <vbox flex="1">
                 <checkbox label="&keySnail.preference.keyhandler.globalEnabled;"
                           preference="extensions.keysnail.keyhandler.global_enabled" />
-                <checkbox label="&keySnail.preference.keyhandler.usePrefixArgument;"
-                          preference="extensions.keysnail.keyhandler.use_prefix_argument" />
+            </vbox>
+        </groupbox>
+
+        <groupbox orient="vertical">
+            <caption label="&keySnail.preference.keyhandler.prefixArgument;" />
+            <vbox flex="1">
+                <checkbox id="use-prefix-argument-checkbox"
+                          label="&keySnail.preference.keyhandler.usePrefixArgument;"
+                          preference="extensions.keysnail.keyhandler.use_prefix_argument"
+                          onclick="ksPreference.toggleEmacsLikePrefixArgument(event);"
+                          />
+                <hbox align="center">
+                    <spacer width="30px" />
+                    <label id="digit-argument-description"
+                           disabled="true">&keySnail.preference.keyhandler.degitArgumentType;: </label>
+                    <menulist id="digit-argument-list"
+                              disabled="true">
+                        <menupopup>
+                            <menuitem label="&keySnail.preference.keyhandler.degitArgumentDisable;" value=""/>
+                            <menuitem label="C-[0-9]" value="C"/>
+                            <menuitem label="M-[0-9]" value="M"/>
+                            <menuitem label="C-M-[0-9]" value="C-M"/>
+                        </menupopup>
+                    </menulist>
+                </hbox>
             </vbox>
         </groupbox>
 

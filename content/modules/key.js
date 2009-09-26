@@ -322,18 +322,16 @@ KeySnail.Key = {
             }
         } else {
             // first stroke
-            if (this.isPrefixArgumentKey(key, aEvent)) {
-                // user can disable the prefix argument feature
-                if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true)) {
-                    // transit state: to inputting prefix argument
-                    this.modules.util.stopEventPropagation(aEvent);
-                    this.currentKeySequence.push(key);
-                    this.modules.display.echoStatusBar(this.currentKeySequence.join(" ") +
-                                                       " [prefix argument :: " +
-                                                       this.parsePrefixArgument(this.currentKeySequence) + "]");
-                    this.inputtingPrefixArgument = true;
-                    return;
-                }
+            if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument")
+                && this.isPrefixArgumentKey(key, aEvent)) {
+                // transit state: to inputting prefix argument
+                this.modules.util.stopEventPropagation(aEvent);
+                this.currentKeySequence.push(key);
+                this.modules.display.echoStatusBar(this.currentKeySequence.join(" ") +
+                                                   " [prefix argument :: " +
+                                                   this.parsePrefixArgument(this.currentKeySequence) + "]");
+                this.inputtingPrefixArgument = true;
+                return;
             }
 
             // decide which keymap to use
@@ -934,9 +932,23 @@ KeySnail.Key = {
      * @returns {boolean} true when the <aEvent> is regarded as the digit argument
      */
     isDigitArgumentKey: function (aEvent) {
-        // C-digit only (M-digit is useful for tab navigation ...)
-        // If you want
-        return (aEvent.ctrlKey && this.isKeyEventNum(aEvent));
+        var modifier = false;
+
+        switch (this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type")) {
+        case "C":
+            modifier = this.isControlKey(aEvent) && !this.isMetaKey(aEvent);
+            break;
+        case "M":
+            modifier = this.isMetaKey(aEvent) && !this.isControlKey(aEvent);
+            break;
+        case "C-M":
+            modifier = this.isControlKey(aEvent) && this.isMetaKey(aEvent);
+            break;
+        default:
+            break;
+        }
+
+        return (modifier && this.isKeyEventNum(aEvent));
     },
 
     /**
@@ -1126,17 +1138,28 @@ KeySnail.Key = {
                                                                                html.escapeTag(this.universalArgumentKey)]) +
                                    "</td></tr>");
 
-                var digitKeys = [];
-                // for testing
-                var eventKeys = ["C-0", "M-0", "C-M-0"];
+                // var digitKeys = [];
+                // var eventKeys = ["C-0", "M-0", "C-M-0"];
 
-                eventKeys.forEach(function (eventKey) {
-                                      if (this.isDigitArgumentKey(this.stringToKeyEvent(eventKey))) {
-                                          digitKeys.push(eventKey.substr(0, eventKey.length - 1) + "[0-9]");
-                                      }
-                                  }, this);
+                // eventKeys.forEach(function (eventKey) {
+                //                       if (this.isDigitArgumentKey(this.stringToKeyEvent(eventKey))) {
+                //                           digitKeys.push(eventKey.substr(0, eventKey.length - 1) + "[0-9]");
+                //                       }
+                //                   }, this);
 
-                contentHolder.push("<tr><td>" + digitKeys.join(", ") + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
+                var digitArgumentKey = "-[0-9]";
+                var modifier;
+                switch (modifier = this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type")) {
+                case "C":
+                case "M":
+                case "C-M":
+                    digitArgumentKey = modifier + digitArgumentKey;
+                    break;
+                default:
+                    digitArgumentKey = "";
+                }
+
+                contentHolder.push("<tr><td>" + digitArgumentKey + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
                 var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";
                 contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument1Key) + "</td><td>" + paNegDesc);
                 contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument2Key) + "</td><td>" + paNegDesc);

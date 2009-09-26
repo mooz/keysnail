@@ -9,6 +9,10 @@ var ksPreference = {
     initFileKey: "extensions.keysnail.userscript.location",
     editorKey: "extensions.keysnail.userscript.editor",
 
+    digitArgumentList        : null,
+    digitArgumentDescription : null, 
+    prefixArgumentCheckBox   : null,
+
     keybindTreeBox      : null,
     keybindTextarea     : null,
     dropMarker          : null,
@@ -26,10 +30,42 @@ var ksPreference = {
     },
 
     onGeneralPaneLoad: function () {
+        this.digitArgumentList        = document.getElementById("digit-argument-list");
+        this.digitArgumentDescription = document.getElementById("digit-argument-description");
+        this.prefixArgumentCheckBox   = document.getElementById("use-prefix-argument-checkbox");
+        
         if (!this.modules.util.getUnicharPref(this.editorKey)) {
             this.modules.userscript.syncEditorWithGM();
         }
         this.updateAllFileFields();
+
+        var usePrefixArgument = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", false);
+        this.setDigitArgumentFieldState(usePrefixArgument);
+
+        switch (this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type")) {
+        case "C":
+            this.digitArgumentList.selectedIndex = 1;
+            break;
+        case "M":
+            this.digitArgumentList.selectedIndex = 2;
+            break;
+        case "C-M":
+            this.digitArgumentList.selectedIndex = 3;
+            break;
+        default:
+            this.digitArgumentList.selectedIndex = 0;
+            break;
+        }
+    },
+
+    setDigitArgumentFieldState: function (aEnabled) {
+        this.digitArgumentList.disabled = !aEnabled;
+        this.digitArgumentDescription.disabled = !aEnabled;
+    },
+
+    toggleEmacsLikePrefixArgument: function (aEvent) {
+        var enabled = this.prefixArgumentCheckBox.checked;
+        this.setDigitArgumentFieldState(!enabled);
     },
 
     // showElapsedTime: function (aMsg) {
@@ -164,6 +200,11 @@ var ksPreference = {
     onFinish: function () {
         this.updateFunctionData();
         this.updateDescriptionData();
+
+        if (this.digitArgumentList.selectedItem) {
+            this.modules.util.setUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type",
+                                             this.digitArgumentList.selectedItem.value);
+        }
 
         if (this.preservedEditBox.value != this.modules.userscript.preserve.code)
             this.needsApply = true;
