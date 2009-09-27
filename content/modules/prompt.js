@@ -51,7 +51,7 @@ KeySnail.Prompt = function () {
 
     // Migemo
     var useMigemo = true;
-    // var XMigemoCore;
+    var migemoMinWordLength = 2;
 
     // History
     var historyHolder;
@@ -87,15 +87,15 @@ KeySnail.Prompt = function () {
     }
 
     var oldSelectionStart = 0;
-    function handleKeyDownRead(aEvent) {
+    function handleKeyUpRead(aEvent) {
         // Some KeyPress event is grabbed by KeySnail and stopped.
-        // So we need to listen the keydown event for resetting the misc values.
+        // So we need to listen the keyup event for resetting the misc values.
         switch (aEvent.keyCode) {
         case KeyEvent.DOM_VK_TAB:
         case KeyEvent.DOM_VK_SHIFT:
             break;
         default:
-            // when the keydown event occured,
+            // when the keyup event occured,
             // the textbox value is old (keyevent is not applied)
             // so we need to delay to know the correct selection
             setTimeout(
@@ -170,40 +170,49 @@ KeySnail.Prompt = function () {
         }
     }
 
-    function handleKeyDownSelector(aEvent) {
-        switch (aEvent.keyCode) {
-        default:
-            setTimeout(
-                function () {
-                    /**
-                     * Without this cause exception about selection
-                     */
-                    if (!currentCallback)
-                        return;
-
-                    if (textbox.value.length != oldTextLength) {
-                        if (delayedCommandTimeout) {
-                            clearTimeout(delayedCommandTimeout);
-                        }
-
-                        // add delay
-                        delayedCommandTimeout = setTimeout(
-                            function () {
-                                createCompletionList();
-                                delayedCommandTimeout = null;
-                            },
-                            displayDelayTime);
-                    }
-
-                    oldTextLength = textbox.value.length;
-                }, 0);
-            break;
-        }
-    }
-
     var oldTextLength = 0;
     var displayDelayTime = 300;
     var delayedCommandTimeout;
+    // var holder = {};
+
+    function setupSelector() {
+        /**
+         * Without this cause exception about selection
+         */
+        if (!currentCallback)
+            return;
+
+        if (textbox.value.length != oldTextLength) {
+            if (delayedCommandTimeout) {
+                // self.message(delayedCommandTimeout + " :: clear");
+                clearTimeout(delayedCommandTimeout);
+                // delete holder[delayedCommandTimeout];
+            }
+
+            // add delay
+            delayedCommandTimeout = setTimeout(
+                function () {
+                    createCompletionList();
+                    // self.message(delayedCommandTimeout + " :: executed :: " + (new Date() - holder[delayedCommandTimeout]) + " msec");
+                    // delete holder[delayedCommandTimeout];
+                    delayedCommandTimeout = null;
+                },
+                displayDelayTime);
+
+            // holder[delayedCommandTimeout] = new Date();
+            // self.message(delayedCommandTimeout + " :: set");
+        }
+
+        oldTextLength = textbox.value.length;
+    }
+
+    function handleKeyUpSelector(aEvent) {
+        setupSelector();
+    }
+
+    function handleKeyDownSelector(aEvent) {
+        setTimeout(setupSelector, 0);
+    }
 
     /**
      * KeyPress Event handler for dynamic completing selector
@@ -396,7 +405,7 @@ KeySnail.Prompt = function () {
     }
 
     function setListBoxSelection(aIndex) {
-        var center = listboxRows / 2; 
+        var center = Math.round(listboxRows / 2);
         var pos;
         var listLen = currentIndexList ? currentIndexList.length : currentList.length;
 
@@ -579,6 +588,7 @@ KeySnail.Prompt = function () {
     }
 
     var currentRegexp;
+    var currentSelectorIndex;
     function selectNextCompletion(aDirection, aRing) {
         var nextIndex, totalLength;
 
@@ -632,14 +642,17 @@ KeySnail.Prompt = function () {
             compIndex = 0;
 
             var keywords = regexp.split(" ");
+            var useMigemoActual = (useMigemo &&
+                                   window.xulMigemoCore &&
+                                   keywords.every(function (aStr) { return aStr.length >= migemoMinWordLength; }));
 
-            if (useMigemo && window.xulMigemoCore)
+            if (useMigemoActual)
                 var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
 
             var matcher;
             if (isMultipleList(completion.list)) {
                 // multiple cols
-                matcher = (useMigemo && window.xulMigemoCore) ?
+                matcher = (useMigemoActual) ?
                     // use migemo
                     function () {
                         return completion.list[i].some(
@@ -661,7 +674,7 @@ KeySnail.Prompt = function () {
                 };
             } else {
                 // single col
-                matcher = (useMigemo && window.xulMigemoCore) ?
+                matcher = (useMigemoActual) ?
                     // use migemo
                     function () {
                         return completion.list[i].match(migexp, "i");
@@ -865,6 +878,16 @@ KeySnail.Prompt = function () {
             useMigemo = !!aBool;
         },
 
+        set migemoMinWordLength(aNum) {
+            if (typeof(aNum) == "number")
+                migemoMinWordLength = Math.round(aNum);
+        },
+
+        set displayDelayTime(aMiliSec) {
+            if (typeof(aMiliSec) == "number")
+                displayDelayTime = aMiliSec;
+        },
+
         /**
          * Read string from prompt and execute <aCallback>
          * @param {string} aMsg message to be displayed
@@ -920,12 +943,12 @@ KeySnail.Prompt = function () {
             // add event listener
             // textbox.addEventListener('blur', onBlur, false);
             textbox.addEventListener('keypress', handleKeyPressRead, false);
-            textbox.addEventListener('keydown', handleKeyDownRead, false);
+            textbox.addEventListener('keyup', handleKeyUpRead, false);
             // textbox.addEventListener('input', handleInputRead, false);
             eventListenerRemover = function () {
                 // textbox.removeEventListener('blur', onBlur, false);
                 textbox.removeEventListener('keypress', handleKeyPressRead, false);
-                textbox.removeEventListener('keydown', handleKeyDownRead, false);
+                textbox.removeEventListener('keyup', handleKeyUpRead, false);
                 // textbox.removeEventListener('input', handleInputRead, false);
             };
 
@@ -976,10 +999,10 @@ KeySnail.Prompt = function () {
 
             // add event listener
             textbox.addEventListener('keypress', handleKeyPressSelector, false);
-            textbox.addEventListener('keydown', handleKeyDownSelector, false);
+            textbox.addEventListener('keyup', handleKeyUpSelector, false);
             eventListenerRemover = function () {
                 textbox.removeEventListener('keypress', handleKeyPressSelector, false);
-                textbox.removeEventListener('keydown', handleKeyDownSelector, false);
+                textbox.removeEventListener('keyup', handleKeyUpSelector, false);
             };
 
             oldTextLength = 0;

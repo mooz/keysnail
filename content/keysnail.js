@@ -57,6 +57,9 @@ var KeySnail = {
             window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
         }
 
+        // user local namespace
+        this.modules.my = {};
+
         this.modules.key.updateStatusBar();
     },
 
