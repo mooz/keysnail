@@ -314,13 +314,21 @@ KeySnail.Prompt = function () {
 
         if (listbox.hasChildNodes()) {
             // use listbox already created
-            var i, j;
             var childs = listbox.childNodes;
             var isMultiple = isMultipleList(aGeneralList);
 
+            var i = aOffset, j = 0;
+
+            /**
+             * when the list is multiple, ignore 'listcols' element (childs[0])
+             */
+            if (isMultiple) {
+                j++;
+            }
+
             if (isMultiple) {
                 // multiple
-                for (i = aOffset, j = 0; i < count; ++i, ++j) {
+                for (; i < count; ++i, ++j) {
                     if (j < childs.length) {
                         row = childs[j];
                         applyRow(row, itemRetriever(i));
@@ -331,7 +339,7 @@ KeySnail.Prompt = function () {
                 }
             } else {
                 // normal
-                for (i = aOffset, j = 0; i < count; ++i, ++j) {
+                for (; i < count; ++i, ++j) {
                     if (j < childs.length) {
                         row = childs[j];
                         row.setAttribute("label", itemRetriever(i));
@@ -342,12 +350,6 @@ KeySnail.Prompt = function () {
                     }
                 }
             }
-
-            /**
-             * when multiple list, plus 1 (include listcols element)
-             */
-            if (isMultiple)
-                j++;
 
             while (j < childs.length) {
                 listbox.removeChild(listbox.lastChild);
