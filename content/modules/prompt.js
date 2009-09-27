@@ -280,18 +280,19 @@ KeySnail.Prompt = function () {
         return row;
     }
 
-    function setListBoxFromStringList(aList, aOffset) {
+    function setListBox(aGeneralList, aOffset, aLength,
+                        itemRetriever, onFinish) {
         var row;
         aOffset = aOffset || 0;
-        var count = Math.min(listboxMaxRows, aList.length) + aOffset;
+        var count = Math.min(listboxMaxRows, aLength) + aOffset;
 
         removeAllChilds(listbox);
 
-        if (isMultipleList(aList)) {
+        if (isMultipleList(aGeneralList)) {
             // multiple
-            setColumns(aList[0].length);
+            setColumns(itemRetriever(0).length);
             for (var i = aOffset; i < count; ++i) {
-                row = createRow(aList[i]);
+                row = createRow(itemRetriever(i));
                 listbox.appendChild(row);
             }
         } else {
@@ -299,51 +300,30 @@ KeySnail.Prompt = function () {
             setColumns(1);
             for (var i = aOffset; i < count; ++i) {
                 row = document.createElement("listitem");
-                row.setAttribute("label", aList[i]);
+                row.setAttribute("label", itemRetriever(i));
                 listbox.appendChild(row);
             }
         }
 
-        // var a = new Date();
+        onFinish();
+    }
 
-        // var b = new Date();
-        // modules.display.prettyPrint("whole time :: " + (b - a));
-
-        currentList      = aList;
-        currentIndexList = null;
+    function setListBoxFromStringList(aList, aOffset) {
+        setListBox(aList, aOffset, aList.length,
+                   function (i) { return aList[i]; },
+                   function () {
+                       currentList      = aList;
+                       currentIndexList = null;
+                   });
     }
 
     function setListBoxFromIndexList(aList, aIndexList, aOffset) {
-        var row;
-        aOffset = aOffset || 0;
-        var count = Math.min(listboxMaxRows, aIndexList.length) + aOffset;
-
-        // var a = new Date();
-
-        removeAllChilds(listbox);
-
-        if (isMultipleList(aList)) {
-            // multiple
-            setColumns(aList[0].length);
-            for (var i = aOffset; i < count; ++i) {
-                row = createRow(aList[aIndexList[i]]);
-                listbox.appendChild(row);
-            }
-        } else {
-            // normal
-            setColumns(1);
-            for (var i = aOffset; i < count; ++i) {
-                row = document.createElement("listitem");
-                row.setAttribute("label", aList[aIndexList[i]]);
-                listbox.appendChild(row);
-            }
-        }
-
-        // var b = new Date();
-        // modules.display.prettyPrint("comp time :: " + (b - a));
-
-        currentList      = aList;
-        currentIndexList = aIndexList;
+        setListBox(aList, aOffset, aIndexList.length,
+                   function (i) { return aList[aIndexList[i]]; },
+                   function () {
+                       currentList      = aList;
+                       currentIndexList = aIndexList;
+                   });
     }
 
     function setListBoxSelection(aIndex) {
@@ -375,18 +355,6 @@ KeySnail.Prompt = function () {
         }
     }
 
-    // function setListBoxSelection(aIndex) {
-    //     listbox.currentIndex = aIndex;
-    //     listbox.selectedIndex = aIndex;
-
-    //     var offset = listbox.getNumberOfVisibleRows() / 2;
-    //     var dest = Math.max(0, aIndex - offset);
-    //     if (dest > listbox.getRowCount() - 2 * offset)
-    //         dest = listbox.getRowCount() - 2 * offset;
-
-    //     listbox.scrollToIndex(dest);
-    // }
-
     function resetState(aType) {
         aType.index = 0;
         aType.state = false;
@@ -403,8 +371,7 @@ KeySnail.Prompt = function () {
     }
 
     function isMultipleList(aList) {
-        return (typeof(aList) == 'object' &&
-                typeof(aList[0]) == 'object');
+        return (typeof(aList) == 'object' && typeof(aList[0]) == 'object');
     }
 
     function getListText(aList, aIndex, aCellNum) {
@@ -941,16 +908,6 @@ KeySnail.Prompt = function () {
                 else
                     itemIndexToUse = 0;
             }
-
-            // setup XUL / Migemo
-            // if (typeof(window.xulMigemoCore) != 'undefined' && useMigemo) {
-            //     var XMigemoCore = Components
-            //         .classes['@piro.sakura.ne.jp/xmigemo/factory;1']
-            //         .getService(Components.interfaces.pIXMigemoFactory)
-            //         .getService("ja");                
-            // } else {
-            //     XMigemoCore = null;
-            // }
 
             modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
 
