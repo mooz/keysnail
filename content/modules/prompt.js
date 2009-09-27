@@ -98,15 +98,17 @@ KeySnail.Prompt = function () {
             // when the keydown event occured,
             // the textbox value is old (keyevent is not applied)
             // so we need to delay to know the correct selection
-            setTimeout(function () {
-                           // modules.display.prettyPrint("old :: " + oldSelectionStart + "\n"
-                           //                             + "now :: " + textbox.selectionStart);
-                           if (textbox.selectionStart != oldSelectionStart &&
-                               textbox.selectionStart != textbox.value.length) {
-                               resetReadState();
-                           }
-                           oldSelectionStart = textbox.selectionStart;
-                       }, 0);
+            setTimeout(
+                function () {
+                    if (!currentCallback)
+                        return;
+
+                    if (textbox.selectionStart != oldSelectionStart &&
+                        textbox.selectionStart != textbox.value.length) {
+                        resetReadState();
+                    }
+                    oldSelectionStart = textbox.selectionStart;                        
+                }, 0);
             break;
         }
     }
@@ -171,23 +173,30 @@ KeySnail.Prompt = function () {
     function handleKeyDownSelector(aEvent) {
         switch (aEvent.keyCode) {
         default:
-            setTimeout(function () {
-                           if (textbox.value.length != oldTextLength) {
-                               if (delayedCommandTimeout) {
-                                   clearTimeout(delayedCommandTimeout);
-                               }
+            setTimeout(
+                function () {
+                    /**
+                     * Without this cause exception about selection
+                     */
+                    if (!currentCallback)
+                        return;
 
-                               // add delay
-                               delayedCommandTimeout = setTimeout(
-                                   function () {
-                                       createCompletionList();
-                                       delayedCommandTimeout = null;
-                                   },
-                                   displayDelayTime);
-                           }
+                    if (textbox.value.length != oldTextLength) {
+                        if (delayedCommandTimeout) {
+                            clearTimeout(delayedCommandTimeout);
+                        }
 
-                           oldTextLength = textbox.value.length;
-                       }, 0);
+                        // add delay
+                        delayedCommandTimeout = setTimeout(
+                            function () {
+                                createCompletionList();
+                                delayedCommandTimeout = null;
+                            },
+                            displayDelayTime);
+                    }
+
+                    oldTextLength = textbox.value.length;
+                }, 0);
             break;
         }
     }
@@ -280,28 +289,86 @@ KeySnail.Prompt = function () {
         return row;
     }
 
+    function applyRow(aRow, aCells) {
+        var row = aRow;
+        
+        if (aCells.length > 1) {
+            var cell;
+
+            //   arg1 , arg2 , arg3 , ... ,
+            // | col1 | col2 | col3 | ... |
+            for (var i = 0; i < aCells.length; ++i) {
+                cell = row.childNodes[i];
+                cell.setAttribute("label", aCells[i]);
+            }
+        } else {
+            row.setAttribute("label", aCells[0]);
+        }
+    }
+
     function setListBox(aGeneralList, aOffset, aLength,
                         itemRetriever, onFinish) {
         var row;
         aOffset = aOffset || 0;
         var count = Math.min(listboxMaxRows, aLength) + aOffset;
 
-        removeAllChilds(listbox);
+        if (listbox.hasChildNodes()) {
+            // use listbox already created
+            var i, j;
+            var childs = listbox.childNodes;
+            var isMultiple = isMultipleList(aGeneralList);
 
-        if (isMultipleList(aGeneralList)) {
-            // multiple
-            setColumns(itemRetriever(0).length);
-            for (var i = aOffset; i < count; ++i) {
-                row = createRow(itemRetriever(i));
-                listbox.appendChild(row);
+            if (isMultiple) {
+                // multiple
+                for (i = aOffset, j = 0; i < count; ++i, ++j) {
+                    if (j < childs.length) {
+                        row = childs[j];
+                        applyRow(row, itemRetriever(i));
+                    } else {
+                        row = createRow(itemRetriever(i));
+                        listbox.appendChild(row);
+                    }
+                }
+            } else {
+                // normal
+                for (i = aOffset, j = 0; i < count; ++i, ++j) {
+                    if (j < childs.length) {
+                        row = childs[j];
+                        row.setAttribute("label", itemRetriever(i));
+                    } else {
+                        row = document.createElement("listitem");
+                        row.setAttribute("label", itemRetriever(i));
+                        listbox.appendChild(row);
+                    }
+                }
+            }
+
+            /**
+             * when multiple list, plus 1 (include listcols element)
+             */
+            if (isMultiple)
+                j++;
+
+            while (j < childs.length) {
+                listbox.removeChild(listbox.lastChild);
             }
         } else {
-            // normal
-            setColumns(1);
-            for (var i = aOffset; i < count; ++i) {
-                row = document.createElement("listitem");
-                row.setAttribute("label", itemRetriever(i));
-                listbox.appendChild(row);
+            // set up the new listbox
+            if (isMultipleList(aGeneralList)) {
+                // multiple
+                setColumns(itemRetriever(0).length);
+                for (var i = aOffset; i < count; ++i) {
+                    row = createRow(itemRetriever(i));
+                    listbox.appendChild(row);
+                }
+            } else {
+                // normal
+                setColumns(1);
+                for (var i = aOffset; i < count; ++i) {
+                    row = document.createElement("listitem");
+                    row.setAttribute("label", itemRetriever(i));
+                    listbox.appendChild(row);
+                }
             }
         }
 
@@ -500,14 +567,24 @@ KeySnail.Prompt = function () {
         setListBoxSelection(listBoxSelectionIndex);
     }
 
-    var currentRegexp;
     function selectorDisplayStatusbarLine(aQuery, aIndex, aTotalLength) {
-        modules.display.echoStatusBar("Completion Regexp Match for [" + aQuery + "]" +
-                                      " (" + (aIndex + 1) +  " / " + aTotalLength + ")");
+        if (aIndex < 0) {
+            modules.display.echoStatusBar("No match for [" + aQuery + "]");            
+        } else {
+            modules.display.echoStatusBar("Completion Regexp Match for [" + aQuery + "]" +
+                                          " (" + (aIndex + 1) +  " / " + aTotalLength + ")");            
+        }
     }
 
+    var currentRegexp;
     function selectNextCompletion(aDirection, aRing) {
         var nextIndex, totalLength;
+
+        if (!compIndexList && currentRegexp) {
+            selectorDisplayStatusbarLine(currentRegexp, -1);
+            return;
+        }
+
         if (compIndexList) {
             totalLength = compIndexList.length;
             nextIndex = getNextIndex(compIndex, aDirection, 0,
@@ -606,6 +683,7 @@ KeySnail.Prompt = function () {
             if (compIndexList.length == 0) {
                 compIndexList = null;
                 removeAllChilds(listbox);
+                selectorDisplayStatusbarLine(regexp, -1);
                 modules.display.echoStatusBar("No match for [" + regexp + "]");
                 return;
             }
@@ -707,6 +785,8 @@ KeySnail.Prompt = function () {
 
         promptbox.hidden   = true;
         listbox.hidden     = true;
+
+        removeAllChilds(listbox);
 
         textbox.value      = "";
         label.value        = "";
