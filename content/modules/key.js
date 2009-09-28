@@ -24,7 +24,6 @@ KeySnail.Key = {
     inputtingPrefixArgument : false,
 
     // ==== escape char ====
-    // useful to for the access key
     escapeCurrentChar: false,
 
     // ==== special keys ====
