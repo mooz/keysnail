@@ -31,7 +31,6 @@ KeySnail.Prompt = function () {
 
     // Options
     var isSelector = false;
-    var itemIndexToUse = 0;
 
     var substrMatch = true;
     var ignoreDuplication = true;
@@ -48,6 +47,7 @@ KeySnail.Prompt = function () {
     // ListBox settings
     var currentList;
     var currentIndexList;
+    var typeList;
 
     // Migemo
     var useMigemo = true;
@@ -250,9 +250,20 @@ KeySnail.Prompt = function () {
     }
 
     function setColumns(aColumn) {
+        var hasIcon = false;
+
+        if (typeList) {
+            typeList.forEach(
+                function (flag) {
+                    hasIcon |= (flag & modules.ICON);
+                    if (flag & (modules.HIDDEN | modules.ICON))
+                        aColumn--;
+                });
+        }
+
         removeAllChilds(listbox);
 
-        if (aColumn > 1) {
+        if (aColumn > 1 || hasIcon) {
             var listcols = document.createElement("listcols");
 
             var item;
@@ -278,17 +289,92 @@ KeySnail.Prompt = function () {
         }
     }
 
+    // ============================== RICH {{ ============================== //
+
+    // function createIconCell(aSrc) {
+    //     var cell = document.createElement("vbox");
+    //     var icon = document.createElement("image");
+    //     icon.setAttribute("style", "width:16px;height:16px");
+    //     icon.setAttribute("src", aSrc);
+    //     cell.appendChild(icon);
+
+    //     return cell;
+    // }
+
+    // function createTextCell(aLabel) {
+    //     var cell = document.createElement("description");
+    //     // cell.setAttribute("flex", "1");
+    //     cell.setAttribute("value", aLabel);
+
+    //     return cell;
+    // }
+
+    // function createRichRow(aCells) {
+    //     var row = document.createElement("richlistitem");
+    //     var cell;
+
+    //     for (var i = 0; i < aCells.length; ++i) {
+    //         if (i == iconIndex) {
+    //             cell = createIconCell(aCells[i]);
+    //         } else {
+    //             cell = createTextCell(aCells[i]);
+    //         }
+    //         row.appendChild(cell);
+    //     }
+
+    //     return row;
+    // }
+
+    // function applyRichRow(aRow, aCells) {
+    //     var cell;
+
+    //     for (var i = 0; i < aCells.length; ++i) {
+    //         if (i == iconIndex) {
+    //             cell = aRow.childNodes[i].firstChild;
+    //             cell.setAttribute("src", aCells[i]);
+    //         } else {
+    //             cell = aRow.childNodes[i];
+    //             cell.setAttribute("value", aCells[i]);
+    //         }
+    //     }
+    // }
+
+    // ============================== }} RICH ============================== //
+
+    function isFlagOn(i, aFlag) {
+        return (typeList && (typeList[i] & aFlag));
+    }
+
+    function getNextVisibleRowIndex(aCurrentIndex) {
+        for (var i = aCurrentIndex + 1; i < typeList.length; ++i) {
+            if (!isFlagOn(i, modules.HIDDEN))
+                break;
+        }
+
+        return i;
+    }
+
     function createRow(aCells) {
         var row = document.createElement("listitem");
 
         if (aCells.length > 1) {
             var cell;
 
-            //   arg1 , arg2 , arg3 , ... ,
-            // | col1 | col2 | col3 | ... |
             for (var i = 0; i < aCells.length; ++i) {
+                if (isFlagOn(i, modules.HIDDEN))
+                    continue;
+
                 cell = document.createElement("listcell");
-                cell.setAttribute("label", aCells[i]);
+
+                if (isFlagOn(i, modules.ICON)) {
+                    cell.setAttribute("class", "listcell-iconic");
+                    cell.setAttribute("image", aCells[i]);
+                    i = getNextVisibleRowIndex(i);
+                }
+
+                if (i < aCells.length)
+                    cell.setAttribute("label", aCells[i]);
+
                 row.appendChild(cell);
             }
         } else {
@@ -299,16 +385,22 @@ KeySnail.Prompt = function () {
     }
 
     function applyRow(aRow, aCells) {
-        var row = aRow;
-        
         if (aCells.length > 1) {
-            var cell;
+            var cell = aRow.firstChild;
 
-            //   arg1 , arg2 , arg3 , ... ,
-            // | col1 | col2 | col3 | ... |
             for (var i = 0; i < aCells.length; ++i) {
-                cell = row.childNodes[i];
-                cell.setAttribute("label", aCells[i]);
+                if (isFlagOn(i, modules.HIDDEN))
+                    continue;
+
+                if (isFlagOn(i, modules.ICON)) {
+                    cell.setAttribute("image", aCells[i]);
+                    i = getNextVisibleRowIndex(i);
+                }
+
+                if (i < aCells.length)
+                    cell.setAttribute("label", aCells[i]);
+
+                cell = cell.nextSibling;
             }
         } else {
             row.setAttribute("label", aCells[0]);
@@ -328,14 +420,12 @@ KeySnail.Prompt = function () {
 
             var i = aOffset, j = 0;
 
-            /**
-             * when the list is multiple, ignore 'listcols' element (childs[0])
-             */
             if (isMultiple) {
+                /**
+                 * when the list is multiple, ignore 'listcols' element (childs[0])
+                 */
                 j++;
-            }
 
-            if (isMultiple) {
                 // multiple
                 for (; i < count; ++i, ++j) {
                     if (j < childs.length) {
@@ -588,12 +678,14 @@ KeySnail.Prompt = function () {
     }
 
     var currentRegexp;
-    var currentSelectorIndex;
+    var selectorIndexToPass;
     function selectNextCompletion(aDirection, aRing) {
         var nextIndex, totalLength;
 
         if (!compIndexList && currentRegexp) {
             selectorDisplayStatusbarLine(currentRegexp, -1);
+            // set index to pass
+            selectorIndexToPass = -1;
             return;
         }
 
@@ -602,11 +694,15 @@ KeySnail.Prompt = function () {
             nextIndex = getNextIndex(compIndex, aDirection, 0,
                                      compIndexList.length, aRing);
             compIndex = nextIndex;
+            // set index to pass
+            selectorIndexToPass = compIndexList[nextIndex];
         } else {
             totalLength = completion.list.length;
             nextIndex = getNextIndex(completion.index, aDirection, 0,
                                      completion.list.length, aRing);
             completion.index = nextIndex;
+            // set index to pass
+            selectorIndexToPass = nextIndex;
         }
 
         setListBoxSelection(nextIndex);
@@ -616,6 +712,7 @@ KeySnail.Prompt = function () {
     function createCompletionList() {
         if (!completion.list || !completion.list.length) {
             modules.display.echoStatusBar("No " + completion.name + " found", 1000);
+            selectorIndexToPass = -1;
             return;
         }
 
@@ -630,6 +727,7 @@ KeySnail.Prompt = function () {
             setRows(completion.list.length);
             listbox.hidden = false;
             compIndex = 0;
+            index = 0;
             currentRegexp = "";
         } else {
             var listLen = completion.list.length;
@@ -652,26 +750,47 @@ KeySnail.Prompt = function () {
             var matcher;
             if (isMultipleList(completion.list)) {
                 // multiple cols
-                matcher = (useMigemoActual) ?
-                    // use migemo
-                    function () {
-                        return completion.list[i].some(
-                            function (item) {
-                                return item.match(migexp, "i");
-                            });
-                    }
-                // multiple regexp matching
-                : function () {
-                    return keywords.every(
-                        function (keyword) {
+                if (typeList) {
+                    matcher = (useMigemoActual) ?
+                        function () {
                             return completion.list[i].some(
-                                function (item) {
-                                    return item.match(keyword, "i");
-                                }
-                            );
+                                function (item, i) {
+                                    return (typeList && !(typeList[i] & modules.IGNORE)) && item.match(migexp, "i");
+                                });
                         }
-                    );
-                };
+                    : function () {
+                        return keywords.every(
+                            function (keyword) {
+                                return completion.list[i].some(
+                                    function (item, i) {
+                                        return (typeList && !(typeList[i] & modules.IGNORE)) && item.match(keyword, "i");
+                                    }
+                                );
+                            }
+                        );
+                    };  
+                } else {
+                    matcher = (useMigemoActual) ?
+                        // use migemo
+                        function () {
+                            return completion.list[i].some(
+                                function (item, i) {
+                                    return item.match(migexp, "i");
+                                });
+                        }
+                    // multiple regexp matching
+                    : function () {
+                        return keywords.every(
+                            function (keyword) {
+                                return completion.list[i].some(
+                                    function (item, i) {
+                                        return item.match(keyword, "i");
+                                    }
+                                );
+                            }
+                        );
+                    };   
+                }
             } else {
                 // single col
                 matcher = (useMigemoActual) ?
@@ -700,6 +819,7 @@ KeySnail.Prompt = function () {
                 removeAllChilds(listbox);
                 selectorDisplayStatusbarLine(regexp, -1);
                 modules.display.echoStatusBar("No match for [" + regexp + "]");
+                selectorIndexToPass = -1;
                 return;
             }
 
@@ -713,6 +833,8 @@ KeySnail.Prompt = function () {
             setRows(compIndexList.length);
             listbox.hidden = false;
         }
+
+        selectorIndexToPass = index;
 
         setListBoxSelection(0);
         selectorDisplayStatusbarLine(currentRegexp, compIndex,
@@ -778,10 +900,11 @@ KeySnail.Prompt = function () {
             readStr = null;
         } else {
             if (isSelector) {
-                var item = listbox.selectedItem;
-                readStr = isMultipleList(completion.list) ? 
-                    item.childNodes[itemIndexToUse].getAttribute("label") :
-                    item.getAttribute("label");
+                readStr = selectorIndexToPass;
+                // var item = listbox.selectedItem;
+                // readStr = isMultipleList(completion.list) ? 
+                //     item.childNodes[itemIndexToUse].getAttribute("label") :
+                //     item.getAttribute("label");
             } else {
                 readStr = textbox.value;
             }
@@ -857,6 +980,11 @@ KeySnail.Prompt = function () {
                 // this holds all history and
                 historyHolder = new Object;
                 historyHolder["default"] = [];
+
+                // set up flags
+                modules.HIDDEN = 1;
+                modules.IGNORE = 2;
+                modules.ICON   = 4;
             }
         },
 
@@ -971,25 +1099,31 @@ KeySnail.Prompt = function () {
                 this.modules.display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
+            
+            // 
+            // prompt.selector({message: "pattern:",
+            //                  collection: my.hblist,
+            //                  typelist: [ICON | IGNORE, 0, 0, HIDDEN],
+            //                  callback: function (aIndex) {
+            //                      if (aIndex > 0) {
+            //                          gBrowser.loadOneTab(my.hblist[aIndex][3], null, null, null, false);
+            //                      }
+            //                  }});
 
-            var aMsg            = aContext.message;
-            var aCallback       = aContext.callback;
-            var aCollection     = aContext.collection;
-            var aItemIndexToUse = aContext.itemIndexToUse;
-
-            savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
+            savedFocusedElement = document.commandDispatcher.focusedElement || content.window;
 
             // tell current command is the selector
             isSelector = true;
 
             // set up completion
-            completion.list = aCollection;
+            completion.list = aContext.collection;
+            typeList = aContext.typelist;
 
             // set up callbacks
-            currentCallback = aCallback;
+            currentCallback = aContext.callback;
 
             // display prompt box
-            label.value = aMsg;
+            label.value = aContext.message;
             promptbox.hidden = false;
             // do not set selection value till textbox appear (cause crash)
             textbox.selectionStart = textbox.selectionEnd = 0;
@@ -1007,12 +1141,12 @@ KeySnail.Prompt = function () {
 
             oldTextLength = 0;
 
-            if (isMultipleList(aCollection)) {
-                if (aItemIndexToUse)
-                    itemIndexToUse = (aItemIndexToUse < aCollection.length) ? aItemIndexToUse : 0;
-                else
-                    itemIndexToUse = 0;
-            }
+            // if (isMultipleList(aContext.collection)) {
+            //     if (aItemIndexToUse)
+            //         itemIndexToUse = (aItemIndexToUse < aContext.collection.length) ? aItemIndexToUse : 0;
+            //     else
+            //         itemIndexToUse = 0;
+            // }
 
             modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
 

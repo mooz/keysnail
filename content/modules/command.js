@@ -262,50 +262,39 @@ KeySnail.Command = {
     },
 
     bookMarkToolBarJumpTo: function (aEvent, aArg) {
-        // if (!aArg || aArg < 0)
-        //     aArg = 1;
-
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
         var items = toolbarBookMarks.getElementsByTagName('toolbarbutton');
 
         var urlList = [];
 
-        // [[url1, title1],
-        //  [url2, title2],
-        //  [url3, title3], ...]
+        var IOService = Components.classes['@mozilla.org/network/io-service;1']
+            .getService(Components.interfaces.nsIIOService);
+        var iconURL;
+
         for (var i = 0; i < items.length; ++i) {
             if (items[i].node.uri.match(/^(https?|ftp):/)) {
-                urlList.push([items[i].node.uri, items[i].label]);
+                try {
+                    var icon = PlacesUtils.favicons.getFaviconForPage(IOService.newURI(items[i].node.uri, null, null));
+                    iconURL = icon.spec;
+                } catch (x) {
+                    iconURL = "chrome://mozapps/skin/places/defaultFavicon.png";
+                }
+
+                urlList.push([iconURL, items[i].label, items[i].node.uri]);
             }
         }
-
-        // if (aArg > urlList.length - 1)
-        //     aArg = urlList.length;
 
         with (this.modules) {
             prompt.selector({message: "Pattern: ",
                              collection: urlList,
-                             callback: function (aStr) {
-                                 if (aStr) {
-                                     key.viewURI(aStr);
+                             typelist: [ICON | IGNORE, 0, 0],
+                             callback: function (aIndex) {
+                                 if (aIndex >= 0) {
+                                     gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, false);
                                  }
                              }
                             });
         }
-
-        // with (this.modules) {
-        // prompt.read("Places:",
-        //             function (aStr) {
-        //                 if (aStr) {
-        //                     key.viewURI(aStr);
-        //                 }
-        //             },
-        //             null,
-        //             urlList,
-        //             urlList[aArg - 1][0],
-        //             aArg - 1,
-        //             "url");
-        // }
     },
 
     autoCompleteHandleKey: function (aKeyEvent) {

@@ -9,9 +9,11 @@
     font-weight: bold;
 }
 
-/* font-family: -moz-fixed; */
-
 #keysnail-prompt {
     -moz-appearance: none !important;
 }
 
+listbox#keysnail-completion-list * .listcell-icon {
+    width: 16px;
+    height: 16px;
+}
