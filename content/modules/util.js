@@ -507,5 +507,30 @@ KeySnail.Util = {
         return rv;
     },
 
+    /**
+     * return favicon path of the page specified by <aUrl>
+     * @param {string} aURL url of the page
+     * @param {string} aDefault default favicon path
+     * @returns {string} favicon path
+     */
+    getFaviconPath: function (aURL, aDefault) {
+        if (!this.IOService) {
+            this.IOService = Components.classes['@mozilla.org/network/io-service;1']
+            .getService(Components.interfaces.nsIIOService);            
+        }
+
+        var iconURL;
+
+        try {
+            var icon = PlacesUtils.favicons
+                .getFaviconForPage(this.IOService.newURI(aURL, null, null));
+            iconURL = icon.spec;
+        } catch (x) {
+            iconURL = aDefault || "chrome://mozapps/skin/places/defaultFavicon.png";
+        }
+
+        return iconURL;
+    },
+
     message: KeySnail.message
 };

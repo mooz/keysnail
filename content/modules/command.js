@@ -267,27 +267,21 @@ KeySnail.Command = {
 
         var urlList = [];
 
-        var IOService = Components.classes['@mozilla.org/network/io-service;1']
-            .getService(Components.interfaces.nsIIOService);
-        var iconURL;
-
         for (var i = 0; i < items.length; ++i) {
             if (items[i].node.uri.match(/^(https?|ftp):/)) {
-                try {
-                    var icon = PlacesUtils.favicons.getFaviconForPage(IOService.newURI(items[i].node.uri, null, null));
-                    iconURL = icon.spec;
-                } catch (x) {
-                    iconURL = "chrome://mozapps/skin/places/defaultFavicon.png";
-                }
-
-                urlList.push([iconURL, items[i].label, items[i].node.uri]);
+                urlList.push([
+                                 this.modules.util.getFaviconPath(items[i].node.uri),
+                                 items[i].label,
+                                 items[i].node.uri
+                             ]);
             }
         }
 
         with (this.modules) {
             prompt.selector({message: "Pattern: ",
-                             collection: urlList,
+                             collection: urlList, // [icon, url, title]
                              typelist: [ICON | IGNORE, 0, 0],
+                             header: ["Title", "URL"],
                              callback: function (aIndex) {
                                  if (aIndex >= 0) {
                                      gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, false);
@@ -820,10 +814,6 @@ KeySnail.Command = {
 
             kill.index++;
             if (kill.index >= kill.ring.length) {
-                // modules.display.echoStatusBar("No further items in kill ring", 2000);
-                // insertKillRingText(input, -1, true);
-                // originalText = null;
-                // return;
                 kill.index = 0;
             }
 
@@ -997,19 +987,17 @@ KeySnail.Command = {
     // ==================== Complete move ==================== //
 
     moveTop: function (aEvent) {
-        if (this.marked(aEvent)) {
-            goDoCommand('cmd_selectTop');
-        } else {
-            goDoCommand('cmd_moveTop');
-        }
+        this.inputHandleKey(aEvent,
+                            'cmd_moveTop',
+                            'cmd_selectTop',
+                            KeyEvent.DOM_VK_HOME);
     },
 
     moveBottom: function (aEvent) {
-        if (this.marked(aEvent)) {
-            goDoCommand('cmd_selectBottom');
-        } else {
-            goDoCommand('cmd_moveBottom');
-        }
+        this.inputHandleKey(aEvent,
+                            'cmd_moveBottom',
+                            'cmd_selectBottom',
+                            KeyEvent.DOM_VK_END);
     },
 
     // ==================== Mark ====================

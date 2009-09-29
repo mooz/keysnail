@@ -6,8 +6,10 @@
  */
 
 KeySnail.Prompt = function () {
-    // ================ private ================ //
-
+    /**
+     * @private
+     */
+    
     const Cc = Components.classes;
     const Ci = Components.interfaces;
 
@@ -27,31 +29,44 @@ KeySnail.Prompt = function () {
     var currentCallback;
     var currentUserArg;
 
+    // Saved last user focsed element
     var savedFocusedElement;
 
-    // Options
-    var isSelector = false;
+    // ==================== Options ==================== //
 
+    var isSelector = false;
     var substrMatch = true;
     var ignoreDuplication = true;
 
+    // Migemo
+    var useMigemo = true;
+    var migemoMinWordLength = 2;
+
+    var listboxMaxRows = 12;    // max row count of the list
+
+    // ==================== Current State ==================== //
+
+    // -------------------- prompt.read specific -------------------- //
+
     var currentHead;
     var currentSubstr;
-    var compIndex;
-    var compIndexList;
     var inNormalCompletion = false;
 
-    var listboxMaxRows = 10;
-    var listboxRows;
+    // -------------------- common -------------------- //
+
+    var compIndex;
+    var compIndexList;
+
+    var listboxRows;            // actual listbox row count
+    var listboxColumns;         // actual listbox column count
 
     // ListBox settings
     var currentList;
     var currentIndexList;
     var typeList;
+    var listHeader;
 
-    // Migemo
-    var useMigemo = true;
-    var migemoMinWordLength = 2;
+    // ============================== completion type ============================== //
 
     // History
     var historyHolder;
@@ -70,9 +85,587 @@ KeySnail.Prompt = function () {
         name: "Completion"
     };
 
-    function onBlur() {
-        finish(true);
+    // ============================== prompt common functions ============================== //
+
+    function resetState(aType) {
+        aType.index = 0;
+        aType.state = false;
     }
+
+    function getNextIndex(aCurrent, aDirection, aMin, aMax, aRing) {
+        var index = aCurrent + aDirection;
+        if (index < aMin)
+            index = aRing ? aMax - 1 : aMin;
+        if (index >= aMax)
+            index = aRing ? 0 : aMax - 1;
+
+        return index;
+    }
+
+    function isMultipleList(aList) {
+        return (typeof(aList) == 'object' && typeof(aList[0]) == 'object');
+    }
+
+    function getListText(aList, aIndex, aCellNum) {
+        if (aCellNum == undefined)
+            aCellNum = 0;
+
+        return isMultipleList(aList) ?
+            aList[aIndex][aCellNum] : aList[aIndex];
+    }
+
+    function isFlagOn(i, aFlag) {
+        return (typeList && (typeList[i] & aFlag));
+    }
+
+    // ============================== common DOM manipulation ============================== //
+
+    function setColumns(aColumn) {
+        var hasIcon = false;
+
+        if (typeList) {
+            typeList.forEach(
+                function (flag) {
+                    hasIcon |= (flag & modules.ICON);
+                    if (flag & (modules.HIDDEN | modules.ICON))
+                        aColumn--;
+                });
+        }
+
+        removeAllChilds(listbox);
+
+        if (aColumn > 1 || hasIcon) {
+            var item;
+            var head = document.createElement("listhead");
+            var cols = document.createElement("listcols");
+
+            for (var i = 0; i < aColumn; ++i) {
+                if (listHeader) {
+                    item = document.createElement("listheader");
+                    item.flex = 1;
+                    item.setAttribute("label", listHeader[i]);
+                    head.appendChild(item);
+                }
+
+                item = document.createElement("listcol");
+                item.flex = 1;
+                item.setAttribute("width", (100 / aColumn).toString() + "%");
+                cols.appendChild(item);
+            }
+
+            listbox.appendChild(head);
+            listbox.appendChild(cols);
+        }
+
+        listboxColumns = aColumn;
+    }
+
+    function setRows(aRow) {
+        listboxRows = (aRow < listboxMaxRows) ? aRow : listboxMaxRows; 
+        listbox.setAttribute("rows", listboxRows);
+    }
+
+    function removeAllChilds(aElement) {
+        while (aElement.hasChildNodes()) {
+            aElement.removeChild(aElement.firstChild);
+        }
+    }
+
+    function getNextVisibleRowIndex(aCurrentIndex) {
+        for (var i = aCurrentIndex + 1; i < typeList.length; ++i) {
+            if (!isFlagOn(i, modules.HIDDEN))
+                break;
+        }
+
+        return i;
+    }
+
+    function createRow(aCells) {
+        var row = document.createElement("listitem");
+
+        if (aCells.length > 1) {
+            var cell;
+
+            for (var i = 0; i < aCells.length; ++i) {
+                if (isFlagOn(i, modules.HIDDEN))
+                    continue;
+
+                cell = document.createElement("listcell");
+
+                if (isFlagOn(i, modules.ICON)) {
+                    cell.setAttribute("class", "listcell-iconic");
+                    cell.setAttribute("image", aCells[i]);
+                    i = getNextVisibleRowIndex(i);
+                }
+
+                if (i < aCells.length) {
+                    cell.setAttribute("label", aCells[i]); 
+                    if (isFlagOn(i, modules.RIGHT))
+                        cell.setAttribute("style", "text-align:right");
+                }
+
+                row.appendChild(cell);
+            }
+        } else {
+            row.setAttribute("label", aCells[0]);
+            if (isFlagOn(0, modules.RIGHT))
+                row.setAttribute("style", "text-align:right");
+        }
+
+        return row;
+    }
+
+    function applyRow(aRow, aCells) {
+        if (aCells.length > 1) {
+            var cell = aRow.firstChild;
+
+            for (var i = 0; i < aCells.length; ++i) {
+                if (isFlagOn(i, modules.HIDDEN))
+                    continue;
+
+                if (isFlagOn(i, modules.ICON)) {
+                    cell.setAttribute("image", aCells[i]);
+                    i = getNextVisibleRowIndex(i);
+                }
+
+                if (i < aCells.length)
+                    cell.setAttribute("label", aCells[i]);
+
+                cell = cell.nextSibling;
+            }
+        } else {
+            row.setAttribute("label", aCells[0]);
+        }
+    }
+
+    function setListBoxSelection(aIndex) {
+        var center = Math.round(listboxRows / 2);
+        var pos;
+        var listLen = currentIndexList ? currentIndexList.length : currentList.length;
+
+        if (listLen <= listboxRows) {
+            // just change the selected index of the listbox
+            listbox.currentIndex = listbox.selectedIndex = aIndex;            
+            return;
+        }
+
+        if (aIndex <= center)
+        {
+            setupList(0, aIndex);
+        }
+        else if (aIndex >= listLen - center)
+        {
+            setupList(listLen - listboxRows, listboxRows - (listLen - aIndex));
+        } else
+        {
+            setupList(aIndex - center, center);
+        }
+    }
+
+    function setupList(aOffset, aPos) {
+        if (currentIndexList) {
+            setListBoxFromIndexList(currentList, currentIndexList, aOffset);                
+        } else {
+            setListBoxFromStringList(currentList, aOffset);                
+        }
+
+        // set selection of the listbox
+        listbox.currentIndex = listbox.selectedIndex = aPos;
+    }
+
+    function setListBoxFromStringList(aList, aOffset) {
+        setListBoxGeneral(aList, aOffset, aList.length,
+                   function (i) { return aList[i]; },
+                   function () {
+                       currentList      = aList;
+                       currentIndexList = null;
+                   });
+    }
+
+    function setListBoxFromIndexList(aList, aIndexList, aOffset) {
+        setListBoxGeneral(aList, aOffset, aIndexList.length,
+                   function (i) { return aList[aIndexList[i]]; },
+                   function () {
+                       currentList      = aList;
+                       currentIndexList = aIndexList;
+                   });
+    }
+
+    function setListBoxGeneral(aGeneralList, aOffset, aLength, itemRetriever, onFinish) {
+        aOffset = aOffset || 0;
+        var count = Math.min(listboxMaxRows, aLength) + aOffset;
+        var row;
+
+        if (listbox.hasChildNodes()) {
+            // use listbox already created
+            var childs = listbox.childNodes;
+            var isMultiple = isMultipleList(aGeneralList);
+
+            var i = aOffset, j = 0;
+
+            // skip listcols, listhead, ...
+            while (childs[j].nodeName != "listitem")
+                j++;
+
+            if (isMultiple) {
+                // multiple
+                for (; i < count; ++i, ++j) {
+                    if (j < childs.length) {
+                        row = childs[j];
+                        applyRow(row, itemRetriever(i));
+                    } else {
+                        row = createRow(itemRetriever(i));
+                        listbox.appendChild(row);
+                    }
+                }
+            } else {
+                // normal
+                for (; i < count; ++i, ++j) {
+                    if (j < childs.length) {
+                        row = childs[j];
+                        row.setAttribute("label", itemRetriever(i));
+                    } else {
+                        row = document.createElement("listitem");
+                        row.setAttribute("label", itemRetriever(i));
+                        listbox.appendChild(row);
+                    }
+                }
+            }
+
+            while (j < childs.length) {
+                listbox.removeChild(listbox.lastChild);
+            }
+        } else {
+            // set up the new listbox
+            if (isMultipleList(aGeneralList)) {
+                // multiple
+                setColumns(itemRetriever(0).length);
+                for (var i = aOffset; i < count; ++i) {
+                    row = createRow(itemRetriever(i));
+                    listbox.appendChild(row);
+                }
+            } else {
+                // normal
+                setColumns(1);
+                for (var i = aOffset; i < count; ++i) {
+                    row = document.createElement("listitem");
+                    row.setAttribute("label", itemRetriever(i));
+                    listbox.appendChild(row);
+                }
+            }
+        }
+
+        onFinish();
+    }
+
+    // ============================== prompt.selector main ============================== //
+
+    var oldTextLength = 0;
+    var displayDelayTime = 300;
+    var delayedCommandTimeout;
+
+    var currentRegexp;
+    var selectorIndexToPass;
+
+    /**
+     * Update the list when user input / delete the text
+     * @param {KeyBoardEvent} aEvent event which called this handler
+     */
+    function handleKeyUpSelector(aEvent) {
+        /**
+         * Without this cause exception about selection
+         */
+        if (!currentCallback)
+            return;
+
+        if (textbox.value.length != oldTextLength) {
+            if (delayedCommandTimeout) {
+                // self.message(delayedCommandTimeout + " :: clear");
+                clearTimeout(delayedCommandTimeout);
+            }
+
+            // add delay
+            delayedCommandTimeout = setTimeout(
+                function () {
+                    createCompletionList();
+                    delayedCommandTimeout = null;
+                },
+                displayDelayTime);
+        }
+
+        oldTextLength = textbox.value.length;
+    }
+
+    /**
+     * KeyPress Event handler for prompt.selector
+     * @param {KeyBoardEvent} aEvent event which called this handler
+     */
+    function handleKeyPressSelector(aEvent) {
+        switch (aEvent.keyCode) {
+        case KeyEvent.DOM_VK_ESCAPE:
+            // cancel
+            finish(true);
+            break;
+        case KeyEvent.DOM_VK_RETURN:
+        case KeyEvent.DOM_VK_ENTER:
+            finish();
+            break;
+        case KeyEvent.DOM_VK_UP:
+            selectNextCompletion(-1, true);
+            break;
+        case KeyEvent.DOM_VK_DOWN:
+            selectNextCompletion(1, true);
+            break;
+        case KeyEvent.DOM_VK_PAGE_DOWN:
+            selectNextCompletion(listboxRows, true);
+            break;
+        case KeyEvent.DOM_VK_PAGE_UP:
+            selectNextCompletion(-listboxRows, true);
+            break;
+        case KeyEvent.DOM_VK_HOME:
+            setListBoxSelection(0);
+            setListBoxIndex(0);
+            break;
+        case KeyEvent.DOM_VK_END:
+            var lastIndex = (currentIndexList ? currentIndexList.length : currentList.length) - 1;
+            setListBoxIndex(lastIndex);
+            setListBoxSelection(lastIndex);
+            break;
+        case KeyEvent.DOM_VK_TAB:
+            modules.util.stopEventPropagation(aEvent);
+            selectNextCompletion(aEvent.shiftKey ? -1 : 1, true);
+            break;
+        default:
+            break;
+        }
+    }
+
+    /**
+     * KeyPress Event handler for prompt.selector
+     * @param {KeyBoardEvent} aEvent event which called this handler
+     */
+    function handleMouseWheelSelector(aEvent) {
+        switch (aEvent.keyCode) {
+        case KeyEvent.DOM_VK_ESCAPE:
+            // cancel
+            finish(true);
+            break;
+        case KeyEvent.DOM_VK_RETURN:
+        case KeyEvent.DOM_VK_ENTER:
+            finish();
+            break;
+        case KeyEvent.DOM_VK_UP:
+            selectNextCompletion(-1, true);
+            break;
+        case KeyEvent.DOM_VK_DOWN:
+            selectNextCompletion(1, true);
+            break;
+        case KeyEvent.DOM_VK_PAGE_DOWN:
+            selectNextCompletion(listboxRows, true);
+            break;
+        case KeyEvent.DOM_VK_PAGE_UP:
+            selectNextCompletion(-listboxRows, true);
+            break;
+        case KeyEvent.DOM_VK_HOME:
+            setListBoxSelection(0);
+            setListBoxIndex(0);
+            break;
+        case KeyEvent.DOM_VK_END:
+            var lastIndex = (currentIndexList ? currentIndexList.length : currentList.length) - 1;
+            setListBoxIndex(lastIndex);
+            setListBoxSelection(lastIndex);
+            break;
+        case KeyEvent.DOM_VK_TAB:
+            modules.util.stopEventPropagation(aEvent);
+            selectNextCompletion(aEvent.shiftKey ? -1 : 1, true);
+            break;
+        default:
+            break;
+        }
+    }
+
+    function setListBoxIndex(aIndex) {
+        if (compIndexList) {
+            compIndex = aIndex;
+            selectorIndexToPass = compIndexList[aIndex];
+        } else {
+            completion.index = aIndex;
+            selectorIndexToPass = aIndex;
+        }
+    }
+
+    function selectorDisplayStatusbarLine(aQuery, aIndex, aTotalLength) {
+        if (aIndex < 0) {
+            modules.display.echoStatusBar("No match for [" + aQuery + "]");            
+        } else {
+            modules.display.echoStatusBar("Completion Regexp Match for [" + aQuery + "]" +
+                                          " (" + (aIndex + 1) +  " / " + aTotalLength + ")");            
+        }
+    }
+
+    function selectNextCompletion(aDirection, aRing) {
+        var nextIndex, currentIndex, totalLength;
+
+        if (!compIndexList && currentRegexp) {
+            selectorDisplayStatusbarLine(currentRegexp, -1);
+            // set index to pass
+            selectorIndexToPass = -1;
+            return;
+        }
+
+        if (compIndexList) {
+            // with regexp
+            nextIndex    = getNextIndex(compIndex, aDirection, 0, compIndexList.length, aRing);
+            currentIndex = compIndex;
+            totalLength  = compIndexList.length;
+            // set global value
+            compIndex    = nextIndex;
+            selectorIndexToPass = compIndexList[nextIndex];
+        } else {
+            // whole list
+            nextIndex        = getNextIndex(completion.index, aDirection, 0, completion.list.length, aRing);
+            currentIndex     = completion.index;
+            totalLength      = completion.list.length;
+            // set global value
+            completion.index = nextIndex;
+            selectorIndexToPass = nextIndex;
+        }
+
+        setListBoxSelection(nextIndex, currentIndex);
+        selectorDisplayStatusbarLine(currentRegexp, nextIndex, totalLength);
+    }
+
+    function createCompletionList() {
+        if (!completion.list || !completion.list.length) {
+            modules.display.echoStatusBar("No " + completion.name + " found", 1000);
+            selectorIndexToPass = -1;
+            return;
+        }
+
+        var index;
+        var start = textbox.selectionStart;
+
+        if (start == 0) {
+            // create list of whole completion
+            compIndexList = null;
+            setListBoxFromStringList(completion.list);
+            setRows(completion.list.length);
+            listbox.hidden = false;
+            completion.index = index = 0;
+            currentRegexp = "";
+        } else {
+            var listLen = completion.list.length;
+            var regexp = textbox.value;
+
+            var substrIndex;
+
+            // generate new completion list
+            compIndexList = [];
+            compIndex = 0;
+
+            var keywords = regexp.split(" ");
+            var useMigemoActual = (useMigemo &&
+                                   window.xulMigemoCore &&
+                                   keywords.every(function (aStr) aStr.length >= migemoMinWordLength));
+
+            if (useMigemoActual)
+                var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
+
+            var cellForSearch;
+            if (typeList) {
+                cellForSearch = [];
+                typeList.forEach(
+                    function (flag, i) {
+                        if (!(flag & modules.IGNORE))
+                            cellForSearch.push(i);
+                    });
+            }
+
+            // modules.display.prettyPrint(cellForSearch.toString());
+
+            var matcher;
+            if (isMultipleList(completion.list)) {
+                // multiple cols
+                if (cellForSearch) {
+                    // user specified the cells to ignore
+                    matcher = (useMigemoActual) ?
+                        function () {
+                            return cellForSearch.some(
+                                function (j) {
+                                    return completion.list[i][j].match(migexp, "i");
+                                });
+                        }
+                    : function () {
+                        return keywords.every(
+                            function (keyword) {
+                                return cellForSearch.some(
+                                    function (j) {
+                                        return completion.list[i][j].match(keyword, "i");
+                                    }
+                                );
+                            }
+                        );
+                    };  
+                } else {
+                    matcher = (useMigemoActual) ?
+                        function () {
+                            return completion.list[i].some(function (item) { return item.match(migexp, "i"); });
+                        }
+                    : function () {
+                        return keywords.every(
+                            function (keyword) {
+                                return completion.list[i].some(
+                                    function (item, i) { return item.match(keyword, "i"); }
+                                );
+                            }
+                        );
+                    };   
+                }
+            } else {
+                // single col
+                matcher = (useMigemoActual) ?
+                    function () { return completion.list[i].match(migexp, "i"); }
+                : function () {
+                    return keywords.every(
+                        function (keyword) { return completion.list[i].match(keyword, "i"); }
+                    );
+                };
+            }
+             
+            for (var i = 0; i < listLen; ++i) {
+                if (matcher()) {
+                    compIndexList.push(i);
+                }
+            }
+
+            if (compIndexList.length == 0) {
+                // no candidates found
+                removeAllChilds(listbox);
+                compIndexList = null;
+                currentRegexp = regexp;
+                selectorDisplayStatusbarLine(regexp, -1);
+                selectorIndexToPass = -1;
+                return;
+            }
+
+            index = compIndexList[0];
+            currentRegexp = regexp;
+
+            setListBoxFromIndexList(completion.list, compIndexList);
+
+            // show
+            setRows(compIndexList.length);
+            listbox.hidden = false;
+        }
+
+        selectorIndexToPass = index;
+
+        setListBoxSelection(0);
+        selectorDisplayStatusbarLine(currentRegexp, 0,
+                                     compIndexList ? compIndexList.length : completion.list.length);
+    }
+
+    // ============================== prompt.read main ============================== //
 
     function resetReadState() {
         currentHead = null;
@@ -168,386 +761,6 @@ KeySnail.Prompt = function () {
         default:
             break;
         }
-    }
-
-    var oldTextLength = 0;
-    var displayDelayTime = 300;
-    var delayedCommandTimeout;
-    // var holder = {};
-
-    function setupSelector() {
-        /**
-         * Without this cause exception about selection
-         */
-        if (!currentCallback)
-            return;
-
-        if (textbox.value.length != oldTextLength) {
-            if (delayedCommandTimeout) {
-                // self.message(delayedCommandTimeout + " :: clear");
-                clearTimeout(delayedCommandTimeout);
-                // delete holder[delayedCommandTimeout];
-            }
-
-            // add delay
-            delayedCommandTimeout = setTimeout(
-                function () {
-                    createCompletionList();
-                    // self.message(delayedCommandTimeout + " :: executed :: " + (new Date() - holder[delayedCommandTimeout]) + " msec");
-                    // delete holder[delayedCommandTimeout];
-                    delayedCommandTimeout = null;
-                },
-                displayDelayTime);
-
-            // holder[delayedCommandTimeout] = new Date();
-            // self.message(delayedCommandTimeout + " :: set");
-        }
-
-        oldTextLength = textbox.value.length;
-    }
-
-    function handleKeyUpSelector(aEvent) {
-        setupSelector();
-    }
-
-    function handleKeyDownSelector(aEvent) {
-        setTimeout(setupSelector, 0);
-    }
-
-    /**
-     * KeyPress Event handler for dynamic completing selector
-     * @param {} aEvent
-     */
-    function handleKeyPressSelector(aEvent) {
-        switch (aEvent.keyCode) {
-        case KeyEvent.DOM_VK_ESCAPE:
-            // cancel
-            finish(true);
-            break;
-        case KeyEvent.DOM_VK_RETURN:
-        case KeyEvent.DOM_VK_ENTER:
-            finish();
-            break;
-        case KeyEvent.DOM_VK_UP:
-            selectNextCompletion(-1, true);
-            break;
-        case KeyEvent.DOM_VK_DOWN:
-            selectNextCompletion(1, true);
-            break;
-        case KeyEvent.DOM_VK_PAGE_DOWN:
-            selectNextCompletion(listboxRows, true);
-            break;
-        case KeyEvent.DOM_VK_PAGE_UP:
-            selectNextCompletion(-listboxRows, true);
-            break;
-        case KeyEvent.DOM_VK_TAB:
-            modules.util.stopEventPropagation(aEvent);
-            selectNextCompletion(aEvent.shiftKey ? -1 : 1, true);
-            break;
-        default:
-            break;
-        }
-    }
-
-    function setColumns(aColumn) {
-        var hasIcon = false;
-
-        if (typeList) {
-            typeList.forEach(
-                function (flag) {
-                    hasIcon |= (flag & modules.ICON);
-                    if (flag & (modules.HIDDEN | modules.ICON))
-                        aColumn--;
-                });
-        }
-
-        removeAllChilds(listbox);
-
-        if (aColumn > 1 || hasIcon) {
-            var listcols = document.createElement("listcols");
-
-            var item;
-            for (var i = 0; i < aColumn; ++i) {
-                item = document.createElement("listcol");
-                item.flex = 1;
-                item.setAttribute("width", (100 / aColumn).toString() + "%");
-                listcols.appendChild(item);
-            }
-
-            listbox.appendChild(listcols);
-        }
-    }
-
-    function setRows(aRow) {
-        listboxRows = (aRow < listboxMaxRows) ? aRow : listboxMaxRows; 
-        listbox.setAttribute("rows", listboxRows);
-    }
-
-    function removeAllChilds(aElement) {
-        while (aElement.hasChildNodes()) {
-            aElement.removeChild(aElement.firstChild);
-        }
-    }
-
-    // ============================== RICH {{ ============================== //
-
-    // function createIconCell(aSrc) {
-    //     var cell = document.createElement("vbox");
-    //     var icon = document.createElement("image");
-    //     icon.setAttribute("style", "width:16px;height:16px");
-    //     icon.setAttribute("src", aSrc);
-    //     cell.appendChild(icon);
-
-    //     return cell;
-    // }
-
-    // function createTextCell(aLabel) {
-    //     var cell = document.createElement("description");
-    //     // cell.setAttribute("flex", "1");
-    //     cell.setAttribute("value", aLabel);
-
-    //     return cell;
-    // }
-
-    // function createRichRow(aCells) {
-    //     var row = document.createElement("richlistitem");
-    //     var cell;
-
-    //     for (var i = 0; i < aCells.length; ++i) {
-    //         if (i == iconIndex) {
-    //             cell = createIconCell(aCells[i]);
-    //         } else {
-    //             cell = createTextCell(aCells[i]);
-    //         }
-    //         row.appendChild(cell);
-    //     }
-
-    //     return row;
-    // }
-
-    // function applyRichRow(aRow, aCells) {
-    //     var cell;
-
-    //     for (var i = 0; i < aCells.length; ++i) {
-    //         if (i == iconIndex) {
-    //             cell = aRow.childNodes[i].firstChild;
-    //             cell.setAttribute("src", aCells[i]);
-    //         } else {
-    //             cell = aRow.childNodes[i];
-    //             cell.setAttribute("value", aCells[i]);
-    //         }
-    //     }
-    // }
-
-    // ============================== }} RICH ============================== //
-
-    function isFlagOn(i, aFlag) {
-        return (typeList && (typeList[i] & aFlag));
-    }
-
-    function getNextVisibleRowIndex(aCurrentIndex) {
-        for (var i = aCurrentIndex + 1; i < typeList.length; ++i) {
-            if (!isFlagOn(i, modules.HIDDEN))
-                break;
-        }
-
-        return i;
-    }
-
-    function createRow(aCells) {
-        var row = document.createElement("listitem");
-
-        if (aCells.length > 1) {
-            var cell;
-
-            for (var i = 0; i < aCells.length; ++i) {
-                if (isFlagOn(i, modules.HIDDEN))
-                    continue;
-
-                cell = document.createElement("listcell");
-
-                if (isFlagOn(i, modules.ICON)) {
-                    cell.setAttribute("class", "listcell-iconic");
-                    cell.setAttribute("image", aCells[i]);
-                    i = getNextVisibleRowIndex(i);
-                }
-
-                if (i < aCells.length)
-                    cell.setAttribute("label", aCells[i]);
-
-                row.appendChild(cell);
-            }
-        } else {
-            row.setAttribute("label", aCells[0]);
-        }
-
-        return row;
-    }
-
-    function applyRow(aRow, aCells) {
-        if (aCells.length > 1) {
-            var cell = aRow.firstChild;
-
-            for (var i = 0; i < aCells.length; ++i) {
-                if (isFlagOn(i, modules.HIDDEN))
-                    continue;
-
-                if (isFlagOn(i, modules.ICON)) {
-                    cell.setAttribute("image", aCells[i]);
-                    i = getNextVisibleRowIndex(i);
-                }
-
-                if (i < aCells.length)
-                    cell.setAttribute("label", aCells[i]);
-
-                cell = cell.nextSibling;
-            }
-        } else {
-            row.setAttribute("label", aCells[0]);
-        }
-    }
-
-    function setListBox(aGeneralList, aOffset, aLength,
-                        itemRetriever, onFinish) {
-        var row;
-        aOffset = aOffset || 0;
-        var count = Math.min(listboxMaxRows, aLength) + aOffset;
-
-        if (listbox.hasChildNodes()) {
-            // use listbox already created
-            var childs = listbox.childNodes;
-            var isMultiple = isMultipleList(aGeneralList);
-
-            var i = aOffset, j = 0;
-
-            if (isMultiple) {
-                /**
-                 * when the list is multiple, ignore 'listcols' element (childs[0])
-                 */
-                j++;
-
-                // multiple
-                for (; i < count; ++i, ++j) {
-                    if (j < childs.length) {
-                        row = childs[j];
-                        applyRow(row, itemRetriever(i));
-                    } else {
-                        row = createRow(itemRetriever(i));
-                        listbox.appendChild(row);
-                    }
-                }
-            } else {
-                // normal
-                for (; i < count; ++i, ++j) {
-                    if (j < childs.length) {
-                        row = childs[j];
-                        row.setAttribute("label", itemRetriever(i));
-                    } else {
-                        row = document.createElement("listitem");
-                        row.setAttribute("label", itemRetriever(i));
-                        listbox.appendChild(row);
-                    }
-                }
-            }
-
-            while (j < childs.length) {
-                listbox.removeChild(listbox.lastChild);
-            }
-        } else {
-            // set up the new listbox
-            if (isMultipleList(aGeneralList)) {
-                // multiple
-                setColumns(itemRetriever(0).length);
-                for (var i = aOffset; i < count; ++i) {
-                    row = createRow(itemRetriever(i));
-                    listbox.appendChild(row);
-                }
-            } else {
-                // normal
-                setColumns(1);
-                for (var i = aOffset; i < count; ++i) {
-                    row = document.createElement("listitem");
-                    row.setAttribute("label", itemRetriever(i));
-                    listbox.appendChild(row);
-                }
-            }
-        }
-
-        onFinish();
-    }
-
-    function setListBoxFromStringList(aList, aOffset) {
-        setListBox(aList, aOffset, aList.length,
-                   function (i) { return aList[i]; },
-                   function () {
-                       currentList      = aList;
-                       currentIndexList = null;
-                   });
-    }
-
-    function setListBoxFromIndexList(aList, aIndexList, aOffset) {
-        setListBox(aList, aOffset, aIndexList.length,
-                   function (i) { return aList[aIndexList[i]]; },
-                   function () {
-                       currentList      = aList;
-                       currentIndexList = aIndexList;
-                   });
-    }
-
-    function setListBoxSelection(aIndex) {
-        var center = Math.round(listboxRows / 2);
-        var pos;
-        var listLen = currentIndexList ? currentIndexList.length : currentList.length;
-
-        if (listLen <= listboxRows) {
-            listbox.currentIndex = listbox.selectedIndex = aIndex;            
-            return;
-        }
-
-        function setupList(offset, pos) {
-            if (currentIndexList) {
-                setListBoxFromIndexList(currentList, currentIndexList, offset);                
-            } else {
-                setListBoxFromStringList(currentList, offset);                
-            }
-
-            listbox.currentIndex = listbox.selectedIndex = pos;
-        }
-
-        if (aIndex <= center) {
-            setupList(0, aIndex);
-        } else if (aIndex >= listLen - center) {
-            setupList(listLen - listboxRows, listboxRows - (listLen - aIndex));
-        } else {
-            setupList(aIndex - center, center);
-        }
-    }
-
-    function resetState(aType) {
-        aType.index = 0;
-        aType.state = false;
-    }
-
-    function getNextIndex(aCurrent, aDirection, aMin, aMax, aRing) {
-        var index = aCurrent + aDirection;
-        if (index < aMin)
-            index = aRing ? aMax - 1 : aMin;
-        if (index >= aMax)
-            index = aRing ? 0 : aMax - 1;
-
-        return index;
-    }
-
-    function isMultipleList(aList) {
-        return (typeof(aList) == 'object' && typeof(aList[0]) == 'object');
-    }
-
-    function getListText(aList, aIndex, aCellNum) {
-        if (aCellNum == undefined)
-            aCellNum = 0;
-
-        return isMultipleList(aList) ?
-            aList[aIndex][aCellNum] : aList[aIndex];
     }
 
     /**
@@ -668,188 +881,17 @@ KeySnail.Prompt = function () {
         setListBoxSelection(listBoxSelectionIndex);
     }
 
-    function selectorDisplayStatusbarLine(aQuery, aIndex, aTotalLength) {
-        if (aIndex < 0) {
-            modules.display.echoStatusBar("No match for [" + aQuery + "]");            
-        } else {
-            modules.display.echoStatusBar("Completion Regexp Match for [" + aQuery + "]" +
-                                          " (" + (aIndex + 1) +  " / " + aTotalLength + ")");            
-        }
-    }
-
-    var currentRegexp;
-    var selectorIndexToPass;
-    function selectNextCompletion(aDirection, aRing) {
-        var nextIndex, totalLength;
-
-        if (!compIndexList && currentRegexp) {
-            selectorDisplayStatusbarLine(currentRegexp, -1);
-            // set index to pass
-            selectorIndexToPass = -1;
-            return;
-        }
-
-        if (compIndexList) {
-            totalLength = compIndexList.length;
-            nextIndex = getNextIndex(compIndex, aDirection, 0,
-                                     compIndexList.length, aRing);
-            compIndex = nextIndex;
-            // set index to pass
-            selectorIndexToPass = compIndexList[nextIndex];
-        } else {
-            totalLength = completion.list.length;
-            nextIndex = getNextIndex(completion.index, aDirection, 0,
-                                     completion.list.length, aRing);
-            completion.index = nextIndex;
-            // set index to pass
-            selectorIndexToPass = nextIndex;
-        }
-
-        setListBoxSelection(nextIndex);
-        selectorDisplayStatusbarLine(currentRegexp, nextIndex, totalLength);
-    }
-
-    function createCompletionList() {
-        if (!completion.list || !completion.list.length) {
-            modules.display.echoStatusBar("No " + completion.name + " found", 1000);
-            selectorIndexToPass = -1;
-            return;
-        }
-
-        var index;
-        // get cursor position
-        var start = textbox.selectionStart;
-
-        if (start == 0) {
-            // create list of whole completion
-            compIndexList = null;
-            setListBoxFromStringList(completion.list);
-            setRows(completion.list.length);
-            listbox.hidden = false;
-            compIndex = 0;
-            index = 0;
-            currentRegexp = "";
-        } else {
-            var listLen = completion.list.length;
-            var regexp = textbox.value;
-
-            var substrIndex;
-
-            // generate new completion list
-            compIndexList = [];
-            compIndex = 0;
-
-            var keywords = regexp.split(" ");
-            var useMigemoActual = (useMigemo &&
-                                   window.xulMigemoCore &&
-                                   keywords.every(function (aStr) { return aStr.length >= migemoMinWordLength; }));
-
-            if (useMigemoActual)
-                var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
-
-            var matcher;
-            if (isMultipleList(completion.list)) {
-                // multiple cols
-                if (typeList) {
-                    matcher = (useMigemoActual) ?
-                        function () {
-                            return completion.list[i].some(
-                                function (item, i) {
-                                    return (typeList && !(typeList[i] & modules.IGNORE)) && item.match(migexp, "i");
-                                });
-                        }
-                    : function () {
-                        return keywords.every(
-                            function (keyword) {
-                                return completion.list[i].some(
-                                    function (item, i) {
-                                        return (typeList && !(typeList[i] & modules.IGNORE)) && item.match(keyword, "i");
-                                    }
-                                );
-                            }
-                        );
-                    };  
-                } else {
-                    matcher = (useMigemoActual) ?
-                        // use migemo
-                        function () {
-                            return completion.list[i].some(
-                                function (item, i) {
-                                    return item.match(migexp, "i");
-                                });
-                        }
-                    // multiple regexp matching
-                    : function () {
-                        return keywords.every(
-                            function (keyword) {
-                                return completion.list[i].some(
-                                    function (item, i) {
-                                        return item.match(keyword, "i");
-                                    }
-                                );
-                            }
-                        );
-                    };   
-                }
-            } else {
-                // single col
-                matcher = (useMigemoActual) ?
-                    // use migemo
-                    function () {
-                        return completion.list[i].match(migexp, "i");
-                    }
-                // normal
-                : function () {
-                    return keywords.every(
-                        function (keyword) {
-                            return completion.list[i].match(keyword, "i");
-                        }
-                    );
-                };
-            }
-             
-            for (var i = 0; i < listLen; ++i) {
-                if (matcher()) {
-                    compIndexList.push(i);
-                }
-            }
-
-            if (compIndexList.length == 0) {
-                compIndexList = null;
-                removeAllChilds(listbox);
-                selectorDisplayStatusbarLine(regexp, -1);
-                modules.display.echoStatusBar("No match for [" + regexp + "]");
-                selectorIndexToPass = -1;
-                return;
-            }
-
-            index = compIndexList[0];
-            currentRegexp = regexp;
-
-            setListBoxFromIndexList(completion.list, compIndexList);
-
-
-            // show
-            setRows(compIndexList.length);
-            listbox.hidden = false;
-        }
-
-        selectorIndexToPass = index;
-
-        setListBoxSelection(0);
-        selectorDisplayStatusbarLine(currentRegexp, compIndex,
-                                     compIndexList ? compIndexList.length : completion.list.length);
-    }
-
     /**
-     * if these string given,
+     * when these strings are given,
      * command.hoge
      * command.huga
      * command.hoho
-     * ________^___ <= return ^ index
-     * @param {} aStringList
-     * @param {} aIndexList
-     * @returns {integer} common substring beginning index
+     * ________^___
+     * this function returns index of the ^,
+     * the end of common header string
+     * @param {[string]} aStringList
+     * @param {[integer]} aIndexList
+     * @returns {integer} index of the common header substring
      */
     function getCommonSubstrIndex(aStringList, aIndexList) {
         var i = 1;
@@ -870,6 +912,8 @@ KeySnail.Prompt = function () {
 
         return i - 1;
     }
+
+     // ============================== finish ============================== //
 
     /**
      * Finish inputting and current the prompt and If user can
@@ -895,31 +939,35 @@ KeySnail.Prompt = function () {
         var savedCallback = currentCallback;
         var savedUserArg  = currentUserArg;
 
-        var readStr;
-        if (aCanceled) {
-            readStr = null;
+        var callbackArg;
+        if (isSelector) {
+            // prompt.selector
+            callbackArg = aCanceled ? -1 : selectorIndexToPass;
         } else {
-            if (isSelector) {
-                readStr = selectorIndexToPass;
-                // var item = listbox.selectedItem;
-                // readStr = isMultipleList(completion.list) ? 
-                //     item.childNodes[itemIndexToUse].getAttribute("label") :
-                //     item.getAttribute("label");
-            } else {
-                readStr = textbox.value;
-            }
+            // prompt.read
+            callbackArg = aCanceled ? null : textbox.value;
         }
 
         // ==================== reset states ==================== //
 
-        if (isSelector)
-            delayedCommandTimeout = null;
+        // -------------------- common -------------------- //
 
         currentCallback    = null;
         currentUserArg     = null;
 
+        // -------------------- prompt.selector -------------------- //
+
+        delayedCommandTimeout = null;
+        selectorIndexToPass = -1;
+
+        // -------------------- prompt.read -------------------- //
+
         currentHead        = null;
         inNormalCompletion = false;
+        resetState(history);
+        resetState(completion);
+
+        // -------------------- DOM objects -------------------- //
 
         promptbox.hidden   = true;
         listbox.hidden     = true;
@@ -929,32 +977,30 @@ KeySnail.Prompt = function () {
         textbox.value      = "";
         label.value        = "";
 
-        resetState(history);
-        resetState(completion);
-
         // ==================== execute callback ==================== //
 
         if (savedCallback) {
+            // try to execute
             try {
-                savedCallback(readStr, savedUserArg);
-
-                if (!aCanceled && readStr.length) {
-                    // add history
-                    if (ignoreDuplication) {
-                        // remove all duplicated elements from list and add str to head
-                        var li = history.list;
-                        for (var i = 0; i < li.length; ++i) {
-                            if (readStr == li[i]) {
-                                li.splice(i, 1);
-                            }
-                        }
-                        li.unshift(readStr);
-                    } else {
-                        history.list.unshift(readStr);
-                    }
-                }
+                savedCallback(callbackArg, savedUserArg);
             } catch (x) {
                 aCanceled = true;
+            }
+
+            // add history (not in the prompt.selector)
+            if (!aCanceled && !isSelector && callbackArg.length) {
+                if (ignoreDuplication) {
+                    // remove all duplicated elements from list and add str to head
+                    var li = history.list;
+                    for (var i = 0; i < li.length; ++i) {
+                        if (callbackArg == li[i]) {
+                            li.splice(i, 1);
+                        }
+                    }
+                    li.unshift(callbackArg);
+                } else {
+                    history.list.unshift(callbackArg);
+                }
             }
         }
 
@@ -985,6 +1031,7 @@ KeySnail.Prompt = function () {
                 modules.HIDDEN = 1;
                 modules.IGNORE = 2;
                 modules.ICON   = 4;
+                modules.RIGHT  = 8;
             }
         },
 
@@ -1100,16 +1147,6 @@ KeySnail.Prompt = function () {
                 return;
             }
             
-            // 
-            // prompt.selector({message: "pattern:",
-            //                  collection: my.hblist,
-            //                  typelist: [ICON | IGNORE, 0, 0, HIDDEN],
-            //                  callback: function (aIndex) {
-            //                      if (aIndex > 0) {
-            //                          gBrowser.loadOneTab(my.hblist[aIndex][3], null, null, null, false);
-            //                      }
-            //                  }});
-
             savedFocusedElement = document.commandDispatcher.focusedElement || content.window;
 
             // tell current command is the selector
@@ -1117,7 +1154,8 @@ KeySnail.Prompt = function () {
 
             // set up completion
             completion.list = aContext.collection;
-            typeList = aContext.typelist;
+            typeList        = aContext.typelist;
+            listHeader      = aContext.header;
 
             // set up callbacks
             currentCallback = aContext.callback;
@@ -1140,13 +1178,6 @@ KeySnail.Prompt = function () {
             };
 
             oldTextLength = 0;
-
-            // if (isMultipleList(aContext.collection)) {
-            //     if (aItemIndexToUse)
-            //         itemIndexToUse = (aItemIndexToUse < aContext.collection.length) ? aItemIndexToUse : 0;
-            //     else
-            //         itemIndexToUse = 0;
-            // }
 
             modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
 
