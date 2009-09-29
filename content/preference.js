@@ -170,15 +170,8 @@ var ksPreference = {
         if ((error = ksKeybindTreeView.checkSyntax())) {
             this.modules.util.alert(null, "Syntax error",
                                     this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
-            // this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
             return false;
         }
-
-        // var output1 = this.generateCommands();
-        // var output2 = this.generateStringBundle();
-        // this.modules.util.writeText(output2, "/tmp/bundle.js");
-        // this.modules.util.writeText(output, "/tmp/hoge.js");
-        // this.generateBuiltinMenu();
 
         var createButton = document.getElementById("create-button");
         createButton.disabled = true;
@@ -198,9 +191,6 @@ var ksPreference = {
     },
 
     onFinish: function () {
-        this.updateFunctionData();
-        this.updateDescriptionData();
-
         if (this.digitArgumentList.selectedItem) {
             this.modules.util.setUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type",
                                              this.digitArgumentList.selectedItem.value);
@@ -267,6 +257,8 @@ var ksPreference = {
             // aEvent.preventDefault();
             // this.keybindTextarea.focus();
             // go down
+            aEvent.stopPropagation();
+            aEvent.preventDefault();
         case "focus":
             // move caret to end of the line
             var textarea = this.keybindTextarea;
@@ -323,9 +315,9 @@ var ksPreference = {
 
     handleFunctionTextarea: function (aEvent) {
         switch (aEvent.type) {
-        // case "change":
-        //     this.updateFunctionData();
-        //     break;
+        case "blur":
+            this.updateFunctionData();
+            break;
         case "keypress":
             if (aEvent.keyCode == aEvent.DOM_VK_ESCAPE) {
                 aEvent.preventDefault();
@@ -336,9 +328,9 @@ var ksPreference = {
 
     handleDescriptionTextarea: function (aEvent) {
         switch (aEvent.type) {
-        // case "change":
-        //     this.updateDescriptionData();
-        //     break;
+        case "blur":
+            this.updateDescriptionData();
+            break;
         case "keypress":
             if (aEvent.keyCode == aEvent.DOM_VK_RETURN ||
                 aEvent.keyCode == aEvent.DOM_VK_ENTER) {
@@ -388,23 +380,15 @@ var ksPreference = {
             destination = this.descriptionTextarea;
         } else {
             // treeview will be displayed
+
             var error;
             if ((error = ksKeybindTreeView.checkSyntax())) {
                 this.modules.util.alert(null, "Syntax error",
                                         this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
                 this.functionTextarea.focus();
-                // this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
                 return;
             }
 
-            /**
-             * 'changed' event does not occur when user paste the text
-             * so we need to check for the textbox value whether changed or not
-             */
-            this.updateFunctionData();
-            this.updateDescriptionData();
-
-            // this.notify("");
             destination = this.keybindTextarea;
         }
 
@@ -867,6 +851,7 @@ var ksPreference = {
     generateKeyBindSettings: function (aContentHolder) {
         var row;
         var data = ksKeybindTreeView.data;
+        var useBeautifier = nsPreferences.getBoolPref("extensions.keysnail.preference.indent_all_function", false);
 
         var doneIndexList = [];
         for (var i = 0; i < data.length; ++i) {
@@ -924,7 +909,7 @@ var ksPreference = {
 
             var src = "key.set" + ksKeybindTreeView.modes[row[KS_MODE]]+ "Key(" +
                 keySetting +
-                ", " + row[KS_FUNCTION] +
+                ", " + (useBeautifier ? this.beautifyCode(row[KS_FUNCTION]) : row[KS_FUNCTION]) +
                 (row[KS_DESC] ? ", " + this.toStringForm(row[KS_DESC]) : "") +
                 ksNoRepeatString + ");\n";
 

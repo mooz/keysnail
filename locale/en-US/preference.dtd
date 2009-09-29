@@ -93,6 +93,7 @@
 <!ENTITY keySnail.preference.key.preserved.description2 "Put all your code except special key, set*key, hook, blacklist.">
 
 <!-- create -->
+<!ENTITY keySnail.preference.key.indent_all_function "Beautify entire codes at time of application">
 <!ENTITY keySnail.preference.key.create "Apply changes (Overwrite the init file)">
 
 <!-- ABOUT -->

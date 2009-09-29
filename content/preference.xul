@@ -101,7 +101,12 @@
     <prefpane id="prefpane-keys" label="&keySnail.preference.keys;"
               flex="1"
               onpaneload="ksPreference.onKeyPaneLoad();">
-        <preferences></preferences>
+        <preferences>
+            <preference
+                 id="extensions.keysnail.preference.indent_all_function"
+                 name="extensions.keysnail.preference.indent_all_function"
+                 type="bool"/>
+        </preferences>
         <!-- key bindings list -->
         <tabbox flex="1">
             <tabs>
@@ -206,6 +211,7 @@
                             <hbox align="center">
                                 <label>&keySnail.preference.keys.treeheader.description;: </label>
                                 <textbox flex="1"
+                                         onblur="ksPreference.handleDescriptionTextarea(event);"
                                          onkeypress="ksPreference.handleDescriptionTextarea(event);"
                                          id="keybind-function-description">
                                 </textbox>
@@ -229,6 +235,7 @@
                             </hbox>
                             <description>&keySnail.preference.edit.function;:</description>
                             <textbox id="keybind-function-body"
+                                     onblur="ksPreference.handleFunctionTextarea(event);"
                                      onkeypress="ksPreference.handleFunctionTextarea(event);"
                                      multiline="true" flex="3">
                             </textbox>
@@ -408,6 +415,8 @@
             </label>
             <spacer height="5px" />
             <hbox id="create-button-area" align="center" flex="1">
+                <checkbox label="&keySnail.preference.key.indent_all_function;"
+                          preference="extensions.keysnail.preference.indent_all_function"/>
                 <spacer flex="2"/>
                 <button label="&keySnail.preference.key.create;"
                         id="create-button"

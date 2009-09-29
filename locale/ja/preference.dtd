@@ -29,7 +29,7 @@
 <!ENTITY keySnail.preference.keys.keybindings "キーバインド">
 <!ENTITY keySnail.preference.keys.specialkey "特殊キー">
 <!ENTITY keySnail.preference.keys.blacklist "ブラックリスト">
-<!ENTITY keySnail.preference.keys.preserved "保存されるコード">
+<!ENTITY keySnail.preference.keys.preserved "その他のコード">
 
 <!-- tree -->
 
@@ -93,6 +93,7 @@
 <!ENTITY keySnail.preference.key.preserved.description2 "特殊キー、キーバインド定義、フック、ブラックリスト以外のコードはこの中に書くようにして下さい。">
 
 <!-- create -->
+<!ENTITY keySnail.preference.key.indent_all_function "初期化ファイル再生成時にソースコードを整形する">
 <!ENTITY keySnail.preference.key.create "変更の反映 (初期化ファイルを上書きします)">
 
 <!-- # ABOUT # -->

@@ -39,7 +39,7 @@ KeySnail.Prompt = function () {
     var ignoreDuplication = true;
 
     // Migemo
-    var useMigemo = true;
+    var useMigemo = false;
     var migemoMinWordLength = 2;
 
     var listboxMaxRows = 12;    // max row count of the list
@@ -180,6 +180,14 @@ KeySnail.Prompt = function () {
         return i;
     }
 
+    function getCellValue(aCells, i) {
+        if (typeof aCells[i] == "function") {
+            return aCells[i].call(null, aCells);
+        } else {
+            return aCells[i];
+        }
+    }
+
     function createRow(aCells) {
         var row = document.createElement("listitem");
 
@@ -194,12 +202,12 @@ KeySnail.Prompt = function () {
 
                 if (isFlagOn(i, modules.ICON)) {
                     cell.setAttribute("class", "listcell-iconic");
-                    cell.setAttribute("image", aCells[i]);
+                    cell.setAttribute("image", getCellValue(aCells, i));
                     i = getNextVisibleRowIndex(i);
                 }
 
                 if (i < aCells.length) {
-                    cell.setAttribute("label", aCells[i]); 
+                    cell.setAttribute("label", getCellValue(aCells, i)); 
                     if (isFlagOn(i, modules.RIGHT))
                         cell.setAttribute("style", "text-align:right");
                 }
@@ -207,7 +215,7 @@ KeySnail.Prompt = function () {
                 row.appendChild(cell);
             }
         } else {
-            row.setAttribute("label", aCells[0]);
+            row.setAttribute("label", getCellValue(aCells, 0));
             if (isFlagOn(0, modules.RIGHT))
                 row.setAttribute("style", "text-align:right");
         }
@@ -224,17 +232,17 @@ KeySnail.Prompt = function () {
                     continue;
 
                 if (isFlagOn(i, modules.ICON)) {
-                    cell.setAttribute("image", aCells[i]);
+                    cell.setAttribute("image", getCellValue(aCells, i));
                     i = getNextVisibleRowIndex(i);
                 }
 
                 if (i < aCells.length)
-                    cell.setAttribute("label", aCells[i]);
+                    cell.setAttribute("label", getCellValue(aCells, i));
 
                 cell = cell.nextSibling;
             }
         } else {
-            row.setAttribute("label", aCells[0]);
+            row.setAttribute("label", getCellValue(aCells, 0));
         }
     }
 
@@ -319,7 +327,7 @@ KeySnail.Prompt = function () {
                     }
                 }
             } else {
-                // normal
+                // single normal
                 for (; i < count; ++i, ++j) {
                     if (j < childs.length) {
                         row = childs[j];
@@ -401,50 +409,6 @@ KeySnail.Prompt = function () {
      * @param {KeyBoardEvent} aEvent event which called this handler
      */
     function handleKeyPressSelector(aEvent) {
-        switch (aEvent.keyCode) {
-        case KeyEvent.DOM_VK_ESCAPE:
-            // cancel
-            finish(true);
-            break;
-        case KeyEvent.DOM_VK_RETURN:
-        case KeyEvent.DOM_VK_ENTER:
-            finish();
-            break;
-        case KeyEvent.DOM_VK_UP:
-            selectNextCompletion(-1, true);
-            break;
-        case KeyEvent.DOM_VK_DOWN:
-            selectNextCompletion(1, true);
-            break;
-        case KeyEvent.DOM_VK_PAGE_DOWN:
-            selectNextCompletion(listboxRows, true);
-            break;
-        case KeyEvent.DOM_VK_PAGE_UP:
-            selectNextCompletion(-listboxRows, true);
-            break;
-        case KeyEvent.DOM_VK_HOME:
-            setListBoxSelection(0);
-            setListBoxIndex(0);
-            break;
-        case KeyEvent.DOM_VK_END:
-            var lastIndex = (currentIndexList ? currentIndexList.length : currentList.length) - 1;
-            setListBoxIndex(lastIndex);
-            setListBoxSelection(lastIndex);
-            break;
-        case KeyEvent.DOM_VK_TAB:
-            modules.util.stopEventPropagation(aEvent);
-            selectNextCompletion(aEvent.shiftKey ? -1 : 1, true);
-            break;
-        default:
-            break;
-        }
-    }
-
-    /**
-     * KeyPress Event handler for prompt.selector
-     * @param {KeyBoardEvent} aEvent event which called this handler
-     */
-    function handleMouseWheelSelector(aEvent) {
         switch (aEvent.keyCode) {
         case KeyEvent.DOM_VK_ESCAPE:
             // cancel
@@ -592,7 +556,7 @@ KeySnail.Prompt = function () {
                         function () {
                             return cellForSearch.some(
                                 function (j) {
-                                    return completion.list[i][j].match(migexp, "i");
+                                    return getCellValue(completion.list[i], j).match(migexp, "i");
                                 });
                         }
                     : function () {
@@ -600,7 +564,7 @@ KeySnail.Prompt = function () {
                             function (keyword) {
                                 return cellForSearch.some(
                                     function (j) {
-                                        return completion.list[i][j].match(keyword, "i");
+                                        return getCellValue(completion.list[i], [j]).match(keyword, "i");
                                     }
                                 );
                             }
@@ -609,13 +573,22 @@ KeySnail.Prompt = function () {
                 } else {
                     matcher = (useMigemoActual) ?
                         function () {
-                            return completion.list[i].some(function (item) { return item.match(migexp, "i"); });
+                            return completion.list[i].some(
+                                function (item) {
+                                    return (typeof item == "function" ?
+                                            item.call(null, completion.list[i]) : item).match(migexp, "i");
+                                }
+                            );
                         }
                     : function () {
                         return keywords.every(
                             function (keyword) {
                                 return completion.list[i].some(
-                                    function (item, i) { return item.match(keyword, "i"); }
+                                    function (item, i) {
+                                    return (typeof item == "function" ?
+                                            item.call(null, completion.list[i]) : item).match(migexp, "i");
+                                        return item.match(keyword, "i");
+                                    }
                                 );
                             }
                         );

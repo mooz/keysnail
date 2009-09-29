@@ -126,23 +126,16 @@ if scheme != 'doc':
 // """ + {ja: "特殊キー, キーバインド定義, フック, ブラックリスト以外のコードは, この中に書くようにして下さい",
           en: "Put all your code except special key, set*key, hook, blacklist."}[l] + """
 //{{%PRESERVE%
-
-// ==================== prefix ==================== //
-// """ + {ja: "エディットモードで C-z を入力すると, ビューモードのキーバインドが使える",
-          en: """You can use view-mode keybindings in edit-mode by adding
-// the prefix key C-z."""}[l] + """
-// key.keyMapHolder[key.modes.EDIT]["C-z"] = key.keyMapHolder[key.modes.VIEW];
-
-// ==================== set about:config value ==================== //
-// util.setPrefs({"ui.key.generalAccessKey" : 0, // kill access key (for Mac User)
-//                "ui.caretWidth"           : 5, // Make caret bolder
-//                "ui.caretBlinkTime"       : 0  // Stop caret blink
-//               });
+// prompt.rows                = 12;
+// prompt.useMigemo           = false;
+// prompt.migemoMinWordLength = 2;
+// prompt.displayDelayTime    = 300;
+// command.kill.killRingMax   = 15;
+// command.kill.textLengthMax = 8192;
 //}}%PRESERVE%
 
 // ==================== special keys ==================== //
 ####REPLACE_WITH_SPECIAL_KEYS####
-// macro.setSleepTime(100); // key macro interval
 
 // ==================== set hooks ==================== //
 hook.setHook("KeyBoardQuit",
@@ -163,18 +156,6 @@ hook.setHook("KeyBoardQuit",
                           en: "generate general cancell event"}[l] + """
                 key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
             });
-
-// """ + {ja: "KeySnail を無効にしたいページの URL を正規表現で指定する",
-          en: "If you want to suspend the KeySnail in certain page, put its URL (regexp) into the list"}[l] + """
-// key.blackList = [
-//     "http://mail\.google\.com/.*"
-// ];
-
-// hook.setHook("LocationChange",
-//              function (aNsURI) {
-//                  var URL = aNsURI ? aNsURI.spec : null;
-//                  key.suspendWhenMatched(URL, key.blackList);
-//              });
 """;
 
 if scheme == "emacs":
