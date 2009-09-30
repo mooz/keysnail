@@ -33,7 +33,7 @@ KeySnail.UserScript = {
     },
 
     // line number of the Function() constructor
-    userScriptOffset: 49,
+    userScriptOffset: 48,
 
     // ==================== Loader ==================== //
 
@@ -41,11 +41,10 @@ KeySnail.UserScript = {
      * load js file and execute its content under *KeySnail.modules* scope
      * @param {string} aScriptPath
      */
-    jsFileLoader: function (aScriptPath) {
-        // if (KeySnail.windowType == "navigator:browser") {
+    jsFileLoader: function (aScriptPath, aPreserve) {
         var code = this.modules.util.readTextFile(aScriptPath).value;
-        if (KeySnail.windowType == "navigator:browser")
-            this.preserveCode(code);
+        if (KeySnail.windowType == "navigator:browser" && aPreserve)
+            this.preserveCode(code);            
         Function("with (KeySnail.modules) {" + code + " }")();
     },
 
@@ -112,59 +111,6 @@ KeySnail.UserScript = {
     load: function () {
         var loadStatus = -1;
 
-        /**
-         * The cheat commented out below does *NOT* work.
-         * Because the context of function bound to key sequence is "static"
-         * i.e. the 'top', 'window', 'gBrowser' and other objects in function
-         * is eternally the member of the context of keybind definition.
-         * So we need to call loadUserScript every time when any new window opened
-         * (even in simple window.alert()! that a huge bottleneck)
-         */
-
-        // if (this.parent.windowType != "navigator:browser") {
-        //     // cheat
-        //     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-        //         .getService(Components.interfaces.nsIWindowMediator);
-        //     var browserWindow = wm.getMostRecentWindow("navigator:browser");
-
-        //     if (!browserWindow.KeySnail.modules.userscript.initFileLoaded) {
-        //         this.initFileLoaded = false;
-        //         return;
-        //     }
-
-        //     this.linkMembers(browserWindow.KeySnail.modules.key,
-        //                      this.modules.key,
-        //                      [
-        //                          "keyMapHolder",
-        //                          "quitKey",
-        //                          "helpKey",
-        //                          "escapeKey",
-        //                          "macroStartKey",
-        //                          "macroEndKey",
-        //                          "universalArgumentKey",
-        //                          "negativeArgument1Key",
-        //                          "negativeArgument2Key",
-        //                          "negativeArgument3Key",
-        //                          "suspendKey"
-        //                      ]);
-
-        //     document.defaultView.goDoCommand = function (aCommand) {
-        //         this.message("goDoCommand called!");
-        //         try {
-        //             var controller =
-        //                 document.commandDispatcher.getControllerForCommand(aCommand);
-        //             if (controller && controller.isCommandEnabled(aCommand))
-        //                 controller.doCommand(aCommand);
-        //         }
-        //         catch(e) {
-        //             this.message("An error " + e + " occurred executing the " + aCommand + " command\n");
-        //         }
-        //     };
-
-        //     this.initFileLoaded = true;
-        //     return;
-        // }
-
         loadStatus = this.loadUserScript(this.initFileLoader,
                                          this.userPath,
                                          this.defaultInitFileNames);
@@ -196,7 +142,11 @@ KeySnail.UserScript = {
     reload: function () {
         // clear current keymaps
         this.modules.key.keyMapHolder = {};
-        this.modules.key.blackList = [];
+        this.modules.key.blackList    = [];
+        this.modules.hook.hookList    = {};
+
+        this.userPath = this.modules.util.getUnicharPref("extensions.keysnail.userscript.location");
+
         this.modules.key.init();
         this.load();
     },

@@ -1037,15 +1037,21 @@ var ksKeybindTreeView = {
                 row[KS_DESC]       = func.ksDescription;
                 row[KS_ARGUMENT]   = func.ksNoRepeat;
 
-                var property = this.isMemberOf(func, this.modules.command);
-                if (property) {
-                    /**
-                     * special functions like yank / yankPop, member of KeySnail.Command
-                     */
-                    row[KS_FUNCTION] = "command." + property;
-                } else {
+
+                var found = false;
+                ["command", "my"].forEach(
+                    function (moduleName) {
+                        if (found)
+                            return;
+
+                        var property = this.isMemberOf(func, this.modules[moduleName]);
+                        if (property) {
+                            row[KS_FUNCTION] = moduleName + "." + property;
+                            found = true;
+                        }
+                    }, this);
+                if (!found)
                     row[KS_FUNCTION] = func.toString();
-                }
 
                 aData.push(row);
                 break;

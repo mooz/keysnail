@@ -445,6 +445,21 @@ KeySnail.Util = {
         return env.exists(aName) ? env.get(aName) : null;
     },
 
+    getPlacesDB: function () {
+        try {
+            return Components.classes['@mozilla.org/browser/nav-history-service;1']
+                .getService(Ci.nsPIPlacesDatabase).DBConnection;
+        } catch (x) {
+            var places = Components.classes["@mozilla.org/file/directory_service;1"].
+                getService(Components.interfaces.nsIProperties).
+                get("ProfD", Components.interfaces.nsIFile);
+            places.append("places.sqlite");
+
+            return Components.classes["@mozilla.org/storage/service;1"].
+                getService(Components.interfaces.mozIStorageService).openDatabase(places);
+        }
+    },
+
     // ==================== Path / URL ====================
 
     /**

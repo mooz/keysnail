@@ -63,7 +63,7 @@ KeySnail.Prompt = function () {
     // ListBox settings
     var currentList;
     var currentIndexList;
-    var typeList;
+    var flags;
     var listHeader;
 
     // ============================== completion type ============================== //
@@ -115,7 +115,7 @@ KeySnail.Prompt = function () {
     }
 
     function isFlagOn(i, aFlag) {
-        return (typeList && (typeList[i] & aFlag));
+        return (flags && (flags[i] & aFlag));
     }
 
     // ============================== common DOM manipulation ============================== //
@@ -123,8 +123,8 @@ KeySnail.Prompt = function () {
     function setColumns(aColumn) {
         var hasIcon = false;
 
-        if (typeList) {
-            typeList.forEach(
+        if (flags) {
+            flags.forEach(
                 function (flag) {
                     hasIcon |= (flag & modules.ICON);
                     if (flag & (modules.HIDDEN | modules.ICON))
@@ -153,7 +153,8 @@ KeySnail.Prompt = function () {
                 cols.appendChild(item);
             }
 
-            listbox.appendChild(head);
+            if (listHeader)
+                listbox.appendChild(head);
             listbox.appendChild(cols);
         }
 
@@ -172,7 +173,7 @@ KeySnail.Prompt = function () {
     }
 
     function getNextVisibleRowIndex(aCurrentIndex) {
-        for (var i = aCurrentIndex + 1; i < typeList.length; ++i) {
+        for (var i = aCurrentIndex + 1; i < flags.length; ++i) {
             if (!isFlagOn(i, modules.HIDDEN))
                 break;
         }
@@ -181,10 +182,13 @@ KeySnail.Prompt = function () {
     }
 
     function getCellValue(aCells, i) {
+        // this function *MUST* return string
+        // null, undefined, integer and other object may cause exception
+
         if (typeof aCells[i] == "function") {
-            return aCells[i].call(null, aCells);
+            return aCells[i].call(null, aCells) || "";
         } else {
-            return aCells[i];
+            return aCells[i] || "";
         }
     }
 
@@ -536,16 +540,16 @@ KeySnail.Prompt = function () {
                 var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
 
             var cellForSearch;
-            if (typeList) {
+            if (flags) {
                 cellForSearch = [];
-                typeList.forEach(
+                flags.forEach(
                     function (flag, i) {
                         if (!(flag & modules.IGNORE))
                             cellForSearch.push(i);
                     });
             }
 
-            // modules.display.prettyPrint(cellForSearch.toString());
+            // modules.display.prettyPrint((cellForSearch || "nothing").toString());
 
             var matcher;
             if (isMultipleList(completion.list)) {
@@ -661,20 +665,13 @@ KeySnail.Prompt = function () {
         case KeyEvent.DOM_VK_SHIFT:
             break;
         default:
-            // when the keyup event occured,
-            // the textbox value is old (keyevent is not applied)
-            // so we need to delay to know the correct selection
-            setTimeout(
-                function () {
-                    if (!currentCallback)
-                        return;
-
-                    if (textbox.selectionStart != oldSelectionStart &&
-                        textbox.selectionStart != textbox.value.length) {
-                        resetReadState();
-                    }
-                    oldSelectionStart = textbox.selectionStart;                        
-                }, 0);
+            // modules.display.prettyPrint(["old :: " + oldSelectionStart,
+            //                              "cur :: " + textbox.selectionStart].join("\n"));
+            if (textbox.selectionStart != oldSelectionStart &&
+                textbox.selectionStart != textbox.value.length) {
+                resetReadState();
+            }
+            oldSelectionStart = textbox.selectionStart;                        
             break;
         }
     }
@@ -931,12 +928,20 @@ KeySnail.Prompt = function () {
         // -------------------- prompt.selector -------------------- //
 
         delayedCommandTimeout = null;
-        selectorIndexToPass = -1;
+        selectorIndexToPass   = -1;
+        listHeader            = null;
+        flags                 = null;
+        currentList           = null;
+        currentIndexList      = null;
 
         // -------------------- prompt.read -------------------- //
 
         currentHead        = null;
+        currentSubstr      = null;
         inNormalCompletion = false;
+        compIndex          = 0;
+        compIndexList      = null;
+
         resetState(history);
         resetState(completion);
 
@@ -957,6 +962,7 @@ KeySnail.Prompt = function () {
             try {
                 savedCallback(callbackArg, savedUserArg);
             } catch (x) {
+                self.message(x);
                 aCanceled = true;
             }
 
@@ -986,26 +992,27 @@ KeySnail.Prompt = function () {
 
     var self = {
         init: function () {
+            if (KeySnail.windowType != "navigator:browser")
+                return;
+
             modules = this.modules;
 
-            if (KeySnail.windowType == "navigator:browser") {
-                promptbox = document.getElementById("keysnail-prompt");
-                label     = document.getElementById("keysnail-prompt-label");
-                textbox   = document.getElementById("keysnail-prompt-textbox");
-                container = document.getElementById("browser-bottombox");
+            promptbox = document.getElementById("keysnail-prompt");
+            label     = document.getElementById("keysnail-prompt-label");
+            textbox   = document.getElementById("keysnail-prompt-textbox");
+            container = document.getElementById("browser-bottombox");
 
-                listbox   = document.getElementById("keysnail-completion-list");
+            listbox   = document.getElementById("keysnail-completion-list");
 
-                // this holds all history and
-                historyHolder = new Object;
-                historyHolder["default"] = [];
+            // this holds all history and
+            historyHolder = new Object;
+            historyHolder["default"] = [];
 
-                // set up flags
-                modules.HIDDEN = 1;
-                modules.IGNORE = 2;
-                modules.ICON   = 4;
-                modules.RIGHT  = 8;
-            }
+            // set up flags
+            modules.HIDDEN = 1;
+            modules.IGNORE = 2;
+            modules.ICON   = 4;
+            modules.RIGHT  = 8;
         },
 
         set ignoreDuplication(aBool) { ignoreDuplication = !!aBool; },
@@ -1127,7 +1134,7 @@ KeySnail.Prompt = function () {
 
             // set up completion
             completion.list = aContext.collection;
-            typeList        = aContext.typelist;
+            flags           = aContext.flags;
             listHeader      = aContext.header;
 
             // set up callbacks

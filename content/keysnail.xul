@@ -15,8 +15,10 @@
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/key.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/hook.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/macro.js" />
-  <script type="application/x-javascript" src="chrome://keysnail/content/modules/prompt.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/userscript.js" />
+  <!-- modules only for main browser -->
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/prompt.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/ext.js" />
 
   <!-- initialization -->
   <script type="application/x-javascript">

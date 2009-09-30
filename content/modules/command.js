@@ -280,7 +280,7 @@ KeySnail.Command = {
         with (this.modules) {
             prompt.selector({message: "Pattern: ",
                              collection: urlList, // [icon, url, title]
-                             typelist: [ICON | IGNORE, 0, 0],
+                             flags: [ICON | IGNORE, 0, 0],
                              header: ["Title", "URL"],
                              callback: function (aIndex) {
                                  if (aIndex >= 0) {

@@ -991,8 +991,21 @@ KeySnail.Key = {
             aFunc.apply(KeySnail, [aEvent, aArg]);
         }
 
-        this.lastFunc = aFunc;
+        // try {
+        // } catch (x) {
+        //     var filename;
+        //     var linenumber;
+        //     if (!x.fileName || x.fileName == "chrome://keysnail/content/modules/userscript.js") {
+        //         filename = this.modules.userscript.initFilePath;
+        //         linenumber = x.lineNumber - (this.modules.userscript.userScriptOffset - 1);
+        //     } else {
+        //         filename = x.fileName;
+        //         linenumber = x.lineNumber;
+        //     }
+        //     this.modules.display.notify("Error :: in " + filename + " :: line " + linenumber);
+        // }
 
+        this.lastFunc = aFunc;
         this.modules.hook.callHook("PostCommand", hookArg);
     },
 

@@ -26,11 +26,15 @@ var KeySnail = {
                              "Macro",
                              "Key",
                              "Prompt",
+                             "Ext",
                              // UserScript must be the last
                              "UserScript"];
         this.moduleObjects = moduleObjects;
 
         this.modules.modules = this.modules;
+
+        // local namespace for user
+        this.modules.my = {};
 
         var i;
         var len = moduleObjects.length;
@@ -56,9 +60,6 @@ var KeySnail = {
             // arrange destructor
             window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
         }
-
-        // user local namespace
-        this.modules.my = {};
 
         this.modules.key.updateStatusBar();
     },
