@@ -282,11 +282,35 @@ KeySnail.Command = {
                              collection: urlList, // [icon, url, title]
                              flags: [ICON | IGNORE, 0, 0],
                              header: ["Title", "URL"],
-                             callback: function (aIndex) {
-                                 if (aIndex >= 0) {
-                                     gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, false);
+                             actions: [
+                                 {
+                                     name: "Open Link in new tab",
+                                     description: "Open Link in new tab",
+                                     callback: function (aIndex) {
+                                         if (aIndex >= 0) {
+                                             gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, false);
+                                         }
+                                     }
+                                 },
+                                 {
+                                     name: "Open Link in new window",
+                                     description: "Open Link in new window",
+                                     callback: function (aIndex) {
+                                         if (aIndex >= 0) {
+                                             gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, true);
+                                         }
+                                     }
+                                 },
+                                 {
+                                     name: "Open Link in new tab",
+                                     description: "Open Link in new tab",
+                                     callback: function (aIndex) {
+                                         if (aIndex >= 0) {
+                                             gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, false);
+                                         }
+                                     }
                                  }
-                             }
+                             ]
                             });
         }
     },

@@ -9,14 +9,13 @@ KeySnail.Prompt = function () {
     /**
      * @private
      */
-    
+
     const Cc = Components.classes;
     const Ci = Components.interfaces;
 
     var modules;
 
-    // event listener remover
-    var eventListenerRemover;
+    // ==================== Common objects between each context ==================== //
 
     // DOM Objects
     var promptbox;
@@ -29,33 +28,78 @@ KeySnail.Prompt = function () {
     var currentCallback;
     var currentUserArg;
 
+    // event listener remover
+    var eventListenerRemover;
+
     // Saved last user focsed element
     var savedFocusedElement;
 
+    // ==================== Constants ==================== //
+
+    // -------------------- Type -------------------- //
+
+    const TYPE_NONE     = -1;
+    const TYPE_READ     = 0;
+    const TYPE_SELECTOR = 1;
+
+    // -------------------- State -------------------- //
+
+    const SELECTOR_STATE_CANDIDATES = 0;
+    const SELECTOR_STATE_ACTION     = 1;
+
     // ==================== Options ==================== //
 
-    var isSelector = false;
-    var substrMatch = true;
-    var ignoreDuplication = true;
-
-    // Migemo
-    var useMigemo = false;
-    var migemoMinWordLength = 2;
-
-    var listboxMaxRows = 12;    // max row count of the list
+    var options = {
+        substrMatch: true,
+        ignoreDuplication: true,
+        useMigemo: false,
+        migemoMinWordLength: 2,
+        listboxMaxRows: 12,
+        displayDelayTime: 300,
+    };
 
     // ==================== Current State ==================== //
+
+    var type = TYPE_NONE;
 
     // -------------------- prompt.read specific -------------------- //
 
     var currentHead;
-    var currentSubstr;
     var inNormalCompletion = false;
+
+    // -------------------- prompt.selector specific -------------------- //
+
+    var selectorStatus;
+    var selectorContext;
+
+    function createSelectorContext() {
+        return {
+            compIndex        : null,
+            compIndexList    : null,
+
+            wholeList        : null,
+            wholeListIndex   : null,
+
+            currentList      : null,
+            currentIndexList : null,
+
+            listHeader       : null,
+            currentRegexp    : "",
+            textboxValue     : "",
+            selectionStart   : 0,
+        };
+    }
 
     // -------------------- common -------------------- //
 
+    var selectedItemIndex;      // selected index of the
+
+    // matched list
     var compIndex;
     var compIndexList;
+    // whole list (all candidates)
+    var wholeList;
+    var wholeListIndex;
 
     var listboxRows;            // actual listbox row count
     var listboxColumns;         // actual listbox column count
@@ -87,11 +131,6 @@ KeySnail.Prompt = function () {
     };
 
     // ============================== prompt common functions ============================== //
-
-    function resetState(aType) {
-        aType.index = 0;
-        aType.state = false;
-    }
 
     function getNextIndex(aCurrent, aDirection, aMin, aMax, aRing) {
         var index = aCurrent + aDirection;
@@ -163,7 +202,7 @@ KeySnail.Prompt = function () {
     }
 
     function setRows(aRow) {
-        listboxRows = (aRow < listboxMaxRows) ? aRow : listboxMaxRows; 
+        listboxRows = (aRow < options.listboxMaxRows) ? aRow : options.listboxMaxRows;
         listbox.setAttribute("rows", listboxRows);
     }
 
@@ -212,7 +251,7 @@ KeySnail.Prompt = function () {
                 }
 
                 if (i < aCells.length) {
-                    cell.setAttribute("label", getCellValue(aCells, i)); 
+                    cell.setAttribute("label", getCellValue(aCells, i));
                     if (isFlagOn(i, modules.RIGHT))
                         cell.setAttribute("style", "text-align:right");
                 }
@@ -258,7 +297,7 @@ KeySnail.Prompt = function () {
 
         if (listLen <= listboxRows) {
             // just change the selected index of the listbox
-            listbox.currentIndex = listbox.selectedIndex = aIndex;            
+            listbox.currentIndex = listbox.selectedIndex = aIndex;
             return;
         }
 
@@ -277,9 +316,9 @@ KeySnail.Prompt = function () {
 
     function setupList(aOffset, aPos) {
         if (currentIndexList) {
-            setListBoxFromIndexList(currentList, currentIndexList, aOffset);                
+            setListBoxFromIndexList(currentList, currentIndexList, aOffset);
         } else {
-            setListBoxFromStringList(currentList, aOffset);                
+            setListBoxFromStringList(currentList, aOffset);
         }
 
         // set selection of the listbox
@@ -306,7 +345,7 @@ KeySnail.Prompt = function () {
 
     function setListBoxGeneral(aGeneralList, aOffset, aLength, itemRetriever, onFinish) {
         aOffset = aOffset || 0;
-        var count = Math.min(listboxMaxRows, aLength) + aOffset;
+        var count = Math.min(options.listboxMaxRows, aLength) + aOffset;
         var row;
 
         if (listbox.hasChildNodes()) {
@@ -374,11 +413,8 @@ KeySnail.Prompt = function () {
     // ============================== prompt.selector main ============================== //
 
     var oldTextLength = 0;
-    var displayDelayTime = 300;
     var delayedCommandTimeout;
-
     var currentRegexp;
-    var selectorIndexToPass;
 
     /**
      * Update the list when user input / delete the text
@@ -403,7 +439,7 @@ KeySnail.Prompt = function () {
                     createCompletionList();
                     delayedCommandTimeout = null;
                 },
-                displayDelayTime);
+                options.displayDelayTime);
         }
 
         oldTextLength = textbox.value.length;
@@ -446,30 +482,130 @@ KeySnail.Prompt = function () {
             break;
         case KeyEvent.DOM_VK_TAB:
             modules.util.stopEventPropagation(aEvent);
-            selectNextCompletion(aEvent.shiftKey ? -1 : 1, true);
+
+            if (selectorContext[SELECTOR_STATE_ACTION].wholeList.length < 2)
+                return;
+
+            var from, to;
+
+            switch (selectorStatus) {
+            case SELECTOR_STATE_CANDIDATES:
+                from = SELECTOR_STATE_CANDIDATES;
+                to   = SELECTOR_STATE_ACTION;
+                break;
+            case SELECTOR_STATE_ACTION:
+                from = SELECTOR_STATE_ACTION;
+                to   = SELECTOR_STATE_CANDIDATES;
+                break;
+            }
+
+            selectorStatus = to;
+
+            if (delayedCommandTimeout) {
+                clearTimeout(delayedCommandTimeout);
+            }
+
+            // save current context
+            saveSelectorContext(selectorContext[from]);
+            // go to other status
+            restoreSelectorContext(selectorContext[to]);
+
+            updateSelector(selectorContext[to]);
             break;
         default:
             break;
         }
     }
 
+    function saveSelectorContext(aTo) {
+        aTo.textboxValue     = textbox.value;
+        aTo.selectionStart   = textbox.selectionStart;
+
+        aTo.compIndex        = compIndex;
+        aTo.compIndexList    = compIndexList;
+        aTo.currentList      = currentList;
+        aTo.currentIndexList = currentIndexList;
+        aTo.wholeList        = wholeList;
+        aTo.wholeListIndex   = wholeListIndex;
+        aTo.listHeader       = listHeader;
+        aTo.currentRegexp    = currentRegexp;
+    }
+
+    function restoreSelectorContext(aFrom) {
+        textbox.value          = aFrom.textboxValue;
+        textbox.selectionStart = aFrom.selectionStart;
+
+        compIndex              = aFrom.compIndex;
+        compIndexList          = aFrom.compIndexList;
+        currentList            = aFrom.currentList;
+        currentIndexList       = aFrom.currentIndexList;
+        wholeList              = aFrom.wholeList;
+        wholeListIndex         = aFrom.wholeListIndex;
+        listHeader             = aFrom.listHeader;
+        oldTextLength          = textbox.value.length;
+        currentRegexp          = aFrom.currentRegexp;
+    }
+
+    function updateSelector(aContext) {
+        // self.message(aContext.whole);
+
+        removeAllChilds(listbox);
+
+        if (aContext.compIndexList == null) {
+            // create list of whole completion
+            setListBoxFromStringList(wholeList);
+            setRows(wholeList.length);
+        } else {
+            setListBoxFromIndexList(wholeList, compIndexList);
+            setRows(compIndexList.length);
+        }
+        listbox.hidden = false;
+
+        selectorDisplayStatusbarLine(currentRegexp, 0, compIndexList ?
+                                     compIndexList.length : wholeList.length);
+
+        setListBoxSelection(compIndexList ? compIndex : wholeListIndex);
+    }
+
     function setListBoxIndex(aIndex) {
         if (compIndexList) {
             compIndex = aIndex;
-            selectorIndexToPass = compIndexList[aIndex];
+            wholeListIndex = compIndexList[aIndex];
         } else {
-            completion.index = aIndex;
-            selectorIndexToPass = aIndex;
+            wholeListIndex = aIndex;
         }
     }
 
     function selectorDisplayStatusbarLine(aQuery, aIndex, aTotalLength) {
         if (aIndex < 0) {
-            modules.display.echoStatusBar("No match for [" + aQuery + "]");            
+            modules.display.echoStatusBar("No match for [" + aQuery + "]");
         } else {
             modules.display.echoStatusBar("Completion Regexp Match for [" + aQuery + "]" +
-                                          " (" + (aIndex + 1) +  " / " + aTotalLength + ")");            
+                                          " (" + (aIndex + 1) +  " / " + aTotalLength + ")");
         }
+    }
+
+    function setSelectorActions(aActions) {
+        var context = selectorContext[SELECTOR_STATE_ACTION];
+
+        if (typeof(aActions) === "function") {
+            // set callback
+            context.wholeList = [[aActions, "", ""]];
+            context.wholeListIndex = 0;
+            return;
+        }
+
+        var list = [];
+
+        // create action list
+        aActions.forEach(
+            function (action) {
+                // self.message([action.callback, action.name, action.description]);
+                list.push([action.callback, action.name, action.description]);
+            })
+
+        context.wholeList      = list;
+        context.wholeListIndex = 0;
     }
 
     function selectNextCompletion(aDirection, aRing) {
@@ -478,7 +614,7 @@ KeySnail.Prompt = function () {
         if (!compIndexList && currentRegexp) {
             selectorDisplayStatusbarLine(currentRegexp, -1);
             // set index to pass
-            selectorIndexToPass = -1;
+            wholeListIndex = -1;
             return;
         }
 
@@ -489,25 +625,24 @@ KeySnail.Prompt = function () {
             totalLength  = compIndexList.length;
             // set global value
             compIndex    = nextIndex;
-            selectorIndexToPass = compIndexList[nextIndex];
+            wholeListIndex = compIndexList[nextIndex];
         } else {
             // whole list
-            nextIndex        = getNextIndex(completion.index, aDirection, 0, completion.list.length, aRing);
-            currentIndex     = completion.index;
-            totalLength      = completion.list.length;
+            nextIndex        = getNextIndex(wholeListIndex, aDirection, 0, wholeList.length, aRing);
+            currentIndex     = wholeListIndex;
+            totalLength      = wholeList.length;
             // set global value
-            completion.index = nextIndex;
-            selectorIndexToPass = nextIndex;
+            wholeListIndex = nextIndex;
         }
 
-        setListBoxSelection(nextIndex, currentIndex);
         selectorDisplayStatusbarLine(currentRegexp, nextIndex, totalLength);
+        setListBoxSelection(nextIndex, currentIndex);
     }
 
     function createCompletionList() {
-        if (!completion.list || !completion.list.length) {
+        if (!wholeList || !wholeList.length) {
             modules.display.echoStatusBar("No " + completion.name + " found", 1000);
-            selectorIndexToPass = -1;
+            wholeListIndex = -1;
             return;
         }
 
@@ -516,14 +651,15 @@ KeySnail.Prompt = function () {
 
         if (start == 0) {
             // create list of whole completion
+            compIndex = -1;
             compIndexList = null;
-            setListBoxFromStringList(completion.list);
-            setRows(completion.list.length);
+            setListBoxFromStringList(wholeList);
+            setRows(wholeList.length);
             listbox.hidden = false;
-            completion.index = index = 0;
+            wholeListIndex = index = 0;
             currentRegexp = "";
         } else {
-            var listLen = completion.list.length;
+            var listLen = wholeList.length;
             var regexp = textbox.value;
 
             var substrIndex;
@@ -533,9 +669,9 @@ KeySnail.Prompt = function () {
             compIndex = 0;
 
             var keywords = regexp.split(" ");
-            var useMigemoActual = (useMigemo &&
+            var useMigemoActual = (options.useMigemo &&
                                    window.xulMigemoCore &&
-                                   keywords.every(function (aStr) aStr.length >= migemoMinWordLength));
+                                   keywords.every(function (aStr) aStr.length >= options.migemoMinWordLength));
 
             if (useMigemoActual)
                 var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
@@ -553,7 +689,7 @@ KeySnail.Prompt = function () {
             // modules.display.prettyPrint((cellForSearch || "nothing").toString());
 
             var matcher;
-            if (isMultipleList(completion.list)) {
+            if (isMultipleList(wholeList)) {
                 // multiple cols
                 if (cellForSearch) {
                     // user specified the cells to ignore
@@ -561,7 +697,7 @@ KeySnail.Prompt = function () {
                         function () {
                             return cellForSearch.some(
                                 function (j) {
-                                    return getCellValue(completion.list[i], j).match(migexp, "i");
+                                    return getCellValue(wholeList[i], j).match(migexp, "i");
                                 });
                         }
                     : function () {
@@ -569,47 +705,47 @@ KeySnail.Prompt = function () {
                             function (keyword) {
                                 return cellForSearch.some(
                                     function (j) {
-                                        return getCellValue(completion.list[i], [j]).match(keyword, "i");
+                                        return getCellValue(wholeList[i], [j]).match(keyword, "i");
                                     }
                                 );
                             }
                         );
-                    };  
+                    };
                 } else {
                     matcher = (useMigemoActual) ?
                         function () {
-                            return completion.list[i].some(
+                            return wholeList[i].some(
                                 function (item) {
                                     return (typeof item == "function" ?
-                                            item.call(null, completion.list[i]) : item).match(migexp, "i");
+                                            item.call(null, wholeList[i]) : item).match(migexp, "i");
                                 }
                             );
                         }
                     : function () {
                         return keywords.every(
                             function (keyword) {
-                                return completion.list[i].some(
+                                return wholeList[i].some(
                                     function (item, i) {
                                     return (typeof item == "function" ?
-                                            item.call(null, completion.list[i]) : item).match(migexp, "i");
+                                            item.call(null, wholeList[i]) : item).match(migexp, "i");
                                         return item.match(keyword, "i");
                                     }
                                 );
                             }
                         );
-                    };   
+                    };
                 }
             } else {
                 // single col
                 matcher = (useMigemoActual) ?
-                    function () { return completion.list[i].match(migexp, "i"); }
+                    function () { return wholeList[i].match(migexp, "i"); }
                 : function () {
                     return keywords.every(
-                        function (keyword) { return completion.list[i].match(keyword, "i"); }
+                        function (keyword) { return wholeList[i].match(keyword, "i"); }
                     );
                 };
             }
-             
+
             for (var i = 0; i < listLen; ++i) {
                 if (matcher()) {
                     compIndexList.push(i);
@@ -622,28 +758,33 @@ KeySnail.Prompt = function () {
                 compIndexList = null;
                 currentRegexp = regexp;
                 selectorDisplayStatusbarLine(regexp, -1);
-                selectorIndexToPass = -1;
+                wholeListIndex = -1;
                 return;
             }
 
             index = compIndexList[0];
             currentRegexp = regexp;
 
-            setListBoxFromIndexList(completion.list, compIndexList);
+            setListBoxFromIndexList(wholeList, compIndexList);
 
             // show
             setRows(compIndexList.length);
             listbox.hidden = false;
         }
 
-        selectorIndexToPass = index;
+        wholeListIndex = index;
 
-        setListBoxSelection(0);
         selectorDisplayStatusbarLine(currentRegexp, 0,
-                                     compIndexList ? compIndexList.length : completion.list.length);
+                                     compIndexList ? compIndexList.length : wholeList.length);
+        setListBoxSelection(0);
     }
 
     // ============================== prompt.read main ============================== //
+
+    function resetState(aType) {
+        aType.index = 0;
+        aType.state = false;
+    }
 
     function resetReadState() {
         currentHead = null;
@@ -672,7 +813,7 @@ KeySnail.Prompt = function () {
                 textbox.selectionStart != textbox.value.length) {
                 resetReadState();
             }
-            oldSelectionStart = textbox.selectionStart;                        
+            oldSelectionStart = textbox.selectionStart;
             break;
         }
     }
@@ -688,7 +829,7 @@ KeySnail.Prompt = function () {
             break;
         case KeyEvent.DOM_VK_UP:
             if (completion.state) {
-                fetchItem(completion, -1, true, true, substrMatch, true);
+                fetchItem(completion, -1, true, true, options.substrMatch, true);
                 return;
             }
 
@@ -704,7 +845,7 @@ KeySnail.Prompt = function () {
             break;
         case KeyEvent.DOM_VK_DOWN:
             if (completion.state) {
-                fetchItem(completion, 1, true, true, substrMatch, true);
+                fetchItem(completion, 1, true, true, options.substrMatch, true);
                 return;
             }
 
@@ -721,9 +862,10 @@ KeySnail.Prompt = function () {
             modules.util.stopEventPropagation(aEvent);
 
             if (completion.state) {
-                fetchItem(completion, aEvent.shiftKey ? -1 : 1, true, true, substrMatch, true);
+                fetchItem(completion, aEvent.shiftKey ? -1 : 1, true, true, options.substrMatch, true);
             } else {
-                fetchItem(completion, 0, true, true, substrMatch, true);
+                // begin
+                fetchItem(completion, 0, true, true, options.substrMatch, true);
                 completion.state = true;
             }
             // reset history index
@@ -791,8 +933,8 @@ KeySnail.Prompt = function () {
                 compIndex = 0;
 
                 header = textbox.value.slice(0, start);
+
                 currentHead = header;
-                currentSubstr = aSubstrMatch ? header : null;
 
                 // modules.display.prettyPrint(header);
 
@@ -832,7 +974,7 @@ KeySnail.Prompt = function () {
             modules.display.echoStatusBar(aType.name + " (" + (index + 1) +  " / " + aType.list.length + ")");
         } else {
             modules.display.echoStatusBar(aType.name + (aSubstrMatch ? " Substring" : " Header") +
-                                          " Match for [" + (currentSubstr || currentHead) + "]" +
+                                          " Match for [" + currentHead + "]" +
                                           " (" + (compIndex + 1) +  " / " + compIndexList.length + ")");
         }
 
@@ -907,16 +1049,28 @@ KeySnail.Prompt = function () {
 
         // ==================== temporary preservation ==================== //
 
-        var savedCallback = currentCallback;
+        var savedCallback;
         var savedUserArg  = currentUserArg;
 
-        var callbackArg;
-        if (isSelector) {
-            // prompt.selector
-            callbackArg = aCanceled ? -1 : selectorIndexToPass;
+        if (type == TYPE_SELECTOR && wholeListIndex >= 0) {
+            var actionIndex = (selectorStatus == SELECTOR_STATE_ACTION) ?
+                wholeListIndex : context.wholeListIndex;
+            var context = selectorContext[SELECTOR_STATE_ACTION];
+
+            savedCallback = context.wholeList[actionIndex][0];
         } else {
-            // prompt.read
+            savedCallback = currentCallback;
+        }
+
+        var callbackArg;
+
+        switch (type) {
+            case TYPE_SELECTOR:
+            callbackArg = aCanceled ? -1 : wholeListIndex;
+            break;
+            case TYPE_READ:
             callbackArg = aCanceled ? null : textbox.value;
+            break;
         }
 
         // ==================== reset states ==================== //
@@ -929,7 +1083,7 @@ KeySnail.Prompt = function () {
         // -------------------- prompt.selector -------------------- //
 
         delayedCommandTimeout = null;
-        selectorIndexToPass   = -1;
+        wholeListIndex        = -1;
         listHeader            = null;
         listWidth             = null;
         flags                 = null;
@@ -939,7 +1093,6 @@ KeySnail.Prompt = function () {
         // -------------------- prompt.read -------------------- //
 
         currentHead        = null;
-        currentSubstr      = null;
         inNormalCompletion = false;
         compIndex          = 0;
         compIndexList      = null;
@@ -968,9 +1121,9 @@ KeySnail.Prompt = function () {
                 aCanceled = true;
             }
 
-            // add history (not in the prompt.selector)
-            if (!aCanceled && !isSelector && callbackArg.length) {
-                if (ignoreDuplication) {
+            // add history (prompt.read only)
+            if (!aCanceled && (type == TYPE_READ) && callbackArg.length) {
+                if (options.ignoreDuplication) {
                     // remove all duplicated elements from list and add str to head
                     var li = history.list;
                     for (var i = 0; i < li.length; ++i) {
@@ -1017,32 +1170,32 @@ KeySnail.Prompt = function () {
             modules.RIGHT  = 8;
         },
 
-        set ignoreDuplication(aBool) { ignoreDuplication = !!aBool; },
-        get ignoreDuplication() { return ignoreDuplication; },
+        set ignoreDuplication(aBool) { options.ignoreDuplication = !!aBool; },
+        get ignoreDuplication() { return options.ignoreDuplication; },
 
-        set substrMatch(aBool) { substrMatch = !!aBool; },
-        get substrMatch() { return substrMatch; },
+        set substrMatch(aBool) { options.substrMatch = !!aBool; },
+        get substrMatch() { return options.substrMatch; },
 
         set rows(aNum) {
             if (typeof(aNum) == "number")
-                listboxMaxRows = Math.round(aNum);
+                options.listboxMaxRows = Math.round(aNum);
         },
         get rows() {
-            return listboxMaxRows;
+            return options.listboxMaxRows;
         },
 
         set useMigemo(aBool) {
-            useMigemo = !!aBool;
+            options.useMigemo = !!aBool;
         },
 
         set migemoMinWordLength(aNum) {
             if (typeof(aNum) == "number")
-                migemoMinWordLength = Math.round(aNum);
+                options.migemoMinWordLength = Math.round(aNum);
         },
 
         set displayDelayTime(aMiliSec) {
             if (typeof(aMiliSec) == "number")
-                displayDelayTime = aMiliSec;
+                options.displayDelayTime = aMiliSec;
         },
 
         /**
@@ -1059,6 +1212,7 @@ KeySnail.Prompt = function () {
          * @param {string} aInitialCount initial completion's index
          * @param {string} aGroup name of the history group
          */
+
         read: function (aMsg, aCallback, aUserArg, aCollection, aInitialInput, aInitialCount, aGroup) {
             if (!promptbox)
                 return;
@@ -1070,7 +1224,7 @@ KeySnail.Prompt = function () {
 
             savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
 
-            isSelector = false;
+            type = TYPE_READ;
 
             // set up history
             history.index = 0;
@@ -1128,20 +1282,20 @@ KeySnail.Prompt = function () {
                 this.modules.display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
-            
+
             savedFocusedElement = document.commandDispatcher.focusedElement || content.window;
 
             // tell current command is the selector
-            isSelector = true;
+            type = TYPE_SELECTOR;
 
             // set up completion
-            completion.list = aContext.collection;
-            flags           = aContext.flags;
-            listHeader      = aContext.header;
-            listWidth       = aContext.width;
+            wholeList  = aContext.collection;
+            flags      = aContext.flags;
+            listHeader = aContext.header;
+            listWidth  = aContext.width;
 
             // set up callbacks
-            currentCallback = aContext.callback;
+            currentCallback = true;
 
             // display prompt box
             label.value = aContext.message;
@@ -1162,7 +1316,15 @@ KeySnail.Prompt = function () {
 
             oldTextLength = 0;
 
-            modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
+            selectorStatus = SELECTOR_STATE_CANDIDATES;
+            selectorContext = [];
+            selectorContext[SELECTOR_STATE_CANDIDATES] = createSelectorContext();
+            selectorContext[SELECTOR_STATE_ACTION]     = createSelectorContext();
+            selectorContext[SELECTOR_STATE_ACTION].listHeader = ["Action", "Description"];
+
+            // modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
+
+            setSelectorActions(aContext.actions || aContext.callback);
 
             createCompletionList();
         },

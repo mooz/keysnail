@@ -232,6 +232,7 @@ KeySnail.Key = {
         //                                   "curr :: " + aEvent.currentTarget.localName].join("\n"));
 
         if (key == this.suspendKey) {
+            this.modules.util.stopEventPropagation(aEvent);
             this.suspended = !this.suspended;
             this.updateStatusBar();
             this.backToNeutral("Suspension switched", 1000);
@@ -533,7 +534,7 @@ KeySnail.Key = {
         }
 
         if (!key)
-            return "";
+            return null;
 
         // append modifier
         if (this.isMetaKey(aEvent))
