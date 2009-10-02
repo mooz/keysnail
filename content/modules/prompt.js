@@ -65,6 +65,7 @@ KeySnail.Prompt = function () {
     var currentIndexList;
     var flags;
     var listHeader;
+    var listWidth;
 
     // ============================== completion type ============================== //
 
@@ -149,7 +150,7 @@ KeySnail.Prompt = function () {
 
                 item = document.createElement("listcol");
                 item.flex = 1;
-                item.setAttribute("width", (100 / aColumn).toString() + "%");
+                item.setAttribute("width", (listWidth ? listWidth[i].toString() : (100 / aColumn).toString()) + "%");
                 cols.appendChild(item);
             }
 
@@ -930,6 +931,7 @@ KeySnail.Prompt = function () {
         delayedCommandTimeout = null;
         selectorIndexToPass   = -1;
         listHeader            = null;
+        listWidth             = null;
         flags                 = null;
         currentList           = null;
         currentIndexList      = null;
@@ -1136,6 +1138,7 @@ KeySnail.Prompt = function () {
             completion.list = aContext.collection;
             flags           = aContext.flags;
             listHeader      = aContext.header;
+            listWidth       = aContext.width;
 
             // set up callbacks
             currentCallback = aContext.callback;

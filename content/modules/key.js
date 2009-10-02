@@ -529,9 +529,6 @@ KeySnail.Key = {
                 if (aEvent.ctrlKey)
                     key = "_";
                 break;
-            default:
-                key = "";
-                break;
             }
         }
 
@@ -543,7 +540,7 @@ KeySnail.Key = {
             key = "M-" + key;
         if (this.isControlKey(aEvent))
             key = "C-" + key;
-        if (aEvent.shiftKey && !this.isDisplayableKey(aEvent))
+        if (aEvent.shiftKey && (!this.isDisplayableKey(aEvent) || aEvent.charCode == 0x20))
             key = "S-" + key;
 
         return key;
@@ -979,7 +976,15 @@ KeySnail.Key = {
             arg   : aArg
         };
 
-        this.modules.hook.callHook("PreCommand", hookArg);
+        /**
+         * User can cancell command from PreCommand hook
+         * by throwing exception
+         */
+        try {
+            this.modules.hook.callHook("PreCommand", hookArg);
+        } catch (x) {
+            return;
+        }
 
         if (!aFunc.ksNoRepeat && aArg) {
             // iterate
@@ -1006,6 +1011,7 @@ KeySnail.Key = {
         // }
 
         this.lastFunc = aFunc;
+
         this.modules.hook.callHook("PostCommand", hookArg);
     },
 

@@ -716,10 +716,18 @@ KeySnail.Command = {
     clipboardChanged: function () {
         var text = this.getClipboardText();
 
+        /**
+         * User can prevent killring pushing from hook
+         * by throwing exception
+         */
+        try {
+            this.modules.hook.callHook("ClipboardChanged", text);
+        } catch (x) {
+            return;
+        }
+
         if (!this.kill.ring.length || this.kill.ring.length && text != this.kill.ring[0])
             this.pushKillRing(text);
-
-        this.modules.hook.callHook("ClipboardChanged", text);
     },
 
     copySelectedText: function (aInput) {
@@ -775,7 +783,7 @@ KeySnail.Command = {
             if (kill.ring.length == 0 || clipboardText != kill.ring[0]) {
                 if (clipboardText.length > kill.textLengthMax) {
                     goDoCommand('cmd_paste');
-                    return;                    
+                    return;
                 }
                 pushKillRing(clipboardText);
             }

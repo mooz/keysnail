@@ -56,7 +56,7 @@ KeySnail.UserScript = {
     initFileLoader: function (aInitFilePath) {
         try {
             var start = new Date();
-            this.jsFileLoader(aInitFilePath);
+            this.jsFileLoader(aInitFilePath, true);
             var end = new Date();
         } catch (e) {
             this.modules.util.listProperty(e);
