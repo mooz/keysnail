@@ -269,49 +269,47 @@ KeySnail.Command = {
 
         for (var i = 0; i < items.length; ++i) {
             if (items[i].node.uri.match(/^(https?|ftp):/)) {
-                urlList.push([
-                                 this.modules.util.getFaviconPath(items[i].node.uri),
-                                 items[i].label,
-                                 items[i].node.uri
-                             ]);
+                urlList.push([this.modules.util.getFaviconPath(items[i].node.uri),
+                              items[i].label,
+                              items[i].node.uri,
+                              items[i].node.itemId]);
             }
         }
 
         with (this.modules) {
             prompt.selector({message: "Pattern: ",
-                             collection: urlList, // [icon, url, title]
-                             flags: [ICON | IGNORE, 0, 0],
+                             collection: urlList,
+                             // [icon, title, url, id]
+                             flags: [ICON | IGNORE, 0, 0, IGNORE | HIDDEN],
                              header: ["Title", "URL"],
+                             style: [null, 'color:blue;text-decoration:underline;'],
                              actions: [
-                                 {
-                                     name: "Open Link in new tab",
-                                     description: "Open Link in new tab",
-                                     callback: function (aIndex) {
-                                         if (aIndex >= 0) {
-                                             gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, false);
-                                         }
-                                     }
-                                 },
-                                 {
-                                     name: "Open Link in new window",
-                                     description: "Open Link in new window",
-                                     callback: function (aIndex) {
-                                         if (aIndex >= 0) {
-                                             gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, true);
-                                         }
-                                     }
-                                 },
-                                 {
-                                     name: "Open Link in new tab",
-                                     description: "Open Link in new tab",
-                                     callback: function (aIndex) {
-                                         if (aIndex >= 0) {
-                                             gBrowser.loadOneTab(urlList[aIndex][2], null, null, null, false);
-                                         }
-                                     }
-                                 }
-                             ]
-                            });
+                                 [function (aIndex) {
+                                      if (aIndex >= 0) {
+                                          openUILinkIn(urlList[aIndex][2], "tab");
+                                      }
+                                  }, "Open Link in new tab (foreground)"],
+                                 [function (aIndex) {
+                                      if (aIndex >= 0) {
+                                          openUILinkIn(urlList[aIndex][2], "tabshifted");
+                                      }
+                                  }, "Open Link in new tab (background)"],
+                                 [function (aIndex) {
+                                      if (aIndex >= 0) {
+                                          openUILinkIn(urlList[aIndex][2], "window");
+                                      }
+                                  }, "Open Link in new window"],
+                                 [function (aIndex) {
+                                      if (aIndex >= 0) {
+                                          openUILinkIn(urlList[aIndex][2], "current");
+                                      }
+                                  }, "Open Link in current tab"],
+                                 [function (aIndex) {
+                                      if (aIndex >= 0) {
+                                          PlacesUIUtils.showItemProperties(urlList[aIndex][3], "bookmark");
+                                      }
+                                  }, "Edit bookmark entry"]
+                             ]});
         }
     },
 

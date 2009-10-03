@@ -58,12 +58,13 @@ KeySnail.Key = {
     lastFunc: null,
 
     // ==== modes ====
+
+    // major modes
     modes: {
-        GLOBAL: "global",
-        VIEW:   "view",
-        EDIT:   "edit",
-        CARET:  "caret"
-        // MENU:   "menu"
+        GLOBAL : "global",
+        VIEW   : "view",
+        EDIT   : "edit",
+        CARET  : "caret"
     },
 
     init: function () {

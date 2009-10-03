@@ -106,8 +106,8 @@
     <!-- prompt -->
     <vbox id="browser-bottombox">
         <listbox id="keysnail-completion-list"
-                 seltype="multiple"
-                 hidden="true" insertafter="status-bar">
+                 hidden="true"
+                 insertafter="status-bar">
         </listbox>
         <hbox id="keysnail-prompt" insertafter="keysnail-completion-list" hidden="true"
               align="center">
