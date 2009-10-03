@@ -10,7 +10,7 @@ var ksPreference = {
     editorKey: "extensions.keysnail.userscript.editor",
 
     digitArgumentList        : null,
-    digitArgumentDescription : null, 
+    digitArgumentDescription : null,
     prefixArgumentCheckBox   : null,
 
     keybindTreeBox      : null,
@@ -33,7 +33,7 @@ var ksPreference = {
         this.digitArgumentList        = document.getElementById("digit-argument-list");
         this.digitArgumentDescription = document.getElementById("digit-argument-description");
         this.prefixArgumentCheckBox   = document.getElementById("use-prefix-argument-checkbox");
-        
+
         if (!this.modules.util.getUnicharPref(this.editorKey)) {
             this.modules.userscript.syncEditorWithGM();
         }
@@ -138,7 +138,7 @@ var ksPreference = {
 
         this.insertKeyMenu = document.getElementById("insert-key-menu");
         this.dropMarker    = document.getElementById("keybind-button-insert");
-        
+
         var keys = [
             "<backspace>",
             "C-<backspace>",
@@ -177,6 +177,12 @@ var ksPreference = {
         createButton.disabled = true;
 
         var output = this.generateInitFile();
+
+        if (!output) {
+            createButton.disabled = false;
+            return false;
+        }
+
         try {
             this.modules.util.writeText(output, this.modules.userscript.initFilePath, false, "preference.ask_when_overwrite");
             this.modules.userscript.reload();
@@ -770,7 +776,26 @@ var ksPreference = {
         contentHolder.push("// ================ Key Bindings ====================== //");
         contentHolder.push("");
 
-        this.generateKeyBindSettings(contentHolder);
+        var crushingIndexList = this.generateKeyBindSettings(contentHolder);
+        if (crushingIndexList) {
+            var message = [];
+            var data = ksKeybindTreeView.data;
+            var row;
+
+            message.push(this.modules.util.getLocaleString("prefixKeyCrushedByOtherKey"));
+            message.push("");
+
+            for (var i = 0; i < crushingIndexList.length; ++i) {
+                row = data[crushingIndexList[i]];
+
+                message.push("   * " + row[KS_KEY_STRING] + " " + row[KS_DESC] +
+                             " (" + ksKeybindTreeView.modes[row[KS_MODE]] + ")");
+            }
+
+            this.modules.util.alert(null, "Notice!", message.join("\n"));
+
+            return null;
+        }
 
         // now process it
         var output = this.modules.util
@@ -853,6 +878,8 @@ var ksPreference = {
         var data = ksKeybindTreeView.data;
         var useBeautifier = nsPreferences.getBoolPref("extensions.keysnail.preference.indent_all_function", false);
 
+        var prefixKeys = {};
+
         var doneIndexList = [];
         for (var i = 0; i < data.length; ++i) {
             if (doneIndexList.some(function (aIndex) {return aIndex == i;})) {
@@ -907,14 +934,41 @@ var ksPreference = {
 
             var ksNoRepeatString = row[KS_ARGUMENT] ? ", true" : "";
 
-            var src = "key.set" + ksKeybindTreeView.modes[row[KS_MODE]]+ "Key(" +
+            var src = "key.set" + ksKeybindTreeView.modes[row[KS_MODE]] + "Key(" +
                 keySetting +
                 ", " + (useBeautifier ? this.beautifyCode(row[KS_FUNCTION]) : row[KS_FUNCTION]) +
                 (row[KS_DESC] ? ", " + this.toStringForm(row[KS_DESC]) : "") +
                 ksNoRepeatString + ");\n";
 
+            // push all prefix key
+            if (row[KS_KEY_STRING].length) {
+                sequence = row[KS_KEY_STRING].split(" ");
+                if (sequence.length > 1) {
+                    sequence.pop();
+                    if (!prefixKeys[row[KS_MODE]])
+                        prefixKeys[row[KS_MODE]] = {};
+                    prefixKeys[row[KS_MODE]][sequence.join(" ")] = true;
+                }
+            }
+
             aContentHolder.push(src);
         }
+
+        var crushingIndexList = [];
+
+        // check whether commands overwrite other prefix key
+        for (i = 0; i < data.length; ++i) {
+            row = data[i];
+
+            if (row[0] == null)
+                continue;
+
+            if (prefixKeys[row[KS_MODE]][row[KS_KEY_STRING]]) {
+                crushingIndexList.push(i);
+            }
+        }
+
+        return crushingIndexList.length ? crushingIndexList : null;
     },
 
     // ============================== Add builtin command ============================== //

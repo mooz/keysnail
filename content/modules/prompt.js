@@ -1135,12 +1135,16 @@ KeySnail.Prompt = function () {
         var savedCallback;
         var savedUserArg  = currentUserArg;
 
-        if (type == TYPE_SELECTOR && wholeListIndex >= 0) {
-            var context     = selectorContext[SELECTOR_STATE_ACTION];
-            var actionIndex = (selectorStatus == SELECTOR_STATE_ACTION) ?
-                wholeListIndex : context.wholeListIndex;
+        // apply current status to saved context
+        if (type === TYPE_SELECTOR) {
+            saveSelectorContext(selectorContext[selectorStatus]);
+        }
 
-            savedCallback = context.wholeList[actionIndex][0];
+        if (type == TYPE_SELECTOR && wholeListIndex >= 0) {
+            var actions     = selectorContext[SELECTOR_STATE_ACTION];
+            var actionIndex = actions.wholeListIndex;
+
+            savedCallback = actions.wholeList[actionIndex][0];
         } else {
             savedCallback = currentCallback;
         }
@@ -1149,8 +1153,8 @@ KeySnail.Prompt = function () {
 
         switch (type) {
         case TYPE_SELECTOR:
-            callbackArg = [aCanceled ? -1 : selectorContext[SELECTOR_STATE_CANDIDATES].wholeListIndex,
-                           selectorContext[SELECTOR_STATE_CANDIDATES].wholeList];
+            var candidates = selectorContext[SELECTOR_STATE_CANDIDATES];
+            callbackArg = [aCanceled ? -1 : candidates.wholeListIndex, candidates.wholeList];
             if (selectorFilter) {
                 callbackArg = selectorFilter.apply(KeySnail, callbackArg);
             }
@@ -1205,7 +1209,7 @@ KeySnail.Prompt = function () {
             try {
                 savedCallback.apply(modules, callbackArg);
             } catch (x) {
-                self.message(x);
+                self.message("filename :: " + x.fileName + " :: msg :: " + x);
                 aCanceled = true;
             }
 
@@ -1273,8 +1277,8 @@ KeySnail.Prompt = function () {
             self.setActionKey("selector", "ESC"    , "prompt-cancel");
             self.setActionKey("selector", "RET"    , "prompt-decide");
             self.setActionKey("selector", "<down>" , "prompt-next-line");
-            self.setActionKey("selector", "<up>"   , "prompt-previous-line");
             self.setActionKey("selector", "<tab>"  , "prompt-next-line");
+            self.setActionKey("selector", "<up>"   , "prompt-previous-line");
             self.setActionKey("selector", "S-<tab>", "prompt-previous-line");
             self.setActionKey("selector", "<next>" , "prompt-next-page");
             self.setActionKey("selector", "<prior>", "prompt-previous-page");
@@ -1445,22 +1449,24 @@ KeySnail.Prompt = function () {
             textbox.addEventListener('keyup', handleKeyUpSelector, false);
             listbox.addEventListener('mousedown', handleMouseDownSelector, true);
             listbox.addEventListener('click', modules.util.stopEventPropagation, true);
+            listbox.addEventListener('dblclick', finish, true);
             eventListenerRemover = function () {
                 textbox.removeEventListener('keypress', handleKeyPressSelector, false);
                 textbox.removeEventListener('keyup', handleKeyUpSelector, false);
                 listbox.removeEventListener('mousedown', handleMouseDownSelector, true);
                 listbox.removeEventListener('click', modules.util.stopEventPropagation, true);
+                listbox.removeEventListener('dblclick', finish, true);
             };
 
             oldTextLength = 0;
 
             selectorStatus = SELECTOR_STATE_CANDIDATES;
             selectorContext = [];
-            selectorContext[SELECTOR_STATE_CANDIDATES] = createSelectorContext();
-            selectorContext[SELECTOR_STATE_ACTION]     = createSelectorContext();
+            selectorContext[SELECTOR_STATE_CANDIDATES]        = createSelectorContext();
+            selectorContext[SELECTOR_STATE_ACTION]            = createSelectorContext();
             selectorContext[SELECTOR_STATE_ACTION].listHeader = ["Actions"];
-            selectorContext[SELECTOR_STATE_ACTION].listStyle = options.actionsListStyle;
-            selectorContext[SELECTOR_STATE_ACTION].flags = [modules.IGNORE | modules.HIDDEN, 0];
+            selectorContext[SELECTOR_STATE_ACTION].listStyle  = options.actionsListStyle;
+            selectorContext[SELECTOR_STATE_ACTION].flags      = [modules.IGNORE | modules.HIDDEN, 0];
 
             // modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
 
