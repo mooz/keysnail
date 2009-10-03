@@ -88,6 +88,7 @@ KeySnail.Prompt = function () {
 
             listHeader       : null,
             listStyle        : null,
+            listWidth        : null,
             flags            : null,
             currentRegexp    : "",
             textboxValue     : "",
@@ -115,6 +116,7 @@ KeySnail.Prompt = function () {
     var flags;
     var listHeader;
     var listStyle;
+    var listWidth;
 
     // ============================== completion type ============================== //
 
@@ -187,14 +189,20 @@ KeySnail.Prompt = function () {
         for (var i = 0; i < aColumn; ++i) {
             if (listHeader) {
                 item = document.createElement("listheader");
-                item.flex = 1;
+                item.flex = listWidth ? listWidth[i] : 1;
                 item.setAttribute("label", listHeader[i]);
                 head.appendChild(item);
             }
 
             item = document.createElement("listcol");
-            item.flex = 1;
-            item.setAttribute("width", (100 / aColumn).toString() + "%");
+            item.flex = listWidth ? listWidth[i] : 1;
+
+            if (listWidth) {
+                item.setAttribute("width", listWidth[i].toString() + "%");
+            } else {
+                item.setAttribute("width", (100 / aColumn).toString() + "%");
+            }
+
             cols.appendChild(item);
         }
 
@@ -556,6 +564,7 @@ KeySnail.Prompt = function () {
         aTo.flags            = flags;
         aTo.listHeader       = listHeader;
         aTo.listStyle        = listStyle;
+        aTo.listWidth        = listWidth;
         aTo.currentRegexp    = currentRegexp;
     }
 
@@ -572,6 +581,7 @@ KeySnail.Prompt = function () {
         flags                  = aFrom.flags;
         listHeader             = aFrom.listHeader;
         listStyle              = aFrom.listStyle;
+        listWidth              = aFrom.listWidth;
         oldTextLength          = textbox.value.length;
         currentRegexp          = aFrom.currentRegexp;
     }
@@ -1178,6 +1188,7 @@ KeySnail.Prompt = function () {
         wholeListIndex        = -1;
         listHeader            = null;
         listStyle             = null;
+        listWidth             = null;
         flags                 = null;
         currentList           = null;
         currentIndexList      = null;
@@ -1429,6 +1440,7 @@ KeySnail.Prompt = function () {
             flags      = aContext.flags;
             listHeader = aContext.header;
             listStyle  = aContext.style;
+            listWidth  = aContext.width;
 
             selectorFilter = aContext.filter;
 
