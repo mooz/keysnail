@@ -14,7 +14,11 @@ KeySnail.Prompt = function () {
     const Ci = Components.interfaces;
 
     var modules;
-    var actionKeys = {};
+
+    // key settings
+    var actionKeys      = {};
+    actionKeys.read     = {};
+    actionKeys.selector = {};
 
     // ==================== Common objects between each context ==================== //
 
@@ -470,7 +474,7 @@ KeySnail.Prompt = function () {
         var keymap = actionKeys["selector"];
 
         var match;
-        if ((match = keymap[key].match("^prompt-nth-action-(.*)"))) {
+        if (keymap[key] && (match = keymap[key].match("^prompt-nth-action-(.*)"))) {
             var actions = selectorContext[SELECTOR_STATE_ACTION];
             var num = parseInt(match[1]) - 1;
 
@@ -763,7 +767,7 @@ KeySnail.Prompt = function () {
                             function (keyword) {
                                 return cellForSearch.some(
                                     function (j) {
-                                        return getCellValue(wholeList[i], [j]).match(keyword, "i");
+                                        return getCellValue(wholeList[i], j).match(keyword, "i");
                                     }
                                 );
                             }
@@ -774,8 +778,7 @@ KeySnail.Prompt = function () {
                         function () {
                             return wholeList[i].some(
                                 function (item) {
-                                    return (typeof item == "function" ?
-                                            item.call(null, wholeList[i]) : item).match(migexp, "i");
+                                    return (typeof(item) == "function" ? item.call(null, wholeList[i]) : item).match(migexp, "i");
                                 }
                             );
                         }
@@ -783,10 +786,8 @@ KeySnail.Prompt = function () {
                         return keywords.every(
                             function (keyword) {
                                 return wholeList[i].some(
-                                    function (item, i) {
-                                        return (typeof item == "function" ?
-                                                item.call(null, wholeList[i]) : item).match(migexp, "i");
-                                        return item.match(keyword, "i");
+                                    function (item) {
+                                        return (typeof item == "function" ? item.call(null, wholeList[i]) : item).match(keyword, "i");
                                     }
                                 );
                             }
@@ -1290,13 +1291,6 @@ KeySnail.Prompt = function () {
             modules.IGNORE = 2;
             modules.ICON   = 4;
 
-            // user local scope
-            // modules.my.sources = {};
-
-            // key settings
-            actionKeys["read"]     = {};
-            actionKeys["selector"] = {};
-
             self.setActionKey("read", "ESC"    , "prompt-cancel");
             self.setActionKey("read", "RET"    , "prompt-decide");
             self.setActionKey("read", "<down>" , "prompt-next-line");
@@ -1318,6 +1312,8 @@ KeySnail.Prompt = function () {
         },
 
         setActionKey: function(aType, aKey, aAction) {
+            // self.message(aType + " :: " + aKey);
+            // modules.util.listProperty(actionKeys);
             actionKeys[aType][aKey] = aAction;
         },
 
