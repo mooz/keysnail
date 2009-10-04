@@ -469,6 +469,25 @@ KeySnail.Prompt = function () {
         var stopEventPropagation = true;
         var keymap = actionKeys["selector"];
 
+        var match;
+        if ((match = keymap[key].match("^prompt-nth-action-(.*)"))) {
+            var actions = selectorContext[SELECTOR_STATE_ACTION];
+            var num = parseInt(match[1]) - 1;
+
+            if (selectorStatus == SELECTOR_STATE_CANDIDATES) {
+                actions.wholeListIndex = num;
+            } else {
+                // in action state
+                wholeListIndex = num;
+            }
+
+            if (num < 0 || num >= actions.wholeList.length) {
+                finish(true);
+            } else {
+                finish();
+            }
+        }
+
         switch (keymap[key]) {
         case "prompt-cancel":
             finish(true);
