@@ -736,7 +736,11 @@ KeySnail.Command = {
      * Notified when the clipboard content changed
      */
     clipboardChanged: function () {
-        var text = this.getClipboardText();
+        try {
+            var text = this.getClipboardText();            
+        } catch (x) {
+            return;
+        }
 
         /**
          * User can prevent killring pushing from hook
@@ -794,7 +798,12 @@ KeySnail.Command = {
         // yank() and yankPop() is directly passed to the key.set*Key()
         // so 'this' value becomes KeySnail
         with (this.modules.command) {
-            var clipboardText = getClipboardText();
+            try {
+                var clipboardText = getClipboardText();                
+            } catch (x) {
+                goDoCommand('cmd_paste');
+                return;
+            }
 
             if (!clipboardText && !kill.ring.length) {
                 this.modules.display.echoStatusBar("Kill ring empty", 2000);
