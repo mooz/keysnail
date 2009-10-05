@@ -9,12 +9,14 @@
 /**
  * Usage
  * 
+ * Paste this code to your .keysnail.js file.
+ *
  * Press 't' key (or your defined one) to start this client.
- * 
- * Once this function called, the timer will be set, and the timeline
+ *
+ * Once this function has been called, the timer will be set, and the timeline
  * of Twitter periodically updated. This interval can be configured by changing
  * the "updateInterval" option.
- * 
+ *
  * If you set the "popUpStatusWhenUpdated" option to true, pretty notification
  * dialog will be pop upped when new tweets are arrived.
  */
@@ -63,7 +65,15 @@ key.setViewKey('t', function (aEvent, aArg) {
         [function (status) {
              if (status)
                  search();
-         }, "Search keyword"]
+         }, "Search keyword"],
+        [function (status) {
+             if (status) {
+                 var matched = status.text.match("(https?|ftp)(://[a-zA-Z0-9/?#_.\\-]+)");
+                 if (matched) {
+                     gBrowser.loadOneTab(matched[1] + matched[2], null, null, null, false);
+                 }
+             }
+         }, "Visit URL in the message"]
     ];
 
     // ============================== Arrange services, username and password ============================== //
