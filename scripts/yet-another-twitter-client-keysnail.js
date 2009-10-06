@@ -78,7 +78,11 @@ key.setViewKey('t', function (aEvent, aArg) {
 
     // ============================== Arrange services, username and password ============================== //
 
-    var alertsService   = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
+    try {
+        var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);                       
+    } catch (x) {
+        popUpStatusWhenUpdated = false;
+    }
     var passwordManager = Cc['@mozilla.org/login-manager;1'].getService(Ci.nsILoginManager);
 
     var logins = passwordManager.findLogins({}, "http://twitter.com", "https://twitter.com", null);
@@ -337,7 +341,7 @@ key.setViewKey('t', function (aEvent, aArg) {
                     my.twitterPending = false;
 
                     if (xhr.status != 200) {
-                        display.echoStatusbar("Failed to get statuses");
+                        display.echoStatusBar("Failed to get statuses");
                         return;
                     }
 
@@ -368,7 +372,7 @@ key.setViewKey('t', function (aEvent, aArg) {
             xhr.onreadystatechange = function (aEvent) {
                 if (xhr.readyState == 4) {
                     if (xhr.status != 200) {
-                        display.echoStatusbar("Failed to get statuses");
+                        display.echoStatusBar("Failed to get statuses");
                         return;
                     }
 
@@ -385,7 +389,7 @@ key.setViewKey('t', function (aEvent, aArg) {
         }
 
         if (my.twitterPending) {
-            display.echoStatusbar("Requesting to the Twitter ... Please wait.");
+            display.echoStatusBar("Requesting to the Twitter ... Please wait.");
             return;
         }
 
