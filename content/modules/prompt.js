@@ -499,6 +499,9 @@ KeySnail.Prompt = function () {
         case "prompt-decide":
             finish();
             break;
+        case "prompt-decide-and-again":
+            finish(false, true);
+            break;
         case "prompt-next-line":
         case "prompt-next-completion":
             selectNextCompletion(1, true);
@@ -1141,25 +1144,41 @@ KeySnail.Prompt = function () {
 
     // ============================== finish ============================== //
 
+    function executeCallback(aCallback, aCallbackArg) {
+        if (typeof(aCallback) === "function") {
+            // try to execute
+            try {
+                aCallback.apply(modules, aCallbackArg);
+            } catch (x) {
+                self.message("filename :: " + x.fileName + " :: msg :: " + x);
+                return false;
+            }
+
+            // add history (prompt.read only)
+            if ((type == TYPE_READ) && aCallbackArg.length) {
+                if (options.ignoreDuplication) {
+                    // remove all duplicated elements from list and add str to head
+                    var li = history.list;
+                    for (var i = 0; i < li.length; ++i) {
+                        if (aCallbackArg == li[i]) {
+                            li.splice(i, 1);
+                        }
+                    }
+                    li.unshift(aCallbackArg);
+                } else {
+                    history.list.unshift(aCallbackArg);
+                }
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Finish inputting and current the prompt and If user can
      * @param {boolean} aCanceled true, if user canceled the prompt
      */
-    function finish(aCanceled) {
-        clearTimeout(delayedCommandTimeout);
-        eventListenerRemover();
-
-        /**
-         * We need to call focus() here
-         * because the callback sometimes change the current selected tab
-         * e.g. opening the URL in a new tab,
-         * and the window.focus() does not work that time.
-         */
-        if (savedFocusedElement) {
-            savedFocusedElement.focus();
-            savedFocusedElement = null;
-        }
-
+    function finish(aCanceled, aAgain) {
         // ==================== temporary preservation ==================== //
 
         var savedCallback;
@@ -1194,7 +1213,28 @@ KeySnail.Prompt = function () {
             break;
         }
 
+        if (aAgain) {
+            executeCallback(savedCallback, callbackArg);
+            textbox.focus();
+
+            return;
+        }
+
         // ==================== reset states ==================== //
+
+        /**
+         * We need to call focus() here
+         * because the callback sometimes change the current selected tab
+         * e.g. opening the URL in a new tab,
+         * and the window.focus() does not work that time.
+         */
+        if (savedFocusedElement) {
+            savedFocusedElement.focus();
+            savedFocusedElement = null;
+        }
+
+        clearTimeout(delayedCommandTimeout);
+        eventListenerRemover();
 
         // -------------------- common -------------------- //
 
@@ -1235,31 +1275,7 @@ KeySnail.Prompt = function () {
 
         // ==================== execute callback ==================== //
 
-        if (typeof(savedCallback) === "function") {
-            // try to execute
-            try {
-                savedCallback.apply(modules, callbackArg);
-            } catch (x) {
-                self.message("filename :: " + x.fileName + " :: msg :: " + x);
-                aCanceled = true;
-            }
-
-            // add history (prompt.read only)
-            if (!aCanceled && (type == TYPE_READ) && callbackArg.length) {
-                if (options.ignoreDuplication) {
-                    // remove all duplicated elements from list and add str to head
-                    var li = history.list;
-                    for (var i = 0; i < li.length; ++i) {
-                        if (callbackArg == li[i]) {
-                            li.splice(i, 1);
-                        }
-                    }
-                    li.unshift(callbackArg);
-                } else {
-                    history.list.unshift(callbackArg);
-                }
-            }
-        }
+        aCanceled = !executeCallback(savedCallback, callbackArg);
 
         // if canceled or error occured in callback, reset statusbar
         if (aCanceled)
@@ -1300,6 +1316,7 @@ KeySnail.Prompt = function () {
 
             self.setActionKey("selector", "ESC"    , "prompt-cancel");
             self.setActionKey("selector", "RET"    , "prompt-decide");
+            self.setActionKey("selector", "C-RET"  , "prompt-decide-and-again");
             self.setActionKey("selector", "<down>" , "prompt-next-line");
             self.setActionKey("selector", "<tab>"  , "prompt-next-line");
             self.setActionKey("selector", "<up>"   , "prompt-previous-line");
