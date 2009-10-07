@@ -1303,9 +1303,9 @@ KeySnail.Prompt = function () {
             historyHolder["default"] = [];
 
             // set up flags
-            modules.HIDDEN = 1;
-            modules.IGNORE = 2;
-            modules.ICON   = 4;
+            modules.__defineGetter__("HIDDEN", function () { return 1; });
+            modules.__defineGetter__("IGNORE", function () { return 2; });
+            modules.__defineGetter__("ICON"  , function () { return 4; });
 
             self.setActionKey("read", "ESC"    , "prompt-cancel");
             self.setActionKey("read", "RET"    , "prompt-decide");

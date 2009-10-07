@@ -26,7 +26,7 @@ var KeySnail = {
                              "Macro",
                              "Key",
                              "Prompt",
-                             "Ext",
+                             "Shell",
                              // UserScript must be the last
                              "UserScript"];
         this.moduleObjects = moduleObjects;
@@ -34,7 +34,8 @@ var KeySnail = {
         this.modules.modules = this.modules;
 
         // local namespace for user
-        this.modules.my = {};
+        this.My = {};
+        this.registerModule.call(this, "My");
 
         var i;
         var len = moduleObjects.length;
@@ -78,7 +79,7 @@ var KeySnail = {
     registerModule: function (aModuleName) {
         // KeySnail.Key => modules.key
         // KeySnail.HTML => modules.html
-        this.modules[aModuleName.toLowerCase()] = this[aModuleName];
+        this.modules.__defineGetter__(aModuleName.toLowerCase(), function () KeySnail[aModuleName]);
     },
 
     /**
