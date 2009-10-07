@@ -15,6 +15,7 @@
             title="&keySnail.preference.title;"
             ondialogcancel="return ksPreference.onFinish();"
             ondialogaccept="return ksPreference.onFinish();"
+            windowtype="KeySnail:Preference"
             minheight="670px"
             >
     <prefpane id="prefpane-rcfile" label="&keySnail.preference.userscript;"

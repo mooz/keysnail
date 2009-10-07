@@ -105,10 +105,18 @@ var KeySnail = {
      * Open preference dialog
      */
     openPreference: function () {
-        window.openDialog("chrome://keysnail/content/preference.xul",
-                          "Preferences",
-                          "chrome=yes,titlebar=yes,toolbar=yes,centerscreen=yes,resizable=yes,scrollbars=yes",
-                          "prefpane-rcfile");
+        var openedWindow = Components.classes['@mozilla.org/appshell/window-mediator;1']
+            .getService(Components.interfaces.nsIWindowMediator)
+            .getMostRecentWindow('KeySnail:Preference');
+
+        if (openedWindow) {
+            openedWindow.focus();
+        } else {
+            window.openDialog("chrome://keysnail/content/preference.xul",
+                              "Preferences",
+                              "chrome=yes,titlebar=yes,toolbar=yes,centerscreen=yes,resizable=yes,scrollbars=yes",
+                              "prefpane-rcfile");
+        }
     },
 
     showElapsedTime: function (aTag) {
