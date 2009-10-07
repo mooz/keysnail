@@ -499,13 +499,17 @@ KeySnail.Prompt = function () {
         case "prompt-decide":
             finish();
             break;
-        case "prompt-decide-and-again":
+        case "prompt-continuous-decide":
             finish(false, true);
             break;
+        case "prompt-continuous-decide-and-next":
+            finish(false, true);
         case "prompt-next-line":
         case "prompt-next-completion":
             selectNextCompletion(1, true);
             break;
+        case "prompt-continuous-decide-and-previous":
+            finish(false, true);
         case "prompt-previous-line":
         case "prompt-previous-completion":
             selectNextCompletion(-1, true);
@@ -1213,7 +1217,9 @@ KeySnail.Prompt = function () {
             break;
         }
 
+        // continuous
         if (aAgain) {
+            savedFocusedElement.focus();
             executeCallback(savedCallback, callbackArg);
             textbox.focus();
 
@@ -1316,7 +1322,7 @@ KeySnail.Prompt = function () {
 
             self.setActionKey("selector", "ESC"    , "prompt-cancel");
             self.setActionKey("selector", "RET"    , "prompt-decide");
-            self.setActionKey("selector", "C-RET"  , "prompt-decide-and-again");
+            self.setActionKey("selector", "C-RET"  , "prompt-continuous-decide");
             self.setActionKey("selector", "<down>" , "prompt-next-line");
             self.setActionKey("selector", "<tab>"  , "prompt-next-line");
             self.setActionKey("selector", "<up>"   , "prompt-previous-line");

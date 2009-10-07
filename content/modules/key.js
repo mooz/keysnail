@@ -57,6 +57,9 @@ KeySnail.Key = {
     // ==== last command's function ====
     lastFunc: null,
 
+    // ==== set to true, while loading the external (imported from .keysnail.js or plugin)
+    inExternalFile: false,
+
     // ==== modes ====
 
     // major modes
@@ -779,6 +782,9 @@ KeySnail.Key = {
         // true, if you want to prevent the iteration
         // of the command when prefix argument specified.
         aFunc.ksNoRepeat = aKsNoRepeat;
+
+        if (this.inExternalFile)
+            aFunc.ksDefinedInExternalFile = this.inExternalFile;
 
         switch (typeof(aKeys)) {
         case "string":

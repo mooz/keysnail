@@ -100,7 +100,7 @@ var ksPreference = {
                                         aEvent.stopPropagation();
 
                                         // ignore separator
-                                        if (ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex))
+                                        if (ksKeybindTreeView.isNotConfigurable(ksKeybindTreeView.currentIndex))
                                             return;
 
                                         var row = ksKeybindTreeView.data[ksKeybindTreeView.currentIndex];
@@ -150,7 +150,7 @@ var ksPreference = {
                 var item = document.createElement("menuitem");
                 item.setAttribute("label", key);
                 item.onmouseup = function () {
-                    if (!ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex) &&
+                    if (!ksKeybindTreeView.isNotConfigurable(ksKeybindTreeView.currentIndex) &&
                         ksKeybindTreeView.currentIndex >= 0) {
                         ksPreference.insertKey(key);
                     }
@@ -227,7 +227,7 @@ var ksPreference = {
             break;
         case "click":
             if (ksKeybindTreeView.currentIndex >= 0 &&
-                !ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex)) {
+                !ksKeybindTreeView.isNotConfigurable(ksKeybindTreeView.currentIndex)) {
                 ksPreference.keybindTextarea.focus();
             }
             break;
@@ -374,7 +374,7 @@ var ksPreference = {
 
     toggleEditView: function () {
         if (ksKeybindTreeView.currentIndex < 0 ||
-            ksKeybindTreeView.isSeparator(ksKeybindTreeView.currentIndex))
+            ksKeybindTreeView.isNotConfigurable(ksKeybindTreeView.currentIndex))
             return;
 
         var editBoxCollapsed = this.keybindEditBox.collapsed;
@@ -409,7 +409,7 @@ var ksPreference = {
         var index = ksKeybindTreeView.currentIndex;
         if (index < 0) return;
 
-        this.editButton.disabled   = ksKeybindTreeView.isSeparator(index);
+        this.editButton.disabled   = ksKeybindTreeView.isNotConfigurable(index);
         this.deleteButton.disabled = this.editButton.disabled;
         this.dropMarker.setAttribute("disabled", this.editButton.disabled);
     },
@@ -418,7 +418,7 @@ var ksPreference = {
         var index = ksKeybindTreeView.currentIndex;
         if (index < 0) return;
 
-        if (ksKeybindTreeView.isSeparator(index)) {
+        if (ksKeybindTreeView.isNotConfigurable(index)) {
             this.keybindTextarea.readOnly = true;
             this.keybindTextarea.value = "";
         } else {
@@ -431,7 +431,7 @@ var ksPreference = {
         var index = ksKeybindTreeView.currentIndex;
         if (index < 0) return;
 
-        if (ksKeybindTreeView.isSeparator(index)) {
+        if (ksKeybindTreeView.isNotConfigurable(index)) {
             this.modeMenuList.selectedIndex = 0;
             this.descriptionTextarea.value = "";
             this.functionTextarea.value = "";
@@ -882,7 +882,7 @@ var ksPreference = {
 
         var doneIndexList = [];
         for (var i = 0; i < data.length; ++i) {
-            if (doneIndexList.some(function (aIndex) {return aIndex == i;})) {
+            if (data[i][KS_EXTERNAL] || doneIndexList.some(function (aIndex) {return aIndex == i;})) {
                 continue;
             }
 
@@ -902,6 +902,7 @@ var ksPreference = {
                     row[KS_FUNCTION] == data[j][KS_FUNCTION] &&
                     row[KS_ARGUMENT] == data[j][KS_ARGUMENT] &&
                     row[KS_DESC]     == data[j][KS_DESC]     &&
+                    !row[KS_EXTERNAL]                        &&
                     doneIndexList.every(function (aIndex) {return aIndex != j;})) {
                     //
                     sameCommandKeys.push(data[j][KS_KEY_STRING]);
@@ -1018,7 +1019,8 @@ const KS_KEY_STRING   = 1;
 const KS_DESC         = 2;
 const KS_FUNCTION     = 3;
 const KS_ARGUMENT     = 4;
-const KS_TREE_COUNT   = 5;
+const KS_EXTERNAL     = 5;
+const KS_TREE_COUNT   = 6;
 
 var ksKeybindTreeView = {
     modules: null,
@@ -1090,8 +1092,9 @@ var ksKeybindTreeView = {
                 row[KS_KEY_STRING] = keyString;
                 row[KS_DESC]       = func.ksDescription;
                 row[KS_ARGUMENT]   = func.ksNoRepeat;
+                row[KS_EXTERNAL]   = func.ksDefinedInExternalFile;
 
-
+                // special case (method of the modules)
                 var found = false;
                 ["command", "my"].forEach(
                     function (moduleName) {
@@ -1136,7 +1139,7 @@ var ksKeybindTreeView = {
     },
 
     deleteItemAt: function (aIndex) {
-        if (!this.isSeparator(aIndex)) {
+        if (!this.isNotConfigurable(aIndex)) {
             this.data.splice(aIndex, 1);
             this._treeBoxObject.rowCountChanged(aIndex, -1);
             this.selection.select(aIndex < this.data.length ? aIndex : this.data.length - 1);
@@ -1203,6 +1206,12 @@ var ksKeybindTreeView = {
 	this._treeBoxObject.invalidate();
     },
 
+    isNotConfigurable: function (index) {
+        if (index < 0)
+            return true;
+        return this.isSeparator(index) || this.data[index][KS_EXTERNAL];
+    },
+
     get currentIndex()  {
         return (this.selection.count) ? this.selection.currentIndex : -1;
     },
@@ -1256,7 +1265,9 @@ var ksKeybindTreeView = {
     selectionChanged: function () {},
     cycleCell: function (row, col) {},
     isEditable: function (row, col) { return false; },
-    isSelectable: function (row, col) {},
+    isSelectable: function (row, col) {
+        return !this.isNotConfigurable(row);
+    },
     setCellValue: function (row, col, value) {},
     setCellText: function (row, col, value) {},
     performAction: function (action) {},

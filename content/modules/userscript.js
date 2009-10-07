@@ -54,6 +54,8 @@ KeySnail.UserScript = {
      * @throws {string} error message
      */
     initFileLoader: function (aInitFilePath) {
+        var savedStatus = this.modules.key.inExternalFile;
+        this.modules.key.inExternalFile = false;
         try {
             var start = new Date();
             this.jsFileLoader(aInitFilePath, true);
@@ -63,8 +65,11 @@ KeySnail.UserScript = {
                 e.fileName = aInitFilePath;
                 e.lineNumber -= (this.userScriptOffset - 1);
             }
+
+            this.modules.key.inExternalFile = savedStatus;
             throw e;
         }
+        this.modules.key.inExternalFile = savedStatus;
 
         this.initFilePath = aInitFilePath;
 
@@ -212,6 +217,7 @@ KeySnail.UserScript = {
     require: function (aFileName) {
         var baseDir;
 
+        this.modules.key.inExternalFile = true;
         for (var i = 0; i < this.loadPath.length; ++i) {
             baseDir = this.loadPath[i];
             if (!baseDir)
@@ -223,6 +229,7 @@ KeySnail.UserScript = {
                                     [aFileName]) != -1)
                 break;
         }
+        this.modules.key.inExternalFile = false;
     },
 
     /**
