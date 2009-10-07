@@ -8,7 +8,7 @@
 
 /**
  * Usage
- * 
+ *
  * Paste this code to your .keysnail.js file.
  *
  * Press 't' key (or your defined one) to start this client.
@@ -25,6 +25,8 @@ key.setViewKey('t', function (aEvent, aArg) {
     var updateInterval         = 60 * 1000;    // Update interval in mili second
     var popUpStatusWhenUpdated = true;         // Show popup when timeline is updated
     var mainColumnWidth        = [11, 68, 21]; // [User name, Message, Information] in percentage
+
+    var blockUser = my.blockUser || undefined;
 
     var twitterActions = [
         [function (status) {
@@ -79,7 +81,7 @@ key.setViewKey('t', function (aEvent, aArg) {
     // ============================== Arrange services, username and password ============================== //
 
     try {
-        var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);                       
+        var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
     } catch (x) {
         popUpStatusWhenUpdated = false;
     }
@@ -117,8 +119,21 @@ key.setViewKey('t', function (aEvent, aArg) {
         }
     };
 
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator);
     function showOldestUnPopUppedStatus() {
         var status = unPopUppedStatuses.pop();
+
+        if (blockUser && blockUser.some(function (username) username == status.user.screen_name)) {
+            util.message("ignored :: " + status.text + " from " + status.user.screen_name);
+            return;
+        }
+
+        var browserWindow = wm.getMostRecentWindow("navigator:browser");
+        if (!browserWindow || browserWindow.KeySnail != KeySnail) {
+            util.message("other window");
+            return;
+        }
 
         alertsService.showAlertNotification(status.user.profile_image_url,
                                             status.user.name,
