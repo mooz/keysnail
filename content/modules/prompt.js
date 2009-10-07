@@ -1148,8 +1148,8 @@ KeySnail.Prompt = function () {
 
     // ============================== finish ============================== //
 
-    function executeCallback(aCallback, aCallbackArg) {
-        if (typeof(aCallback) === "function") {
+    function executeCallback(aCallback, aCallbackArg, aCanceled) {
+        if (typeof(aCallback) === "function" && !aCanceled) {
             // try to execute
             try {
                 aCallback.apply(modules, aCallbackArg);
@@ -1281,7 +1281,7 @@ KeySnail.Prompt = function () {
 
         // ==================== execute callback ==================== //
 
-        aCanceled = !executeCallback(savedCallback, callbackArg);
+        aCanceled = !executeCallback(savedCallback, callbackArg, aCanceled);
 
         // if canceled or error occured in callback, reset statusbar
         if (aCanceled)
