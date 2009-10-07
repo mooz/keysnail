@@ -247,6 +247,8 @@ KeySnail.Key = {
             this.currentMacro.push(aEvent);
         }
 
+        this.modules.hook.callHook("KeyPress", key);
+
         switch (key) {
         case this.escapeKey:
             this.modules.util.stopEventPropagation(aEvent);
