@@ -696,14 +696,17 @@ KeySnail.Command = {
         clip.setData(trans, null, clipid.kGlobalClipboard);
     },
 
+    /**
+     *
+     * @throws Exception
+     * @returns {}
+     */
     getClipboardText: function () {
         var clip = Components.classes["@mozilla.org/widget/clipboard;1"]
             .getService(Components.interfaces.nsIClipboard);
-        if (!clip) return false;
 
         var trans = Components.classes["@mozilla.org/widget/transferable;1"]
             .createInstance(Components.interfaces.nsITransferable);
-        if (!trans) return false;
         trans.addDataFlavor("text/unicode");
 
         clip.getData(trans, clip.kGlobalClipboard);
@@ -713,10 +716,7 @@ KeySnail.Command = {
 
         trans.getTransferData("text/unicode", str, strLength);
 
-        if (str)
-            str = str.value.QueryInterface(Components.interfaces.nsISupportsString);
-        if (!str)
-            return null;
+        str = str.value.QueryInterface(Components.interfaces.nsISupportsString);
 
         return str.data.substring(0, strLength.value / 2);
     },
@@ -737,8 +737,9 @@ KeySnail.Command = {
      */
     clipboardChanged: function () {
         try {
-            var text = this.getClipboardText();            
+            var text = this.getClipboardText();
         } catch (x) {
+            this.message("Exception throwed :: " + x);
             return;
         }
 
@@ -799,14 +800,14 @@ KeySnail.Command = {
         // so 'this' value becomes KeySnail
         with (this.modules.command) {
             try {
-                var clipboardText = getClipboardText();                
+                var clipboardText = getClipboardText();
             } catch (x) {
                 goDoCommand('cmd_paste');
                 return;
             }
 
             if (!clipboardText && !kill.ring.length) {
-                this.modules.display.echoStatusBar("Kill ring empty", 2000);
+                modules.display.echoStatusBar("Kill ring empty", 2000);
                 return;
             }
 
