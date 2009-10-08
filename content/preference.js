@@ -810,7 +810,7 @@ var ksPreference = {
      * @returns {string}
      */
     toStringForm: function (aStr) {
-        return aStr ? "'" + aStr.replace("\\", "\\\\").replace("'", "\\'") + "'" : "";
+        return aStr ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "";
     },
 
     generateSpecialKeySettings: function (aContentHolder) {
@@ -949,10 +949,10 @@ var ksPreference = {
             // push all prefix key
             if (row[KS_KEY_STRING].length) {
                 sequence = row[KS_KEY_STRING].split(" ");
+                if (!prefixKeys[row[KS_MODE]])
+                    prefixKeys[row[KS_MODE]] = {};
                 if (sequence.length > 1) {
                     sequence.pop();
-                    if (!prefixKeys[row[KS_MODE]])
-                        prefixKeys[row[KS_MODE]] = {};
                     prefixKeys[row[KS_MODE]][sequence.join(" ")] = true;
                 }
             }

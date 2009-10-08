@@ -85,6 +85,10 @@ key.setViewKey('t', function (aEvent, aArg) {
              }
          }, "Show mentions"],
         [function (status) {
+             popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
+             display.echoStatusBar("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"));
+         }, "Toggle pop up status"],
+        [function (status) {
              if (status) {
                  tweet(content.document.title + " - " + getTinyURL(window.content.location.href));
              }

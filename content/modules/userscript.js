@@ -188,7 +188,7 @@ KeySnail.UserScript = {
                 msgstr += " [" + e.message + "]";
 
                 var buttons;
-                if (e.fileName.indexOf("://") == -1) {
+                if ((e.fileName || "").indexOf("://") == -1) {
                     let self = this;
                     buttons = [{
                                    label: this.modules.util.getLocaleString("openErrorOccuredPlace"),

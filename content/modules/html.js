@@ -107,5 +107,40 @@ KeySnail.HTML = {
         return div.innerHTML;
     },
 
+    /**
+     * (Original Code from liberator)
+     * Converts an E4X XML literal to a DOM node.
+     * @param {Node} node
+     * @param {Document} doc
+     * @param {Object} nodes If present, nodes with the "key" attribute are
+     *     stored here, keyed to the value thereof.
+     * @returns {Node}
+     */
+    xmlToDom: function xmlToDom(node, doc, nodes)
+    {
+        XML.prettyPrinting = false;
+        if (node.length() != 1)
+        {
+            let domnode = doc.createDocumentFragment();
+            for each (let child in node)
+            domnode.appendChild(arguments.callee(child, doc, nodes));
+            return domnode;
+        }
+        switch (node.nodeKind())
+        {
+        case "text":
+            return doc.createTextNode(node);
+        case "element":
+            let domnode = doc.createElementNS(node.namespace(), node.localName());
+            for each (let attr in node.@*)
+            domnode.setAttributeNS(attr.name() == "highlight" ? NS.uri : attr.namespace(), attr.name(), String(attr));
+            for each (let child in node.*)
+            domnode.appendChild(arguments.callee(child, doc, nodes));
+            if (nodes && node.@key)
+                nodes[node.@key] = domnode;
+            return domnode;
+        }
+    },
+
     message: KeySnail.message
 };

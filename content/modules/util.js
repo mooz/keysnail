@@ -547,5 +547,14 @@ KeySnail.Util = {
         return iconURL;
     },
 
+    // ==================== eval ==================== //
+
+    evalInSandbox: function (aContent, aURI) {
+        var sandbox = new Components.utils.Sandbox(aURI || content.document.location.href);
+        sandbox.window   = content.window;
+        sandbox.document = content.document;
+        return Components.utils.evalInSandbox(aContent, sandbox);
+    },
+
     message: KeySnail.message
 };

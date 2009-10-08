@@ -35,7 +35,7 @@ var PLUGIN_INFO =
       userscript.require("clipboard-observer.js");
       ||<
       == 使い方 ==
-      自動的にクリップボードの監視が始まり、コピーされたテキストの中身に URL があれば自動的に開かれるようになります。
+      クリップボードの監視が始まり、コピーされたテキストの中身に URL があれば自動的に開かれるようになります。
     ]]></detail>
     </KeySnailPlugin>;
 // }}}
