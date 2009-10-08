@@ -837,6 +837,11 @@ var ksPreference = {
             var hook = this.modules.hook.hookList[hookName];
 
             for (var i = 0; i < hook.length; ++i) {
+                if (hook[i].ksDefinedInExternalFile) {
+                    Application.console.log("Function set to hook in external file found." + hook[i]);
+                    continue;
+                }
+
                 var funcStr = ksPreference.beautifyCode(hook[i].toString());
 
                 // ignore blacklist hook (will be added in generateBlackListSettings)

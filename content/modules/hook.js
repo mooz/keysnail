@@ -16,7 +16,13 @@ KeySnail.Hook = {
 
     },
 
+    setWhetherDefinedInExternalFile: function (aFunction) {
+        if (this.modules.key.inExternalFile)
+            aFunction.ksDefinedInExternalFile = this.modules.key.inExternalFile;
+    },
+
     setHook: function (aHookName, aFunction) {
+        this.setWhetherDefinedInExternalFile(aFunction);
         this.hookList[aHookName] = [aFunction];
     },
 
@@ -24,6 +30,7 @@ KeySnail.Hook = {
         if (!this.hookList[aHookName]) {
             this.hookList[aHookName] = [];
         }
+        this.setWhetherDefinedInExternalFile(aFunction);
         this.hookList[aHookName].push(aFunction);
     },
 
