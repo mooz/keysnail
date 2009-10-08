@@ -6,20 +6,51 @@
  * @license The MIT License
  */
 
-/**
- * Usage
- *
- * Paste this code to your .keysnail.js file.
- *
- * Press 't' key (or your defined one) to start this client.
- *
- * Once this function has been called, the timer will be set, and the timeline
- * of Twitter periodically updated. This interval can be configured by changing
- * the "updateInterval" option.
- *
- * If you set the "popUpStatusWhenUpdated" option to true, pretty notification
- * dialog will be pop upped when new tweets are arrived.
- */
+// PLUGIN INFO: {{{
+var PLUGIN_INFO =
+    <KeySnailPlugin>
+    <name>Yet Another Twitter Client KeySnail</name>
+    <description>Make KeySnail behave like Twitter client</description>
+    <description lang="ja">KeySnail を Twitter クライアントに</description>
+    <version>1.0</version>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/scripts/yet-another-twitter-client-keysnail.js</updateURL>
+    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+    <license>The MIT License</license>
+    <license lang="ja">MIT ライセンス</license>
+    <minVersion>0.9.2</minVersion>
+    <maxVersion>0.9.*</maxVersion>
+    <detail><![CDATA[
+      == Set up ==
+      In your .keysnail.js file,
+      >||
+      userscript.require("yet-another-twitter-client-keysnail.js");
+      ||<
+      == Usage ==
+      Press 't' key (or your defined one) to start this client.
+
+      Once this function has been called, the timer will be set, and the timeline
+      of Twitter periodically updated. This interval can be configured by changing
+      the "updateInterval" option.
+
+      If you set the "popUpStatusWhenUpdated" option to true, pretty notification
+      dialog will be pop upped when new tweets are arrived.
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
+      == セットアップ ==
+      .keysnail.js へ次の一行を付け加えてください
+      >||
+      userscript.require("yet-another-twitter-client-keysnail.js");
+      ||<
+      == 使い方 ==
+      't' キー (や独自に設定したキー) を入力することで Twitter クライアントが起動します。
+
+       クライアント起動時にタイマーがセットされ、 Twitter のタイムラインが定期的に更新されるようになります。
+       "updateInterval" の値を変更することにより、この間隔を変えることが可能です。
+       "popUpStatusWhenUpdated" オプションが true に設定されていれば、新しいつぶやきが届いた際に
+       ポップアップで通知が行われるようになります。
+    ]]></detail>
+    </KeySnailPlugin>;
+// }}}
 
 key.setViewKey('t', function (aEvent, aArg) {
     var updateInterval         = 60 * 1000;    // Update interval in mili second
