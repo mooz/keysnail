@@ -99,8 +99,9 @@ margin:5px 15px;
 }
 
 *.table-keybindings {
-margin-left:2em;
-margin-right:2em;
+text-align:left;
+font:100%/1.7em "trebuchet ms", "bitstream vera sans", verdana, helvetica, sans-serif;
+width:100%;
 border:1px #BBB solid;
 border-collapse:collapse;
 border-spacing:0;
@@ -108,8 +109,7 @@ border-spacing:0;
 
 *.table-keybindings th {
 border:1px #BBB solid;
-background:#ECECEC;
-font-weight:700;
+background:#F3F0FC;
 line-height:120%;
 border-width:0 0 1px 1px;
 padding:5px;
