@@ -949,10 +949,11 @@ var ksPreference = {
             // push all prefix key
             if (row[KS_KEY_STRING].length) {
                 sequence = row[KS_KEY_STRING].split(" ");
-                if (!prefixKeys[row[KS_MODE]])
-                    prefixKeys[row[KS_MODE]] = {};
                 if (sequence.length > 1) {
                     sequence.pop();
+
+                    if (!prefixKeys[row[KS_MODE]])
+                        prefixKeys[row[KS_MODE]] = {};
                     prefixKeys[row[KS_MODE]][sequence.join(" ")] = true;
                 }
             }
@@ -969,7 +970,7 @@ var ksPreference = {
             if (row[0] == null)
                 continue;
 
-            if (prefixKeys[row[KS_MODE]][row[KS_KEY_STRING]]) {
+            if (prefixKeys[row[KS_MODE]] && prefixKeys[row[KS_MODE]][row[KS_KEY_STRING]]) {
                 crushingIndexList.push(i);
             }
         }
