@@ -554,16 +554,17 @@ KeySnail.Key = {
     },
 
     /**
-     * convert key event to string expression
-     * @param {String} aKey string expression
-     * @return {KeyboardEvent}
+     * convert string to key event
+     * @param {string} aKey string expression of the key
+     * @param {boolean} aKsNoHandle whether keysnail handle the generated keyevent or not
+     * @return {keyboardevent}
      */
     stringToKeyEvent: function (aKey, aKsNoHandle) {
         var newEvent = document.createEvent('KeyboardEvent');
-        var ctrlKey = false;
-        var altKey = false;
+        var ctrlKey  = false;
+        var altKey   = false;
         var shiftKey = false;
-        var keyCode = 0;
+        var keyCode  = 0;
         var charCode = 0;
 
         // process modifier
