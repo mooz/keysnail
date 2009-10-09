@@ -44,7 +44,7 @@ KeySnail.UserScript = {
     jsFileLoader: function (aScriptPath, aPreserve) {
         var code = this.modules.util.readTextFile(aScriptPath).value;
         if (KeySnail.windowType == "navigator:browser" && aPreserve)
-            this.preserveCode(code);
+            this.preserveCode(code);            
         Function("with (KeySnail.modules) {" + code + " }")();
     },
 
@@ -78,12 +78,6 @@ KeySnail.UserScript = {
                            this.modules.util
                            .getLocaleString("initFileLoaded", [(end - start) / 1000]),
                            3000);
-    },
-
-    loadSubScript: function (aURI, aContext) {
-        Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-            .getService(Components.interfaces.mozIJSSubScriptLoader)
-            .loadSubScript(aURI, aContext);
     },
 
     // ======================================== //
