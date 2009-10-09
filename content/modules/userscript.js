@@ -81,6 +81,9 @@ KeySnail.UserScript = {
     },
 
     loadSubScript: function (aURI, aContext) {
+        if (aURI.indexOf("file://") != 0)
+            aURI = this.modules.util.pathToURL(aURI);
+
         Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
             .getService(Components.interfaces.mozIJSSubScriptLoader)
             .loadSubScript(aURI, aContext);
