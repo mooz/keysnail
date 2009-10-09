@@ -63,12 +63,12 @@ key.setViewKey('t', function (aEvent, aArg) {
         [function (status) {
              if (status)
                  tweet();
-         }, "Tweet"],
+         }, "Tweet (つぶやく)"],
         [function (status) {
              if (status) {
                  tweet("@" + status.screen_name+ " ", status.id);
              }
-         }, "Reply"],
+         }, "Reply (返信)"],
         [function (status) {
              if (status) {
                  tweet("RT @" + status.screen_name+ ": " + status.text);
@@ -78,31 +78,31 @@ key.setViewKey('t', function (aEvent, aArg) {
              if (status) {
                  showFollowersStatus(username, password, status.screen_name);
              }
-         }, "Show Target status"],
+         }, "Show Target status (そのユーザのステータスを見る)"],
         [function (status) {
              if (status) {
                  showMentions();
              }
-         }, "Show mentions"],
+         }, "Show mentions (自分への返信一覧)"],
         [function (status) {
              popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
              display.echoStatusBar("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"));
-         }, "Toggle pop up status"],
+         }, "Toggle pop up status (ポップアップ通知の切り替え)"],
         [function (status) {
              if (status) {
                  tweet(content.document.title + " - " + getTinyURL(window.content.location.href));
              }
-         }, "Tweet with the current web page URL"],
+         }, "Tweet with the current web page URL (現在のページのタイトルと URL を使ってつぶやく)"],
         [function (status) {
              if (status) {
                  gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
                                      + "/status/" + status.id, null, null, null, false);
              }
-         }, "Show status in web page"],
+         }, "Show status in web page (ステータスのウェブページを見る)"],
         [function (status) {
              if (status)
                  search();
-         }, "Search keyword"],
+         }, "Search keyword (検索)"],
         [function (status) {
              if (status) {
                  var matched = status.text.match("(https?|ftp)(://[a-zA-Z0-9/?#_.\\-]+)");
@@ -110,7 +110,7 @@ key.setViewKey('t', function (aEvent, aArg) {
                      gBrowser.loadOneTab(matched[1] + matched[2], null, null, null, false);
                  }
              }
-         }, "Visit URL in the message"]
+         }, "Visit URL in the message (メッセージ内の URL へジャンプ)"]
     ];
 
     // ============================== Arrange services, username and password ============================== //
