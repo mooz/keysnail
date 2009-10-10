@@ -1,0 +1,5 @@
+<!ENTITY keySnail.builtinViewer.title "追加するコマンドを選択してください">
+
+<!ENTITY keySnail.builtinViewer.category "カテゴリ">
+<!ENTITY keySnail.builtinViewer.commands "コマンド一覧">
+<!ENTITY keySnail.builtinViewer.function "コードのプレビュー">
