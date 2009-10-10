@@ -275,6 +275,7 @@ key.setViewKey(
             userscript.loadSubScript(libOAuthPath, context);
         } catch (x) {
             display.notify("This plugin requires oauth.js but not found");
+            return;
         }
         var OAuth = context.OAuth();
 
