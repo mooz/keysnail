@@ -108,6 +108,19 @@ KeySnail.UserScript = {
             this.modules.util.setUnicharPref("extensions.keysnail.userscript.location", this.userPath);
         }
 
+        /**
+         * In userscript.require'ed script, the multibyte character like Japanese
+         * is not correctly processed.
+         * So author of the plugin have to use this function like below.
+         * L("日本語")
+         */
+        this.modules.L = function (aStr) {
+            return decodeURIComponent(escape(aStr));
+        };
+
+        // Arrange plugin scope
+        this.modules.plugins = {};
+
         this.load();
     },
 
