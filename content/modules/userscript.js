@@ -201,24 +201,23 @@ KeySnail.UserScript = {
             try {
                 aLoader.call(this, filePath);
                 // success
-                // this.message(filePath + " loaded");
                 return 0;
             } catch (e) {
                 // userscript error
                 var msgstr = this.modules.util
-                    .getLocaleString("userScriptError", [e.fileName, e.lineNumber]);
-                msgstr += " [" + e.message + "]";
+                    .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
+                msgstr += " :: " + e.message;
 
                 var buttons;
-                if ((e.fileName || "").indexOf("://") == -1) {
+                if ((e.fileName || "").indexOf("chrome://") == -1) {
                     let self = this;
                     buttons = [{
-                                   label: this.modules.util.getLocaleString("openErrorOccuredPlace"),
-                                   callback: function (aNotification) {
+                                   label     : this.modules.util.getLocaleString("openErrorOccuredPlace"),
+                                   callback  : function (aNotification) {
                                        self.editFile(e.fileName, e.lineNumber);
                                        aNotification.close();
                                    },
-                                   accessKey: "o"
+                                   accessKey : "o"
                                }];
                 }
                 this.modules.display.notify(msgstr, buttons);
