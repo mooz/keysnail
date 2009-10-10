@@ -1159,18 +1159,20 @@ KeySnail.Prompt = function () {
             }
 
             // add history (prompt.read only)
-            if ((type == TYPE_READ) && aCallbackArg.length) {
+            if ((type == TYPE_READ) && aCallbackArg[0].length) {
+                var text = aCallbackArg[0];
+
                 if (options.ignoreDuplication) {
                     // remove all duplicated elements from list and add str to head
                     var li = history.list;
                     for (var i = 0; i < li.length; ++i) {
-                        if (aCallbackArg == li[i]) {
+                        if (text == li[i]) {
                             li.splice(i, 1);
                         }
                     }
-                    li.unshift(aCallbackArg);
+                    li.unshift(text);
                 } else {
-                    history.list.unshift(aCallbackArg);
+                    history.list.unshift(text);
                 }
             }
         }
