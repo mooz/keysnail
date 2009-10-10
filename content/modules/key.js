@@ -1238,11 +1238,11 @@ KeySnail.Key = {
      */
     interactiveHelp: function () {
         var contentHolder = ['<h1>Key Bindings Starting With ' +
-                             this.currentKeySequence.join(" ") + '</h1><hr />'];
+                             this.modules.html.escapeTag(this.currentKeySequence.join(" ")) + '</h1><hr />'];
 
         this.generateKeyBindingTable(contentHolder,
                                      "Global Bindings Starting With "
-                                     + this.currentKeySequence.join(" "),
+                                     + this.modules.html.escapeTag(this.currentKeySequence.join(" ")),
                                      this.modes.GLOBAL,
                                      this.trailByKeySequence(this.keyMapHolder[this.modes.GLOBAL],
                                                              this.currentKeySequence),
@@ -1250,7 +1250,7 @@ KeySnail.Key = {
 
         this.generateKeyBindingTable(contentHolder,
                                      "View mode Bindings Starting With "
-                                     + this.currentKeySequence.join(" "),
+                                     + this.modules.html.escapeTag(this.currentKeySequence.join(" ")),
                                      this.modes.VIEW,
                                      this.trailByKeySequence(this.keyMapHolder[this.modes.VIEW],
                                                              this.currentKeySequence),
@@ -1258,7 +1258,7 @@ KeySnail.Key = {
 
         this.generateKeyBindingTable(contentHolder,
                                      "Edit mode Bindings Starting With "
-                                     + this.currentKeySequence.join(" "),
+                                     + this.modules.html.escapeTag(this.currentKeySequence.join(" ")),
                                      this.modes.EDIT,
                                      this.trailByKeySequence(this.keyMapHolder[this.modes.EDIT],
                                                              this.currentKeySequence),
@@ -1266,7 +1266,7 @@ KeySnail.Key = {
 
         this.generateKeyBindingTable(contentHolder,
                                      "Caret mode Bindings Starting With "
-                                     + this.currentKeySequence.join(" "),
+                                     + this.modules.html.escapeTag(this.currentKeySequence.join(" ")),
                                      this.modes.CARET,
                                      this.trailByKeySequence(this.keyMapHolder[this.modes.CARET],
                                                              this.currentKeySequence),
