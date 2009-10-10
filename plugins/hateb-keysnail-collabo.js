@@ -87,8 +87,8 @@ my.listHbookmark = function (aEvent, aArg) {
     }
 
     function getDate(aString) {
-        return aString.slice(0, 4) + " 年 " + aString.slice(4, 6) + " 月 " + aString.slice(6, 8)
-            + " 日 " + aString.slice(8, 10) + ":" + aString.slice(10, 12);
+        return L(aString.slice(0, 4) + " 年 " + aString.slice(4, 6) + " 月 " + aString.slice(6, 8)
+                 + " 日 " + aString.slice(8, 10) + ":" + aString.slice(10, 12));
     }
 
     function getURL(aIndex) {
@@ -255,11 +255,11 @@ my.listHistoryWithKeyword = function (aEvent) {
                     });
 };
 
-shell.add("hbc", my.listHBComments, 'はてブコメント一覧');
-shell.add("list-history-recently-visited", my.listHistoryRecentryVisited, 'ブックマークした履歴のうち最近訪れたもの一覧');
-shell.add("list-all-bookmarks", my.listAllBookmarks, 'ブクマ一覧');
-shell.add("list-bookmarks-with-keyword", my.listHistoryWithKeyword, 'キーワードの付いたブクマ一覧');
-shell.add("hatena-bookmark", my.listHbookmark, "はてなブックマークのアイテムを一覧表示しジャンプ");
+shell.add("hbc"                           , my.listHBComments,             L('はてブコメント一覧'));
+shell.add("list-history-recently-visited" , my.listHistoryRecentryVisited, L('ブックマークした履歴のうち最近訪れたもの一覧'));
+shell.add("list-all-bookmarks"            , my.listAllBookmarks,           L('ブクマ一覧'));
+shell.add("list-bookmarks-with-keyword"   , my.listHistoryWithKeyword,     L('キーワードの付いたブクマ一覧'));
+shell.add("hatena-bookmark"               , my.listHbookmark,              L("はてなブックマークのアイテムを一覧表示しジャンプ"));
 
-key.setGlobalKey(["C-M-c"], my.listHBComments, "現在のページのはてなブックマークコメントを一覧表示", true);
-key.setGlobalKey(["C-x", ";"], my.listHbookmark, "はてなブックマークを一覧表示", true);
+key.setGlobalKey(["C-M-c"], my.listHBComments, L("現在のページのはてなブックマークコメントを一覧表示"), true);
+key.setGlobalKey(["C-x", ";"], my.listHbookmark, L("はてなブックマークを一覧表示"), true);
