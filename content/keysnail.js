@@ -15,6 +15,10 @@ var KeySnail = {
         return window.document.documentElement.getAttribute("windowtype");
     },
 
+    get version () {
+        return "0.9.4";
+    },
+
     init: function () {
         // this.showElapsedTime("KeySnail.init called");
 
