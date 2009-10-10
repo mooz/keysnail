@@ -14,19 +14,31 @@
  *
  * == セットアップ ==
  *
- * .keysnail.js へ次の一行を付け加えてください
+ * .keysnail.js の PRESERVE エリアへ次の一行を付け加えてください
  *
+ * >||
  *   userscript.require("yet-another-twitter-client-keysnail.js");
+ * ||<
  *
  * また、このプラグインの動作には oauth.js が必要ですので、適当な場所へ配置した上で
  *
+ * >||
  *   my.twitterClientLibOAuthPath = "~/.keysnail.d/oauth.js"
+ * ||<
  *
  * のようにしてファイルのパスを設定して下さい。
  *
  * == 使い方 ==
  *
  * 't' キー (や独自に設定したキー) を入力することで Twitter クライアントが起動します。
+ * 
+ * このキーバインドは userscript.require("yet-another-twitter-client-keysnail.js"); をする前に
+ * 
+ * >||
+ *   my.twitterClientStartKey = ["C-c", "t"];
+ * ||<
+ * 
+ * のようにすることで変更することができます。
  *
  * そのまま Enter キーを入力すると「つぶやき」画面へと移行します。
  *
@@ -38,12 +50,20 @@
  * "popUpStatusWhenUpdated" オプションが true に設定されていれば、新しいつぶやきが届いた際に
  * ポップアップで通知が行われるようになります。
  * アクションの中に、このオプションを切り替えるものも用意されています。
+ * 
+ * == 設定例 ==
+ * 
+ * userscript.addLoadPath("~/.keysnail.d");
+ * my.twitterClientLibOAuthPath = "~/keysnail/plugins/oauth.js";
+ * my.twitterClientStartKey     = 't';
+ * userscript.require("yet-another-twitter-client-keysnail.js");
+ * 
  */
 
 key.setViewKey(
-    't',
+    my.twitterClientStartKey || 't',
     function (aEvent, aArg) {
-        var libOAuthPath = my.twitterClientLibOAuthPath || "~/keysnail/plugins/oauth.js";
+        var libOAuthPath = my.twitterClientLibOAuthPath || "~/.keysnail.d/oauth.js";
 
         var updateInterval         = 60 * 1000;    // Update interval in mili second
         var popUpStatusWhenUpdated = true;         // Show popup when timeline is updated
@@ -77,24 +97,27 @@ key.setViewKey(
                  }
              }, "Show mentions (自分への返信を一覧表示)"],
             [function (status) {
+                 if (status) {
+                     gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
+                                         + "/status/" + status.id, null, null, null, false);
+                 }
+             }, "Show status in web page (Twitter のサイトでそのつぶやきを見る)"],
+            [function (status) {
                  popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
                  display.echoStatusBar("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"));
              }, "Toggle pop up status (ポップアップ通知の切り替え)"],
+            [function (status) {
+                 reAuthorize();
+             }, "Reauthorize (認証しなおす)"],
             [function (status) {
                  if (status) {
                      tweet(content.document.title + " - " + getTinyURL(window.content.location.href));
                  }
              }, "Tweet with the current web page URL (現在のページのタイトルと URL を使ってつぶやく)"],
             [function (status) {
-                 if (status) {
-                     gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
-                                         + "/status/" + status.id, null, null, null, false);
-                 }
-             }, "Show status in web page (Twitter のサイトでつぶやきを見る)"],
-            [function (status) {
                  if (status)
                      search();
-             }, "Search keyword (検索)"],
+             }, "Search keyword (単語を検索)"],
             [function (status) {
                  if (status) {
                      var matched = status.text.match("(https?|ftp)(://[a-zA-Z0-9/?#_.\\-]+)");
@@ -255,19 +278,40 @@ key.setViewKey(
         }
         var OAuth = context.OAuth();
 
+        function authorizationSequence() {
+            authorize();
+
+            prompt.read("Press Enter When Authorization Finished:",
+                        function (aReadStr) {
+                            if (aReadStr == null)
+                                return;
+
+                            getAccessToken(function () {
+                                               showFollowersStatus();
+                                           });
+                        });
+        }
+
+        function reAuthorize() {
+            util.setUnicharPref(prefKeys.oauth_token, "");
+            util.setUnicharPref(prefKeys.oauth_token_secret, "");
+
+            authorizationSequence();
+        }
+
         function authorize() {
             var accessor = {
                 consumerSecret : oauthInfo.consumerSecret,
-                tokenSecret : ""
+                tokenSecret    : ""
             };
 
             var message = {
-                action : oauthInfo.requestToken,
-                method : "GET",
+                action     : oauthInfo.requestToken,
+                method     : "GET",
                 parameters : [
-                    ["oauth_consumer_key", oauthInfo.consumerKey],
-                    ["oauth_signature_method", oauthInfo.signatureMethod],
-                    ["oauth_version", "1.0"]
+                    ["oauth_consumer_key"     , oauthInfo.consumerKey],
+                    ["oauth_signature_method" , oauthInfo.signatureMethod],
+                    ["oauth_version"          , "1.0"]
                 ]
             };
 
@@ -316,8 +360,8 @@ key.setViewKey(
             };
 
             var message = {
-                action : oauthInfo.accessToken,
-                method : "GET",
+                action     : oauthInfo.accessToken,
+                method     : "GET",
                 parameters : [
                     ["oauth_consumer_key"     , oauthInfo.consumerKey],
                     ["oauth_token"            , oauthTokens.oauth_token],
@@ -375,8 +419,8 @@ key.setViewKey(
             };
 
             var message = {
-                action : aOptions.action,
-                method : aOptions.method,
+                action     : aOptions.action,
+                method     : aOptions.method,
                 parameters : [
                     ["oauth_consumer_key"     , oauthInfo.consumerKey],
                     ["oauth_token"            , oauthTokens.oauth_token],
@@ -399,6 +443,43 @@ key.setViewKey(
             xhr.send(null);
 
             return xhr.responseText;
+        }
+
+        function oauthASyncRequest(aOptions, aCallBack) {
+            var xhr = new XMLHttpRequest();
+
+            xhr.onreadystatechange = function (aEvent) {
+                aCallBack(aEvent, xhr);
+            };
+
+            var accessor = {
+                consumerSecret : oauthInfo.consumerSecret,
+                tokenSecret    : oauthTokens.oauth_token_secret
+            };
+
+            var message = {
+                action     : aOptions.action,
+                method     : aOptions.method,
+                parameters : [
+                    ["oauth_consumer_key"     , oauthInfo.consumerKey],
+                    ["oauth_token"            , oauthTokens.oauth_token],
+                    ["oauth_signature_method" , oauthInfo.signatureMethod],
+                    ["oauth_version"          , "1.0"]
+                ]
+            };
+
+            OAuth.setTimestampAndNonce(message);
+            OAuth.SignatureMethod.sign(message, accessor);
+
+            var oAuthArgs  = OAuth.getParameterMap(message.parameters);
+            var authHeader = OAuth.getAuthorizationHeader("http://twitter.com/", oAuthArgs);
+
+            xhr.mozBackgroundRequest = true;
+            xhr.open(message.method, message.action, true);
+            xhr.setRequestHeader("Authorization", authHeader);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            xhr.send(null);
         }
 
         // ============================== Actions ============================== //
@@ -484,20 +565,24 @@ key.setViewKey(
 
                             xhr.onreadystatechange = function (aEvent) {
                                 if (xhr.readyState == 4) {
-                                    if (xhr.status != 200) {
-                                        display.notify(xhr.responseText);
+                                    if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1)) {
+                                        // token expired
+                                        reAuthorize();
+                                    } else if (xhr.status != 200) {
+                                        // misc error
                                         alertsService.showAlertNotification(null, "I'm sorry...", "Failed to tweet", false, "", null);
-                                        return;
+                                        util.message(xhr.responseText);
+                                    } else {
+                                        // succeeded
+                                        var status = evalFunc("(" + xhr.responseText + ")");
+                                        // immediately add
+                                        my.twitterJSONCache.unshift(status);
+
+                                        var icon_url  = status.user.profile_image_url;
+                                        var user_name = status.user.name;
+                                        var message   = status.text;
+                                        alertsService.showAlertNotification(icon_url, user_name, message, false, "", null);
                                     }
-                                    var status = evalFunc("(" + xhr.responseText + ")");
-
-                                    // immediately add
-                                    my.twitterJSONCache.unshift(status);
-
-                                    var icon_url = status.user.profile_image_url;
-                                    var user_name = status.user.name;
-                                    var message = status.text;
-                                    alertsService.showAlertNotification(icon_url, user_name, message, false, "", null);
                                 }
                             };
 
@@ -507,8 +592,8 @@ key.setViewKey(
                             };
 
                             var message = {
-                                action : "http://twitter.com/statuses/update.json",
-                                method : "POST",
+                                action     : "http://twitter.com/statuses/update.json",
+                                method     : "POST",
                                 parameters : [
                                     ["oauth_consumer_key"     , oauthInfo.consumerKey],
                                     ["oauth_token"            , oauthTokens.oauth_token],
@@ -582,107 +667,54 @@ key.setViewKey(
             function updateJSONCache(aAfterWork, aNoRepeat) {
                 my.twitterPending = true;
 
-                var xhr = new XMLHttpRequest();
+                oauthASyncRequest(
+                    {
+                        action : target ? "https://twitter.com/statuses/user_timeline/" + target + ".json"
+                            : "https://twitter.com/statuses/friends_timeline.json",
+                        method : "GET"
+                    },
+                    function (aEvent, xhr) {
+                        if (xhr.readyState == 4) {
+                            my.twitterPending = false;
 
-                xhr.onreadystatechange = function (aEvent) {
-                    if (xhr.readyState == 4) {
-                        my.twitterPending = false;
+                            if (xhr.status != 200) {
+                                display.echoStatusBar("Failed to get statuses");
+                                return;
+                            }
 
-                        if (xhr.status != 200) {
-                            display.echoStatusBar("Failed to get statuses");
-                            return;
+                            var statuses = evalFunc(xhr.responseText) || [];
+
+                            if (!target) {
+                                my.twitterLastUpdated = new Date();
+                                my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
+                            }
+
+                            if (!aNoRepeat)
+                                my.twitterJSONCacheUpdater = setTimeout(updateJSONCache, updateInterval);
+
+                            if (typeof(aAfterWork) == "function")
+                                aAfterWork();
                         }
-
-                        var statuses = evalFunc(xhr.responseText) || [];
-
-                        if (!target) {
-                            my.twitterLastUpdated = new Date();
-                            my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
-                        }
-
-                        if (!aNoRepeat)
-                            my.twitterJSONCacheUpdater = setTimeout(updateJSONCache, updateInterval);
-
-                        if (typeof(aAfterWork) == "function")
-                            aAfterWork();
-                    }
-                };
-
-                var accessor = {
-                    consumerSecret : oauthInfo.consumerSecret,
-                    tokenSecret : oauthTokens.oauth_token_secret
-                };
-
-                var message = {
-                    action : target ? "https://twitter.com/statuses/user_timeline/" + target + ".json"
-                        : "https://twitter.com/statuses/friends_timeline.json",
-                    method : "GET",
-                    parameters : [
-                        ["oauth_consumer_key"     , oauthInfo.consumerKey],
-                        ["oauth_token"            , oauthTokens.oauth_token],
-                        ["oauth_signature_method" , oauthInfo.signatureMethod],
-                        ["oauth_version"          , "1.0"]
-                    ]
-                };
-
-                OAuth.setTimestampAndNonce(message);
-                OAuth.SignatureMethod.sign(message, accessor);
-
-                var oAuthArgs = OAuth.getParameterMap(message.parameters);
-                var authHeader = OAuth.getAuthorizationHeader("http://twitter.com/", oAuthArgs);
-
-                xhr.mozBackgroundRequest = true;
-                xhr.open(message.method, message.action, true);
-                xhr.setRequestHeader("Authorization", authHeader);
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-                xhr.send(null);
+                    });
             }
 
             if (target) {
-                var xhr = new XMLHttpRequest();
+                oauthASyncRequest(
+                    {
+                        action : "https://twitter.com/statuses/user_timeline/" + target + ".json",
+                        method : "GET"
+                    },
+                    function (aEvent, xhr) {
+                        if (xhr.readyState == 4) {
+                            if (xhr.status != 200) {
+                                display.echoStatusBar("Failed to get statuses");
+                                return;
+                            }
 
-                xhr.onreadystatechange = function (aEvent) {
-                    if (xhr.readyState == 4) {
-                        if (xhr.status != 200) {
-                            display.echoStatusBar("Failed to get statuses");
-                            return;
+                            var statuses = evalFunc(xhr.responseText) || [];
+                            callSelector(statuses);
                         }
-
-                        var statuses = evalFunc(xhr.responseText) || [];
-                        callSelector(statuses);
-                    }
-                };
-
-                var accessor = {
-                    consumerSecret : oauthInfo.consumerSecret,
-                    tokenSecret : oauthTokens.oauth_token_secret
-                };
-
-                var message = {
-                    action : "https://twitter.com/statuses/user_timeline/" + target + ".json",
-                    method : "GET",
-                    parameters : [
-                        ["oauth_consumer_key"     , oauthInfo.consumerKey],
-                        ["oauth_token"            , oauthTokens.oauth_token],
-                        ["oauth_signature_method" , oauthInfo.signatureMethod],
-                        ["oauth_version"          , "1.0"]
-                    ]
-                };
-
-                OAuth.setTimestampAndNonce(message);
-                OAuth.SignatureMethod.sign(message, accessor);
-
-                var oAuthArgs = OAuth.getParameterMap(message.parameters);
-                var authHeader = OAuth.getAuthorizationHeader("http://twitter.com/", oAuthArgs);
-
-                xhr.mozBackgroundRequest = true;
-                xhr.open(message.method, message.action, true);
-                xhr.setRequestHeader("Authorization", authHeader);
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-                xhr.send(null);
-
+                    });
                 return;
             }
 
@@ -701,65 +733,8 @@ key.setViewKey(
         }
 
         if (!oauthTokens.oauth_token) {
-            authorize();
-
-            prompt.read("Press Enter When Authorization finished:",
-                        function (aReadStr) {
-                            if (aReadStr == null)
-                                return;
-
-                            getAccessToken(function () {
-                                               showFollowersStatus();
-                                           });
-                        });
+            authorizationSequence();
         } else {
             showFollowersStatus();
         }
     }, 'Yet Another Twitter Client KeySnail', true);
-
-
-// PLUGIN INFO: {{{
-// var PLUGIN_INFO =
-//     <KeySnailPlugin>
-//     <name>Yet Another Twitter Client KeySnail</name>
-//     <description>Make KeySnail behave like Twitter client</description>
-//     <description lang="ja">KeySnail を Twitter クライアントに</description>
-//     <version>1.0</version>
-//     <updateURL>http://github.com/mooz/keysnail/raw/master/scripts/yet-another-twitter-client-keysnail.js</updateURL>
-//     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
-//     <license>The MIT License</license>
-//     <license lang="ja">MIT ライセンス</license>
-//     <minVersion>0.9.2</minVersion>
-//     <maxVersion>0.9.*</maxVersion>
-//     <detail><![CDATA[
-//                        == Set up ==
-//                        In your .keysnail.js file,
-//                        >||
-//                        userscript.require("yet-another-twitter-client-keysnail.js");
-//                        ||<
-//                        == Usage ==
-//                        Press 't' key (or your defined one) to start this client.
-
-//                    Once this function has been called, the timer will be set, and the timeline
-//                    of Twitter periodically updated. This interval can be configured by changing
-//                    the "updateInterval" option.
-
-//                    If you set the "popUpStatusWhenUpdated" option to true, pretty notification
-//                    dialog will be pop upped when new tweets are arrived.
-//                ]]></detail>
-//     <detail lang="ja"><![CDATA[
-//                                  == セットアップ ==
-//                                  .keysnail.js へ次の一行を付け加えてください
-//                                  >||
-//                                  userscript.require("yet-another-twitter-client-keysnail.js");
-//                                  ||<
-//                                  == 使い方 ==
-//                                  't' キー (や独自に設定したキー) を入力することで Twitter クライアントが起動します。
-
-//                              クライアント起動時にタイマーがセットされ、 Twitter のタイムラインが定期的に更新されるようになります。
-//                              "updateInterval" の値を変更することにより、この間隔を変えることが可能です。
-//                              "popUpStatusWhenUpdated" オプションが true に設定されていれば、新しいつぶやきが届いた際に
-//                              ポップアップで通知が行われるようになります。
-//                          ]]></detail>
-//     </KeySnailPlugin>;
-// }}}
