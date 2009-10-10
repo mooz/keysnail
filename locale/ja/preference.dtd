@@ -15,6 +15,7 @@
 <!ENTITY keySnail.preference.keyhandler "キーハンドラ">
 <!ENTITY keySnail.preference.keyhandler.enabled "有効">
 <!ENTITY keySnail.preference.keyhandler.globalEnabled "ブラウズ画面以外でも KeySnail を使う">
+<!ENTITY keySnail.preference.keyhandler.lowPriority "低い優先順位でキーハンドラを動かす (新しいウィンドウから変更が反映されます)">
 
 <!-- Prefix argument -->
 <!ENTITY keySnail.preference.keyhandler.prefixArgument "前置引数">

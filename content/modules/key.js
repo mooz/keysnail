@@ -50,6 +50,7 @@ KeySnail.Key = {
     status: false,
     suspended: false,
     hasEventListener: false,
+    useCapture: true,
 
     // ==== black list ====
     blackList: null,
@@ -77,8 +78,9 @@ KeySnail.Key = {
         this.declareKeyMap(this.modes.CARET);
         this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
 
-        this.status = nsPreferences
-            .getBoolPref("extensions.keysnail.keyhandler.status", true);
+        this.useCapture = !nsPreferences.getBoolPref("extensions.keysnail.keyhandler.low_priority", false);
+
+        this.status = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.status", true);
     },
 
     // ==================== Run / Stop ====================
@@ -88,7 +90,11 @@ KeySnail.Key = {
      */
     run: function () {
         if (this.hasEventListener == false) {
-            window.addEventListener("keypress", this, true);
+            /**
+             * third boolean value means "use capture or not".
+             * so to say "keysnail prior to webpage's shortcut key or not".
+             */
+            window.addEventListener("keypress", this, this.useCapture);
             this.hasEventListener = true;
         }
         this.status = true;
@@ -100,7 +106,7 @@ KeySnail.Key = {
      */
     stop: function () {
         if (this.hasEventListener == true) {
-            window.removeEventListener("keypress", this, true);
+            window.removeEventListener("keypress", this, this.useCapture);
             this.hasEventListener = false;
         }
         this.status = false;

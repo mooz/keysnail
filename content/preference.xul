@@ -31,6 +31,10 @@
                  id="extensions.keysnail.keyhandler.use_prefix_argument"
                  name="extensions.keysnail.keyhandler.use_prefix_argument"
                  type="bool"/>
+            <preference
+                 id="extensions.keysnail.keyhandler.low_priority"
+                 name="extensions.keysnail.keyhandler.low_priority"
+                 type="bool"/>
         </preferences>
         <!-- Status -->
         <groupbox orient="vertical">
@@ -38,6 +42,8 @@
             <vbox flex="1">
                 <checkbox label="&keySnail.preference.keyhandler.globalEnabled;"
                           preference="extensions.keysnail.keyhandler.global_enabled" />
+                <checkbox label="&keySnail.preference.keyhandler.lowPriority;"
+                          preference="extensions.keysnail.keyhandler.low_priority" />
             </vbox>
         </groupbox>
 

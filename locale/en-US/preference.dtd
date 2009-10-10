@@ -14,7 +14,8 @@
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "Key Handler Settings">
 <!ENTITY keySnail.preference.keyhandler.enabled "Enabled">
-<!ENTITY keySnail.preference.keyhandler.globalEnabled "Use KeySnail outside the browser window (enable globally)">
+<!ENTITY keySnail.preference.keyhandler.globalEnabled "Use KeySnail outside the browser window (Enable KeySnail in every window)">
+<!ENTITY keySnail.preference.keyhandler.lowPriority "Made KeySnail work in low priority (Changes applied from newly opened window)">
 
 <!-- Prefix argument -->
 <!ENTITY keySnail.preference.keyhandler.prefixArgument "Prefix argument">
