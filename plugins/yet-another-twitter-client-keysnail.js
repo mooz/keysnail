@@ -81,12 +81,12 @@ my.yATwitterClientKeySnail = new function () {
          }, "Tweet (つぶやく)"],
         [function (status) {
              if (status) {
-                 tweet("@" + status.screen_name+ " ", status.id);
+                 tweet("@" + status.screen_name + " ", status.id);
              }
          }, "Reply (返信)"],
         [function (status) {
              if (status) {
-                 tweet("RT @" + status.screen_name+ ": " + status.text);
+                 tweet("RT @" + status.screen_name + ": " + status.text);
              }
          }, "Retweet"],
         [function (status) {
