@@ -834,27 +834,26 @@ var ksPreference = {
         for (var hookName in this.modules.hook.hookList) {
             aContentHolder.push("");
 
-            var hook = this.modules.hook.hookList[hookName];
+            this.modules.hook.hookList[hookName].forEach(
+                function (func, i) {
+                    if (func.ksDefinedInExternalFile) {
+                        Application.console.log("Function set to hook in external file found. Ignore.\n" + func);
+                        return;
+                    }
 
-            for (var i = 0; i < hook.length; ++i) {
-                if (hook[i].ksDefinedInExternalFile) {
-                    Application.console.log("Function set to hook in external file found." + hook[i]);
-                    continue;
-                }
+                    var funcStr = ksPreference.beautifyCode(func.toString());
 
-                var funcStr = ksPreference.beautifyCode(hook[i].toString());
+                    // ignore blacklist hook (will be added in generateBlackListSettings)
+                    if (hookName == "LocationChange" &&
+                        funcStr.indexOf("key.suspendWhenMatched(URL") != -1) {
+                        return;
+                    }
 
-                // ignore blacklist hook (will be added in generateBlackListSettings)
-                if (hookName == "LocationChange" &&
-                    funcStr.indexOf("key.suspendWhenMatched") != -1) {
-                    continue;
-                }
-
-                var method = (i == 0) ? "set" : "addTo";
-                aContentHolder.push("hook." + method + "Hook(" +
-                                    this.toStringForm(hookName) + ", " +
-                                    funcStr + ");");
-            }
+                    var method = (i == 0) ? "set" : "addTo";
+                    aContentHolder.push("hook." + method + "Hook(" +
+                                        this.toStringForm(hookName) + ", " +
+                                        funcStr + ");");
+                }, this);
         }
     },
 
