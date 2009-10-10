@@ -231,26 +231,43 @@ KeySnail.UserScript = {
 
     /**
      * load script specified by <aFileName> in the load path
-     * scripts are executed under the KeySnail.modules scope
+     * scripts are executed under the KeySnail.modules.plugins[aFileName] scope
      * @param {String} aFileName
-     * @augments
      */
     require: function (aFileName) {
-        var baseDir;
+        var filePath;
+        var loadStatus = false;
+
+        var context;
 
         this.modules.key.inExternalFile = true;
         for (var i = 0; i < this.loadPath.length; ++i) {
-            baseDir = this.loadPath[i];
-            if (!baseDir)
+            filePath = this.loadPath[i] + this.directoryDelimiter + aFileName;
+
+            if (!this.modules.util.openFile(filePath).exists())
                 continue;
 
-            // loadUserScript return -1 when file not found
-            if (this.loadUserScript(this.jsFileLoader,
-                                    baseDir,
-                                    [aFileName]) != -1)
+            try {
+                if (!KeySnail.modules.plugins[filePath])
+                    KeySnail.modules.plugins[filePath] = {__proto__ : KeySnail.modules};
+
+                context = KeySnail.modules.plugins[filePath];
+                this.loadSubScript(filePath, context);
+                loadStatus = true;
+
                 break;
+            } catch (e) {
+                delete KeySnail.modules.plugins[filePath];
+
+                var msgstr = this.modules.util
+                    .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
+                this.modules.display.notify(msgstr);
+            }
         }
         this.modules.key.inExternalFile = false;
+
+        context.__ksLoaded__   = loadStatus;
+        context.__ksFileName__ = aFileName;
     },
 
     /**
