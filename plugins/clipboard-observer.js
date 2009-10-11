@@ -13,7 +13,8 @@ var PLUGIN_INFO =
     <description>Observe clipboard</description>
     <description lang="ja">クリップボードを監視</description>
     <version>1.0</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/scripts/clipboard-observer.js</updateURL>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/clipboard-observer.js</updateURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/clipboard-observer.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>

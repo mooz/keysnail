@@ -709,6 +709,7 @@ var PLUGIN_INFO =
 <description lang="ja">KeySnail を Twitter クライアントに</description>
 <version>1.0</version>
 <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.js</updateURL>
+<iconURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.icon.png</iconURL>
 <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
 <license>The MIT License</license>
 <license lang="ja">MIT ライセンス</license>
