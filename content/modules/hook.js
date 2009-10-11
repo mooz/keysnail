@@ -34,6 +34,17 @@ KeySnail.Hook = {
         this.hookList[aHookName].push(aFunction);
     },
 
+    removeHook: function (aHookName, aFunction) {
+        var hook = this.hookList[aHookName];
+
+        for (var i = 0; i < hook.length; ++i) {
+                if (hook[i] == aFunction) {
+                    hook.splice(i, 1);
+                    break;
+                }
+        }
+    },
+
     callHook: function (aHookName, aArgument) {
         if (this.hookList[aHookName]) {
             var hook = this.hookList[aHookName];
