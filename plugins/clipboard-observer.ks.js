@@ -1,17 +1,9 @@
-/**
- * @fileOverview
- * @name clipboard-observer.js
- * @description Observe clipboard
- * @author mooz <stillpedant@gmail.com>
- * @license The MIT License
- */
-
-// PLUGIN INFO: {{{
 var PLUGIN_INFO =
-    <KeySnailPlugin>
+<KeySnailPlugin>
     <name>Clipboard observer</name>
+    <name lang="ja">クリップボード監視君</name>
     <description>Observe clipboard</description>
-    <description lang="ja">クリップボードを監視</description>
+    <description lang="ja">クリップボードを監視します</description>
     <version>1.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/clipboard-observer.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/clipboard-observer.icon.png</iconURL>
@@ -20,28 +12,21 @@ var PLUGIN_INFO =
     <license lang="ja">MIT ライセンス</license>
     <minVersion>0.9.2</minVersion>
     <maxVersion>0.9.*</maxVersion>
+    <provides>
+        <ext>switch-clipboard-observer-status</ext>
+    </provides>
     <detail><![CDATA[
-      == Set up ==
-      In your .keysnail.js file,
-      >||
-      userscript.require("clipboard-observer.js");
-      ||<
-      == Usage ==
-      Automatically begins to observe the clipboard
+=== 使い方 ===
+このプラグインをインストールするとクリップボードの監視が始まり、コピーされたテキストの中身に URL があれば自動的に開かれるようになります。
     ]]></detail>
-    <detail lang="ja"><![CDATA[
-      == セットアップ ==
-      .keysnail.js へ次の一行を付け加えてください
-      >||
-      userscript.require("clipboard-observer.js");
-      ||<
-      == 使い方 ==
-      クリップボードの監視が始まり、コピーされたテキストの中身に URL があれば自動的に開かれるようになります。
-    ]]></detail>
-    </KeySnailPlugin>;
-// }}}
+</KeySnailPlugin>;
 
-hook.addToHook('ClipboardChanged', function (aText) {
+var status = true;
+
+function clipboardObserver(aText) {
+    if (!status)
+        return;
+
     var matched;
 
     while ((matched = aText.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?#_*.:/=&\\-]+)"))) {
@@ -52,5 +37,12 @@ hook.addToHook('ClipboardChanged', function (aText) {
         gBrowser.loadOneTab(prefix + matched[2], null, null, null, true);
 
         aText = aText.slice(aText.indexOf(matched[2]) + matched[2].length);
-    }
-});
+    }    
+}
+
+hook.addToHook('ClipboardChanged', clipboardObserver);
+
+ext.add("switch-clipboard-observer-status", function () {
+            status = !status;
+            display.echoStatusBar("Clipboard observer " + (status ? "enabled" : "disabled"), 2000);
+        }, "Switch clipboard observer status");

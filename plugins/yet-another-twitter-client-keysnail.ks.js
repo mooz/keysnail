@@ -1,22 +1,113 @@
-/**
- * @fileOverview
- * @name yet-another-twitter-client-keysnail.js
- * @description Make KeySnail behave like Twitter client
- * @author mooz <stillpedant@gmail.com>
- * @license The MIT License
- */
+var PLUGIN_INFO =
+<KeySnailPlugin>
+    <name>Yet Another Twitter Client KeySnail</name>
+    <description>Make KeySnail behave like Twitter client</description>
+    <description lang="ja">KeySnail を Twitter クライアントに</description>
+    <version>1.0</version>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.js</updateURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.icon.png</iconURL>
+    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+    <license>The MIT License</license>
+    <license lang="ja">MIT ライセンス</license>
+    <minVersion>0.9.4</minVersion>
+    <provides>
+        <ext>yet-another-twitter-client-keysnail</ext>
+    </provides>
+    <options>
+        <option>
+            <name>twitter_client.use_popup_notification</name>
+            <type>boolean</type>
+            <description lang="ja">ステータス更新時にポップアップ通知を行うかどうか</description>
+        </option>
+        <option>
+            <name>twitter_client.update_interval</name>
+            <type>integer</type>
+            <description lang="ja">ステータスを更新する間隔 (ミリ秒)</description>
+        </option>
+        <option>
+            <name>twitter_client.main_column_width</name>
+            <type>[integer]</type>
+            <description lang="ja">[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定</description>
+        </option>
+        <option>
+            <name>twitter_client.block_users</name>
+            <type>[string]</type>
+            <description lang="ja">ステータス更新時にポップアップを表示させたくないユーザの id を配列で指定</description>
+        </option>
+    </options>
+    <detail><![CDATA[
+=== Set up ===
 
-key.setViewKey(my.twitterClientStartKey || 't', function (aEvent, aArg) {
-                   my.yATwitterClientKeySnail.display(aEvent, aArg);
-               }, 'Yet Another Twitter Client KeySnail', true);
+In your .keysnail.js file,
 
-my.yATwitterClientKeySnail = new
+>||
+userscript.require("yet-another-twitter-client-keysnail.js");
+||<
+
+=== Usage ===
+
+Press 't' key (or your defined one) to start this client.
+
+Once this function has been called, the timer will be set, and the timeline
+of Twitter periodically updated. This interval can be configured by changing
+the "updateInterval" option.
+
+If you set the "popUpStatusWhenUpdated" option to true, pretty notification
+dialog will be pop upped when new tweets are arrived.
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
+=== 使い方 ===
+==== 起動 ====
+M-x から yet-another-twitter-client-keysnail を選ぶと Twitter クライアントが起動します。
+次のようにして任意のキーへコマンドを割り当てておくことも可能です。
+>||
+key.setViewKey("t",
+    function (ev, arg) {
+        ext.exec("yet-another-twitter-client-keysnail", arg);
+    }, ext.description("yet-another-twitter-client-keysnail"), true);
+||<
+例えば上記のような設定を .keysnail.js へ記述しておくことにより、ブラウズ画面で t を押すことでこのクライアントを起動させることが可能となります。
+
+==== アクションの選択 ====
+Twitter クライアントが起動すると、ユーザのタイムライン一覧が表示されます。ここでそのまま Enter キーを入力すると「つぶやき」画面へ移行することができます。
+Enter ではなく Ctrl + i キーを押すことにより、様々なアクションを選ぶことも可能となっています。
+
+==== 自動更新  ====
+このクライアントは起動時にタイマーをセットし Twitter のタイムラインを定期的に更新します。
+twitter_client.update_interval に値を設定することにより、この間隔を変更することが可能となっています。
+
+==== ポップアップ通知  ====
+twitter_client.use_popup_notification オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
+また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
+
+=== 設定例 ===
+以下に初期化ファイル PRESERVE エリアへの設定例を示します。
+>||
+plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
+plugins.options["twitter_client.block_users"] = ["foo", "bar"];
+||<
+]]></detail>
+</KeySnailPlugin>;
+
+var twitterJSONCache;
+var twitterJSONCacheUpdater;
+var twitterLastUpdated;
+var twitterPending;
+
+var yATwitterClientKeySnail = new
 (function () {
-     var updateInterval         = my.twitterClientUpdateInterval || 60 * 1000;    // Update interval in mili second
-     var popUpStatusWhenUpdated = true;         // Show popup when timeline is updated
-     var mainColumnWidth        = [11, 68, 21]; // [User name, Message, Information] in percentage
+     // Update interval in mili second
+     var updateInterval = plugins.options["twitter_client.update_interval"] || 60 * 1000;
 
-     var blockUser = my.blockUser || undefined;
+     // Show popup when timeline is updated
+     var popUpStatusWhenUpdated = plugins.options["twitter_client.use_popup_notification"];
+     if (typeof popUpStatusWhenUpdated != "boolean")
+         popUpStatusWhenUpdated = true;
+
+     // [User name, Message, Information] in percentage
+     var mainColumnWidth = plugins.options["twitter_client.main_column_width"] || [11, 68, 21];
+
+     var blockUser = plugins.options["twitter_client.block_users"] || undefined;
 
      var twitterActions = [
          [function (status) {
@@ -539,7 +630,7 @@ my.yATwitterClientKeySnail = new
                                      // succeeded
                                      var status = evalFunc("(" + xhr.responseText + ")");
                                      // immediately add
-                                     my.twitterJSONCache.unshift(status);
+                                     twitterJSONCache.unshift(status);
 
                                      var icon_url  = status.user.profile_image_url;
                                      var user_name = status.user.name;
@@ -590,7 +681,7 @@ my.yATwitterClientKeySnail = new
 
      function showFollowersStatus(target, aArg) {
          function callSelector(priorStatus) {
-             var statuses = priorStatus || my.twitterJSONCache;
+             var statuses = priorStatus || twitterJSONCache;
 
              var current = new Date();
 
@@ -628,7 +719,7 @@ my.yATwitterClientKeySnail = new
          }
 
          function updateJSONCache(aAfterWork, aNoRepeat) {
-             my.twitterPending = true;
+             twitterPending = true;
 
              oauthASyncRequest(
                  {
@@ -638,7 +729,7 @@ my.yATwitterClientKeySnail = new
                  },
                  function (aEvent, xhr) {
                      if (xhr.readyState == 4) {
-                         my.twitterPending = false;
+                         twitterPending = false;
 
                          if (xhr.status != 200) {
                              display.echoStatusBar("Failed to get statuses");
@@ -648,12 +739,12 @@ my.yATwitterClientKeySnail = new
                          var statuses = evalFunc(xhr.responseText) || [];
 
                          if (!target) {
-                             my.twitterLastUpdated = new Date();
-                             my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
+                             twitterLastUpdated = new Date();
+                             twitterJSONCache = combineJSONCache(statuses, twitterJSONCache);
                          }
 
                          if (!aNoRepeat)
-                             my.twitterJSONCacheUpdater = setTimeout(updateJSONCache, updateInterval);
+                             twitterJSONCacheUpdater = setTimeout(updateJSONCache, updateInterval);
 
                          if (typeof(aAfterWork) == "function")
                              aAfterWork();
@@ -681,12 +772,12 @@ my.yATwitterClientKeySnail = new
              return;
          }
 
-         if (my.twitterPending) {
+         if (twitterPending) {
              display.echoStatusBar("Requesting to the Twitter ... Please wait.");
              return;
          }
 
-         if (aArg != null || !my.twitterJSONCache) {
+         if (aArg != null || !twitterJSONCache) {
              // rebuild cache
              updateJSONCache(callSelector, aArg != null);
          } else {
@@ -700,100 +791,4 @@ my.yATwitterClientKeySnail = new
      };
  });
 
-
-// PLUGIN INFO: {{{
-var PLUGIN_INFO =
-<KeySnailPlugin>
-<name>Yet Another Twitter Client KeySnail</name>
-<description>Make KeySnail behave like Twitter client</description>
-<description lang="ja">KeySnail を Twitter クライアントに</description>
-<version>1.0</version>
-<updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.js</updateURL>
-<iconURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.icon.png</iconURL>
-<author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
-<license>The MIT License</license>
-<license lang="ja">MIT ライセンス</license>
-<minVersion>0.9.4</minVersion>
-<detail><![CDATA[
-== Set up ==
-
-In your .keysnail.js file,
-
->||
-userscript.require("yet-another-twitter-client-keysnail.js");
-||<
-
-== Usage ==
-
-Press 't' key (or your defined one) to start this client.
-
-Once this function has been called, the timer will be set, and the timeline
-of Twitter periodically updated. This interval can be configured by changing
-the "updateInterval" option.
-
-If you set the "popUpStatusWhenUpdated" option to true, pretty notification
-dialog will be pop upped when new tweets are arrived.
-    ]]></detail>
-    <detail lang="ja"><![CDATA[
-== 注意 ==
-
-このプラグインは KeySnail 0.9.3 以降でのみ動作します。
-古いバージョンをお使いの方は、最新版を DL してからお試し下さい。
-
-== セットアップ ==
-
-.keysnail.js の PRESERVE エリアへ次の一行を付け加えてください
-
->||
-  userscript.require("yet-another-twitter-client-keysnail.js");
-||<
-
-また、このプラグインの動作には oauth.js が必要ですので、適当な場所へ配置した上で
-
->||
-  my.twitterClientLibOAuthPath = "~/.keysnail.d/oauth.js"
-||<
-
-のようにしてファイルのパスを設定して下さい。
-
-== 使い方 ==
-
-'t' キー (や独自に設定したキー) を入力することで Twitter クライアントが起動します。
-
-このキーバインドは
-
->||
-  userscript.require("yet-another-twitter-client-keysnail.js");
-||<
-
-をする前に
-
->||
-  my.twitterClientStartKey = ["C-c", "t"];
-||<
-
-のようにすることで変更することができます。
-
-そのまま Enter キーを入力すると「つぶやき」画面へと移行します。
-
-また Ctrl + i キーを押すことで、様々なアクションを選ぶことが可能となります。
-
-このクライアント起動時にはタイマーがセットされ、 Twitter のタイムラインが定期的に更新されるようになります。
-"updateInterval" の値を変更することにより、この間隔を変えることが可能です。
-
-"popUpStatusWhenUpdated" オプションが true に設定されていれば、新しいつぶやきが届いた際に
-ポップアップで通知が行われるようになります。
-アクションの中に、このオプションを切り替えるものも用意されています。
-
-== 設定例 ==
-
->||
-userscript.addLoadPath("~/.keysnail.d");
-my.twitterClientLibOAuthPath = "~/keysnail/plugins/oauth.js";
-my.twitterClientStartKey       = 't';
-my.twitterClientUpdateInterval = 60 * 1000; // updates every 1 minute
-userscript.require("yet-another-twitter-client-keysnail.js");
-||<
-]]></detail>
-</KeySnailPlugin>;
-// }}}
+ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display, "Yet Another Twitter Client KeySnail");

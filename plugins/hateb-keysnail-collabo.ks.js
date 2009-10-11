@@ -1,4 +1,44 @@
-my.showCommentOfPage = function (aPageURL, aArg) {
+// PLUGIN INFO: {{{
+var PLUGIN_INFO =
+<KeySnailPlugin>
+<name>Hatebnail</name>
+<description>Use Hatena bookmark extensioni from KeySnail!</description>
+<description lang="ja">はてなブックマーク拡張を KeySnail から使おう!</description>
+<version>1.0</version>
+<updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.js</updateURL>
+<iconURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.icon.png</iconURL>
+<author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+<license>The MIT License</license>
+<license lang="ja">MIT ライセンス</license>
+<minVersion>0.9.4</minVersion>
+<provides>
+    <ext>list-hateb-comments</ext>
+    <ext>list-hateb-items</ext>
+</provides>
+<detail lang="ja"><![CDATA[
+=== 使い方 ===
+このプラグインをインストールすることにより
+- list-hateb-comments
+- list-hateb-items
+といったエクステ (コマンド) が追加されます。
+M-x などのキーを入力することによりこれらのエクステを選択し、呼び出すことができます。
+また .keysnail.js 内に次のような設定を記述することにより、特定のキーへコマンドを割り当てておくことも可能です。
+>||
+key.setGlobalKey(["C-M-c"], function (ev, arg) {
+    ext.exec("list-hateb-comments", arg);
+}, "はてなブックマークのコメントを一覧表示", true);
+
+key.setGlobalKey(["C-x", ";"], function (ev, arg) {
+    ext.exec("list-hateb-items", arg);
+}, "はてなブックマークのアイテムを一覧表示", true);
+||<
+]]></detail>
+</KeySnailPlugin>;
+// }}}
+
+var hblist;
+
+function showCommentOfPage(aPageURL, aArg) {
     if (KeySnail.windowType != "navigator:browser" || !hBookmark)
         return;
 
@@ -65,11 +105,11 @@ my.showCommentOfPage = function (aPageURL, aArg) {
         });
 };
 
-my.listHBComments = function (aEvent, aArg) {
-    my.showCommentOfPage(content.location.href, aArg);
+function listHBComments(aEvent, aArg) {
+    showCommentOfPage(content.location.href, aArg);
 };
 
-my.listHbookmark = function (aEvent, aArg) {
+function listHBItems(aEvent, aArg) {
     if (KeySnail.windowType != "navigator:browser")
         return;
 
@@ -92,11 +132,11 @@ my.listHbookmark = function (aEvent, aArg) {
     }
 
     function getURL(aIndex) {
-        return my.hblist[aIndex][HB_URL];
+        return hblist[aIndex][HB_URL];
     }
 
     // by adding prefix arugment to force rebuild the cache
-    if (!my.hblist || aArg != null) {
+    if (!hblist || aArg != null) {
         if (!hBookmark.User.user) {
             hBookmark.User.login();
             macro.sleep(2000);
@@ -114,13 +154,13 @@ my.listHbookmark = function (aEvent, aArg) {
                             stmt.getString(2), getDate(stmt.getString(3)), stmt.getString(4)]);
         }
 
-        my.hblist = bookmarks;
+        hblist = bookmarks;
     }
 
     prompt.selector(
         {
             message: "pattern:",
-            collection: my.hblist,
+            collection: hblist,
             flags: [ICON | IGNORE, IGNORE, IGNORE, HIDDEN | IGNORE, IGNORE, HIDDEN],
             style: [null, null, "color:#001d6b;"],
             header: ["Title", "Comment", "Date"],
@@ -153,7 +193,7 @@ my.listHbookmark = function (aEvent, aArg) {
                [function (aIndex) {
                      if (aIndex >= 0) {
                          var url = getURL(aIndex);
-                         my.showCommentOfPage(url);
+                         showCommentOfPage(url);
                      }
                  }, "Show comments of the selected item's page"],
                 [function (aIndex) {
@@ -170,96 +210,5 @@ my.listHbookmark = function (aEvent, aArg) {
     );
 };
 
-my.listHistoryRecentryVisited = function (aEvent, aArg) {
-    var db = util.getPlacesDB();                 
-    var stmt = db.createStatement(["SELECT DISTINCT b.title, p.url",
-                                   "FROM moz_bookmarks b, moz_places p, moz_historyvisits h",
-                                   "WHERE p.id = b.fk AND h.place_id = p.id",
-                                   "ORDER BY h.visit_date DESC"].join(" "));
-    var count = 0;
-    var bookmarks = [];
-
-    function iconGetter(aRow) {
-        return util.getFaviconPath(aRow[2]);
-    }
-
-    while (stmt.executeStep() && count++<1000) {
-        var title = stmt.getString(0);
-        var url = stmt.getString(1);
-        bookmarks.push([iconGetter, title, url]);
-    }
-    prompt.selector({
-                        message: "pattern:",
-                        callback: function (aIndex) {
-                            if (aIndex >= 0) {
-                                gBrowser.loadOneTab(bookmarks[aIndex][2], null, null, null, aArg != null);
-                            }
-                        },
-                        collection: bookmarks,
-                        flags: [ICON | IGNORE, 0, 0]
-                    });
-};
-
-my.listAllBookmarks = function (aEvent, aArg) {
-    var db = util.getPlacesDB();                 
-    var stmt = db.createStatement("SELECT b.title, p.url FROM moz_bookmarks b JOIN moz_places p ON p.id = b.fk");
-    var count = 0;
-    var bookmarks = [];
-
-    function iconGetter(aRow) {
-        return util.getFaviconPath(aRow[2]);
-    }
-
-    while (stmt.executeStep() && count++ != 5000) {
-        var title = stmt.getString(0);
-        var url = stmt.getString(1);
-        bookmarks.push([iconGetter, title, url]);
-    }
-
-    prompt.selector({
-                        message: "pattern: ",
-                        callback: function (aIndex) {
-                            if (aIndex >= 0) {
-                                gBrowser.loadOneTab(bookmarks[aIndex][2], null, null, null, aArg != null);
-                            }
-                        },
-                        flags: [ICON | IGNORE, 0, 0],
-                        collection: bookmarks
-                    });
-};
-
-my.listHistoryWithKeyword = function (aEvent) {
-    var db = util.getPlacesDB();
-    var stmt = db.createStatement("SELECT moz_bookmarks.title, moz_places.url, moz_keywords.keyword FROM moz_bookmarks JOIN moz_places ON moz_places.id = moz_bookmarks.fk JOIN moz_keywords ON moz_keywords.id = moz_bookmarks.keyword_id");
-    var count = 0;
-    var bookmarks = [];
-
-    function iconGetter(aRow) {
-        return aRow[0] = util.getFaviconPath(aRow[2]);
-        // return util.getFaviconPath(row[2]);
-    }
-
-    while (stmt.executeStep() && count++!=1000) {
-        var title = stmt.getString(0);
-        var url = stmt.getString(1);
-        var keyword = stmt.getString(2);
-        bookmarks.push([iconGetter, title + " (" + keyword + ")", url]);
-    }
-    prompt.selector({
-                        message: "pattern: ",
-                        callback: function (aIndex) {
-                            if (aIndex >= 0) {}
-                        },
-                        flags: [ICON | IGNORE, 0, 0],
-                        collection: bookmarks
-                    });
-};
-
-shell.add("hbc"                           , my.listHBComments,             L('はてブコメント一覧'));
-shell.add("list-history-recently-visited" , my.listHistoryRecentryVisited, L('ブックマークした履歴のうち最近訪れたもの一覧'));
-shell.add("list-all-bookmarks"            , my.listAllBookmarks,           L('ブクマ一覧'));
-shell.add("list-bookmarks-with-keyword"   , my.listHistoryWithKeyword,     L('キーワードの付いたブクマ一覧'));
-shell.add("hatena-bookmark"               , my.listHbookmark,              L("はてなブックマークのアイテムを一覧表示しジャンプ"));
-
-key.setGlobalKey(["C-M-c"], my.listHBComments, L("現在のページのはてなブックマークコメントを一覧表示"), true);
-key.setGlobalKey(["C-x", ";"], my.listHbookmark, L("はてなブックマークを一覧表示"), true);
+ext.add("list-hateb-comments", listHBComments, L('はてブコメント一覧'));
+ext.add("list-hateb-items"   , listHBItems,    L("はてなブックマークのアイテムを一覧表示しジャンプ"));
