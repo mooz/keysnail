@@ -1,7 +1,7 @@
 <!ENTITY keySnail.preference.title "KeySnail Settings">
 
 <!ENTITY keySnail.preference.change "Change">
-<!ENTITY keySnail.preference.userscript.reference "Browse">
+<!ENTITY keySnail.preference.reference "Browse">
 
 <!-- # GENERAL SETTINGS # -->
 
@@ -10,6 +10,12 @@
 <!ENTITY keySnail.preference.userscript.settings "Init file Settings">
 <!ENTITY keySnail.preference.userscript.location "Location: ">
 <!ENTITY keySnail.preference.userscript.editor "Editor: ">
+
+<!-- Plugin -->
+<!ENTITY keySnail.preference.plugin "Plugin">
+<!ENTITY keySnail.preference.plugin.location "Location: ">
+<!ENTITY keySnail.preference.plugin.globalEnabled "Load plugins in every window">
+
 
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "Key Handler Settings">

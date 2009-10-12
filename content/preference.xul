@@ -35,6 +35,10 @@
                  id="extensions.keysnail.keyhandler.low_priority"
                  name="extensions.keysnail.keyhandler.low_priority"
                  type="bool"/>
+            <preference
+                 id="extensions.keysnail.plugin.global_enabled"
+                 name="extensions.keysnail.plugin.global_enabled"
+                 type="bool"/>
         </preferences>
         <!-- Status -->
         <groupbox orient="vertical">
@@ -86,7 +90,7 @@
                         <label value="&keySnail.preference.userscript.location;"
                                control="userScriptLocation"/>
                         <filefield id="keysnail.preference.userscript.location" flex="1"/>
-                        <button label="&keySnail.preference.userscript.reference;"
+                        <button label="&keySnail.preference.reference;"
                                 oncommand="ksPreference.changePathClicked('INITFILE');" />
                     </row>
                     <row>
@@ -96,8 +100,34 @@
                         <label value="&keySnail.preference.userscript.editor;"
                                control="userScriptLocation"/>
                         <filefield id="keysnail.preference.userscript.editor" flex="1"/>
-                        <button label="&keySnail.preference.userscript.reference;"
+                        <button label="&keySnail.preference.reference;"
                                 oncommand="ksPreference.changePathClicked('EDITOR');" />
+                    </row>
+                </rows>
+            </grid>
+        </groupbox>
+        <!-- Plugin Settings -->
+        <groupbox orient="vertical">
+            <caption label="&keySnail.preference.plugin;" />
+            <grid flex="1">
+                <columns>
+                    <column />
+                    <column flex="1"/>
+                    <column />
+                </columns>
+                <rows>
+                    <row align="center" flex="1">
+                        <checkbox label="&keySnail.preference.plugin.globalEnabled;"
+                                  preference="extensions.keysnail.plugin.global_enabled" />
+                    </row>
+                    <row>
+                        <spacer height="5px" />
+                    </row>
+                    <row align="center" flex="1">
+                        <label value="&keySnail.preference.plugin.location;"/>
+                        <filefield id="keysnail.preference.plugin.location" flex="1"/>
+                        <button label="&keySnail.preference.reference;"
+                                oncommand="ksPreference.changePathClicked('PLUGIN');" />
                     </row>
                 </rows>
             </grid>

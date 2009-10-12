@@ -8,6 +8,7 @@
 var ksPreference = {
     initFileKey: "extensions.keysnail.userscript.location",
     editorKey: "extensions.keysnail.userscript.editor",
+    pluginKey: "extensions.keysnail.plugin.location",
 
     digitArgumentList        : null,
     digitArgumentDescription : null,
@@ -463,13 +464,14 @@ var ksPreference = {
             fileField.label = file.path;
         } else {
             fileField.file = null;
-            fileField.label = " Not specified ";
+            fileField.label = " " + this.modules.util.getLocaleString("notSpecified") + " ";
         }
     },
 
     updateAllFileFields: function () {
         this.updateFileField(this.initFileKey, "keysnail.preference.userscript.location");
         this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");
+        this.updateFileField(this.pluginKey, "keysnail.preference.plugin.location");
     },
 
     openFile: function (aPath) {
@@ -495,16 +497,21 @@ var ksPreference = {
         switch (aType) {
         case 'INITFILE':
             var initFileLocation = this.modules.util.getUnicharPref(this.initFileKey);
-
-            fp.init(window, "Select a directory", nsIFilePicker.modeGetFolder);
+            fp.init(window, "Select init file directory", nsIFilePicker.modeGetFolder);
             fp.displayDirectory = this.openFile(initFileLocation);
             prefKey = this.initFileKey;
             break;
         case 'EDITOR':
-            fp.init(window, "Select Editor", nsIFilePicker.modeOpen);
+            fp.init(window, "Select editor", nsIFilePicker.modeOpen);
             fp.appendFilters(nsIFilePicker.filterApps);
             fp.appendFilters(nsIFilePicker.filterAll);
             prefKey = this.editorKey;
+            break;
+        case 'PLUGIN':
+            var pluginLocation = this.modules.util.getUnicharPref(this.pluginKey);
+            fp.init(window, "Select init file directory", nsIFilePicker.modeGetFolder);
+            fp.displayDirectory = this.openFile(pluginLocation);
+            prefKey = this.pluginKey;
             break;
         }
 
@@ -529,12 +536,16 @@ var ksPreference = {
             break;
         case 'EDITOR':
             if (!fp.file.exists() || !fp.file.isExecutable()) {
-                alert("Please select the valid editor");
+                alert(this.modules.util.getLocaleString("selectValidEditor"));
                 return;
             }
             // set preference value
             this.modules.util.setUnicharPref(prefKey, fp.file.path);
             this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");
+            break;
+        case 'PLUGIN':
+            this.modules.util.setUnicharPref(prefKey, fp.file.path);
+            this.updateFileField(this.pluginKey, "keysnail.preference.plugin.location");
             break;
         }
     },

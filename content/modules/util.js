@@ -12,6 +12,19 @@ KeySnail.Util = {
     autoCompleteController: null,
 
     init: function () {
+        this.sandboxForSafeEval = new Components.utils.Sandbox("about:blank");
+
+        this.userLocale = this.getUnicharPref("general.useragent.locale");
+        this.userLocale = {
+            // ja
+            "ja"        : "ja",
+            "ja-JP"     : "ja",
+            "ja-JP-mac" : "ja",
+            "ja_JP"     : "ja",
+            "JP"        : "ja",
+            // en
+            "en-US"     : "en"
+        }[this.userLocale] || "en";
     },
 
     // ==================== Utils  ==================== //
@@ -28,6 +41,7 @@ KeySnail.Util = {
         var file = Components.classes["@mozilla.org/file/local;1"]
             .createInstance(Components.interfaces.nsILocalFile);
         file.initWithPath(aPath);
+
         return file;
     },
 
@@ -104,7 +118,7 @@ KeySnail.Util = {
      * Confirm dialog with the "don't ask me again" checkbox
      * @param {string} aTitle title of the dialog
      * @param {string} aMessage message of the dialog
-     * @param {string} aCheckMessage message displayed near the checkbox 
+     * @param {string} aCheckMessage message displayed near the checkbox
      * @param {string} aId preference key to save the "don't ask me again" value
      * @returns {boolean} true when user pressed OK, and false when Canceled
      */
@@ -202,7 +216,7 @@ KeySnail.Util = {
 
         try {
             return (insertTextController &&
-                    insertTextController.isCommandEnabled("cmd_insertText"));            
+                    insertTextController.isCommandEnabled("cmd_insertText"));
         } catch (x) {
             var localName = aEvent.originalTarget.localName.toLowerCase();
             return (localName == 'input' || localName == 'textarea');
@@ -279,7 +293,7 @@ KeySnail.Util = {
         return docShell
             .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
             .getInterface(Components.interfaces.nsISelectionDisplay)
-            .QueryInterface(Components.interfaces.nsISelectionController);        
+            .QueryInterface(Components.interfaces.nsISelectionController);
     },
 
     // ==================== event ==================== //
@@ -394,6 +408,39 @@ KeySnail.Util = {
     },
 
     /**
+     * Original code from liberator
+     * Returns the list of files in <aDirectory>.
+     * @param {nsIFile|string} aDirectory The directory to read, either a full
+     *     pathname or an instance of nsIFile.
+     * @param {boolean} sort Whether to sort the returned directory
+     *     entries.
+     * @returns {nsIFile[]}
+     * @throws exception when no file found in aDirectory
+     */
+    readDirectory: function (aDirectory, aSort)
+    {
+        if (typeof aDirectory == "string")
+            aDirectory = this.openFile(aDirectory);
+
+        if (aDirectory.isDirectory()) {
+            var entries = aDirectory.directoryEntries;
+            var array = [];
+
+            while (entries.hasMoreElements()) {
+                var entry = entries.getNext();
+                array.push(entry.QueryInterface(Components.interfaces.nsIFile));
+            }
+
+            if (aSort)
+                array.sort(function (a, b) b.isDirectory() - a.isDirectory() ||  String.localeCompare(a.path, b.path));
+
+            return array;
+        } else {
+            return [];
+        }
+    },
+
+    /**
      * get extension's special directory
      * original function from sage
      * @param {string} aProp special directory type
@@ -479,7 +526,7 @@ KeySnail.Util = {
     },
 
     /**
-     * convert URL to the local file path 
+     * convert URL to the local file path
      * @param {string} aUrl URL of the file
      * @returns {string} Local path expression of chrome URL
      */
@@ -531,7 +578,7 @@ KeySnail.Util = {
     getFaviconPath: function (aURL, aDefault) {
         if (!this.IOService) {
             this.IOService = Components.classes['@mozilla.org/network/io-service;1']
-            .getService(Components.interfaces.nsIIOService);            
+            .getService(Components.interfaces.nsIIOService);
         }
 
         var iconURL;
@@ -547,13 +594,76 @@ KeySnail.Util = {
         return iconURL;
     },
 
+    getLeafNameFromURL: function (aURL) {
+        return aURL.slice(aURL.lastIndexOf("/") + 1);
+    },
+
     // ==================== eval ==================== //
+
+    safeEval: function (aText) {
+        return Components.utils.evalInSandbox(aText, this.sandboxForSafeEval);
+    },
 
     evalInSandbox: function (aContent, aURI) {
         var sandbox = new Components.utils.Sandbox(aURI || content.document.location.href);
         sandbox.window   = content.window;
         sandbox.document = content.document;
         return Components.utils.evalInSandbox(aContent, sandbox);
+    },
+
+    // ==================== ajax ==================== //
+
+    /**
+     * Original code from liberator
+     * Sends a synchronous HTTP request to <aUrl> and returns the
+     * XMLHttpRequest object. If <aCallback> is specified the request is
+     * asynchronous and the <aCallback> is invoked with the object as its
+     * argument.
+     * @param {string} aUrl
+     * @param {function} aCallback
+     * @returns {XMLHttpRequest}
+     */
+    httpGet: function (aUrl, aCallback)
+    {
+        try {
+            var req = new XMLHttpRequest();
+            req.mozBackgroundRequest = true;
+
+            if (aCallback) {
+                req.onreadystatechange = function () {
+                    if (req.readyState == 4)
+                        aCallback(req);
+                };
+            }
+
+            req.open("GET", aUrl, !!aCallback);
+            req.send(null);
+
+            return req;
+        } catch (e) {
+            this.modules.display.notify("Error opening " + aUrl + " :: " + e);
+
+            return null;
+        }
+    },
+
+    // ============================== XML ============================== //
+
+    xmlGetLocaleString: function (aNodes) {
+        if (typeof aNodes == "string")
+            return aNodes;
+
+        var length = aNodes.length();
+
+        if (length == 0)
+            return "";
+
+        for (var i = 0; i < length; ++i) {
+            if (aNodes[i].@lang.toString() == this.userLocale)
+                return aNodes[i].text();
+        }
+
+        return aNodes[0].text();
     },
 
     message: KeySnail.message

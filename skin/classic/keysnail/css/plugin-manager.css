@@ -1,0 +1,13 @@
+.listcell-label {
+    text-decoration: underline;
+}
+
+.listcell-check {
+    margin: 0px 10px;
+}
+
+image.listcell-icon {
+    margin: 0 6px;
+    width: 32px;
+    height: 32px;
+}

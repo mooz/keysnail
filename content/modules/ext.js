@@ -1,0 +1,133 @@
+/**
+ * @fileOverview
+ * @name ext.js
+ * @author mooz <stillpedant@gmail.com>
+ * @license The MIT License
+ */
+
+KeySnail.Ext = function () {
+    /**
+     * @private
+     */
+    const Cc = Components.classes;
+    const Ci = Components.interfaces;
+
+    var modules;
+
+    var exts = {};
+    var extArray;
+
+    function createExtList() {
+        var keyList = [];
+        var extList = [];
+        var name;
+
+        for (name in exts) {
+            keyList.push(name);
+        }
+        keyList = keyList.sort();
+
+        for (var i = 0; i < keyList.length; ++i) {
+            name = keyList[i];
+            extList.push([name, exts[name].description]);
+        }
+
+        return extList;
+    }
+
+    function registerExt(aName, aBody, aReplace) {
+        if (exts[aName] && !aReplace)
+            return;
+        exts[aName] = aBody;
+    }
+
+    function message(aMsg) {
+        Application.console.log(aMsg);
+    }
+
+    // ================ public ================ //
+
+    var self = {
+        init: function () {
+            if (KeySnail.windowType != "navigator:browser")
+                return;
+
+            modules = this.modules;
+        },
+
+        add: function (aName, aAction, aDescription, aOption, aReplace) {
+            var body = {
+                action: aAction,
+                description: aDescription
+            };
+
+            if (typeof(aName) == "object") {
+                aName.forEach(
+                    function (name) {
+                        registerExt(name, body, aReplace);
+                    });
+            } else {
+                registerExt(aName, body, aReplace);
+            }
+        },
+
+        exec: function (aName, aArgument) {
+            if (aName in exts) {
+                exts[aName].action.apply(modules, [{}, aArgument]);
+            } else {
+                modules.display.echoStatusBar('ext "' + aName + '" not found');
+            }
+        },
+
+        /**
+         * Get description for ext specified by <aName>
+         * @param {string} aName ext's name
+         * @returns {string} ext's description
+         */
+        description: function (aName) {
+            if (aName in exts) {
+                return exts[aName].description;
+            } else {
+                return "";
+            }
+        },
+
+        /**
+         * Portal of the ext. All exts are listed and executed when user select the one.
+         * @param {integer} aArgument Prefix argument passed to the ext
+         */
+        select: function (aArgument) {
+            extList = createExtList();
+
+            // var savedSubstrMatch = modules.prompt.substrMatch;
+            // modules.prompt.substrMatch = false;
+            // modules.prompt.read("Ext:",
+            //                     function (name) {
+            //                         if (name in exts) {
+            //                             exts[name].action.apply(modules, [{}, aArgument]);
+            //                         } else {
+            //                             modules.display.echoStatusBar('command "' + name + '" not found');
+            //                         }
+            //                         modules.prompt.substrMatch = savedSubstrMatch;
+            //                     },
+            //                     null, extList, "", 0, "ext");
+
+            modules.prompt.selector(
+                {
+                    message: "Ext:",
+                    callback: function (aIndex) {
+                        if (aIndex >= 0) {
+                            var name = extList[aIndex][0];
+                            self.exec(name, aArgument);
+                        }
+                    },
+                    header: ["Name", "Description"],
+                    collection: extList
+                }
+            );
+        }
+    };
+
+    return self;
+}();
+

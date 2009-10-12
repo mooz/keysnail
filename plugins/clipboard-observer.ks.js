@@ -5,16 +5,16 @@ var PLUGIN_INFO =
     <description>Observe clipboard</description>
     <description lang="ja">クリップボードを監視します</description>
     <version>1.0</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/clipboard-observer.js</updateURL>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/clipboard-observer.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/clipboard-observer.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>0.9.2</minVersion>
     <maxVersion>0.9.*</maxVersion>
-    <provide>
+    <provides>
         <ext>switch-clipboard-observer-status</ext>
-    </provide>
+    </provides>
     <detail><![CDATA[
 === 使い方 ===
 このプラグインをインストールするとクリップボードの監視が始まり、コピーされたテキストの中身に URL があれば自動的に開かれるようになります。
@@ -45,4 +45,4 @@ hook.addToHook('ClipboardChanged', clipboardObserver);
 ext.add("switch-clipboard-observer-status", function () {
             status = !status;
             display.echoStatusBar("Clipboard observer " + (status ? "enabled" : "disabled"), 2000);
-        }, "Switch clipboard observer status");
+        }, M({ja: "クリップボード監視 ON / OFF を切り替え", en: "Switch clipboard observer status"}));

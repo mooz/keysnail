@@ -7,4 +7,6 @@
 <!ENTITY keySnail.statusbar.wizard "Create / Select the init file">
 <!ENTITY keySnail.statusbar.editInitFile "Edit the init file">
 
+<!ENTITY keySnail.statusbar.openPluginManager "Open plugin manager">
+
 <!ENTITY keySnail.statusbar.isEnabled "Enable">

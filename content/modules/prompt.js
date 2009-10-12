@@ -680,6 +680,12 @@ KeySnail.Prompt = function () {
     function selectNextCompletion(aDirection, aRing) {
         var nextIndex, currentIndex, totalLength;
 
+        if (!currentList || !currentList.length) {
+            modules.display.echoStatusBar("No " + completion.name + " found", 1000);
+            wholeListIndex = -1;
+            return;
+        }
+
         if (!compIndexList && currentRegexp) {
             selectorDisplayStatusbarLine(currentRegexp, -1);
             // set index to pass

@@ -7,4 +7,6 @@
 <!ENTITY keySnail.statusbar.wizard "初期化ファイルを作成 / 選択">
 <!ENTITY keySnail.statusbar.editInitFile "初期化ファイルを編集">
 
+<!ENTITY keySnail.statusbar.openPluginManager "プラグインマネージャを開く">
+
 <!ENTITY keySnail.statusbar.isEnabled "有効">

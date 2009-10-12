@@ -1,0 +1,5 @@
+<!ENTITY keySnail.pluginManager.title "Plugin manager">
+
+<!ENTITY keySnail.pluginManager.enabled "Enabled">
+<!ENTITY keySnail.pluginManager.checkForUpdates "Check for updates">
+<!ENTITY keySnail.pluginManager.reloadPlugins "Reload plugins">

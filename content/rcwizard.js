@@ -24,7 +24,7 @@ var rcWizard = {
         "en",
         "ja"
     ],
-    
+
     onLoad: function () {
         // to access the utility
         this.modules = window.arguments[0].inn.modules;
@@ -167,7 +167,7 @@ var rcWizard = {
             [document.getElementById("keysnail-rcwizard-selectlocale").selectedIndex];
             window.arguments[0].out.selectedLocale = selectedLocale;
             // ================ document ================ //
-            window.arguments[0].out.insertDocument = 
+            window.arguments[0].out.insertDocument =
                 document.getElementById("keysnail-rcwizard-selectscheme-insert-document").checked;
         }
 

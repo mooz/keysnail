@@ -5,15 +5,15 @@ var PLUGIN_INFO =
 <description>Use Hatena bookmark extensioni from KeySnail!</description>
 <description lang="ja">はてなブックマーク拡張を KeySnail から使おう!</description>
 <version>1.0</version>
-<updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.js</updateURL>
+<updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
 <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
 <license>The MIT License</license>
 <license lang="ja">MIT ライセンス</license>
 <minVersion>0.9.4</minVersion>
-<provide>
+<provides>
     <ext>list-hateb-comments</ext>
     <ext>list-hateb-items</ext>
-</provide>
+</provides>
 <detail lang="ja"><![CDATA[
 === 使い方 ===
 このプラグインをインストールすることにより
@@ -37,6 +37,11 @@ key.setGlobalKey(["C-x", ";"], function (ev, arg) {
 
 var hblist;
 
+ext.add("list-hateb-comments", listHBComments, M({ja: 'このページのはてなブックマークコメントを一覧表示',
+                                                  en: 'List hatena bookmark comments of this page'}));
+ext.add("list-hateb-items"   , listHBItems,    M({ja: "はてなブックマークのアイテムを一覧表示しジャンプ",
+                                                  en: 'List all hatena bookmark entries in prompt.selector'}));
+
 function showCommentOfPage(aPageURL, aArg) {
     if (KeySnail.windowType != "navigator:browser" || !hBookmark)
         return;
@@ -57,6 +62,8 @@ function showCommentOfPage(aPageURL, aArg) {
         aPageURL,
         function (data) {
             if (!data || !data.title) {
+                display.echoStatusBar(M({ja: 'ブックマークが見つかりませんでした',
+                                         en: "No bookmarks found"}), 2000);
                 return;
             }
 
@@ -73,7 +80,8 @@ function showCommentOfPage(aPageURL, aArg) {
             }
 
             if (!collection.length) {
-                display.echoStatusBar("No bookmarks", 2000);
+                display.echoStatusBar(M({ja: 'ブックマークが見つかりませんでした',
+                                         en: "No bookmarks found"}), 2000);
                 return;
             }
 
@@ -97,7 +105,8 @@ function showCommentOfPage(aPageURL, aArg) {
                                  var url = getPermaLink(collection[aIndex]);
                                  openUILinkIn(url, "tab");
                              }
-                         }, "Open User Comment Page in new tab"]
+                         }, M({ja: '選択中ユーザのブックマークコメントページを新しいタブで開く',
+                               en: "Open User Comment Page in new tab"})]
                     ]
                 }
             );
@@ -208,6 +217,3 @@ function listHBItems(aEvent, aArg) {
         }
     );
 };
-
-ext.add("list-hateb-comments", listHBComments, L('はてブコメント一覧'));
-ext.add("list-hateb-items"   , listHBItems,    L("はてなブックマークのアイテムを一覧表示しジャンプ"));

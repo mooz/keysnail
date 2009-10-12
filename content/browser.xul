@@ -71,23 +71,30 @@
 		      label="&keySnail.statusbar.listKeyBindings;"
                       accesskey="v"
 		      oncommand="KeySnail.Key.listKeyBindings();"/>
+            <!-- init file -->
             <menu id="keysnail-menu-init-file" label="&keySnail.statusbar.initFile;"
                   accesskey="i">
                 <menupopup id="keysnail-menu-settings-submenu">
 	            <menuitem id="keysnail-menu-edit-init-file"
 	                      label="&keySnail.statusbar.editInitFile;"
-                              accesskey="e"
+	                      accesskey="e"
 	                      oncommand="KeySnail.UserScript.editInitFile();"
-                              class="menuitem-iconic"
-                              src="chrome://keysnail/skin/icon/edit.png"/>
-	            <menuitem id="keysnail-menu-open-wizard"
+	                      class="menuitem-iconic"
+	                      src="chrome://keysnail/skin/icon/edit.png"/>
+	                      <menuitem id="keysnail-menu-open-wizard"
 	                      label="&keySnail.statusbar.wizard;"
-                              accesskey="w"
+	                      accesskey="w"
 	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"
-                              class="menuitem-iconic"
-                              src="chrome://keysnail/skin/icon/create.png"/>
+	                      class="menuitem-iconic"
+	                      src="chrome://keysnail/skin/icon/create.png"/>
                 </menupopup>
             </menu>
+            <!-- plugin -->
+	    <menuitem id="keysnail-menu-open-plugin-manager"
+	              label="&keySnail.statusbar.openPluginManager;"
+	              accesskey="o"
+	              oncommand="KeySnail.UserScript.openPluginManager();"
+	              />
 	    <menuitem id="keysnail-menu-open-preference"
 	              label="&keySnail.statusbar.openPreference;"
                       accesskey="c"

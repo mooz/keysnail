@@ -30,7 +30,7 @@ var KeySnail = {
                              "Macro",
                              "Key",
                              "Prompt",
-                             "Shell",
+                             "Ext",
                              // UserScript must be the last
                              "UserScript"];
         this.moduleObjects = moduleObjects;

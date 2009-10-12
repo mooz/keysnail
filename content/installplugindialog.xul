@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+<?xml-stylesheet href="chrome://keysnail/skin/css/install-plugin-dialog.css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/installplugindialog.dtd">
+
+<dialog id="keysnail-install-plugin-dialog"
+        title="&keySnail.installPluginDialog.title;"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+
+        onload="ksInstallPluginDialog.onLoad();"
+        buttons="accept,cancel,disclosure"
+
+        buttonlabelaccept="&keySnail.installPluginDialog.install;"
+        buttonaccesskeyaccept="i"
+
+        buttonlabeldisclosure="&keySnail.installPluginDialog.viewSourceCode;"
+        buttonaccesskeydisclosure="v"
+
+        buttonaccesskeycancel="c"
+
+        ondialogaccept="return ksInstallPluginDialog.onAccept();"
+        ondialogcancel="return ksInstallPluginDialog.onCancel();"
+        ondialogdisclosure="return ksInstallPluginDialog.onViewSource();"
+        >
+    <vbox flex="1">
+        <hbox flex="1">
+            <hbox align="center">
+                <image id="plugin-info-icon" />
+            </hbox>
+            <vbox>
+                <description id="plugin-info-name" />
+                <description id="plugin-info-description" />
+            </vbox>
+        </hbox>
+        <grid flex="1" id="plugin-detail-box">
+            <columns>
+                <column />
+                <column />
+            </columns>
+            <rows>
+                <row align="center" flex="1">
+                    <description>&keySnail.installPluginDialog.author;</description>
+                    <description id="plugin-info-author" />
+                </row>
+                <row>
+                    <spacer height="5px" />
+                </row>
+                <row align="center" flex="1">
+                    <description>&keySnail.installPluginDialog.version;</description>
+                    <description id="plugin-info-version" />
+                </row>
+            </rows>
+        </grid>
+        <description class="notice">&keySnail.installPluginDialog.notice1;</description>
+        <description class="notice">&keySnail.installPluginDialog.notice2;</description>
+    </vbox>
+
+    <script type="application/x-javascript" src="chrome://keysnail/content/installplugindialog.js"/>
+</dialog>

@@ -131,7 +131,7 @@ KeySnail.Key = {
                 //                             .getLocaleString("noUserScriptLoaded"));
                 this.status = false;
             } else {
-                this.run();                
+                this.run();
             }
         }
 
@@ -237,7 +237,7 @@ KeySnail.Key = {
 
         var key = this.keyEventToString(aEvent);
 
-        // this.modules.display.prettyPrint(["orig :: " + aEvent.originalTarget.localName, 
+        // this.modules.display.prettyPrint(["orig :: " + aEvent.originalTarget.localName,
         //                                   "targ :: " + aEvent.target.localName,
         //                                   "curr :: " + aEvent.currentTarget.localName].join("\n"));
 
@@ -784,7 +784,7 @@ KeySnail.Key = {
         }
 
         var addTo = this.keyMapHolder[aKeyMapName];
-        
+
         aFunc.ksDescription = aKsDescription;
         // true, if you want to prevent the iteration
         // of the command when prefix argument specified.
@@ -1149,7 +1149,7 @@ KeySnail.Key = {
             contentHolder.push("<h2 id='special'>Special Keys</h2>");
             contentHolder.push("<table class='table-keybindings'>");
             contentHolder.push("<tr><th>Role</th><th>Key</th><th>Description</th></tr>");
-            contentHolder.push("<tr><td>Quit key</td><td>" + html.escapeTag(this.quitKey) + "</td><td>" + 
+            contentHolder.push("<tr><td>Quit key</td><td>" + html.escapeTag(this.quitKey) + "</td><td>" +
                                util.getLocaleString("specialKeyQuit") + "</td></tr>");
             contentHolder.push("<tr><td>Help key</td><td>" + html.escapeTag(this.helpKey) + "</td><td>" +
                                util.getLocaleString("specialKeyHelp") + "</td></tr>");

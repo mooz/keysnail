@@ -66,7 +66,7 @@ var keyCustomizer = {
         };
 
         for (var key in specialKeys) {
-            specialKeys[key] = 
+            specialKeys[key] =
                 document.getElementById(this.prefPrefix +
                                         key.slice(0, key.length - 3)).value || "";
         }

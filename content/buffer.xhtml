@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-          "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!DOCTYPE html [
+          <!ENTITY % htmlDTD PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+          %htmlDTD;
+          <!ENTITY % keysnailpluginmanagerDTD SYSTEM "chrome://keysnail/locale/pluginmanager.dtd">
+          %keysnailpluginmanagerDTD;
+          ]>
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <title/>
-        <link rel="stylesheet" type="text/css" href="./resources/design.css" />
+        <link rel="stylesheet" type="text/css" href="chrome://keysnail/skin/css/buffer.css" />
     </head>
     <body>
         <div id="container">
+            <div id="info-box">
+                <h1>&keySnail.pluginManager.title;</h1>
+            </div>
+            <hr />
+            <div id="detail-box">
+                <p>&keySnail.pluginManager.title;</p>
+            </div>
         </div>
     </body>
 </html>

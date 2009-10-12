@@ -1,5 +1,5 @@
-<!ENTITY keySnail.builtinViewer.title "追加するコマンドを選択してください">
+<!ENTITY keySnail.pluginManager.title "プラグインマネージャ">
 
-<!ENTITY keySnail.builtinViewer.category "カテゴリ">
-<!ENTITY keySnail.builtinViewer.commands "コマンド一覧">
-<!ENTITY keySnail.builtinViewer.function "コードのプレビュー">
+<!ENTITY keySnail.pluginManager.enabled "有効">
+<!ENTITY keySnail.pluginManager.checkForUpdates "更新を確認">
+<!ENTITY keySnail.pluginManager.reloadPlugins "プラグインをリロード">

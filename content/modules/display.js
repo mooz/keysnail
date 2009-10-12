@@ -72,7 +72,7 @@ KeySnail.Display = {
                 // clear
                 while (container.hasChildNodes()) {
                     container.removeChild(container.firstChild);
-                }                
+                }
             }
 
             container.appendChild(doc.createTextNode(lines[0]));
@@ -92,7 +92,7 @@ KeySnail.Display = {
 
         if (typeof(gBrowser) == 'undefined') {
             this.message(aMsg);
-            return;            
+            return;
         }
 
         if (!aButtons) {
@@ -115,7 +115,7 @@ KeySnail.Display = {
 
         notifyBox.appendNotification(aMsg,
                                      NOTIFY_ID,
-                                     "chrome://keysnail/skin/icon16.png",
+                                     "chrome://keysnail/skin/notify-icon16.png",
                                      "PRIORITY_WARNING_HIGH",
                                      aButtons);
     },

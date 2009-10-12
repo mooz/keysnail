@@ -174,7 +174,7 @@ function js_beautify(js_source_text, options)
                     } else {
                         colon_count--;
                     }
-                } 
+                }
                 break;
             case '{':
                 if (level === 0) {
@@ -349,7 +349,7 @@ function js_beautify(js_source_text, options)
                         }
                         parser_pos += 1;
                         if (parser_pos >= input.length) {
-                            // incomplete string/rexp when end-of-file reached. 
+                            // incomplete string/rexp when end-of-file reached.
                             // bail out with what had been received so far.
                             return [resulting_string, 'TK_STRING'];
                         }
@@ -368,7 +368,7 @@ function js_beautify(js_source_text, options)
                         }
                         parser_pos += 1;
                         if (parser_pos >= input.length) {
-                            // incomplete string/rexp when end-of-file reached. 
+                            // incomplete string/rexp when end-of-file reached.
                             // bail out with what had been received so far.
                             return [resulting_string, 'TK_STRING'];
                         }
@@ -722,7 +722,7 @@ function js_beautify(js_source_text, options)
             if (token_text === ':' && in_case) {
                 print_token(); // colon really asks for separate treatment
                 print_newline();
-                in_case = false; 
+                in_case = false;
                 break;
             }
 

@@ -4,15 +4,15 @@ var PLUGIN_INFO =
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
     <version>1.0</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.js</updateURL>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>0.9.4</minVersion>
-    <provide>
+    <provides>
         <ext>yet-another-twitter-client-keysnail</ext>
-    </provide>
+    </provides>
     <require>
         <lib>http://github.com/mooz/keysnail/raw/master/plugins/oauth.js</lib>
     </require>
@@ -245,17 +245,17 @@ var yATwitterClientKeySnail = new
 
          var sec = aMillisec / 1000;
          if (sec < 1.0)
-             return L("ついさっき");
+             return M({ja: "ついさっき", en: "just now"});
          var min = sec / 60;
          if (min < 1.0)
-             return format(sec, L("秒前"));
+             return format(sec, M({ja: "秒前", en: "seconds ago"}));
          var hour = min / 60;
          if (hour < 1.0)
-             return format(min, L("分前"));
+             return format(min, M({ja: "分前", en: "minutes ago"}));
          var date = hour / 24;
          if (date < 1.0)
-             return format(hour, L("時間前"));
-         return format(date, L("日前"));
+             return format(hour, M({ja: "時間前", en: "hours ago"}));
+         return format(date, M({ja: "日前", en: "days ago"}));
      }
 
      function combineJSONCache(aNew, aOld) {
@@ -698,7 +698,10 @@ var yATwitterClientKeySnail = new
                      flags: [ICON | IGNORE, 0, 0, 0],
                      style: ["color:#0e0067;", null, "color:#660025;"],
                      width: mainColumnWidth,
-                     header: ["User", "Timeline : Press Enter to tweet. Ctrl + i (or your defined one) to select the action!", "Info"],
+                     header: [M({ja: 'ユーザ', en: "User"}),
+                              M({ja: 'タイムライン : そのまま Enter でつぶやき画面へ。 Ctrl + i でアクションを選択！',
+                                 en: "Timeline : Press Enter to tweet. Ctrl + i (or your defined one) to select the action!"}),
+                              M({ja: "情報", en: 'Info'})],
                      filter: function (aIndex) {
                          var status = statuses[aIndex];
 
@@ -725,7 +728,8 @@ var yATwitterClientKeySnail = new
                          twitterPending = false;
 
                          if (xhr.status != 200) {
-                             display.echoStatusBar("Failed to get statuses");
+                             display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
+                                                      en: "Failed to get statuses"}));
                              return;
                          }
 
@@ -754,7 +758,8 @@ var yATwitterClientKeySnail = new
                  function (aEvent, xhr) {
                      if (xhr.readyState == 4) {
                          if (xhr.status != 200) {
-                             display.echoStatusBar("Failed to get statuses");
+                             display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
+                                                      en: "Failed to get statuses"}));
                              return;
                          }
 
@@ -766,7 +771,8 @@ var yATwitterClientKeySnail = new
          }
 
          if (twitterPending) {
-             display.echoStatusBar("Requesting to the Twitter ... Please wait.");
+             display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
+                                      en: "Requesting to the Twitter ... Please wait."}));
              return;
          }
 
@@ -784,4 +790,6 @@ var yATwitterClientKeySnail = new
      };
  });
 
-ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display, "Yet Another Twitter Client KeySnail");
+ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display,
+        M({ja: 'Twitter クライアントを起動',
+           en: "Launch Yet Another Twitter Client KeySnail"}));

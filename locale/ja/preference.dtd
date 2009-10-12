@@ -1,7 +1,7 @@
 <!ENTITY keySnail.preference.title "KeySnail の設定">
 
 <!ENTITY keySnail.preference.change "変更">
-<!ENTITY keySnail.preference.userscript.reference "参照">
+<!ENTITY keySnail.preference.reference "参照">
 
 <!-- # GENERAL SETTINGS # -->
 
@@ -10,6 +10,11 @@
 <!ENTITY keySnail.preference.userscript.settings "初期化ファイル">
 <!ENTITY keySnail.preference.userscript.location "読み込み元: ">
 <!ENTITY keySnail.preference.userscript.editor "編集に用いるエディタ: ">
+
+<!-- Plugin -->
+<!ENTITY keySnail.preference.plugin "プラグイン">
+<!ENTITY keySnail.preference.plugin.location "読み込み元: ">
+<!ENTITY keySnail.preference.plugin.globalEnabled "ブラウズ画面以外でもプラグインを読み込む">
 
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "キーハンドラ">
