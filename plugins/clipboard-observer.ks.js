@@ -12,9 +12,9 @@ var PLUGIN_INFO =
     <license lang="ja">MIT ライセンス</license>
     <minVersion>0.9.2</minVersion>
     <maxVersion>0.9.*</maxVersion>
-    <provides>
+    <provide>
         <ext>switch-clipboard-observer-status</ext>
-    </provides>
+    </provide>
     <detail><![CDATA[
 === 使い方 ===
 このプラグインをインストールするとクリップボードの監視が始まり、コピーされたテキストの中身に URL があれば自動的に開かれるようになります。

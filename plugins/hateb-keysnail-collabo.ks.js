@@ -6,15 +6,14 @@ var PLUGIN_INFO =
 <description lang="ja">はてなブックマーク拡張を KeySnail から使おう!</description>
 <version>1.0</version>
 <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.js</updateURL>
-<iconURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.icon.png</iconURL>
 <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
 <license>The MIT License</license>
 <license lang="ja">MIT ライセンス</license>
 <minVersion>0.9.4</minVersion>
-<provides>
+<provide>
     <ext>list-hateb-comments</ext>
     <ext>list-hateb-items</ext>
-</provides>
+</provide>
 <detail lang="ja"><![CDATA[
 === 使い方 ===
 このプラグインをインストールすることにより

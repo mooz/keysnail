@@ -10,9 +10,12 @@ var PLUGIN_INFO =
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>0.9.4</minVersion>
-    <provides>
+    <provide>
         <ext>yet-another-twitter-client-keysnail</ext>
-    </provides>
+    </provide>
+    <require>
+        <lib>http://github.com/mooz/keysnail/raw/master/plugins/oauth.js</lib>
+    </require>
     <options>
         <option>
             <name>twitter_client.use_popup_notification</name>
@@ -176,16 +179,6 @@ var yATwitterClientKeySnail = new
 
      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
          .getService(Components.interfaces.nsIWindowMediator);
-
-     var evalFunc = window.eval;
-     try {
-         var sandbox = new(Components.utils.Sandbox)("about:blank");
-         if (Components.utils.evalInSandbox("true", sandbox) === true) {
-             evalFunc = function (text) {
-                 return Components.utils.evalInSandbox(text, sandbox);
-             };
-         }
-     } catch(e) {}
 
      // ============================== Popup notifications {{ ============================== //
 
@@ -545,7 +538,7 @@ var yATwitterClientKeySnail = new
                  method: "GET"
              });
 
-         var statuses = evalFunc(responseText);
+         var statuses = util.safeEval(responseText);
 
          prompt.selector(
              {
@@ -582,7 +575,7 @@ var yATwitterClientKeySnail = new
                                  method: "POST"
                              });
 
-                         var results = (evalFunc("(" + responseText + ")") || {"results":[]}).results;
+                         var results = (util.safeEval("(" + responseText + ")") || {"results":[]}).results;
 
                          prompt.selector(
                              {
@@ -628,7 +621,7 @@ var yATwitterClientKeySnail = new
                                      util.message(xhr.responseText);
                                  } else {
                                      // succeeded
-                                     var status = evalFunc("(" + xhr.responseText + ")");
+                                     var status = util.safeEval("(" + xhr.responseText + ")");
                                      // immediately add
                                      twitterJSONCache.unshift(status);
 
@@ -736,7 +729,7 @@ var yATwitterClientKeySnail = new
                              return;
                          }
 
-                         var statuses = evalFunc(xhr.responseText) || [];
+                         var statuses = util.safeEval(xhr.responseText) || [];
 
                          if (!target) {
                              twitterLastUpdated = new Date();
@@ -765,7 +758,7 @@ var yATwitterClientKeySnail = new
                              return;
                          }
 
-                         var statuses = evalFunc(xhr.responseText) || [];
+                         var statuses = util.safeEval(xhr.responseText) || [];
                          callSelector(statuses);
                      }
                  });
