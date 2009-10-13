@@ -145,7 +145,8 @@ var yATwitterClientKeySnail = new
           }, L("Show status in web page (Twitter のサイトでそのつぶやきを見る)")],
          [function (status) {
               popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
-              display.echoStatusBar("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"));
+              display.echoStatusBar(M({ja: ("ポップアップ通知を" + (popUpStatusWhenUpdated ? "有効にしました" : "無効にしました")),
+                                       en: ("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"))}));
           }, L("Toggle pop up status (ポップアップ通知の切り替え)")],
          [function (status) {
               reAuthorize();
@@ -319,8 +320,9 @@ var yATwitterClientKeySnail = new
      }
 
      if (!loadSucceeded) {
-         display.notify("This plugin requires oauth.js but not found");
-         return;
+         display.notify(L(util.xmlGetLocaleString(PLUGIN_INFO.name)) + " :: " +
+             M({ja: "このプラグインの動作には oauth.js が必要です。 oauth.js をプラグインディレクトリ内に配置した上でお試し下さい。",
+                en: "This plugin requires oauth.js but not found. Please locate oauth.js to the plugin directory."}));
      }
 
      var OAuth = context.OAuth();
@@ -790,6 +792,8 @@ var yATwitterClientKeySnail = new
      };
  });
 
-ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display,
-        M({ja: 'Twitter クライアントを起動',
-           en: "Launch Yet Another Twitter Client KeySnail"}));
+if (yATwitterClientKeySnail) {
+    ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display,
+            M({ja: 'Twitter クライアントを起動',
+               en: "Launch Yet Another Twitter Client KeySnail"}));
+}

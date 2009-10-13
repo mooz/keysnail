@@ -44,5 +44,7 @@ hook.addToHook('ClipboardChanged', clipboardObserver);
 
 ext.add("switch-clipboard-observer-status", function () {
             status = !status;
-            display.echoStatusBar("Clipboard observer " + (status ? "enabled" : "disabled"), 2000);
-        }, M({ja: "クリップボード監視 ON / OFF を切り替え", en: "Switch clipboard observer status"}));
+            display.echoStatusBar(
+                M({ja: ("クリップボードの監視を" + (status ? "開始しました" : "停止しました")),
+                   en: ("Clipboard observer " + (status ? "enabled" : "disabled"))}), 2000);
+        }, M({ja: "クリップボード監視 ON / OFF を切り替え", en: "Switch clipboard observer status"}), true);
