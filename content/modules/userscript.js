@@ -342,8 +342,8 @@ KeySnail.UserScript = {
                     return;
                 }
 
-                // successfuly finished
-                display.echoStatusBar("Plugin successfuly installed", 2000);
+                // successfully finished
+                display.echoStatusBar("Plugin successfully installed", 2000);
                 this.loadPlugin();
                 this.openPluginManager();
             } else if (arg.type == "viewsource") {
@@ -387,11 +387,11 @@ KeySnail.UserScript = {
             context.__ksLoaded__   = true;
             this.message("keysnail :: plugin " + aFile.leafName + " loaded");
         } catch (e) {
-            delete KeySnail.modules.plugins.context[filePath];
+            context.__ksLoaded__ = false;
+            // delete KeySnail.modules.plugins.context[filePath];
             var msgstr = this.modules.util
                 .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
             this.message(msgstr + e + " (in " + filePath + ")");
-            // this.modules.display.notify(msgstr + e + " (in " + filePath + ")");
         }
 
         this.modules.key.inExternalFile = false;

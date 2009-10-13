@@ -272,11 +272,24 @@ var ksPluginManager = function () {
 
             if (status) {
                 if (!modules.plugins.context[pluginPath].__ksLoaded__) {
+                    // to prevent this plugin considered as the "disabled"
+                    updateDisabledPluginList();
+
                     // load plugin now
-                    try {
-                        modules.userscript.loadPlugin(modules.util.openFile(pluginPath));
-                    } catch (x) {
-                        modules.display.notify("Failed to load plugin " + infoHolder[pluginPath].name);
+                    modules.userscript.loadPlugin(modules.util.openFile(pluginPath));
+
+                    if (!modules.plugins.context[pluginPath].__ksLoaded__) {
+                        // failed to load plugin
+                        modules.util.alert(window, "Failed to load plugin",
+                                           'Failed to load plugin "' + pluginPath + '"');
+
+                        infoHolder[pluginPath].status = false;
+                        item.setAttribute("disabled", true);
+
+                        // FIXME: how awful ...
+                        setTimeout(function () {
+                                       pluginStatusCheckbox.setAttribute("checked", false);
+                                   }, 0);
                     }
                 }
             } else {
