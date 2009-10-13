@@ -40,6 +40,18 @@ var ksPluginManager = function () {
         }
     }
 
+    function xmlToDom(xml, xmlns) {
+        var doc = (new DOMParser).parseFromString(
+            '<root xmlns="' + xmlns + '">' + xml.toXMLString() + "</root>",
+            "application/xml");
+        var imported = document.importNode(doc.documentElement, true);
+        var range = document.createRange();
+        range.selectNodeContents(imported);
+        var fragment = range.extractContents();
+        range.detach();
+        return fragment.childNodes.length > 1 ? fragment : fragment.firstChild;
+    }
+
     function initPluginList() {
         removeAllChilds(pluginListbox);
 
@@ -69,9 +81,6 @@ var ksPluginManager = function () {
 
             var pluginName;
 
-            var item = content.document.createElement("listitem");
-            item.setAttribute("class", "listitem-iconic");
-
             infoHolder[pluginPath] = new Object();
 
             // get common info
@@ -85,24 +94,130 @@ var ksPluginManager = function () {
                     });
             }
 
+            // var pluginRichBoxItem =
+            //    <pluginWhole>
+            //        <pluginHeader>
+            //            <imageContainer>
+            //                <image />
+            //            </imageContainer>
+            //            <infoContainer>
+            //                <hbox><description>名前</description><description>バージョン</description></hbox>
+            //                <description>説明</description>
+            //            </infoContainer>
+            //        </pluginHeader>
+            //        <buttonsContainer>
+            //            <button label="無効化" />
+            //            <button label="削除" />
+            //        </buttonsContainer>
+            //    </pluginWhole>;
+
+
             // set name
             pluginName = infoHolder[pluginPath].name;
             if (!pluginName) {
                 pluginName = plugin.__ksFileName__;
                 infoHolder[pluginPath].name = pluginName;
             }
-            item.setAttribute("label", pluginName);
 
-            // set icon
-            item.setAttribute("image", infoHolder[pluginPath].iconURL || defaultIconURL);
+            // ======================================== //
+
+            var item = content.document.createElement("richlistitem");
+            item.setAttribute("class", "plugin-listitem");
+
+            var pluginWhole = content.document.createElement("vbox");
+            pluginWhole.flex = 1;
+
+            var buttonsContainer = content.document.createElement("hbox");
+            buttonsContainer.flex = 1;
+            
+            var pluginHeader = content.document.createElement("hbox");
+            pluginHeader.setAttribute("align", "center");
+
+            var imageContainer = content.document.createElement("vbox");
+            imageContainer.setAttribute("align", "center");
+
+            var image = content.document.createElement("image");
+            image.setAttribute("class", "plugin-icon");
+            image.setAttribute("src", infoHolder[pluginPath].iconURL || defaultIconURL);
+            imageContainer.appendChild(image);
+            
+            var description;
+            var pluginNameContainer = content.document.createElement("hbox");
+
+            description= content.document.createElement("description");
+            description.setAttribute("value", pluginName);
+            description.setAttribute("class", "plugin-name");
+            pluginNameContainer.appendChild(description);
+
+            description= content.document.createElement("description");
+            description.setAttribute("value", infoHolder[pluginPath].version);
+            description.setAttribute("class", "plugin-version");
+            pluginNameContainer.appendChild(description);
+
+            var infoContainer = content.document.createElement("vbox");
+            infoContainer.appendChild(pluginNameContainer);
+
+            description = content.document.createElement("description");
+            description.setAttribute("value", infoHolder[pluginPath].description);
+            infoContainer.appendChild(description);
+
+            pluginHeader.appendChild(imageContainer);
+            pluginHeader.appendChild(infoContainer);
+
+            var spacer = content.document.createElement("spacer");
+            spacer.flex = 1;
+            buttonsContainer.appendChild(spacer);
+
+            var button;
+
+            button = content.document.createElement("button");
+            button.setAttribute("label", "有効化");
+            button.setAttribute("accesskey", "e");
+            button.setAttribute("hidden", "true");
+            buttonsContainer.appendChild(button);
+
+            button = content.document.createElement("button");
+            button.setAttribute("label", "無効化");
+            button.setAttribute("accesskey", "d");
+            buttonsContainer.appendChild(button);
+
+            button = content.document.createElement("button");
+            button.setAttribute("label", "削除");
+            button.setAttribute("accesskey", "u");
+            buttonsContainer.appendChild(button);
+
+            buttonsContainer.setAttribute("hidden", "true");
+
+            pluginWhole.appendChild(pluginHeader);
+            pluginWhole.appendChild(buttonsContainer);
+
+            item.appendChild(pluginWhole);
+
+            // ======================================== //
 
             // key value
             item.value = pluginPath;
 
-            item.setAttribute("disabled", !plugin.__ksLoaded__);
+            setChildsStatus(item, plugin.__ksLoaded__);
+
             infoHolder[pluginPath].status = plugin.__ksLoaded__;
 
             pluginListbox.appendChild(item);
+
+            setChildsStatus(pluginListbox, false);
+        }
+    }
+
+    function setChildsStatus(aItem, aStatus) {
+        if (!aItem.childNodes || !aItem.childNodes.length) {
+            modules.util.message(aItem.localName + " => " + (aStatus ? "enabled" : "disabled"));
+            if (aStatus)
+                aItem.removeAttribute('disabled');
+            else
+                aItem.setAttribute("disabled", true);
+        } else {
+            for (var i = 0; i < aItem.childNodes.length; ++i)
+                setChildsStatus(aItem.childNodes[i], aStatus);
         }
     }
 
