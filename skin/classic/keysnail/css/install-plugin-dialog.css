@@ -1,19 +1,18 @@
+description#plugin-info-name, description#plugin-info-version {
+    font-size: 130%;
+}
+
+description#plugin-info-name {
+    font-weight: bold;
+}
+
 description#plugin-info-description {
     font-size: 105%;
     padding-left: 10px;
 }
 
-description#plugin-info-name {
-    font-weight: bold;
-    font-size: 130%;
-}
-
 description.notice {
     font-weight: bold;
-}
-
-grid#plugin-detail-box {
-    margin: 10px 20px;
 }
 
 image#plugin-info-icon {

@@ -1,13 +1,18 @@
-.listcell-label {
-    text-decoration: underline;
+richlistitem.plugin-listitem {
+    border-bottom:1px #BBB dotted;
+    padding: 5px;
 }
 
-.listcell-check {
-    margin: 0px 10px;
-}
-
-image.listcell-icon {
+image.plugin-icon {
     margin: 0 6px;
     width: 32px;
     height: 32px;
+}
+
+description.plugin-name {
+    font-weight: bold;
+}
+
+hbox#plugin-button-container {
+    padding: 5px;
 }

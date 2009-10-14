@@ -127,10 +127,10 @@ table {
 text-align:left;
 font-family:'Helvetica', 'Arial', sans-serif;
 width:100%;
-margin: 10px 15px 10px 15px;
+margin: 10px 5px 10px 5px;
 border: 0px;
 border-collapse:separate;
-border-spacing:2em 7px;
+border-spacing:1em 7px;
 }
 
 table th {
