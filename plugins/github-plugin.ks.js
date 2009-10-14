@@ -25,10 +25,6 @@ var PLUGIN_INFO =
     ]]></detail>
 </KeySnailPlugin>;
 
-ext.add("github-install-plugin-from-this-page", installPluginFromThisPage,
-        M({ja: "github のページからプラグインをインストール",
-           en: "Install plugin from github page"}));
-
 var status = true;
 
 function githubIsPluginURL(aURL) {
@@ -46,6 +42,13 @@ function githubIsInstalledPlugin(aURL) {
     return false;
 }
 
+function githubGetRawURL(aURL) {
+    var matched;
+    if ((matched = aURL.match("^http://github\\.com/[^/]+/[^/]+/blob/")))
+        return matched[0].slice(0, -5) + "raw/" + aURL.slice(matched[0].length);
+    return aURL;
+}
+
 function githubLocationChangeChecker(aURI) {
     if (!aURI || !githubIsPluginURL(aURI.spec))
         return;
@@ -57,9 +60,7 @@ function githubLocationChangeChecker(aURI) {
         return;
     }
 
-    var matched;
-    if ((matched = url.match("^http://github\\.com/[^/]+/[^/]+/blob/")))
-        url = matched[0].slice(0, -5) + "raw/" + url.slice(matched[0].length);
+    url = githubGetRawURL(url);
 
     var buttons = [
         {
@@ -88,7 +89,11 @@ function installPluginFromThisPage(aEvent, aArg) {
         return;
     }
 
-    userscript.installPluginFromURL(url);
+    userscript.installPluginFromURL(githubGetRawURL(url));
 }
 
 hook.addToHook('LocationChange', githubLocationChangeChecker);
+
+ext.add("github-install-plugin-from-this-page", installPluginFromThisPage,
+        M({ja: "github のページからプラグインをインストール",
+           en: "Install plugin from github page"}));
