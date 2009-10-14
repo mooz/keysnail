@@ -1,9 +1,9 @@
 var PLUGIN_INFO =
 <KeySnailPlugin>
-    <name>github plugin</name>
-    <name lang="ja">github プラグイン</name>
+    <name>github helper</name>
+    <name lang="ja">github プラグインヘルパー</name>
     <description>Helps you to install plugin from github</description>
-    <description lang="ja">github からのプラグインインストールを簡単に</description>
+    <description lang="ja">github から簡単にプラグインをインストール</description>
     <version>1.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/github-plugin.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/github-plugin.icon.png</iconURL>
@@ -17,11 +17,13 @@ var PLUGIN_INFO =
     </provides>
     <detail><![CDATA[
 === 使い方 ===
+==== 自動インストール ====
+このプラグインをインストールすることにより、現在閲覧している github のページに KeySnail プラグインが見つかった場合画面上部にメッセージが表れ、指示にしたがって簡単にプラグインをインストールすることができるようになります。
 
+==== コマンド入力によるインストール ====
 このプラグインをインストールすることで次のエクステが追加されます。
 - github-install-plugin-from-this-page
-このエクステを M-x のメニューや ext.exec により呼び出すことで、現在見ている github のページから KeySnail プラグインを簡単に
-インストールすることが出来るようになります。
+このエクステを ext.exec (デフォルトでは M-x に割り当て) により呼び出すことで、現在見ている github のページから KeySnail プラグインをインストールすることができます。
     ]]></detail>
 </KeySnailPlugin>;
 

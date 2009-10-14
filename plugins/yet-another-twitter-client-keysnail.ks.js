@@ -14,7 +14,7 @@ var PLUGIN_INFO =
         <ext>yet-another-twitter-client-keysnail</ext>
     </provides>
     <require>
-        <lib>http://github.com/mooz/keysnail/raw/master/plugins/oauth.js</lib>
+        <script>http://github.com/mooz/keysnail/raw/master/plugins/oauth.js</script>
     </require>
     <options>
         <option>
