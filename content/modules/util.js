@@ -620,10 +620,11 @@ KeySnail.Util = {
      * asynchronous and the <aCallback> is invoked with the object as its
      * argument.
      * @param {string} aUrl
+     * @param {boolean} aRaw
      * @param {function} aCallback
      * @returns {XMLHttpRequest}
      */
-    httpGet: function (aUrl, aCallback)
+    httpGet: function (aUrl, aRaw, aCallback)
     {
         try {
             var req = new XMLHttpRequest();
@@ -637,6 +638,8 @@ KeySnail.Util = {
             }
 
             req.open("GET", aUrl, !!aCallback);
+            if (aRaw)
+                req.overrideMimeType('text/plain; charset=x-user-defined');
             req.send(null);
 
             return req;
