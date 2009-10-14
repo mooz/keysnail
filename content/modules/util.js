@@ -97,7 +97,7 @@ KeySnail.Util = {
         var fileStream = Components
             .classes["@mozilla.org/network/file-output-stream;1"]
             .createInstance(Components.interfaces.nsIFileOutputStream);
-        fileStream.init(file, 0x02 | 0x08 | 0x20, 0755, false);
+        fileStream.init(file, 0x02 | 0x08 | 0x20, 0644, false);
 
         var wrote = fileStream.write(aString, aString.length);
         if (wrote != aString.length) {
