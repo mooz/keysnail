@@ -153,13 +153,8 @@ KeySnail.UserScript = {
         this.modules.plugins.context = {};
         this.modules.plugins.options = {};
 
-        this.disabledPlugins = (this.modules.util
-                                .getUnicharPref("extensions.keysnail.plugin.disabled_plugins")
-                                || "").split(",");
-
-        var pluginDir = this.modules.util.getUnicharPref("extensions.keysnail.plugin.location");
-        if (pluginDir)
-            this.addLoadPath(pluginDir);
+        if (this.pluginDir)
+            this.addLoadPath(this.pluginDir);
 
         this.load();
     },
@@ -282,8 +277,74 @@ KeySnail.UserScript = {
         return m ? new XML(m[1]) : null;
     },
 
-    installPlugin: function (aFile) {
+    /**
+     *
+     * @param {} aFile
+     * @throws {}
+     * @returns newly instaled file
+     */
+    installFile: function (aFile) {
+        with (this.modules) {
+            try {
+                var destinationDir  = util.openFile(this.pluginDir);
+                var destinationFile = util.openFile(this.pluginDir);
+                destinationFile.append(aFile.leafName);
 
+                if (destinationFile.exists() &&
+                    !util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
+                                  util.getLocaleString("overWriteConfirmation", [destinationFile.path]))) {
+                    // canceled
+                    throw util.getLocaleString("canceledByUser");
+                }
+
+                aFile.moveTo(destinationDir, "");
+
+                return destinationFile;
+            } catch (x) {
+                throw util.getLocaleString("failedToInstallFile", [aFile.leafName]) + " :: " + x;
+            }
+        }
+    },
+
+    uninstallPlugin: function (aFile) {
+        aFile.remove(false);
+    },
+
+    installRequiredFiles: function (aXml) {
+        if (!aXml || !aXml.require.length())
+            return;
+
+        var scripts = aXml.require.script;
+
+        this.message(scripts);
+
+        for each (var script in scripts) {
+            var url = script.text();
+            var xhr = this.modules.util.httpGet(url);
+
+            if (xhr && xhr.responseText) {
+                try {
+                    var fileName     = this.modules.util.getLeafNameFromURL(url);
+                    var tmpFile      = this.writeTextTmp(fileName, xhr.responseText);
+                    var installed    = this.installFile(tmpFile);
+                    this.message(installed.path + " installed");
+                } catch (x) {
+                    this.modules.display.notify("Error occured while installing the required file :: " + x);
+                }
+            } else {
+                this.message(url + " skipped");
+            }
+        }
+    },
+
+    writeTextTmp: function (aFileName, aText) {
+        var tmpFile  = this.modules.util.getSpecialDir("TmpD");
+        tmpFile.append(aFileName);
+
+        this.modules.util.writeText(this.modules.util.convertCharCodeFrom(aText, "UTF-8"),
+                                    tmpFile.path, true);
+
+        return tmpFile;
     },
 
     /**
@@ -291,12 +352,16 @@ KeySnail.UserScript = {
      * http://coderepos.org/share/browser/lang/javascript/vimperator-plugins/trunk/pluginManager.js
      * Install plugin from URL
      * @param {string} aURL plugin's url
+     * @throws
      */
     installPluginFromURL: function (aURL) {
         let xhr     = this.modules.util.httpGet(aURL);
-        let version = '';
-        let source  = xhr.responseText || '';
         let headers = {};
+        let source  = xhr.responseText;
+
+        if (!source) {
+            throw "Failed to get plugin from '" + aURL + "'";
+        }
 
         try {
             xhr.getAllResponseHeaders()
@@ -307,12 +372,21 @@ KeySnail.UserScript = {
                             headers[pair.shift()] = pair.join('');
                         }
                     });
-        } catch (e) {}
+        } catch (e) {
+            this.message(e);
+        }
 
         var arg = {
             xml: this.getPluginInformation(source),
+            pluginURL: aURL,
             type: null
         };
+
+        if (!arg.xml) {
+            // not a valid keysnail plugin
+            this.modules.display.notify(this.modules.util.getLocaleString("invalidPlugin"));
+            return;
+        }
 
         window.openDialog("chrome://keysnail/content/installplugindialog.xul",
                           "keysnail:installPlugin",
@@ -324,37 +398,22 @@ KeySnail.UserScript = {
             return;
 
         with (this.modules) {
-            var pluginFile = util.getSpecialDir("TmpD");
             var fileName   = util.getLeafNameFromURL(aURL);
-            pluginFile.append(fileName);
-
-            util.writeText(util.convertCharCodeFrom(source, "UTF-8"), pluginFile.path, true);
+            var pluginFile = this.writeTextTmp(fileName, source);
 
             if (arg.type == "install") {
                 // install
                 try {
-                    var pluginDir = util.getUnicharPref("extensions.keysnail.plugin.location");
-                    var destinationDir = util.openFile(pluginDir);
-                    var destinationFile = util.openFile(pluginDir);
-                    destinationFile.append(fileName);
-
-                    if (destinationFile.exists() &&
-                        !util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
-                                      util.getLocaleString("overWriteConfirmation", [destinationFile.path]))) {
-                        // canceled
-                        return;
-                    }
-
-                    pluginFile.moveTo(destinationDir, "");
+                    var installed = this.installFile(pluginFile);
+                    // install required files
+                    this.installRequiredFiles(arg.xml);
+                    // successfully finished
+                    this.loadPlugin(installed);
+                    this.newlyInstalledPlugin = installed.path;
+                    this.openPluginManager();
                 } catch (x) {
-                    display.notify("Error occured while installing plugin " + x);
-                    return;
+                    display.echoStatusBar(x, 2000);
                 }
-
-                // successfully finished
-                display.echoStatusBar("Plugin successfully installed", 2000);
-                this.loadPlugin();
-                this.openPluginManager();
             } else if (arg.type == "viewsource") {
                 gBrowser.loadOneTab(util.pathToURL(pluginFile.path), null, null, null, false);
             }
