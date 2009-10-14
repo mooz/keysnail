@@ -32,8 +32,17 @@ KeySnail.UserScript = {
         code: null
     },
 
+    get pluginDir() {
+            return this.modules.util.getUnicharPref("extensions.keysnail.plugin.location");
+    },
+
+    get disabledPlugins() {
+        return (this.modules.util.getUnicharPref("extensions.keysnail.plugin.disabled_plugins")
+                || "").split(",");
+    },
+
     // line number of the Function() constructor
-    userScriptOffset: 48,
+    userScriptOffset: 57,
 
     // ==================== Loader ==================== //
 
