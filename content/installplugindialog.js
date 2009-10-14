@@ -19,8 +19,22 @@ var ksInstallPluginDialog = function () {
         setAttributeFromXml(dom["plugin-info-icon"]        , "src",   xml.iconURL || defaultIconURL);
         setAttributeFromXml(dom["plugin-info-name"]        , "value", xml.name);
         setAttributeFromXml(dom["plugin-info-description"] , "value", xml.description);
-        setAttributeFromXml(dom["plugin-info-author"]      , "value", xml.author);
         setAttributeFromXml(dom["plugin-info-version"]     , "value", xml.version);
+    }
+
+    function setScriptList() {
+        var xml       = window.arguments[0].xml;
+        var pluginURL = window.arguments[0].pluginURL;
+
+        if (!xml)
+            return;
+
+        var item;
+
+        dom["plugin-script-list"].appendItem(pluginURL);
+        for each (var script in xml.require.script) {
+            dom["plugin-script-list"].appendItem(script.text());
+        }
     }
 
     var self = {
@@ -32,7 +46,7 @@ var ksInstallPluginDialog = function () {
             var ids = ["plugin-info-icon",
                        "plugin-info-name",
                        "plugin-info-description",
-                       "plugin-info-author",
+                       "plugin-script-list",
                        "plugin-info-version"];
             dom = new Object();
 
@@ -44,6 +58,7 @@ var ksInstallPluginDialog = function () {
 
             pluginPath = window.arguments[0].pluginPath;
             setInfo();
+            setScriptList();
         },
 
         onAccept: function () {
@@ -58,6 +73,8 @@ var ksInstallPluginDialog = function () {
 
         onViewSource: function () {
             window.arguments[0].type = "viewsource";
+
+            document.getElementById("keysnail-install-plugin-dialog").cancelDialog();
 
             return true;
         }

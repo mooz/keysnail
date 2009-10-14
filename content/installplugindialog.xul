@@ -31,29 +31,17 @@
                 <image id="plugin-info-icon" />
             </hbox>
             <vbox>
-                <description id="plugin-info-name" />
+                <hbox align="center">
+                    <description id="plugin-info-name" />
+                    <description id="plugin-info-version" />
+                </hbox>
                 <description id="plugin-info-description" />
             </vbox>
         </hbox>
-        <grid flex="1" id="plugin-detail-box">
-            <columns>
-                <column />
-                <column />
-            </columns>
-            <rows>
-                <row align="center" flex="1">
-                    <description>&keySnail.installPluginDialog.author;</description>
-                    <description id="plugin-info-author" />
-                </row>
-                <row>
-                    <spacer height="5px" />
-                </row>
-                <row align="center" flex="1">
-                    <description>&keySnail.installPluginDialog.version;</description>
-                    <description id="plugin-info-version" />
-                </row>
-            </rows>
-        </grid>
+        <spacer height="10px" />
+        <caption>&keySnail.installPluginDialog.theseFilesWillBeInstalled;:</caption>
+        <listbox id="plugin-script-list" flex="1">
+        </listbox>
         <description class="notice">&keySnail.installPluginDialog.notice1;</description>
         <description class="notice">&keySnail.installPluginDialog.notice2;</description>
     </vbox>
