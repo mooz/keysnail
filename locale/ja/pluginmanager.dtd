@@ -3,3 +3,4 @@
 <!ENTITY keySnail.pluginManager.enabled "有効">
 <!ENTITY keySnail.pluginManager.checkForUpdates "更新を確認">
 <!ENTITY keySnail.pluginManager.reloadPlugins "プラグインをリロード">
+<!ENTITY keySnail.pluginManager.installPlugin "プラグインをインストール">

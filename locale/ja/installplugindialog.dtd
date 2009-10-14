@@ -6,5 +6,7 @@
 <!ENTITY keySnail.installPluginDialog.author "作者">
 <!ENTITY keySnail.installPluginDialog.version "バージョン">
 
+<!ENTITY keySnail.installPluginDialog.theseFilesWillBeInstalled "インストールされるファイル">
+
 <!ENTITY keySnail.installPluginDialog.notice1 "プラグインはあなたのコンピュータに重大な損害を及ぼす危険性を持っています。">
 <!ENTITY keySnail.installPluginDialog.notice2 "ソースコードをチェックした上、自己責任のもとでインストールを行って下さい。">
