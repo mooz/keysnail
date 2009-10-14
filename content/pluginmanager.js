@@ -8,6 +8,7 @@ var ksPluginManager = function () {
     // you can access each plugin's E4X XML object by xmlHolder[pluginFileName]
     var xmlHolder;
     var infoHolder;
+    var xulHolder;
 
     // ==== iframe dom objects ==== //
 
@@ -20,12 +21,10 @@ var ksPluginManager = function () {
 
     var pluginDescriptionFrame;
     var pluginListbox;
-    var pluginStatusCheckbox;
 
     // ==== other values ==== //
 
     var defaultIconURL = "chrome://keysnail/skin/script.png";
-    var disabledIconURL = "chrome://keysnail/skin/script-disabled.png";
 
     function createElementWithText(aElemName, aText) {
         var elem = iframeDoc.createElement(aElemName);
@@ -57,14 +56,16 @@ var ksPluginManager = function () {
 
         xmlHolder  = new Object;
         infoHolder = new Object;
+        xulHolder  = new Object;
 
         var tags = ["name", "description", "version", "author", "updateURL",
                     "iconURL", "license", "minVersion", "maxVersion", "detail"];
 
         for (var pluginPath in modules.plugins.context) {
             var plugin = modules.plugins.context[pluginPath];
+            var isDisabled = modules.userscript.isDisabledPlugin(pluginPath);
 
-            // for disabled (not loaded) plugin
+            // for not loaded plugin
             // open script and read it's PLUGIN_INFO value
             if (!plugin.__ksLoaded__) {
                 try {
@@ -111,7 +112,6 @@ var ksPluginManager = function () {
             //        </buttonsContainer>
             //    </pluginWhole>;
 
-
             // set name
             pluginName = infoHolder[pluginPath].name;
             if (!pluginName) {
@@ -121,69 +121,78 @@ var ksPluginManager = function () {
 
             // ======================================== //
 
-            var item = content.document.createElement("richlistitem");
-            item.setAttribute("class", "plugin-listitem");
+            xulHolder[pluginPath] = new Object();
 
-            var pluginWhole = content.document.createElement("vbox");
+            var item = document.createElement("richlistitem");
+            item.setAttribute("class", "plugin-listitem");
+            xulHolder[pluginPath].item = item;
+
+            var pluginWhole = document.createElement("vbox");
             pluginWhole.flex = 1;
 
-            var buttonsContainer = content.document.createElement("hbox");
+            var buttonsContainer = document.createElement("hbox");
             buttonsContainer.flex = 1;
-            
-            var pluginHeader = content.document.createElement("hbox");
-            pluginHeader.setAttribute("align", "center");
 
-            var imageContainer = content.document.createElement("vbox");
+            var pluginHeader = document.createElement("hbox");
+            pluginHeader.setAttribute("align", "center");
+            pluginHeader.setAttribute("id", "center");
+
+            var imageContainer = document.createElement("vbox");
             imageContainer.setAttribute("align", "center");
 
-            var image = content.document.createElement("image");
+            var image = document.createElement("image");
             image.setAttribute("class", "plugin-icon");
             image.setAttribute("src", infoHolder[pluginPath].iconURL || defaultIconURL);
             imageContainer.appendChild(image);
-            
-            var description;
-            var pluginNameContainer = content.document.createElement("hbox");
 
-            description= content.document.createElement("description");
+            var description;
+            var pluginNameContainer = document.createElement("hbox");
+
+            description= document.createElement("description");
             description.setAttribute("value", pluginName);
             description.setAttribute("class", "plugin-name");
             pluginNameContainer.appendChild(description);
 
-            description= content.document.createElement("description");
+            description= document.createElement("description");
             description.setAttribute("value", infoHolder[pluginPath].version);
             description.setAttribute("class", "plugin-version");
             pluginNameContainer.appendChild(description);
 
-            var infoContainer = content.document.createElement("vbox");
+            var infoContainer = document.createElement("vbox");
             infoContainer.appendChild(pluginNameContainer);
 
-            description = content.document.createElement("description");
+            description = document.createElement("description");
             description.setAttribute("value", infoHolder[pluginPath].description);
             infoContainer.appendChild(description);
 
             pluginHeader.appendChild(imageContainer);
             pluginHeader.appendChild(infoContainer);
 
-            var spacer = content.document.createElement("spacer");
+            var spacer = document.createElement("spacer");
             spacer.flex = 1;
             buttonsContainer.appendChild(spacer);
 
             var button;
 
-            button = content.document.createElement("button");
+            button = document.createElement("button");
             button.setAttribute("label", "有効化");
             button.setAttribute("accesskey", "e");
             button.setAttribute("hidden", "true");
+            button.onclick = enableButtonClicked;
             buttonsContainer.appendChild(button);
+            xulHolder[pluginPath].enableButton = button;
 
-            button = content.document.createElement("button");
+            button = document.createElement("button");
             button.setAttribute("label", "無効化");
             button.setAttribute("accesskey", "d");
+            button.onclick = disableButtonClicked;
             buttonsContainer.appendChild(button);
+            xulHolder[pluginPath].disableButton = button;
 
-            button = content.document.createElement("button");
+            button = document.createElement("button");
             button.setAttribute("label", "削除");
             button.setAttribute("accesskey", "u");
+            button.onclick = deleteButtonClicked;
             buttonsContainer.appendChild(button);
 
             buttonsContainer.setAttribute("hidden", "true");
@@ -193,32 +202,29 @@ var ksPluginManager = function () {
 
             item.appendChild(pluginWhole);
 
+            xulHolder[pluginPath].buttonsContainer = buttonsContainer;
+            xulHolder[pluginPath].pluginHeader     = pluginHeader;
+
             // ======================================== //
 
             // key value
             item.value = pluginPath;
 
-            setChildsStatus(item, plugin.__ksLoaded__);
-
-            infoHolder[pluginPath].status = plugin.__ksLoaded__;
+            setPluginStatus(pluginPath, !isDisabled);
 
             pluginListbox.appendChild(item);
-
-            setChildsStatus(pluginListbox, false);
         }
     }
 
-    function setChildsStatus(aItem, aStatus) {
-        if (!aItem.childNodes || !aItem.childNodes.length) {
-            modules.util.message(aItem.localName + " => " + (aStatus ? "enabled" : "disabled"));
-            if (aStatus)
-                aItem.removeAttribute('disabled');
-            else
-                aItem.setAttribute("disabled", true);
-        } else {
-            for (var i = 0; i < aItem.childNodes.length; ++i)
-                setChildsStatus(aItem.childNodes[i], aStatus);
-        }
+    function setPluginStatus(aPluginPath, aStatus) {
+        xulHolder[aPluginPath].pluginHeader.setAttribute("style",
+                                                         "opacity:" + (aStatus ? "1.0" : "0.35"));
+
+        xulHolder[aPluginPath].enableButton.hidden = aStatus;
+        xulHolder[aPluginPath].disableButton.hidden = !aStatus;
+
+        infoHolder[aPluginPath].status = aStatus;
+        // modules.plugins.context[aPluginPath].__ksLoaded__ = aStatus;
     }
 
     function updateInfoBox(aPluginPath) {
@@ -335,15 +341,85 @@ var ksPluginManager = function () {
 
         modules.util.setUnicharPref("extensions.keysnail.plugin.disabled_plugins",
                                     disabledPlugins.join(","));
-        modules.userscript.disabledPlugins = disabledPlugins;
+    }
+
+    function disableButtonClicked(aEvent) {
+        var item = pluginListbox.selectedItem;
+        if (!item)
+            return;
+
+        var pluginPath = item.value;
+        var status = infoHolder[pluginPath].status;
+
+        setPluginStatus(pluginPath, false);
+        updateDisabledPluginList();
+
+        modules.display.echoStatusBar(infoHolder[pluginPath].name + " disabled", 2000);
+    }
+
+    function enableButtonClicked(aEvent) {
+        var item = pluginListbox.selectedItem;
+        if (!item)
+            return;
+
+        var pluginPath = item.value;
+        var status = infoHolder[pluginPath].status;
+
+        setPluginStatus(pluginPath, true);
+
+        if (!modules.plugins.context[pluginPath].__ksLoaded__) {
+            // plugin is not loaded
+
+            // to prevent this plugin considered as the "disabled"
+            updateDisabledPluginList();
+
+            // load plugin now
+            modules.userscript.loadPlugin(modules.util.openFile(pluginPath));
+
+            if (!modules.plugins.context[pluginPath].__ksLoaded__) {
+                // failed to load plugin
+                var msg = modules.util.getLocaleString("failedToLoadPlugin");
+                modules.util.alert(window, msg, mgs + ' "' + pluginPath + '"');
+
+                setPluginStatus(pluginPath, false);
+            }
+        }
+
+        if (modules.plugins.context[pluginPath].__ksLoaded__)
+            modules.display.echoStatusBar(infoHolder[pluginPath].name + " enabled", 2000);
+
+        updateDisabledPluginList();
+    }
+
+    function deleteButtonClicked(aEvent) {
+        var item = pluginListbox.selectedItem;
+        if (!item)
+            return;
+
+        var pluginPath = item.value;
+
+        var reallyDelete = modules.util.confirm(modules.util.getLocaleString("deletePluginTitle",
+                                                                             [infoHolder[pluginPath].name]),
+                                                modules.util.getLocaleString("deletePluginMessage",
+                                                                             [infoHolder[pluginPath].name]));
+
+        if (reallyDelete) {
+            var file = modules.util.openFile(pluginPath);
+            if (file && file.exists()) {
+                try {
+                    modules.userscript.uninstallPlugin(file);
+                    delete modules.plugins.context[pluginPath];
+                    pluginListbox.removeItemAt(pluginListbox.selectedIndex);
+                    modules.display.notify(modules.util.getLocaleString("pluginDeleted"));
+                } catch (x) {}
+            }
+        }
     }
 
     var self = {
         onLoad: function () {
-            pluginStatusCheckbox = document.getElementById("plugin-status-checkbox");
-
-            pluginDescriptionFrame = content.document.getElementById("plugin-description");
-            pluginListbox          = content.document.getElementById("plugin-listbox");
+            pluginDescriptionFrame = document.getElementById("plugin-description");
+            pluginListbox          = document.getElementById("plugin-listbox");
 
             iframeDoc = pluginDescriptionFrame.contentDocument;
             container = iframeDoc.getElementById("container");
@@ -360,6 +436,21 @@ var ksPluginManager = function () {
             }
 
             initPluginList();
+
+            /**
+             * When plugin manager is opened from userscript.loadPlugin(),
+             *
+             */
+            if (modules.userscript.newlyInstalledPlugin) {
+                var holder = xulHolder[modules.userscript.newlyInstalledPlugin];
+                if (holder && holder.item) {
+                    pluginListbox.selectedItem = holder.item;
+                }
+
+                modules.display.notify(modules.util.getLocaleString("newPluginInstalled"));
+
+                modules.userscript.newlyInstalledPlugin = null;
+            }
         },
 
         pluginListboxOnSelect: function (aEvent) {
@@ -367,51 +458,13 @@ var ksPluginManager = function () {
             var item       = aEvent.target;
             var pluginPath = item.value;
 
-            pluginStatusCheckbox.setAttribute("checked", infoHolder[pluginPath].status);
+            for (aPath in xulHolder) {
+                var buttonsContainer = xulHolder[aPath].buttonsContainer;
+                buttonsContainer.setAttribute("hidden", (aPath != pluginPath));
+            }
 
             updateInfoBox(pluginPath);
             updateDetailBox(pluginPath);
-        },
-
-        togglePluginStatus: function (aEvent) {
-            // detail
-            var item = pluginListbox.selectedItem;
-            if (!item)
-                return;
-
-            var pluginPath = item.value;
-            var status = !infoHolder[pluginPath].status;
-
-            infoHolder[pluginPath].status = status;
-            item.setAttribute("disabled", !status);
-
-            if (status) {
-                if (!modules.plugins.context[pluginPath].__ksLoaded__) {
-                    // to prevent this plugin considered as the "disabled"
-                    updateDisabledPluginList();
-
-                    // load plugin now
-                    modules.userscript.loadPlugin(modules.util.openFile(pluginPath));
-
-                    if (!modules.plugins.context[pluginPath].__ksLoaded__) {
-                        // failed to load plugin
-                        modules.util.alert(window, "Failed to load plugin",
-                                           'Failed to load plugin "' + pluginPath + '"');
-
-                        infoHolder[pluginPath].status = false;
-                        item.setAttribute("disabled", true);
-
-                        // FIXME: how awful ...
-                        setTimeout(function () {
-                                       pluginStatusCheckbox.setAttribute("checked", false);
-                                   }, 0);
-                    }
-                }
-            } else {
-                modules.plugins.context[pluginPath].__ksLoaded__ = false;
-            }
-
-            updateDisabledPluginList();
         },
 
         reloadPlugin: function () {
@@ -438,5 +491,3 @@ var ksPluginManager = function () {
      var browserWindow = wm.getMostRecentWindow("navigator:browser");
      ksPluginManager.modules = browserWindow.KeySnail.modules;
  })();
-
-

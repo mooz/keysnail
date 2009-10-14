@@ -10,22 +10,23 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
         onload="ksPluginManager.onLoad();"
+        minheight="600px"
+        minwidth="800px"
         >
     <hbox flex="1">
         <!-- plugin list -->
         <vbox flex="1">
-            <listbox id="plugin-listbox" flex="1"
-                     onselect="ksPluginManager.pluginListboxOnSelect(event);"
-                     >
-            </listbox>
-            <hbox align="center">
+            <richlistbox id="plugin-listbox" flex="1"
+                         onselect="ksPluginManager.pluginListboxOnSelect(event);"
+                         >
+            </richlistbox>
+            <hbox align="center" id="plugin-button-container">
                 <button label="&keySnail.pluginManager.reloadPlugins;"
                         oncommand="ksPluginManager.reloadPlugin();"
                         accesskey="r"/>
-                <spacer flex="1" />
-                <checkbox id="plugin-status-checkbox"
-                          onclick="ksPluginManager.togglePluginStatus(event);"
-                          label="&keySnail.pluginManager.enabled;" checked="false" />
+                <button label="&keySnail.pluginManager.installPlugin;"
+                        oncommand="ksPluginManager.installPlugin();"
+                        accesskey="i"/>
             </hbox>
         </vbox>
         <!-- plugin detail -->
