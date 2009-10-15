@@ -3,18 +3,18 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.0</version>
+    <version>1.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.icon.png</iconURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>0.9.4</minVersion>
+    <minVersion>0.9.6</minVersion>
     <provides>
         <ext>yet-another-twitter-client-keysnail</ext>
     </provides>
     <require>
-        <script>http://github.com/mooz/keysnail/raw/master/plugins/oauth.js</script>
+        <script>http://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
     </require>
     <options>
         <option>
@@ -116,12 +116,12 @@ var yATwitterClientKeySnail = new
          [function (status) {
               if (status)
                   tweet();
-          }, L("Tweet (つぶやく)")],
+          }, M({ja: "つぶやく : ", en: ""}) + "Tweet"],
          [function (status) {
               if (status) {
                   tweet("@" + status.screen_name + " ", status.id);
               }
-          }, L("Reply (返信)")],
+          }, M({ja: "返信 : ", en: ""}) + "Send reply message"],
          [function (status) {
               if (status) {
                   tweet("RT @" + status.screen_name + ": " + status.text);
@@ -131,35 +131,35 @@ var yATwitterClientKeySnail = new
               if (status) {
                   showFollowersStatus(status.screen_name);
               }
-          }, L("Show Target status (選択中ユーザのつぶやきを一覧表示)")],
+          }, M({ja: "選択中ユーザのつぶやきを一覧表示 : ", en: ""}) + "Show Target status"],
          [function (status) {
               if (status) {
                   showMentions();
               }
-          }, L("Show mentions (自分への返信を一覧表示)")],
+          }, M({ja: "自分への返信を一覧表示 : ", en: ""}) + "Show mentions"],
          [function (status) {
               if (status) {
                   gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
                                       + "/status/" + status.id, null, null, null, false);
               }
-          }, L("Show status in web page (Twitter のサイトでそのつぶやきを見る)")],
+          }, M({ja: "Twitter のサイトでそのつぶやきを見る : ", en: ""}) + "Show status in web page"],
          [function (status) {
               popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
               display.echoStatusBar(M({ja: ("ポップアップ通知を" + (popUpStatusWhenUpdated ? "有効にしました" : "無効にしました")),
                                        en: ("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"))}));
-          }, L("Toggle pop up status (ポップアップ通知の切り替え)")],
+          }, M({ja: "ポップアップ通知の切り替え : ", en: ""}) + "Toggle pop up notification status"],
          [function (status) {
               reAuthorize();
-          }, L("Reauthorize (認証しなおす)")],
+          }, M({ja: "再認証 : ", en: ""}) + "Reauthorize"],
          [function (status) {
               if (status) {
                   tweet(content.document.title + " - " + getTinyURL(window.content.location.href));
               }
-          }, L("Tweet with the current web page URL (現在のページのタイトルと URL を使ってつぶやく)")],
+          }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL"],
          [function (status) {
               if (status)
                   search();
-          }, L("Search keyword (単語を検索)")],
+          }, M({ja: "単語を検索 : ", en: ""}) + "Search keyword"],
          [function (status) {
               if (status) {
                   var matched = status.text.match("(https?|ftp)(://[a-zA-Z0-9/?#_.\\-]+)");
@@ -167,7 +167,7 @@ var yATwitterClientKeySnail = new
                       gBrowser.loadOneTab(matched[1] + matched[2], null, null, null, false);
                   }
               }
-          }, L("Visit URL in the message (つぶやき中の URL を開く)")]
+          }, M({ja: "メッセージ中の URL を開く : ", en: ""}) + "Visit URL in the message"]
      ];
 
      // ============================== Arrange services ============================== //
@@ -304,25 +304,10 @@ var yATwitterClientKeySnail = new
 
      var context = {};
 
-     var loadSucceeded = false;
-     for (var i = 0; i < userscript.loadPath.length; ++i) {
-         var baseDir = userscript.loadPath[i];
-         if (!baseDir) continue;
-
-         // loadUserScript return -1 when file not found
-         if (userscript.loadUserScript(
-                 function (aPath) {
-                     userscript.loadSubScript(aPath, context);
-                 }, baseDir, ["oauth.js"]) == 0) {
-             loadSucceeded = true;
-             break;
-         }
-     }
-
-     if (!loadSucceeded) {
+     if (!usescript.require("oauth.js", context)) {
          display.notify(L(util.xmlGetLocaleString(PLUGIN_INFO.name)) + " :: " +
-             M({ja: "このプラグインの動作には oauth.js が必要です。 oauth.js をプラグインディレクトリ内に配置した上でお試し下さい。",
-                en: "This plugin requires oauth.js but not found. Please locate oauth.js to the plugin directory."}));
+                        M({ja: "このプラグインの動作には oauth.js が必要です。 oauth.js をプラグインディレクトリ内に配置した上でお試し下さい。",
+                           en: "This plugin requires oauth.js but not found. Please locate oauth.js to the plugin directory."}));         
      }
 
      var OAuth = context.OAuth();
@@ -330,7 +315,8 @@ var yATwitterClientKeySnail = new
      function authorizationSequence() {
          authorize();
 
-         prompt.read("Press Enter When Authorization Finished:",
+         prompt.read(M({ja: "認証が終了したら Enter キーを押してください",
+                        en: "Press Enter When Authorization Finished:"}),
                      function (aReadStr) {
                          if (aReadStr == null)
                              return;

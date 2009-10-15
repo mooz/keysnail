@@ -2,9 +2,9 @@
 var PLUGIN_INFO =
 <KeySnailPlugin>
 <name>Hatebnail</name>
-<description>Use Hatena bookmark extensioni from KeySnail!</description>
+<description>Use Hatena bookmark extension from KeySnail!</description>
 <description lang="ja">はてなブックマーク拡張を KeySnail から使おう!</description>
-<version>1.0</version>
+<version>1.1</version>
 <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
 <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
 <license>The MIT License</license>
