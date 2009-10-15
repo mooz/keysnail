@@ -8,5 +8,5 @@
 
 <!ENTITY keySnail.installPluginDialog.theseFilesWillBeInstalled "These files will be installed">
 
-<!ENTITY keySnail.installPluginDialog.notice1 "Plugin can cause crucial damage on your computer.">
+<!ENTITY keySnail.installPluginDialog.notice1 "Plugin can cause crucial damage to your computer.">
 <!ENTITY keySnail.installPluginDialog.notice2 "Please check source code before installing the plugin">
