@@ -497,19 +497,19 @@ var ksPreference = {
         switch (aType) {
         case 'INITFILE':
             var initFileLocation = this.modules.util.getUnicharPref(this.initFileKey);
-            fp.init(window, "Select init file directory", nsIFilePicker.modeGetFolder);
+            fp.init(window, this.modules.util.getLocaleString("selectInitFileDirectory"), nsIFilePicker.modeGetFolder);
             fp.displayDirectory = this.openFile(initFileLocation);
             prefKey = this.initFileKey;
             break;
         case 'EDITOR':
-            fp.init(window, "Select editor", nsIFilePicker.modeOpen);
+            fp.init(window, this.modules.util.getLocaleString("selectEditor"), nsIFilePicker.modeOpen);
             fp.appendFilters(nsIFilePicker.filterApps);
             fp.appendFilters(nsIFilePicker.filterAll);
             prefKey = this.editorKey;
             break;
         case 'PLUGIN':
             var pluginLocation = this.modules.util.getUnicharPref(this.pluginKey);
-            fp.init(window, "Select init file directory", nsIFilePicker.modeGetFolder);
+            fp.init(window, this.modules.util.getLocaleString("selectPluginDirectory"), nsIFilePicker.modeGetFolder);
             fp.displayDirectory = this.openFile(pluginLocation);
             prefKey = this.pluginKey;
             break;

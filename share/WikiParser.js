@@ -56,7 +56,7 @@ WikiParser.prototype = {
                 } else if (this.wikiReg.hn.test(line)){
                     var hn = RegExp.$1.length - 1;
                     this.mode = '';
-                    return <h{hn} highlight="Title" style={"font-size:"+(0.75+1/hn)+"em"}>{this.inlineParse(RegExp.$2)}</h{hn}>;
+                    return <h{hn}>{this.inlineParse(RegExp.$2)}</h{hn}>;
                 } else if (this.wikiReg.ul.test(line)){
                     this.mode = 'ul';
                     return <ul><li>{this.inlineParse(RegExp.$1)}</li></ul>;
@@ -65,7 +65,7 @@ WikiParser.prototype = {
                     return <ol><li>{this.inlineParse(RegExp.$1)}</li></ol>;
                 } else if (this.wikiReg.dt.test(line)){
                     this.mode = 'dl';
-                    return <dl><dt style="font-weight:bold;">{this.inlineParse(RegExp.$1)}</dt></dl>;
+                    return <dl><dt>{this.inlineParse(RegExp.$1)}</dt></dl>;
                 } else if (prevMode == 'dl'){
                     return <>{this.inlineParse(line)}</>;
                 }
@@ -99,6 +99,8 @@ WikiParser.prototype = {
                 continue;
             }
             if (!line) {
+                // this.xmlstack.append(<p>{bufXML}</p>);
+                this.xmlstack.append(<p>{bufXML}</p>);
                 //this.xmlstack.append(<>{"\n"}</>);
                 continue;
             }

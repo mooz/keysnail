@@ -8,11 +8,36 @@ description#plugin-info-name {
 
 description#plugin-info-description {
     font-size: 105%;
-    padding-left: 10px;
+    padding-left: 6px;
 }
 
 description.notice {
     font-weight: bold;
+    font-size: 105%;
+    margin: 4px 0;
+}
+
+description.script-name {
+    font-size: 105%;
+    font-weight: bold;
+    padding-right: 5px;
+}
+
+description.script-author {
+    font-size: 105%;
+}
+
+description.script-url {
+    color: #be0020;
+}
+
+richlistbox#plugin-script-list richlistitem {
+    padding: 8px 5px;
+    border-bottom:1px #BBB dotted;
+}
+
+richlistbox#plugin-script-list richlistitem:last-child {
+    border-bottom: none;
 }
 
 image#plugin-info-icon {

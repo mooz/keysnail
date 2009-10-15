@@ -146,3 +146,18 @@ font-weight: bold;
 table td {
 border-bottom:1px #BBB dashed;
 }
+
+ol#fancy {
+
+}
+
+ol#fancy li {
+    font-weight: bold;
+    font-size: xx-large;
+}
+
+p#annotation {
+    font-weight: bold;
+    text-align: center;
+    font-size: xx-large;
+}

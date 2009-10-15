@@ -40,8 +40,8 @@
         </hbox>
         <spacer height="10px" />
         <caption>&keySnail.installPluginDialog.theseFilesWillBeInstalled;:</caption>
-        <listbox id="plugin-script-list" flex="1">
-        </listbox>
+        <richlistbox id="plugin-script-list" flex="1">
+        </richlistbox>
         <description class="notice">&keySnail.installPluginDialog.notice1;</description>
         <description class="notice">&keySnail.installPluginDialog.notice2;</description>
     </vbox>

@@ -30,7 +30,7 @@
             </hbox>
         </vbox>
         <!-- plugin detail -->
-        <vbox id="plugin-detail" flex="7">
+        <vbox id="plugin-detail" flex="8">
             <iframe id="plugin-description"
                     src="chrome://keysnail/content/buffer.xhtml"
                     flex="1"

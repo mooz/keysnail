@@ -4,3 +4,11 @@
 <!ENTITY keySnail.pluginManager.checkForUpdates "Check for updates">
 <!ENTITY keySnail.pluginManager.reloadPlugins "Reload plugins">
 <!ENTITY keySnail.pluginManager.installPlugin "Install plugin">
+
+<!-- help -->
+<!ENTITY keySnail.pluginManager.howto.title "How to install plugins">
+<!ENTITY keySnail.pluginManager.howto.download "Download plugin">
+<!ENTITY keySnail.pluginManager.howto.clickButton "Click 'Install Plugin' button">
+<!ENTITY keySnail.pluginManager.howto.selectFile "Select plugin file">
+<!ENTITY keySnail.pluginManager.howto.visitWiki "Visit plugin page at KeySnail Wiki">
+

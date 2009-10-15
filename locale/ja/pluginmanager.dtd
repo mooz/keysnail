@@ -4,3 +4,11 @@
 <!ENTITY keySnail.pluginManager.checkForUpdates "更新を確認">
 <!ENTITY keySnail.pluginManager.reloadPlugins "プラグインをリロード">
 <!ENTITY keySnail.pluginManager.installPlugin "プラグインをインストール">
+
+<!-- help -->
+<!ENTITY keySnail.pluginManager.howto.title "プラグインのインストール方法">
+<!ENTITY keySnail.pluginManager.howto.download "プラグインをダウンロード">
+<!ENTITY keySnail.pluginManager.howto.clickButton "「インストール」ボタンをクリック">
+<!ENTITY keySnail.pluginManager.howto.selectFile "プラグインを選択">
+<!ENTITY keySnail.pluginManager.howto.visitWiki "KeySnail Wiki のプラグインページを開く">
+

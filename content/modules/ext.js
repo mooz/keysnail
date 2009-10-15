@@ -55,7 +55,7 @@ KeySnail.Ext = function () {
             modules = this.modules;
         },
 
-        add: function (aName, aAction, aDescription, aOption, aReplace) {
+        add: function (aName, aAction, aDescription, aOption) {
             var body = {
                 action: aAction,
                 description: aDescription
@@ -64,10 +64,10 @@ KeySnail.Ext = function () {
             if (typeof(aName) == "object") {
                 aName.forEach(
                     function (name) {
-                        registerExt(name, body, aReplace);
+                        registerExt(name, body, true);
                     });
             } else {
-                registerExt(aName, body, aReplace);
+                registerExt(aName, body, true);
             }
         },
 

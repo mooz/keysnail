@@ -14,6 +14,7 @@ var ksPluginManager = function () {
 
     var iframeDoc;
     var container;
+    var helpBox;
     var infoBox;
     var detailBox;
 
@@ -168,14 +169,21 @@ var ksPluginManager = function () {
             pluginHeader.appendChild(imageContainer);
             pluginHeader.appendChild(infoContainer);
 
+            var button;
+
+            button = document.createElement("button");
+            button.setAttribute("label", modules.util.getLocaleString("checkForUpdates"));
+            button.setAttribute("accesskey", "c");
+            button.onclick = checkForUpdatesButtonClicked;
+            buttonsContainer.appendChild(button);
+            xulHolder[pluginPath].checkForUpdatesButton = button;
+
             var spacer = document.createElement("spacer");
             spacer.flex = 1;
             buttonsContainer.appendChild(spacer);
 
-            var button;
-
             button = document.createElement("button");
-            button.setAttribute("label", "有効化");
+            button.setAttribute("label", modules.util.getLocaleString("enable"));
             button.setAttribute("accesskey", "e");
             button.setAttribute("hidden", "true");
             button.onclick = enableButtonClicked;
@@ -183,14 +191,14 @@ var ksPluginManager = function () {
             xulHolder[pluginPath].enableButton = button;
 
             button = document.createElement("button");
-            button.setAttribute("label", "無効化");
+            button.setAttribute("label", modules.util.getLocaleString("disable"));
             button.setAttribute("accesskey", "d");
             button.onclick = disableButtonClicked;
             buttonsContainer.appendChild(button);
             xulHolder[pluginPath].disableButton = button;
 
             button = document.createElement("button");
-            button.setAttribute("label", "削除");
+            button.setAttribute("label", modules.util.getLocaleString("delete"));
             button.setAttribute("accesskey", "u");
             button.onclick = deleteButtonClicked;
             buttonsContainer.appendChild(button);
@@ -218,33 +226,66 @@ var ksPluginManager = function () {
 
     function setPluginStatus(aPluginPath, aStatus) {
         xulHolder[aPluginPath].pluginHeader.setAttribute("style",
-                                                         "opacity:" + (aStatus ? "1.0" : "0.35"));
+                                                         "opacity:" + (aStatus ? "1.0" : "0.45"));
 
         xulHolder[aPluginPath].enableButton.hidden = aStatus;
         xulHolder[aPluginPath].disableButton.hidden = !aStatus;
 
         infoHolder[aPluginPath].status = aStatus;
-        // modules.plugins.context[aPluginPath].__ksLoaded__ = aStatus;
     }
 
     function updateInfoBox(aPluginPath) {
-        var h2 = createElementWithText("h2", infoHolder[aPluginPath].name);
+        var title = infoHolder[aPluginPath].name +
+            (infoHolder[aPluginPath].version ? " " + infoHolder[aPluginPath].version : "");
+        var h2 = createElementWithText("h2", title);
+
         var description = createElementWithText("p", infoHolder[aPluginPath].description || "");
 
-        var dl = iframeDoc.createElement("dl");
-        var tags = ["version", "author", "license"];
+        // ====================================================================== //
+
         var h3 = createElementWithText("h3", modules.util.getLocaleString("info"));
 
-        tags.forEach(
-            function (tag) {
-                if (infoHolder[aPluginPath][tag]) {
-                    var dt = createElementWithText("dt", tag);
-                    var dd = createElementWithText("dd", infoHolder[aPluginPath][tag]);
-                    dl.appendChild(dt);
-                    dl.appendChild(dd);
-                }
-            }, this);
+        var dl = iframeDoc.createElement("dl");
+        var dt, dd, a;
 
+        // author
+        dl.appendChild(createElementWithText("dt", "author"));
+
+        dd = iframeDoc.createElement("dd");
+
+        var authorMailAddress = xmlHolder[aPluginPath].author.@mail;
+        var authorName = infoHolder[aPluginPath].author;
+        if (authorMailAddress) {
+            a = iframeDoc.createElement("a");
+            a.appendChild(iframeDoc.createTextNode(authorName));
+            a.setAttribute("href", "mailto:" + authorMailAddress);
+            dd.appendChild(a);
+        } else {
+            dd.appendChild(iframeDoc.createTextNode(authorName));
+        }
+
+        var authorHomepage = xmlHolder[aPluginPath].author.@homepage;
+        if (authorHomepage) {
+            dd.appendChild(iframeDoc.createTextNode(" ["));
+
+            a = iframeDoc.createElement("a");
+            a.appendChild(iframeDoc.createTextNode("homepage"));
+            a.setAttribute("href", authorHomepage);
+            a.setAttribute("target", "_blank");
+            dd.appendChild(a);
+
+            dd.appendChild(iframeDoc.createTextNode("]"));
+        }
+
+        dl.appendChild(dd);
+
+        // license
+        dl.appendChild(createElementWithText("dt", "license"));
+        dl.appendChild(createElementWithText("dd", infoHolder[aPluginPath].license));
+
+        // ====================================================================== //
+
+        // now append elements to infoBox
         removeAllChilds(infoBox);
 
         infoBox.appendChild(h2);
@@ -253,11 +294,12 @@ var ksPluginManager = function () {
         infoBox.appendChild(h3);
         infoBox.appendChild(dl);
 
+        // ============================== ext / option ============================== //
+
         var xml = xmlHolder[aPluginPath];
         var table, tr, th, td;
 
         // ext
-
         if (xml.provides.ext.length()) {
             h3 = createElementWithText("h3", modules.util.getLocaleString("ext"));
             table = iframeDoc.createElement("table");
@@ -283,7 +325,6 @@ var ksPluginManager = function () {
         }
 
         // option
-
         if (xml.options.option.length()) {
             h3 = createElementWithText("h3", modules.util.getLocaleString("option"));
             table = iframeDoc.createElement("table");
@@ -341,6 +382,21 @@ var ksPluginManager = function () {
 
         modules.util.setUnicharPref("extensions.keysnail.plugin.disabled_plugins",
                                     disabledPlugins.join(","));
+    }
+
+    function checkForUpdatesButtonClicked(aEvent) {
+        var item = pluginListbox.selectedItem;
+        if (!item)
+            return;
+
+        var pluginPath = item.value;
+
+        try {
+            modules.userscript.updatePlugin(pluginPath);
+            initPluginList();
+        } catch (x) {
+            modules.display.notify(x);
+        }
     }
 
     function disableButtonClicked(aEvent) {
@@ -416,13 +472,39 @@ var ksPluginManager = function () {
         }
     }
 
+    function selectNewlyInstalledPlugin() {
+        var holder = xulHolder[modules.userscript.newlyInstalledPlugin];
+        if (holder && holder.item) {
+            pluginListbox.selectedItem = holder.item;
+        }
+
+        modules.display.notify(modules.util.getLocaleString("newPluginInstalled"));
+    }
+
     var self = {
         onLoad: function () {
+            if (!modules.userscript.pluginDir) {
+                // modules.userscript.pluginDir =
+                var nsIFilePicker = Components.interfaces.nsIFilePicker;
+                var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+
+                fp.init(window, modules.util.getLocaleString("selectPluginDirectory"), nsIFilePicker.modeGetFolder);
+
+                var response;
+                // TODO: Is it really good to force user to select the directory?
+                while (response !== nsIFilePicker.returnOK) {
+                    response = fp.show();
+                }
+
+                modules.userscript.pluginDir = fp.file.path;
+            }
+
             pluginDescriptionFrame = document.getElementById("plugin-description");
             pluginListbox          = document.getElementById("plugin-listbox");
 
             iframeDoc = pluginDescriptionFrame.contentDocument;
             container = iframeDoc.getElementById("container");
+            helpBox   = iframeDoc.getElementById("help-box");
             infoBox   = iframeDoc.getElementById("info-box");
             detailBox = iframeDoc.getElementById("detail-box");
 
@@ -442,13 +524,7 @@ var ksPluginManager = function () {
              *
              */
             if (modules.userscript.newlyInstalledPlugin) {
-                var holder = xulHolder[modules.userscript.newlyInstalledPlugin];
-                if (holder && holder.item) {
-                    pluginListbox.selectedItem = holder.item;
-                }
-
-                modules.display.notify(modules.util.getLocaleString("newPluginInstalled"));
-
+                selectNewlyInstalledPlugin();
                 modules.userscript.newlyInstalledPlugin = null;
             }
         },
@@ -457,6 +533,8 @@ var ksPluginManager = function () {
             // detail
             var item       = aEvent.target;
             var pluginPath = item.value;
+
+            helpBox.setAttribute("style", "display:none;");
 
             for (aPath in xulHolder) {
                 var buttonsContainer = xulHolder[aPath].buttonsContainer;
@@ -471,6 +549,30 @@ var ksPluginManager = function () {
             modules.plugins.context = {};
             modules.userscript.loadPlugins();
             initPluginList();
+        },
+
+        installPlugin: function () {
+            var nsIFilePicker = Components.interfaces.nsIFilePicker;
+            var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+
+            fp.init(window, modules.util.getLocaleString("selectPluginFile"), nsIFilePicker.modeOpen);
+            fp.appendFilter("KeySnail Plugins","*.ks.js");
+
+            var response = fp.show();
+            if (response !== nsIFilePicker.returnOK) {
+                return;
+            }
+
+            try {
+                modules.userscript.installPluginFromURL(modules.util.pathToURL(fp.file.path));
+                initPluginList();
+                if (modules.userscript.newlyInstalledPlugin) {
+                    selectNewlyInstalledPlugin();
+                    modules.userscript.newlyInstalledPlugin = null;
+                }
+            } catch (x) {
+                modules.display.notify(x);
+            }
         },
 
         onFinish: function () {
