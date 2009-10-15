@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name lang="ja">github プラグインヘルパー</name>
     <description>Helps you to install plugin from github</description>
     <description lang="ja">github から簡単にプラグインをインストール</description>
-    <version>1.0</version>
+    <version>1.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/github-plugin.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/github-plugin.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -16,14 +16,24 @@ var PLUGIN_INFO =
         <ext>github-install-plugin-from-this-page</ext>
     </provides>
     <detail><![CDATA[
-=== 使い方 ===
-==== 自動インストール ====
-このプラグインをインストールすることにより、現在閲覧している github のページに KeySnail プラグインが見つかった場合画面上部にメッセージが表れ、指示にしたがって簡単にプラグインをインストールすることができるようになります。
-
-==== コマンド入力によるインストール ====
+=== What's this ===
+==== Suggestion ====
+By enabling this plugin, when KeySnail plugin is found at current github page, the notification bar will appear top of the browser content area and user can install the plugin easily.
+For installed plugin, this plugin does not display the notification bar. You can re-install the plugin by using the command described below.
+==== Command ====
+This plugin provides exts listed below.
+- github-install-plugin-from-this-page
+This ext seek for the KeySnail plugin at the current github page and when plugin found, asks user to install the plugin.
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
+=== 説明 ===
+==== サジェスト機能 ====
+このプラグインをインストールすることにより、現在閲覧している github のページに KeySnail プラグインが見つかった際に画面上部にへッセージが表れ、指示に従って簡単にプラグインをインストールすることができるようになります。
+既にインストール済みのプラグインに対してはサジェストが無効となりますので、明示的にインストールを行いたい場合は次に説明するコマンドを使用してください。
+==== コマンド入力によるインストール機能 ====
 このプラグインをインストールすることで次のエクステが追加されます。
 - github-install-plugin-from-this-page
-このエクステを ext.exec (デフォルトでは M-x に割り当て) により呼び出すことで、現在見ている github のページから KeySnail プラグインをインストールすることができます。
+このエクステは現在見ている github のページから KeySnail プラグインを探しだし、見つかった場合はインストールを行うかどうかをユーザへ確認するものです。
     ]]></detail>
 </KeySnailPlugin>;
 
@@ -77,9 +87,23 @@ function githubLocationChangeChecker(aURI) {
         }
     ];
 
-    display.notify(M({ja: "このページからプラグインをインストールしますか？",
-                      en: "Install KeySnail plugin from this page?"}),
-                   buttons);
+
+    function displayNotification() {
+        display.notify(M({ja: "このページからプラグインをインストールしますか？",
+                          en: "Install KeySnail plugin from this page?"}),
+                       buttons);
+    }
+
+    if (content.document.__ksDocumentLoaded) {
+        displayNotification();
+    } else {
+        content.document.addEventListener("DOMContentLoaded",
+                                          function () {
+                                              content.document.removeEventListener("DOMContentLoaded", arguments.callee, true);
+                                              content.document.__ksDocumentLoaded = true;
+                                              displayNotification();
+                                          }, true);
+    }
 }
 
 function installPluginFromThisPage(aEvent, aArg) {
