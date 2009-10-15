@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.1</version>
+    <version>1.1.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -304,7 +304,7 @@ var yATwitterClientKeySnail = new
 
      var context = {};
 
-     if (!usescript.require("oauth.js", context)) {
+     if (!userscript.require("oauth.js", context)) {
          display.notify(L(util.xmlGetLocaleString(PLUGIN_INFO.name)) + " :: " +
                         M({ja: "このプラグインの動作には oauth.js が必要です。 oauth.js をプラグインディレクトリ内に配置した上でお試し下さい。",
                            en: "This plugin requires oauth.js but not found. Please locate oauth.js to the plugin directory."}));         
