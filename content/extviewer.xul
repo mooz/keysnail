@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin" type="text/css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/extviewer.dtd">
+
+<dialog id="keysnail-ext-viewer"
+        title="&keySnail.extViewer.select;"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        buttons="accept,cancel"
+        onload="ksExtViewer.onLoad();"
+        ondialogaccept="return ksExtViewer.onFinish();"
+        minwidth="700px"
+        >
+    <vbox flex="1">
+        <description>&keySnail.extViewer.select;:</description>
+        <listbox id="ext-listbox" flex="1">
+            <listcols>
+                <listcol flex="1"/>
+                <listcol flex="1"/>
+            </listcols>
+            <listhead>
+                <listheader label="&keySnail.extViewer.extName;"/>
+                <listheader label="&keySnail.extViewer.extDescription;"/>
+            </listhead>
+        </listbox>
+    </vbox>
+
+    <script type="application/x-javascript" src="chrome://keysnail/content/extviewer.js"/>
+</dialog>

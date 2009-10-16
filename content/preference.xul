@@ -475,6 +475,9 @@
             <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://tango.freedesktop.org/Tango_Desktop_Project')"
                          >Tango icon</description>
+            <description class="text-link"
+                         onclick="ksPreference.modules.key.viewURI('http://coderepos.org/share/browser/lang/javascript/vimperator-plugins/trunk/pluginManager.js')"
+                         >Wiki parser (from pluginManager.js)</description>
         </vbox>
         <spacer flex="1"/>
     </prefpane>

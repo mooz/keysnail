@@ -25,6 +25,11 @@
                           accesskey="c"
 	                  oncommand="KeySnail.openPreference();"
                           />
+	        <menuitem id="keysnail-tool-menu-open-plugin-manager"
+	                  label="&keySnail.statusbar.openPluginManager;"
+	                  accesskey="o"
+	                  oncommand="KeySnail.UserScript.openPluginManager();"
+	                  />
                 <menuseparator/>
 	        <menuitem id="keysnail-tool-menu-reload-userscript"
 		          label="&keySnail.statusbar.reloadUserScript;"
