@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.1.2</version>
+    <version>1.1.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -39,14 +39,7 @@ var PLUGIN_INFO =
         </option>
     </options>
     <detail><![CDATA[
-=== Set up ===
-
-In your .keysnail.js file,
-
->||
-userscript.require("yet-another-twitter-client-keysnail.js");
-||<
-
+=== Usage ===
 === Usage ===
 
 Press 't' key (or your defined one) to start this client.
@@ -61,7 +54,7 @@ dialog will be pop upped when new tweets are arrived.
     <detail lang="ja"><![CDATA[
 === 使い方 ===
 ==== 起動 ====
-M-x から yet-another-twitter-client-keysnail を選ぶと Twitter クライアントが起動します。
+M-x などのキーから ext.select() を呼び出し yet-another-twitter-client-keysnail を選ぶと Twitter クライアントが起動します。
 次のようにして任意のキーへコマンドを割り当てておくことも可能です。
 >||
 key.setViewKey("t",
@@ -83,7 +76,7 @@ twitter_client.update_interval に値を設定することにより、この間�
 twitter_client.use_popup_notification オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
 また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
 
-=== 設定例 ===
+=== オプションの設定 ===
 以下に初期化ファイル PRESERVE エリアへの設定例を示します。
 >||
 plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
@@ -122,7 +115,7 @@ var twitterActions = [
      }, M({ja: "返信 : ", en: ""}) + "Send reply message"],
     [function (status) {
          if (status) {
-             tweet("RT @" + status.screen_name + ": " + status.text);
+             tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
          }
      }, "Retweet"],
     [function (status) {
@@ -199,7 +192,7 @@ function showOldestUnPopUppedStatus() {
     var status = unPopUppedStatuses.pop();
 
     if (blockUser && blockUser.some(function (username) username == status.user.screen_name)) {
-        util.message("ignored :: " + status.text + " from " + status.user.screen_name);
+        util.message("ignored :: " + html.unEscapeTag(status.text) + " from " + status.user.screen_name);
         return;
     }
 
@@ -211,7 +204,7 @@ function showOldestUnPopUppedStatus() {
 
     alertsService.showAlertNotification(status.user.profile_image_url,
                                         status.user.name,
-                                        status.text,
+                                        html.unEscapeTag(status.text),
                                         true,
                                         "http://twitter.com/" + status.user.screen_name + "/status/" + status.id,
                                         popUpNewStatusesObserver);
@@ -531,7 +524,7 @@ function showMentions() {
             message: "regexp:",
             collection: statuses.map(
                 function (status) {
-                    return [status.user.profile_image_url, status.user.screen_name, status.text];
+                    return [status.user.profile_image_url, status.user.screen_name, html.unEscapeTag(status.text)];
                 }),
             style: ["color:#003870;", null],
             width: [15, 85],
@@ -541,7 +534,7 @@ function showMentions() {
                 var status = statuses[aIndex];
 
                 return (aIndex < 0 ) ? [null] :
-                    [{screen_name: status.user.screen_name, id: status.id, text: status.text}];
+                    [{screen_name: status.user.screen_name, id: status.id, text: html.unEscapeTag(status.text)}];
             },
             actions: twitterActions
         });
@@ -603,7 +596,12 @@ function tweet(aInitialInput, aReplyID) {
                                 reAuthorize();
                             } else if (xhr.status != 200) {
                                 // misc error
-                                alertsService.showAlertNotification(null, "I'm sorry...", "Failed to tweet", false, "", null);
+                                alertsService.showAlertNotification(null,
+                                                                    M({ja: "ごめんなさい",
+                                                                       en: "I'm sorry..."}),
+                                                                    M({ja: "つぶやけませんでした",
+                                                                       en: "Failed to tweet"}),
+                                                                    false, "", null);
                                 util.message(xhr.responseText);
                             } else {
                                 // succeeded
@@ -613,7 +611,7 @@ function tweet(aInitialInput, aReplyID) {
 
                                 var icon_url  = status.user.profile_image_url;
                                 var user_name = status.user.name;
-                                var message   = status.text;
+                                var message   = html.unEscapeTag(status.text);
                                 alertsService.showAlertNotification(icon_url, user_name, message, false, "", null);
                             }
                         }
@@ -669,7 +667,7 @@ function showFollowersStatus(target, aArg) {
                 var created = Date.parse(status.created_at);
                 var matched = status.source.match(">(.*)</a>");
 
-                return [status.user.profile_image_url, status.user.name, status.text,
+                return [status.user.profile_image_url, status.user.name, html.unEscapeTag(status.text),
                         getElapsedTimeString(current - created) +
                         " from " + (matched ? matched[1] : "Web") +
                         (status.in_reply_to_screen_name ?
@@ -694,7 +692,7 @@ function showFollowersStatus(target, aArg) {
                     return (aIndex < 0 ) ? [null] :
                         [{screen_name: status.user.screen_name,
                           id: status.id,
-                          text: status.text}];
+                          text: html.unEscapeTag(status.text)}];
                 },
                 actions: twitterActions
             });

@@ -98,6 +98,20 @@ KeySnail.HTML = {
         return aString;
     },
 
+    unEscapeTag: function (aString) {
+        if (!aString)
+            return "";
+
+        for (var badStr in this.replacePair) {
+            var replacedStr = this.replacePair[badStr];
+            while (aString.indexOf(replacedStr) != -1) {
+                aString = aString.replace(replacedStr, badStr);
+            }
+        }
+
+        return aString;
+    },
+
     // original code from prototype.js
     escapeHTML: function(aStrTarget) {
         var div = document.createElement('div');

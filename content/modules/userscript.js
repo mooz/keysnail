@@ -49,6 +49,7 @@ KeySnail.UserScript = {
 
     set pluginDir(aPath) {
         this.modules.util.setUnicharPref("extensions.keysnail.plugin.location", aPath);
+        this.addLoadPath(aPath);
     },
 
     get disabledPlugins() {
@@ -324,8 +325,6 @@ KeySnail.UserScript = {
 
         var scripts = aXml.require.script;
 
-        this.message(scripts);
-
         for each (var script in scripts) {
             var url = script.text();
             var xhr = this.modules.util.httpGet(url);
@@ -596,6 +595,9 @@ KeySnail.UserScript = {
 
     loadPlugins: function () {
         var aPath = this.pluginDir;
+
+        if (!aPath)
+            return;
 
         var files = this.modules.util.readDirectory(aPath);
 
