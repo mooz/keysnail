@@ -57,6 +57,7 @@
 
 <!ENTITY keySnail.preference.command.builtin "Builtin command">
 <!ENTITY keySnail.preference.command.original "Original command">
+<!ENTITY keySnail.preference.command.ext "Ext">
 
 <!-- command edit box -->
 

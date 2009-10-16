@@ -484,7 +484,6 @@ var ksPluginManager = function () {
     var self = {
         onLoad: function () {
             if (!modules.userscript.pluginDir) {
-                // modules.userscript.pluginDir =
                 var nsIFilePicker = Components.interfaces.nsIFilePicker;
                 var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
@@ -536,9 +535,9 @@ var ksPluginManager = function () {
 
             helpBox.setAttribute("style", "display:none;");
 
-            for (aPath in xulHolder) {
-                var buttonsContainer = xulHolder[aPath].buttonsContainer;
-                buttonsContainer.setAttribute("hidden", (aPath != pluginPath));
+            for (var path in xulHolder) {
+                var buttonsContainer = xulHolder[path].buttonsContainer;
+                buttonsContainer.setAttribute("hidden", (path != pluginPath));
             }
 
             updateInfoBox(pluginPath);
@@ -556,7 +555,11 @@ var ksPluginManager = function () {
             var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
             fp.init(window, modules.util.getLocaleString("selectPluginFile"), nsIFilePicker.modeOpen);
-            fp.appendFilter("KeySnail Plugins","*.ks.js");
+
+            if (!modules.util.getSystemInfo().getProperty("name").match("mac")) {
+                fp.appendFilter(modules.util.getLocaleString("keySnailPlugin"),"*.ks.js");                
+            }
+            fp.appendFilter("JavaScript","*.js");
 
             var response = fp.show();
             if (response !== nsIFilePicker.returnOK) {

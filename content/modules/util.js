@@ -182,11 +182,11 @@ KeySnail.Util = {
         if (!aObject) {
             this.message("listProperty: undefined object passed");
         } else {
-            for (var property in aObject) {
-                this.message(aObject.toString()
-                             + "[" + property + "] = "
-                             + aObject[property]);
-            }
+                for (var property in aObject) {
+                    this.message(aObject.toString()
+                                 + "[" + property + "] = "
+                                 + aObject[property]);
+                }
         }
     },
 

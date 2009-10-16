@@ -213,6 +213,8 @@
                                                   oncommand="ksPreference.addBuiltinCommand();"/>
                                         <menuitem label="&keySnail.preference.command.original;"
                                                   oncommand="ksKeybindTreeView.appendItem();"/>
+                                        <menuitem label="&keySnail.preference.command.ext;"
+                                                  oncommand="ksPreference.addExt();"/>
                                     </menupopup>
                                 </popupset>
                                 <button label="&keySnail.preference.keys.add;"

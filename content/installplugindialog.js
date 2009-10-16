@@ -16,10 +16,13 @@ var ksInstallPluginDialog = function () {
             destination.setAttribute(attribute, modules.util.xmlGetLocaleString(xml));
         }
 
-        setAttributeFromXml(dom["plugin-info-icon"]        , "src",   xml.iconURL || defaultIconURL);
         setAttributeFromXml(dom["plugin-info-name"]        , "value", xml.name);
         setAttributeFromXml(dom["plugin-info-description"] , "value", xml.description);
         setAttributeFromXml(dom["plugin-info-version"]     , "value", xml.version);
+
+        dom["plugin-info-icon"].setAttribute("src",
+                                             modules.util.xmlGetLocaleString(xml.iconURL) ||
+                                             defaultIconURL);
     }
 
     function createScriptItem(aURL) {

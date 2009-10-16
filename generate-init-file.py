@@ -166,6 +166,11 @@ key.setGlobalKey("C-M-r",
                  """ + {ja: '"設定ファイルを再読み込み"',
                         en: '"Reload the initialization file"'}[l] + """);
 
+key.setGlobalKey("M-x",
+                 function (aEvent, aArg) { ext.select(aArg); },
+                 """ + {ja: '"エクステ一覧"',
+                        en: '"List exts"'}[l] + """, true);
+
 // -------------------- help command -------------------- //
 
 key.setGlobalKey([key.helpKey, "b"], function () {

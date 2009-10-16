@@ -697,6 +697,11 @@ var ksBuiltin = {
         command_interpreter: [
             function () {
                 command.interpreter();
-            }, false]
+            }, false],
+
+        ext_select: [
+            function (aEvent, aArg) {
+                ext.select(aArg);
+            }, true]
     }
 };

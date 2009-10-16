@@ -988,6 +988,23 @@ var ksPreference = {
         return crushingIndexList.length ? crushingIndexList : null;
     },
 
+    // ============================== Add ext ============================== //
+
+    addExt: function () {
+        var params = {
+            out: null
+        };
+
+        var features = "chrome,modal,all,resizable";
+	document.documentElement.openSubDialog("chrome://keysnail/content/extviewer.xul",
+                                               features, params);
+
+        if (!params.out)
+            return;
+
+        ksKeybindTreeView.appendItem(params.out);
+    },
+
     // ============================== Add builtin command ============================== //
 
     addBuiltinCommand: function () {
@@ -1290,6 +1307,7 @@ var ksKeybindTreeView = {
     performActionOnRow: function (action, row) {},
     performActionOnCell: function (action, row, col) {}
 };
+
 
 (function () {
      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]

@@ -20,11 +20,6 @@ function KeySnailLoader() {
 }
 
 KeySnailLoader.prototype = {
-    // browserWindow: null,
-    // blackList: [
-    //     "chrome://keysnail/content/rcwizard.xul"
-    // ],
-
     observe: function (aSubject, aTopic, aData) {
         switch (aTopic) {
         case STARTUP_TOPIC:
@@ -51,8 +46,10 @@ KeySnailLoader.prototype = {
             break;
             // black list
         case 'chrome://keysnail/content/rcwizard.xul':
+        case 'chrome://keysnail/content/extviewer.xul':
         case 'chrome://keysnail/content/builtinviewer.xul':
         case 'chrome://keysnail/content/keyGrabber.xul':
+        case 'chrome://keysnail/content/installplugindialog.xul':
         case 'chrome://browser/content/aboutDialog.xul':
         case 'chrome://mozapps/content/downloads/unknownContentType.xul':
             return;
@@ -85,12 +82,6 @@ KeySnailLoader.prototype = {
         }
 
         return false;
-        // var textboxes = aDocument.getElementsByTagName("textbox");
-        // for (var i = 0; i < textboxes.length; ++i) {
-        //     if (!textboxes[i].hidden)
-        //         return true;
-        // }
-        // return false;
     },
 
     // list all the properties of the aObject

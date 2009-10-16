@@ -428,7 +428,7 @@ KeySnail.UserScript = {
 
             if (this.comparePluginVersion(localVersion, remoteVersion) >= 0) {
                 // local one is equal or newer than remote one
-                display.notify(util.getLocaleString("updateNotFound"));
+                display.echoStatusBar(util.getLocaleString("updateNotFound"), 2000);
                 return;
             }
 
@@ -536,7 +536,21 @@ KeySnail.UserScript = {
     },
 
     openPluginManager: function () {
-        gBrowser.loadOneTab("chrome://keysnail/content/pluginmanager.xul", null, null, null, false);
+        var pluginManagerURL = "chrome://keysnail/content/pluginmanager.xul";
+
+        // var tabs = gBrowser.mTabContainer.childNodes;
+        // for (var i = 0; i < tabs.length; ++i) {
+        //     if (tabs[i].linkedBrowser.currentURI.spec == pluginManagerURL) {
+        //         gBrowser.mTabContainer.selectedIndex = i;
+
+        //         var win = tabs[i].linkedBrowser.contentWindow;
+        //         win.onload();
+
+        //         return;
+        //     }
+        // }
+
+        gBrowser.loadOneTab(pluginManagerURL, null, null, null, false);
     },
 
     isDisabledPlugin: function (aPath) {
@@ -604,6 +618,8 @@ KeySnail.UserScript = {
     require: function (aFileName, aContext) {
         var file, filePath;
         var loaded = false;
+
+        aContext = aContext || this.modules;
 
         this.modules.key.inExternalFile = true;
         for (var i = 0; i < this.loadPath.length; ++i) {

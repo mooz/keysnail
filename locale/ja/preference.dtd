@@ -56,6 +56,7 @@
 
 <!ENTITY keySnail.preference.command.builtin "組み込みコマンド">
 <!ENTITY keySnail.preference.command.original "オリジナルのコマンド">
+<!ENTITY keySnail.preference.command.ext "エクステ">
 
 <!-- command edit box -->
 

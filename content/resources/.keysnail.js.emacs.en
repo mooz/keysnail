@@ -36,6 +36,10 @@ key.setGlobalKey("C-M-r",
                  function () { userscript.reload(); },
                  "Reload the initialization file");
 
+key.setGlobalKey("M-x",
+                 function (aEvent, aArg) { ext.select(aArg); },
+                 "List exts", true);
+
 // -------------------- help command -------------------- //
 
 key.setGlobalKey([key.helpKey, "b"], function () {

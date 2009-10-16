@@ -36,6 +36,10 @@ key.setGlobalKey("C-M-r",
                  function () { userscript.reload(); },
                  "設定ファイルを再読み込み");
 
+key.setGlobalKey("M-x",
+                 function (aEvent, aArg) { ext.select(aArg); },
+                 "エクステ一覧", true);
+
 // -------------------- help command -------------------- //
 
 key.setGlobalKey([key.helpKey, "b"], function () {

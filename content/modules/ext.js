@@ -55,6 +55,10 @@ KeySnail.Ext = function () {
             modules = this.modules;
         },
 
+        get exts () {
+            return exts;
+        },
+
         add: function (aName, aAction, aDescription, aOption) {
             var body = {
                 action: aAction,
