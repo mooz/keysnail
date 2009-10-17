@@ -16,7 +16,7 @@ var KeySnail = {
     },
 
     get version () {
-        return "0.9.6";
+        return "1.0";
     },
 
     init: function () {

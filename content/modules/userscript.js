@@ -363,7 +363,7 @@ KeySnail.UserScript = {
      *  1: <aVersionA> is newer than <aVersionB>
      * -1: <aVersionA> is older than <aVersionB>
      */
-    comparePluginVersion: function (aVersionA, aVersionB) {
+    compareVersion: function (aVersionA, aVersionB) {
         var a = aVersionA.split(".");
         var b = aVersionB.split(".");
         var cmpLen = Math.min(a.length, b.length);
@@ -446,7 +446,7 @@ KeySnail.UserScript = {
                 throw "Plugin does not have an verison information";
             }
 
-            if (this.comparePluginVersion(localVersion, remoteVersion) >= 0) {
+            if (this.compareVersion(localVersion, remoteVersion) >= 0) {
                 // local one is equal or newer than remote one
                 display.echoStatusBar(util.getLocaleString("updateNotFound"), 2000);
                 return false;
@@ -596,8 +596,8 @@ KeySnail.UserScript = {
         var min = xml.minVersion;
         var max = xml.maxVersion;
 
-        if ((min && this.comparePluginVersion(KeySnail.version, min) < 0) ||
-            (max && this.comparePluginVersion(KeySnail.version, max) > 0)) {
+        if ((min && this.compareVersion(KeySnail.version, min) < 0) ||
+            (max && this.compareVersion(KeySnail.version, max) > 0)) {
             return false;
         }
 
