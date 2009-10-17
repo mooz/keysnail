@@ -11,7 +11,6 @@ var PLUGIN_INFO =
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>0.9.4</minVersion>
-    <maxVersion>0.9.*</maxVersion>
     <provides>
         <ext>github-install-plugin-from-this-page</ext>
     </provides>
