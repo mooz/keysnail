@@ -217,7 +217,7 @@ KeySnail.Key = {
      * first seek for the key from local-key-map
      * and if does not found, seek for global-key-map
      * Note: this function is called implicitly
-     * when the 'keypress' event occured
+     * when the 'keypress' event occurred
      * @param {KeyboardEvent} aEvent event to handle
      */
     handleEvent: function (aEvent) {

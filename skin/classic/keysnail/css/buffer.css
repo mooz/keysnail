@@ -59,9 +59,8 @@ h3 {
 font-size:115%;
 color:#344D5E;
 text-align:left;
-padding-left:5px;
 border-bottom:1px dotted #344D5E;
-margin:4px 7px;
+margin:10px 0px;
 }
 
 hr {
@@ -117,9 +116,9 @@ line-height:120%;
 pre {
 -moz-border-radius:5px;
 border:1px #BBB solid;
-padding:10px;
+padding:15px;
 margin:6px 3px;
-font-size:90%;
+font-size:95%;
 background-color:#f9eefa;
 }
 
@@ -127,7 +126,7 @@ table {
 text-align:left;
 font-family:'Helvetica', 'Arial', sans-serif;
 width:100%;
-margin: 10px 5px 10px 5px;
+margin: 5px;
 border: 0px;
 border-collapse:separate;
 border-spacing:1em 7px;

@@ -3,13 +3,13 @@ var PLUGIN_INFO =
 <KeySnailPlugin>
 <name>Hatebnail</name>
 <description>Use Hatena bookmark extension from KeySnail!</description>
-<description lang="ja">はてなブックマーク拡張を KeySnail から使おう!</description>
-<version>1.1</version>
+<description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
+<version>1.1.1</version>
 <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
 <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
 <license>The MIT License</license>
 <license lang="ja">MIT ライセンス</license>
-<minVersion>0.9.4</minVersion>
+<minVersion>0.9.6</minVersion>
 <provides>
     <ext>list-hateb-comments</ext>
     <ext>list-hateb-items</ext>
@@ -19,9 +19,12 @@ var PLUGIN_INFO =
 このプラグインをインストールすることにより
 - list-hateb-comments
 - list-hateb-items
-といったエクステ (コマンド) が追加されます。
-M-x などのキーを入力することによりこれらのエクステを選択し、呼び出すことができます。
+といったエクステが追加されます。
+
+M-x など (ext.select を呼び出すキー) を入力することにより、これらのコマンドを実行することができます。
+
 また .keysnail.js 内に次のような設定を記述することにより、特定のキーへコマンドを割り当てておくことも可能です。
+
 >||
 key.setGlobalKey(["C-M-c"], function (ev, arg) {
     ext.exec("list-hateb-comments", arg);
@@ -31,6 +34,8 @@ key.setGlobalKey(["C-x", ";"], function (ev, arg) {
     ext.exec("list-hateb-items", arg);
 }, "はてなブックマークのアイテムを一覧表示", true);
 ||<
+
+上記のような設定により C-M-c で「現在閲覧しているページのはてなブックマークのコメント一覧」を、 C-x ; により「自分のはてなブックマーク一覧」を、それぞれ表示することが可能となります。
 ]]></detail>
 </KeySnailPlugin>;
 // }}}

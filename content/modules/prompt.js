@@ -1291,7 +1291,7 @@ KeySnail.Prompt = function () {
 
         aCanceled = !executeCallback(savedCallback, callbackArg, aCanceled);
 
-        // if canceled or error occured in callback, reset statusbar
+        // if canceled or error occurred in callback, reset statusbar
         if (aCanceled)
             modules.display.echoStatusBar("");
     }

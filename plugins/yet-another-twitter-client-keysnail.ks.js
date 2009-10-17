@@ -20,64 +20,93 @@ var PLUGIN_INFO =
         <option>
             <name>twitter_client.use_popup_notification</name>
             <type>boolean</type>
+            <description>Whether pop up notification when statuses are updated</description>
             <description lang="ja">ステータス更新時にポップアップ通知を行うかどうか</description>
         </option>
         <option>
             <name>twitter_client.update_interval</name>
             <type>integer</type>
+            <description>Interval between status updates in mili-seconds</description>
             <description lang="ja">ステータスを更新する間隔 (ミリ秒)</description>
         </option>
         <option>
             <name>twitter_client.main_column_width</name>
             <type>[integer]</type>
+            <description>Each column width of [User name, Message, Info] in percentage</description>
             <description lang="ja">[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定</description>
         </option>
         <option>
             <name>twitter_client.block_users</name>
             <type>[string]</type>
+            <description>Specify user id who you don't want to see pop up notification</description>
             <description lang="ja">ステータス更新時にポップアップを表示させたくないユーザの id を配列で指定</description>
         </option>
     </options>
     <detail><![CDATA[
 === Usage ===
-=== Usage ===
+==== Launching ====
+Call yet-another-twitter-client-keysnail from ext.select() and twitter client will launch.
 
-Press 't' key (or your defined one) to start this client.
+You can bind twitter client to some key like below.
 
-Once this function has been called, the timer will be set, and the timeline
-of Twitter periodically updated. This interval can be configured by changing
-the "updateInterval" option.
-
-If you set the "popUpStatusWhenUpdated" option to true, pretty notification
-dialog will be pop upped when new tweets are arrived.
-    ]]></detail>
-    <detail lang="ja"><![CDATA[
-=== 使い方 ===
-==== 起動 ====
-M-x などのキーから ext.select() を呼び出し yet-another-twitter-client-keysnail を選ぶと Twitter クライアントが起動します。
-次のようにして任意のキーへコマンドを割り当てておくことも可能です。
 >||
 key.setViewKey("t",
     function (ev, arg) {
         ext.exec("yet-another-twitter-client-keysnail", arg);
     }, ext.description("yet-another-twitter-client-keysnail"), true);
 ||<
-例えば上記のような設定を .keysnail.js へ記述しておくことにより、ブラウズ画面で t を押すことでこのクライアントを起動させることが可能となります。
+
+In this examle, KeySnail launch twitter client when 't' key is pressed in the browser window.
+
+==== Actions ====
+Twitter client displays your time line. If your press 'Enter' key, you can go to the 'tweet' area.
+
+You can select more actions like reply, retweet, search, et al by pressing the Ctrl + i key.
+
+=== Customizing ===
+You can set options through your .keysnail.js.
+
+Put codes like blow to the PRESERVE area of the .keysnail.js and you can customize this plugin's behavior.
+
+>||
+plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
+plugins.options["twitter_client.block_users"] = ["foo", "bar"];
+||<
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
+=== 使い方 ===
+==== 起動 ====
+M-x などのキーから ext.select() を呼び出し yet-another-twitter-client-keysnail を選ぶと Twitter クライアントが起動します。
+
+次のようにして任意のキーへコマンドを割り当てておくことも可能です。
+
+>||
+key.setViewKey("t",
+    function (ev, arg) {
+        ext.exec("yet-another-twitter-client-keysnail", arg);
+    }, ext.description("yet-another-twitter-client-keysnail"), true);
+||<
+
+例えば上記のような設定を .keysnail.js へ記述しておくことにより、ブラウズ画面において t キーを押すことでこのクライアントを起動させることが可能となります。
 
 ==== アクションの選択 ====
 Twitter クライアントが起動すると、ユーザのタイムライン一覧が表示されます。ここでそのまま Enter キーを入力すると「つぶやき」画面へ移行することができます。
+
 Enter ではなく Ctrl + i キーを押すことにより、様々なアクションを選ぶことも可能となっています。
 
 ==== 自動更新  ====
 このクライアントは起動時にタイマーをセットし Twitter のタイムラインを定期的に更新します。
+
 twitter_client.update_interval に値を設定することにより、この間隔を変更することが可能となっています。
 
 ==== ポップアップ通知  ====
 twitter_client.use_popup_notification オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
+
 また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
 
 === オプションの設定 ===
 以下に初期化ファイル PRESERVE エリアへの設定例を示します。
+
 >||
 plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
 plugins.options["twitter_client.block_users"] = ["foo", "bar"];

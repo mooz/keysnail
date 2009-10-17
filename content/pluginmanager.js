@@ -27,6 +27,10 @@ var ksPluginManager = function () {
 
     var defaultIconURL = "chrome://keysnail/skin/script.png";
 
+    const KS_PLUGIN_DISABLED      = 0;
+    const KS_PLUGIN_ENABLED       = 1;
+    const KS_PLUGIN_NOTCOMPATIBLE = 2;
+
     function createElementWithText(aElemName, aText) {
         var elem = iframeDoc.createElement(aElemName);
         elem.appendChild(iframeDoc.createTextNode(aText));
@@ -64,7 +68,9 @@ var ksPluginManager = function () {
 
         for (var pluginPath in modules.plugins.context) {
             var plugin = modules.plugins.context[pluginPath];
-            var isDisabled = modules.userscript.isDisabledPlugin(pluginPath);
+
+            var isDisabled      = modules.userscript.isDisabledPlugin(pluginPath);
+            var isNotCompatible = plugin.__ksNotCompatible__;
 
             // for not loaded plugin
             // open script and read it's PLUGIN_INFO value
@@ -210,6 +216,8 @@ var ksPluginManager = function () {
 
             item.appendChild(pluginWhole);
 
+            xulHolder[pluginPath].imageContainer   = imageContainer;
+            xulHolder[pluginPath].infoContainer    = infoContainer;
             xulHolder[pluginPath].buttonsContainer = buttonsContainer;
             xulHolder[pluginPath].pluginHeader     = pluginHeader;
 
@@ -218,20 +226,34 @@ var ksPluginManager = function () {
             // key value
             item.value = pluginPath;
 
-            setPluginStatus(pluginPath, !isDisabled);
+            var status =
+                isNotCompatible ? KS_PLUGIN_NOTCOMPATIBLE :
+                isDisabled      ? KS_PLUGIN_DISABLED : KS_PLUGIN_ENABLED;
+
+            setPluginStatus(pluginPath, status);
 
             pluginListbox.appendChild(item);
         }
     }
 
+    function setElementStatus(aElement, aStatus) {
+        aElement.setAttribute("style", "opacity:" + (aStatus ? "1.0" : "0.45"));
+    }
+
     function setPluginStatus(aPluginPath, aStatus) {
-        xulHolder[aPluginPath].pluginHeader.setAttribute("style",
-                                                         "opacity:" + (aStatus ? "1.0" : "0.45"));
-
-        xulHolder[aPluginPath].enableButton.hidden = aStatus;
-        xulHolder[aPluginPath].disableButton.hidden = !aStatus;
-
         infoHolder[aPluginPath].status = aStatus;
+
+        var isEnabled = (aStatus == KS_PLUGIN_ENABLED);
+
+        setElementStatus(xulHolder[aPluginPath].infoContainer, isEnabled);
+        setElementStatus(xulHolder[aPluginPath].imageContainer, isEnabled);
+
+        xulHolder[aPluginPath].enableButton.hidden = isEnabled;
+        xulHolder[aPluginPath].disableButton.hidden = !isEnabled;
+
+        if (aStatus == KS_PLUGIN_NOTCOMPATIBLE) {
+            xulHolder[aPluginPath].enableButton.setAttribute("disabled", true);
+        }
     }
 
     function updateInfoBox(aPluginPath) {
@@ -305,8 +327,8 @@ var ksPluginManager = function () {
             table = iframeDoc.createElement("table");
 
             tr = iframeDoc.createElement("tr");
-            tr.appendChild(createElementWithText("th", "Name"));
-            tr.appendChild(createElementWithText("th", "Description"));
+            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("name")));
+            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
             table.appendChild(tr);
 
             for each (var ext in xml.provides.ext) {
@@ -330,9 +352,9 @@ var ksPluginManager = function () {
             table = iframeDoc.createElement("table");
 
             tr = iframeDoc.createElement("tr");
-            tr.appendChild(createElementWithText("th", "Name"));
-            tr.appendChild(createElementWithText("th", "Type"));
-            tr.appendChild(createElementWithText("th", "Description"));
+            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("name")));
+            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("type")));
+            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
             table.appendChild(tr);
 
             for each (var option in xml.options.option) {
@@ -392,8 +414,9 @@ var ksPluginManager = function () {
         var pluginPath = item.value;
 
         try {
-            modules.userscript.updatePlugin(pluginPath);
-            initPluginList();
+            var updated = modules.userscript.updatePlugin(pluginPath);
+            if (updated)
+                initPluginList();
         } catch (x) {
             modules.display.notify(x);
         }
@@ -407,7 +430,7 @@ var ksPluginManager = function () {
         var pluginPath = item.value;
         var status = infoHolder[pluginPath].status;
 
-        setPluginStatus(pluginPath, false);
+        setPluginStatus(pluginPath, KS_PLUGIN_DISABLED);
         updateDisabledPluginList();
 
         modules.display.echoStatusBar(infoHolder[pluginPath].name + " disabled", 2000);
@@ -421,9 +444,27 @@ var ksPluginManager = function () {
         var pluginPath = item.value;
         var status = infoHolder[pluginPath].status;
 
-        setPluginStatus(pluginPath, true);
+        if (status == KS_PLUGIN_NOTCOMPATIBLE) {
+            var min = infoHolder[pluginPath].minVersion;
+            var max = infoHolder[pluginPath].maxVersion;
 
-        if (!modules.plugins.context[pluginPath].__ksLoaded__) {
+            var versionMsg = "";
+            if (min)
+                versionMsg += min + " <= version ";
+            if (max)
+                versionMsg += (min ? "" : "version ") + " <= " + max;
+
+            modules.display.notify("This plugin is compatible with KeySnail [" +
+                                   versionMsg + "] but current version is " +
+                                   modules.userscript.parent.version);
+            return;
+        }
+
+        setPluginStatus(pluginPath, KS_PLUGIN_ENABLED);
+
+        if (modules.plugins.context[pluginPath].__ksLoaded__) {
+            modules.display.echoStatusBar(infoHolder[pluginPath].name + " enabled", 2000);
+        } else {
             // plugin is not loaded
 
             // to prevent this plugin considered as the "disabled"
@@ -437,12 +478,10 @@ var ksPluginManager = function () {
                 var msg = modules.util.getLocaleString("failedToLoadPlugin");
                 modules.util.alert(window, msg, mgs + ' "' + pluginPath + '"');
 
-                setPluginStatus(pluginPath, false);
+                setPluginStatus(pluginPath, modules.plugins.context[pluginPath].__ksNotCompatible__ ?
+                                KS_PLUGIN_NOTCOMPATIBLE : KS_PLUGIN_DISABLED);
             }
         }
-
-        if (modules.plugins.context[pluginPath].__ksLoaded__)
-            modules.display.echoStatusBar(infoHolder[pluginPath].name + " enabled", 2000);
 
         updateDisabledPluginList();
     }
@@ -520,7 +559,6 @@ var ksPluginManager = function () {
 
             /**
              * When plugin manager is opened from userscript.loadPlugin(),
-             *
              */
             if (modules.userscript.newlyInstalledPlugin) {
                 selectNewlyInstalledPlugin();
@@ -537,7 +575,12 @@ var ksPluginManager = function () {
 
             for (var path in xulHolder) {
                 var buttonsContainer = xulHolder[path].buttonsContainer;
+                var infoContainer = xulHolder[path].infoContainer;
+
                 buttonsContainer.setAttribute("hidden", (path != pluginPath));
+
+                setElementStatus(infoContainer, (path == pluginPath) ?
+                                 true : (infoHolder[path].status == KS_PLUGIN_ENABLED));
             }
 
             updateInfoBox(pluginPath);
@@ -547,6 +590,11 @@ var ksPluginManager = function () {
         reloadPlugin: function () {
             modules.plugins.context = {};
             modules.userscript.loadPlugins();
+
+            helpBox.removeAttribute("style");
+            infoBox.innerHTML   = "";
+            detailBox.innerHTML = "";
+
             initPluginList();
         },
 
@@ -557,7 +605,7 @@ var ksPluginManager = function () {
             fp.init(window, modules.util.getLocaleString("selectPluginFile"), nsIFilePicker.modeOpen);
 
             if (!modules.util.getSystemInfo().getProperty("name").match("mac")) {
-                fp.appendFilter(modules.util.getLocaleString("keySnailPlugin"),"*.ks.js");                
+                fp.appendFilter(modules.util.getLocaleString("keySnailPlugin"), "*.ks.js");
             }
             fp.appendFilter("JavaScript","*.js");
 

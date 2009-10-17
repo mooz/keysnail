@@ -19,6 +19,7 @@ var PLUGIN_INFO =
 === What's this ===
 ==== Suggestion ====
 By enabling this plugin, when KeySnail plugin is found at current github page, the notification bar will appear top of the browser content area and user can install the plugin easily.
+
 For installed plugin, this plugin does not display the notification bar. You can re-install the plugin by using the command described below.
 ==== Command ====
 This plugin provides exts listed below.
@@ -27,11 +28,11 @@ This ext seek for the KeySnail plugin at the current github page and when plugin
     ]]></detail>
     <detail lang="ja"><![CDATA[
 === 説明 ===
-==== サジェスト機能 ====
+==== サジェストによるインストール ====
 このプラグインをインストールすることにより、現在閲覧している github のページに KeySnail プラグインが見つかった際に画面上部にへッセージが表れ、指示に従って簡単にプラグインをインストールすることができるようになります。
 
 既にインストール済みのプラグインに対してはサジェストが無効となりますので、明示的にインストールを行いたい場合は次に説明するコマンドを使用してください。
-==== コマンド入力によるインストール機能 ====
+==== コマンド入力によるインストール ====
 このプラグインをインストールすることで次のエクステが追加されます。
 - github-install-plugin-from-this-page
 このエクステは現在見ている github のページから KeySnail プラグインを探しだし、見つかった場合はインストールを行うかどうかをユーザへ確認するものです。

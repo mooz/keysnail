@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name lang="ja">クリップボード監視君</name>
     <description>Observe clipboard</description>
     <description lang="ja">クリップボードを監視します</description>
-    <version>1.1</version>
+    <version>1.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/clipboard-observer.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/clipboard-observer.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -16,8 +16,22 @@ var PLUGIN_INFO =
         <ext>switch-clipboard-observer-status</ext>
     </provides>
     <detail><![CDATA[
+=== Usage ===
+==== URL watcher ====
+This plugin observes clipboard and if there are URL's, open links automatically.
+
+==== Switching the state ====
+If you want to enable or disable the observer, use ext below.
+-switch-clipboard-observer-status
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
 === 使い方 ===
+==== 自動 URL オープン ====
 このプラグインをインストールするとクリップボードの監視が始まり、コピーされたテキストの中身に URL があれば自動的に開かれるようになります。
+
+==== ON / OFF の切り替え ====
+クリップボードの監視状態を切り替えたいときは次のエクステを使用してください。
+-switch-clipboard-observer-status
     ]]></detail>
 </KeySnailPlugin>;
 

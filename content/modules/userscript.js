@@ -21,7 +21,7 @@ KeySnail.UserScript = {
 
     // ==== user configuration file name ====
     // at first .keysnail.js is used. When the file not found,
-    // then the _keysnail.js is used. (for Windows user)
+    // then the _keysnail.js is used instead. (for the Windows user)
     defaultInitFileNames: [".keysnail.js", "_keysnail.js"],
     initFilePath: null,
 
@@ -139,6 +139,9 @@ KeySnail.UserScript = {
         /**
          * simple function works like getLocaleString()
          * which can be used from plugin, userscript and init file.
+         * Usage:
+         * M({ja: "こんにちは",
+         *    en: "Hello"})
          */
         this.modules.M = function (aMultiLang) {
             var msg = aMultiLang[this.modules.util.userLocale];
@@ -233,7 +236,7 @@ KeySnail.UserScript = {
      * @return {int} status
      *  0: success
      * -1: file not found
-     * -2: error occured in the js file
+     * -2: error occurred in the js file
      */
     loadUserScript: function (aLoader, aBaseDir, aUserScriptNames) {
         var prefix = aBaseDir + this.directoryDelimiter;
@@ -261,7 +264,7 @@ KeySnail.UserScript = {
                 if ((e.fileName || "").indexOf("chrome://") == -1) {
                     let self = this;
                     buttons = [{
-                                   label     : this.modules.util.getLocaleString("openErrorOccuredPlace"),
+                                   label     : this.modules.util.getLocaleString("openErrorOccurredPlace"),
                                    callback  : function (aNotification) {
                                        self.editFile(e.fileName, e.lineNumber);
                                        aNotification.close();
@@ -287,10 +290,14 @@ KeySnail.UserScript = {
     },
 
     /**
-     *
-     * @param {} aFile
-     * @throws {}
-     * @returns newly instaled file
+     * Install file to the plugin directory
+     * file can be
+     * - KeySnail plugin
+     * - Library
+     * - Images
+     * @param {nsIFile} aFile file which will be installed
+     * @throws {string} error message when keysnail failed to install <aFile>
+     * @returns {nsIFile} newly instaled file
      */
     installFile: function (aFile) {
         with (this.modules) {
@@ -336,7 +343,7 @@ KeySnail.UserScript = {
                     var installed    = this.installFile(tmpFile);
                     this.message(installed.path + " installed");
                 } catch (x) {
-                    this.modules.display.notify("Error occured while installing the required file :: " + x);
+                    this.modules.display.notify("Error occurred while installing the required file :: " + x);
                 }
             } else {
                 this.message(url + " skipped");
@@ -348,9 +355,13 @@ KeySnail.UserScript = {
      * Compare two version like 0.4.23 and 0.4.27
      * In this case, this function returns -1,
      * which means the second argument 0.4.27 is newer than the first one 0.4.23.
-     * @param {} aVersionA
-     * @param {} aVersionB
+     * asterisk can be used which matches any part of dotted number
+     * @param {string} aVersionA
+     * @param {string} aVersionB
      * @returns {integer} 0, 1, -1
+     *  0: when two version are considered as same
+     *  1: <aVersionA> is newer than <aVersionB>
+     * -1: <aVersionA> is older than <aVersionB>
      */
     comparePluginVersion: function (aVersionA, aVersionB) {
         var a = aVersionA.split(".");
@@ -358,6 +369,9 @@ KeySnail.UserScript = {
         var cmpLen = Math.min(a.length, b.length);
 
         for (var i = 0; i < cmpLen; ++i) {
+            if (a[i] == "*" || b[i] == "*")
+                continue;
+
             var numA = parseInt(a[i]);
             var numB = parseInt(b[i]);
 
@@ -373,6 +387,12 @@ KeySnail.UserScript = {
         return a.length - b.length;
     },
 
+    /**
+     * Write text to the tmp directory with the given filename
+     * @param {string} aFileName
+     * @param {string} aText
+     * @returns {nsIFile} created tmp file
+     */
     writeTextTmp: function (aFileName, aText) {
         var tmpFile  = this.modules.util.getSpecialDir("TmpD");
         tmpFile.append(aFileName);
@@ -384,9 +404,10 @@ KeySnail.UserScript = {
     },
 
     /**
-     * Check for updates and ask for install it when newer version found
-     * @param {} aPluginPath
-     * @throws {}
+     * Check for updates and ask for install it when newer version is found
+     * @param {string} aPluginPath plugin's full path (plugin.context[aPluginPath])
+     * @returns {boolean} true when plugin is updated. false when updates not found.
+     * @throws {string} error message when keysnail failed to update the plugin
      */
     updatePlugin: function (aPluginPath) {
         var localContent, localInfo;
@@ -428,9 +449,13 @@ KeySnail.UserScript = {
             if (this.comparePluginVersion(localVersion, remoteVersion) >= 0) {
                 // local one is equal or newer than remote one
                 display.echoStatusBar(util.getLocaleString("updateNotFound"), 2000);
-                return;
+                return false;
             }
 
+            /**
+             * TODO: It's better to display the diff file of local and remote ones.
+             * Are there good diff implementation on JavaScript?
+             */
             if (util.confirm(util.getLocaleString("updateFoundTitle"),
                              util.getLocaleString("updateFoundMessage",
                                                   [util.xmlGetLocaleString(remoteInfo.name), remoteVersion]))) {
@@ -440,6 +465,8 @@ KeySnail.UserScript = {
                 this.loadPlugin(installed);
                 display.notify(util.getLocaleString("pluginUpdated",
                                                     [util.xmlGetLocaleString(remoteInfo.name), remoteVersion]));
+
+                return true;
             }
         }
     },
@@ -448,7 +475,7 @@ KeySnail.UserScript = {
      * Inspired from pluginManager.js
      * http://coderepos.org/share/browser/lang/javascript/vimperator-plugins/trunk/pluginManager.js
      * Install plugin from URL
-     * @param {string} aURL plugin's url
+     * @param {string} aURL plugin's url which can be http:// and file://
      * @throws
      */
     installPluginFromURL: function (aURL) {
@@ -560,28 +587,54 @@ KeySnail.UserScript = {
         );
     },
 
+    isCompatiblePlugin: function (aPath) {
+        var read = this.modules.util.readTextFile(aPath);
+        if (!read)
+            return false;
+
+        var xml = this.getPluginInformation(read.value);
+
+        var min = xml.minVersion;
+        var max = xml.maxVersion;
+
+        if ((min && this.comparePluginVersion(KeySnail.version, min) < 0) ||
+            (max && this.comparePluginVersion(KeySnail.version, max) > 0)) {
+            return false;
+        }
+
+        return true;
+    },
+
     loadPlugin: function (aFile) {
         var filePath = aFile.path;
         var context;
 
-        if (!KeySnail.modules.plugins.context[filePath])
-            KeySnail.modules.plugins.context[filePath] = {__proto__ : KeySnail.modules};
+        // create context
+        KeySnail.modules.plugins.context[filePath] = {__proto__ : KeySnail.modules};
         context = KeySnail.modules.plugins.context[filePath];
-
         context.__ksFileName__ = aFile.leafName;
 
         if (this.isDisabledPlugin(aFile.path)) {
-            this.message("keysnail :: plugin " + aFile.leafName + " is disabled ... skip");
+            // this.message("keysnail :: plugin " + aFile.leafName + " is disabled ... skip");
             context.__ksLoaded__ = false;
             return;
         }
+
+        if (!this.isCompatiblePlugin(aFile.path)) {
+            context.__ksLoaded__        = false;
+            context.__ksNotCompatible__ = true;
+            this.message("keysnail :: plugin " + aFile.leafName + " is not compatible with KeySnail " + KeySnail.version);
+            return;
+        }
+
+        context.__ksNotCompatible__ = false;
 
         this.modules.key.inExternalFile = true;
 
         try {
             this.loadSubScript(filePath, context);
             context.__ksLoaded__   = true;
-            this.message("keysnail :: plugin " + aFile.leafName + " loaded");
+            // this.message("keysnail :: plugin " + aFile.leafName + " loaded");
         } catch (e) {
             context.__ksLoaded__ = false;
             // delete KeySnail.modules.plugins.context[filePath];
@@ -603,9 +656,8 @@ KeySnail.UserScript = {
 
         files.forEach(
             function (aFile) {
-                // plugins's extention musb be "plugin_name.ks.js"
-                if (!aFile.leafName.match("\\.ks\\.js$") ||
-                    aFile.isDirectory())
+                // plugins's filename must be like "plugin_name.ks.js"
+                if (!aFile.leafName.match("\\.ks\\.js$") || aFile.isDirectory())
                     return;
 
                 this.loadPlugin(aFile);
@@ -614,8 +666,10 @@ KeySnail.UserScript = {
 
     /**
      * load script specified by <aFileName> in the load path
-     * scripts are executed under the KeySnail.modules.plugins.context[aFileName] scope
-     * @param {String} aFileName
+     * scripts are executed under the given context
+     * when no context is given, the KeySnail.modules scope will be used
+     * @param {string} aFileName file name of the script which will be loaded
+     * @param {object} aContext context scripts will be evaluated under
      */
     require: function (aFileName, aContext) {
         var file, filePath;
@@ -648,7 +702,7 @@ KeySnail.UserScript = {
 
     /**
      * add load path.
-     * ~ in the head of path will be expanded to $HOME or $USERPROFILE
+     * ~ at the head of path will be expanded to $HOME or $USERPROFILE
      * @param {String} aPath
      */
     addLoadPath: function (aPath) {
@@ -730,7 +784,7 @@ KeySnail.UserScript = {
                 editorFile = this.modules.util.openFile(editorPath);
             } catch (e) {
                 this.modules.display.notify(this.modules.util
-                                            .getLocaleString("editorErrorOccured"));
+                                            .getLocaleString("editorErrorOccurred"));
                 return;
             }
 
