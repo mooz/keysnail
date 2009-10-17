@@ -564,17 +564,16 @@ KeySnail.UserScript = {
     openPluginManager: function () {
         var pluginManagerURL = "chrome://keysnail/content/pluginmanager.xul";
 
-        // var tabs = gBrowser.mTabContainer.childNodes;
-        // for (var i = 0; i < tabs.length; ++i) {
-        //     if (tabs[i].linkedBrowser.currentURI.spec == pluginManagerURL) {
-        //         gBrowser.mTabContainer.selectedIndex = i;
+        var tabs = gBrowser.mTabContainer.childNodes;
+        for (var i = 0; i < tabs.length; ++i) {
+            if (tabs[i].linkedBrowser.currentURI.spec == pluginManagerURL) {
+                gBrowser.mTabContainer.selectedIndex = i;
 
-        //         var win = tabs[i].linkedBrowser.contentWindow;
-        //         win.onload();
+                tabs[i].linkedBrowser.reload();
 
-        //         return;
-        //     }
-        // }
+                return;
+            }
+        }
 
         gBrowser.loadOneTab(pluginManagerURL, null, null, null, false);
     },
