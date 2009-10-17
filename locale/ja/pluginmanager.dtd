@@ -12,3 +12,17 @@
 <!ENTITY keySnail.pluginManager.howto.selectFile "プラグインを選択">
 <!ENTITY keySnail.pluginManager.howto.visitWiki "KeySnail Wiki のプラグインページを開く">
 
+<!ENTITY keySnail.pluginManager.ext "エクステ">
+<!ENTITY keySnail.pluginManager.ext.title "エクステとは">
+<!ENTITY keySnail.pluginManager.ext.description1 "KeySnail には「エクステ」というコマンドシステムが用意されています。">
+<!ENTITY keySnail.pluginManager.ext.description2 "次のようなコードを .keysnail.js 内に記述することで、エクステを一覧表示し実行することが可能となります。">
+<!ENTITY keySnail.pluginManager.ext.description3 "エクステは通常プラグインによって提供されますが、次のようなコードを .keysnail.js の PRESERVE エリアに含めておくことで、独自のエクステを追加することもできます。 .keysnail.js を直接編集せず、設定ダイアログ内の「その他のコード」へ貼り付けることでも同様の効果が得られます。">
+
+<!ENTITY keySnail.pluginManager.option.title "オプションの設定">
+<!ENTITY keySnail.pluginManager.option.description1 "プラグインの中にはオプションを提供するものがあり、これらを通じて動作をカスタマイズすることが可能となっています。">
+<!ENTITY keySnail.pluginManager.option.description2 "例えばプラグインが提供する foo_bar.option1 という名前のオプションに値を設定する際は .keysnail.js 内の PRESERVE エリアへ次のようなコードを記述して下さい。これに関しても設定ダイアログ内の「その他のコード」へ貼り付けることで、同様の効果が得られます。">
+
+
+
+
+

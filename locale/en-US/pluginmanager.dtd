@@ -9,6 +9,17 @@
 <!ENTITY keySnail.pluginManager.howto.title "How to install plugins">
 <!ENTITY keySnail.pluginManager.howto.download "Download plugin">
 <!ENTITY keySnail.pluginManager.howto.clickButton "Click 'Install Plugin' button">
-<!ENTITY keySnail.pluginManager.howto.selectFile "Select plugin file">
+<!ENTITY keySnail.pluginManager.howto.selectFile "Select the plugin file">
+
 <!ENTITY keySnail.pluginManager.howto.visitWiki "Visit plugin page at KeySnail Wiki">
+
+<!ENTITY keySnail.pluginManager.ext "Ext">
+<!ENTITY keySnail.pluginManager.ext.title "What's the ext?">
+<!ENTITY keySnail.pluginManager.ext.description1 "Ext is the command system of the KeySnail.">
+<!ENTITY keySnail.pluginManager.ext.description2 "Put codes below to your .keysnail.js and you can list / execute all your exts.">
+<!ENTITY keySnail.pluginManager.ext.description3 "Though ext is normally provided by plugins, you can add your original ext by putting the code like blow .keysnail.js PRESERVE area. Alternatively, you can put the code to the preserved code in the preference dialog.">
+
+<!ENTITY keySnail.pluginManager.option.title "Setting options">
+<!ENTITY keySnail.pluginManager.ext.option.description1 "Some plugin provides options and user can configure the plugin behavior through them.">
+<!ENTITY keySnail.pluginManager.ext.option.description2 "For example, if plugin provides option named 'foo_bar.option1', you can set value to this option by putting the code below to your .keysnail.js PRESERVE area.">
 
