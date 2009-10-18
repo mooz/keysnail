@@ -27,7 +27,7 @@ var ksPreference = {
     modeMenuList        : null,
 
     beautifyCode: function (aCode) {
-        return js_beautify(aCode, {space_after_anon_function: true});
+        return this.js_beautify(aCode, {space_after_anon_function: true});
     },
 
     onGeneralPaneLoad: function () {
@@ -78,7 +78,12 @@ var ksPreference = {
     // },
 
     onKeyPaneLoad: function () {
-        // this._old = new Date();
+        // load js beautfy
+        try {
+            Components.utils.import("resource://keysnail-share/beautify.js", ksPreference);
+        } catch (x) {
+            Application.console.log(x);
+        }
 
         // init key-binds tree
         ksKeybindTreeView.init();

@@ -16,7 +16,7 @@ var KeySnail = {
     },
 
     get version () {
-        return "1.0";
+        return "1.0.1";
     },
 
     init: function () {
@@ -62,6 +62,10 @@ var KeySnail = {
         if (this.windowType == "navigator:browser") {
             gBrowser.addProgressListener(KeySnail.urlBarListener,
                                          Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
+
+            // add context menu
+            this.createInstallPluginMenu();
+
             // arrange destructor
             window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
         }
@@ -103,6 +107,35 @@ var KeySnail = {
         // initialize module
         this[aModuleName].init();
         // this.message('initModule: module "' + aModuleName + '" initialized.');
+    },
+
+    /**
+     * Create context menu
+     */
+    createInstallPluginMenu: function () {
+        function setMenuDisplay() {
+            var item = document.getElementById("keysnail-plugin-installer");
+            item.hidden = !gContextMenu.onLink || !gContextMenu.linkURL.match("\\.ks\\.js$");
+        }
+
+        function installPlugin() {
+            var url = gContextMenu.linkURL;
+            this.modules.userscript.installPluginFromURL(url);
+        }
+
+        var contextMenu = document.getElementById("contentAreaContextMenu");
+        var menuitem    = document.getElementById("keysnail-plugin-installer");
+
+        menuitem = document.createElement("menuitem");
+        menuitem.id = "keysnail-plugin-installer";
+        menuitem.setAttribute("label", this.modules.util.getLocaleString("installThisPlugin"));
+        menuitem.setAttribute("accesskey", "k");
+        menuitem.setAttribute("class", "menuitem-iconic");
+        menuitem.setAttribute("src", "chrome://keysnail/skin/notify-icon16.png");
+        contextMenu.appendChild(menuitem);
+
+        menuitem.addEventListener("command", installPlugin, false);
+        contextMenu.addEventListener("popupshowing", setMenuDisplay, false);
     },
 
     /**

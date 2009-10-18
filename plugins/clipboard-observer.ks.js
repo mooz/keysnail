@@ -11,6 +11,7 @@ var PLUGIN_INFO =
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>0.9.2</minVersion>
+    <include>main</include>
     <provides>
         <ext>switch-clipboard-observer-status</ext>
     </provides>

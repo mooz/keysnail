@@ -200,7 +200,7 @@ KeySnail.UserScript = {
             this.initFileLoaded = true;
 
             if (this.parent.windowType == "navigator:browser" ||
-                nsPreferences.getBoolPref("keysnail.preference.plugin.global_enabled", false)) {
+                nsPreferences.getBoolPref("extensions.keysnail.plugin.global_enabled", false)) {
                 this.loadPlugins();
             }
         } else {
@@ -287,6 +287,14 @@ KeySnail.UserScript = {
         let m = /\bPLUGIN_INFO[ \t\r\n]*=[ \t\r\n]*(<KeySnailPlugin(?:[ \t\r\n][^>]*)?>([\s\S]+?)<\/KeySnailPlugin[ \t\r\n]*>)/(aText);
 
         return m ? new XML(m[1]) : null;
+    },
+
+    getPluginInformationFromPath: function (aPath) {
+        var read = this.modules.util.readTextFile(aPath);
+        if (!read)
+            return null;
+
+        return this.getPluginInformation(read.value);
     },
 
     /**
@@ -586,19 +594,43 @@ KeySnail.UserScript = {
         );
     },
 
-    isCompatiblePlugin: function (aPath) {
-        var read = this.modules.util.readTextFile(aPath);
-        if (!read)
+    checkCompatibility: function (aXml) {
+        if (!aXml)
             return false;
 
-        var xml = this.getPluginInformation(read.value);
-
-        var min = xml.minVersion;
-        var max = xml.maxVersion;
+        var min = aXml.minVersion;
+        var max = aXml.maxVersion;
 
         if ((min && this.compareVersion(KeySnail.version, min) < 0) ||
             (max && this.compareVersion(KeySnail.version, max) > 0)) {
             return false;
+        }
+
+        return true;
+    },
+
+    checkDocumentURI: function (aXml) {
+        var documentURI = document.documentURI;
+        var includeURI  = aXml.include;
+        var excludeURI  = aXml.exclude;
+
+        var entry, uri;
+        var replacePair = {
+            main: "chrome://browser/content/browser.xul"
+        };
+
+        for each (entry in includeURI) {
+            uri = replacePair[entry] || entry;
+
+            if (uri != documentURI)
+                return false;
+        }
+
+        for each (entry in excludeURI) {
+            uri = replacePair[entry] || entry;
+
+            if (uri == documentURI)
+                return false;
         }
 
         return true;
@@ -614,19 +646,25 @@ KeySnail.UserScript = {
         context.__ksFileName__ = aFile.leafName;
 
         if (this.isDisabledPlugin(aFile.path)) {
-            // this.message("keysnail :: plugin " + aFile.leafName + " is disabled ... skip");
             context.__ksLoaded__ = false;
             return;
         }
 
-        if (!this.isCompatiblePlugin(aFile.path)) {
+        var xml = this.getPluginInformationFromPath(aFile.path);
+
+        if (!this.checkCompatibility(xml)) {
             context.__ksLoaded__        = false;
             context.__ksNotCompatible__ = true;
-            this.message("keysnail :: plugin " + aFile.leafName + " is not compatible with KeySnail " + KeySnail.version);
+            // this.message("keysnail :: plugin " + aFile.leafName + " is not compatible with KeySnail " + KeySnail.version);
             return;
         }
-
         context.__ksNotCompatible__ = false;
+
+        if (!this.checkDocumentURI(xml)) {
+            // this.message("keysnail :: plugin " + aFile.leafName + " will not be loaded on this URI ... skip");
+            context.__ksLoaded__ = false;
+            return;
+        }
 
         this.modules.key.inExternalFile = true;
 
@@ -659,7 +697,9 @@ KeySnail.UserScript = {
                 if (!aFile.leafName.match("\\.ks\\.js$") || aFile.isDirectory())
                     return;
 
-                this.loadPlugin(aFile);
+                try {
+                    this.loadPlugin(aFile);
+                } catch (x) {}
             }, this);
     },
 
