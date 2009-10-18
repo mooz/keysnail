@@ -517,8 +517,6 @@ KeySnail.UserScript = {
                                     headers[pair.shift()] = pair.join('');
                                 }
                             });
-
-                    util.listProperty(headers);
                 } catch (e) {
                     this.message(e);
                 }

@@ -16,7 +16,7 @@ var KeySnail = {
     },
 
     get version () {
-        return "1.0.1";
+        return "1.0.2";
     },
 
     init: function () {
@@ -113,6 +113,8 @@ var KeySnail = {
      * Create context menu
      */
     createInstallPluginMenu: function () {
+        var modules = this.modules;
+
         function setMenuDisplay() {
             var item = document.getElementById("keysnail-plugin-installer");
             item.hidden = !gContextMenu.onLink || !gContextMenu.linkURL.match("\\.ks\\.js$");
@@ -120,7 +122,7 @@ var KeySnail = {
 
         function installPlugin() {
             var url = gContextMenu.linkURL;
-            this.modules.userscript.installPluginFromURL(url);
+            modules.userscript.installPluginFromURL(url);
         }
 
         var contextMenu = document.getElementById("contentAreaContextMenu");
@@ -128,7 +130,7 @@ var KeySnail = {
 
         menuitem = document.createElement("menuitem");
         menuitem.id = "keysnail-plugin-installer";
-        menuitem.setAttribute("label", this.modules.util.getLocaleString("installThisPlugin"));
+        menuitem.setAttribute("label", modules.util.getLocaleString("installThisPlugin"));
         menuitem.setAttribute("accesskey", "k");
         menuitem.setAttribute("class", "menuitem-iconic");
         menuitem.setAttribute("src", "chrome://keysnail/skin/notify-icon16.png");
