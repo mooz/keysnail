@@ -5,7 +5,6 @@ var PLUGIN_INFO =
     <description lang="ja">右クリックでプラグインをインストール</description>
     <version>1.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/context-menu-plugin-installer.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/context-menu-plugin-installer.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
@@ -25,8 +24,6 @@ Right click the link to plugin file and select "Install this plugin".
 function setMenuDisplay() {
     var item = document.getElementById("keysnail-plugin-installer");
     item.hidden = !gContextMenu.onLink || !gContextMenu.linkURL.match("\\.ks\\.js$");
-
-    util.message(gContextMenu.linkURL);
 }
 
 function installPlugin() {
