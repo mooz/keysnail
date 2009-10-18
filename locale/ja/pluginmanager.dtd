@@ -14,7 +14,7 @@
 
 <!ENTITY keySnail.pluginManager.ext "エクステ">
 <!ENTITY keySnail.pluginManager.ext.title "エクステとは">
-<!ENTITY keySnail.pluginManager.ext.description1 "KeySnail には「エクステ」というコマンドシステムが用意されています。">
+<!ENTITY keySnail.pluginManager.ext.description1 "KeySnail には「エクステ」というコマンドシステムが用意されています。 Emacs ユーザの方は M-x を想像すると分かりやすいでしょう。">
 <!ENTITY keySnail.pluginManager.ext.description2 "次のようなコードを .keysnail.js 内に記述することで、エクステを一覧表示し実行することが可能となります。">
 <!ENTITY keySnail.pluginManager.ext.description3 "エクステは通常プラグインによって提供されますが、次のようなコードを .keysnail.js の PRESERVE エリアに含めておくことで、独自のエクステを追加することもできます。 .keysnail.js を直接編集せず、設定ダイアログ内の「その他のコード」へ貼り付けることでも同様の効果が得られます。">
 

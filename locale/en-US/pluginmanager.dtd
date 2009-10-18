@@ -15,9 +15,9 @@
 
 <!ENTITY keySnail.pluginManager.ext "Ext">
 <!ENTITY keySnail.pluginManager.ext.title "What's the ext?">
-<!ENTITY keySnail.pluginManager.ext.description1 "Ext is the command system of the KeySnail.">
+<!ENTITY keySnail.pluginManager.ext.description1 "Ext is the command system of the KeySnail. If you are the Emacs user, imagine M-x.">
 <!ENTITY keySnail.pluginManager.ext.description2 "Put codes below to your .keysnail.js and you can list / execute all your exts.">
-<!ENTITY keySnail.pluginManager.ext.description3 "Though ext is normally provided by plugins, you can add your original ext by putting the code like blow .keysnail.js PRESERVE area. Alternatively, you can put the code to the preserved code in the preference dialog.">
+<!ENTITY keySnail.pluginManager.ext.description3 "Though ext is normally provided by plugins, you can add your original ext by putting the code like blow to your .keysnail.js PRESERVE area. Alternatively, you can put the code to the preserved code in the preference dialog.">
 
 <!ENTITY keySnail.pluginManager.option.title "Setting options">
 <!ENTITY keySnail.pluginManager.option.description1 "Some plugin provides options and user can configure the plugin behavior through them.">
