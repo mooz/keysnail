@@ -456,7 +456,8 @@ KeySnail.UserScript = {
 
             if (this.compareVersion(localVersion, remoteVersion) >= 0) {
                 // local one is equal or newer than remote one
-                display.echoStatusBar(util.getLocaleString("updateNotFound"), 2000);
+                display.echoStatusBar(util.getLocaleString("updateNotFound",
+                                                           [util.xmlGetLocaleString(remoteInfo.name)]), 2000);
                 return false;
             }
 

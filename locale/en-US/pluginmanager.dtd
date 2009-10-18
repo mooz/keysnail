@@ -20,6 +20,6 @@
 <!ENTITY keySnail.pluginManager.ext.description3 "Though ext is normally provided by plugins, you can add your original ext by putting the code like blow .keysnail.js PRESERVE area. Alternatively, you can put the code to the preserved code in the preference dialog.">
 
 <!ENTITY keySnail.pluginManager.option.title "Setting options">
-<!ENTITY keySnail.pluginManager.ext.option.description1 "Some plugin provides options and user can configure the plugin behavior through them.">
-<!ENTITY keySnail.pluginManager.ext.option.description2 "For example, if plugin provides option named 'foo_bar.option1', you can set value to this option by putting the code below to your .keysnail.js PRESERVE area.">
+<!ENTITY keySnail.pluginManager.option.description1 "Some plugin provides options and user can configure the plugin behavior through them.">
+<!ENTITY keySnail.pluginManager.option.description2 "For example, if plugin provides option named 'foo_bar.option1', you can set value to this option by putting the code below to your .keysnail.js PRESERVE area.">
 

@@ -22,7 +22,7 @@ This plugin observes clipboard and if there are URL's, open links automatically.
 
 ==== Switching the state ====
 If you want to enable or disable the observer, use ext below.
--switch-clipboard-observer-status
+- switch-clipboard-observer-status
     ]]></detail>
     <detail lang="ja"><![CDATA[
 === 使い方 ===
@@ -31,7 +31,7 @@ If you want to enable or disable the observer, use ext below.
 
 ==== ON / OFF の切り替え ====
 クリップボードの監視状態を切り替えたいときは次のエクステを使用してください。
--switch-clipboard-observer-status
+- switch-clipboard-observer-status
     ]]></detail>
 </KeySnailPlugin>;
 
