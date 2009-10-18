@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Context menu plugin installer</name>
     <description>Install plugin from context menu</description>
     <description lang="ja">右クリックでプラグインをインストール</description>
-    <version>1.2</version>
+    <version>1.2.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/context-menu-plugin-installer.ks.js</updateURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
@@ -33,17 +33,22 @@ function installPlugin() {
 
 function init() {
     var contextMenu = document.getElementById("contentAreaContextMenu");
-    
-    var menuitem = document.createElement("menuitem");
-    menuitem.id = "keysnail-plugin-installer";
-    menuitem.setAttribute("label", M({ja: "このプラグインをインストール", en: "Install this plugin"}));
-    menuitem.setAttribute("accesskey", "k");
-    menuitem.setAttribute("class", "menuitem-iconim");
-    menuitem.setAttribute("src", "chrome://keysnail/skin/notify-icon16.png");
-    contextMenu.appendChild(menuitem);
+    var menuitem    = document.getElementById("keysnail-plugin-installer");
 
-    menuitem.addEventListener("command", installPlugin, false);
-    contextMenu.addEventListener("popupshowing", setMenuDisplay, false);
+    if (menuitem) {
+        // nothing
+    } else {
+        menuitem = document.createElement("menuitem");
+        menuitem.id = "keysnail-plugin-installer";
+        menuitem.setAttribute("label", M({ja: "このプラグインをインストール", en: "Install this plugin"}));
+        menuitem.setAttribute("accesskey", "k");
+        menuitem.setAttribute("class", "menuitem-iconim");
+        menuitem.setAttribute("src", "chrome://keysnail/skin/notify-icon16.png");
+        contextMenu.appendChild(menuitem);
+
+        menuitem.addEventListener("command", installPlugin, false);
+        contextMenu.addEventListener("popupshowing", setMenuDisplay, false);
+    }
 }
 
 init();
