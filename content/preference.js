@@ -203,18 +203,23 @@ var ksPreference = {
     },
 
     onFinish: function () {
-        if (this.digitArgumentList.selectedItem) {
-            this.modules.util.setUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type",
-                                             this.digitArgumentList.selectedItem.value);
-        }
+        try {
+            if (this.digitArgumentList.selectedItem) {
+                this.modules.util.setUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type",
+                                                 this.digitArgumentList.selectedItem.value);
+            }
 
-        if (this.preservedEditBox.value != this.modules.userscript.preserve.code)
-            this.needsApply = true;
+            if (this.preservedEditBox.value != this.modules.userscript.preserve.code)
+                this.needsApply = true;
 
-        if ((this.needsApply || ksKeybindTreeView.changed || keyCustomizer.changed) &&
-            this.modules.util.confirm(this.modules.util.getLocaleString("settingsChanged"),
-                                      this.modules.util.getLocaleString("settingsChangedApplyChange"))) {
-            return this.onInitFileCreate();
+            if ((this.needsApply || ksKeybindTreeView.changed || keyCustomizer.changed) &&
+                this.modules.util.confirm(this.modules.util.getLocaleString("settingsChanged"),
+                                          this.modules.util.getLocaleString("settingsChangedApplyChange"))) {
+                return this.onInitFileCreate();
+            }
+        } catch (x) {
+            // if main window is closed by user, this.modules becomes null (exception "KeySnail is not defined")
+            // so we need to catche that exception.
         }
 
         return true;

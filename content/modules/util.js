@@ -27,6 +27,10 @@ KeySnail.Util = {
         }[this.userLocale] || "en";
     },
 
+    get focusedElement () {
+        return document.commandDispatcher.focusedElement;
+    },
+
     // ==================== Utils  ==================== //
 
     alert: function (aWindow, aTitle, aMessage) {

@@ -237,6 +237,9 @@ KeySnail.Key = {
 
         var key = this.keyEventToString(aEvent);
 
+        if (!key)
+            return;
+
         // this.modules.display.prettyPrint(["orig :: " + aEvent.originalTarget.localName,
         //                                   "targ :: " + aEvent.target.localName,
         //                                   "curr :: " + aEvent.currentTarget.localName].join("\n"));

@@ -155,7 +155,7 @@ KeySnail.Command = {
         var doc = document.commandDispatcher.focusedWindow.document
             || gBrowser.contentWindow.document;
         var xPathResults = aElementsRetriever(doc);
-        var focused = document.commandDispatcher.focusedElement;
+        var focused = this.modules.util.focusedElement;
 
         var elemCount = xPathResults.snapshotLength;
 
@@ -236,21 +236,41 @@ KeySnail.Command = {
     },
 
     iSearchForward: function () {
+        // this.findCommand(false);
         if (this.gFindBar.hidden) {
             this.gFindBar.onFindCommand();
         } else {
             this.gFindBar.onFindAgainCommand(false);
             this.gFindBar._findField.focus();
+            // goDoCommand("cmd_selectAll");jj
         }
     },
 
     iSearchBackward: function () {
+        // this.findCommand(true);
         if (this.gFindBar.hidden) {
             this.gFindBar.onFindCommand();
         } else {
             this.gFindBar.onFindAgainCommand(true);
             this.gFindBar._findField.focus();
+            // goDoCommand("cmd_selectAll");
         }
+    },
+
+    findCommand: function (aDirection) {
+        var isFocused = this.modules.util.focusedElement == this.gFindBar._findField.inputField;
+
+        if (this.gFindBar.hidden) {
+            this.gFindBar.open();
+        } else if (isFocused) {
+            this.gFindBar.onFindAgainCommand(aDirection);
+        }
+
+        this.gFindBar._findField.inputField.focus();
+        if (isFocused)
+            goDoCommand("cmd_selectNone");
+        else
+            goDoCommand("cmd_selectAll");
     },
 
     focusToById: function (aId) {
