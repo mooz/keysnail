@@ -242,7 +242,7 @@ KeySnail.Command = {
         } else {
             this.gFindBar.onFindAgainCommand(false);
             this.gFindBar._findField.focus();
-            // goDoCommand("cmd_selectAll");jj
+            // goDoCommand("cmd_selectAll");
         }
     },
 

@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name lang="ja">github プラグインヘルパー</name>
     <description>Helps you to install plugin from github</description>
     <description lang="ja">github から簡単にプラグインをインストール</description>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/github-plugin.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/github-plugin.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -29,7 +29,7 @@ This ext seek for the KeySnail plugin at the current github page and when plugin
     <detail lang="ja"><![CDATA[
 === 説明 ===
 ==== サジェストによるインストール ====
-このプラグインをインストールすることにより、現在閲覧している github のページに KeySnail プラグインが見つかった際に画面上部にへッセージが表れ、指示に従って簡単にプラグインをインストールすることができるようになります。
+このプラグインをインストールすることにより、現在閲覧している github のページに KeySnail プラグインが見つかった際に画面上部にメッセージが表れ、指示に従って簡単にプラグインをインストールすることができるようになります。
 
 既にインストール済みのプラグインに対してはサジェストが無効となりますので、明示的にインストールを行いたい場合は次に説明するコマンドを使用してください。
 ==== コマンド入力によるインストール ====
