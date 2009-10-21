@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -122,6 +122,7 @@ var twitterPending;
 
 var yATwitterClientKeySnail = new
 (function () {
+     let self = this;
 
      // Update interval in mili second
      var updateInterval = plugins.options["twitter_client.update_interval"] || 60 * 1000;
@@ -736,41 +737,6 @@ var yATwitterClientKeySnail = new
                  });
          }
 
-         function updateJSONCache(aAfterWork, aNoRepeat) {
-             twitterPending = true;
-
-             oauthASyncRequest(
-                 {
-                     action : target ? "https://twitter.com/statuses/user_timeline/" + target + ".json"
-                         : "https://twitter.com/statuses/friends_timeline.json",
-                     method : "GET"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         twitterPending = false;
-
-                         if (xhr.status != 200) {
-                             display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
-                                                      en: "Failed to get statuses"}));
-                             return;
-                         }
-
-                         var statuses = util.safeEval(xhr.responseText) || [];
-
-                         if (!target) {
-                             twitterLastUpdated = new Date();
-                             twitterJSONCache = combineJSONCache(statuses, twitterJSONCache);
-                         }
-
-                         if (!aNoRepeat)
-                             twitterJSONCacheUpdater = setTimeout(updateJSONCache, updateInterval);
-
-                         if (typeof(aAfterWork) == "function")
-                             aAfterWork();
-                     }
-                 });
-         }
-
          if (target) {
              oauthASyncRequest(
                  {
@@ -800,12 +766,43 @@ var yATwitterClientKeySnail = new
 
          if (aArg != null || !twitterJSONCache) {
              // rebuild cache
-             updateJSONCache(callSelector, aArg != null);
+             self.updateJSONCache(callSelector, aArg != null);
          } else {
              // use cache
              callSelector();
          }
      }
+
+     this.updateJSONCache = function (aAfterWork, aNoRepeat) {
+         twitterPending = true;
+
+         oauthASyncRequest(
+             {
+                 action : "https://twitter.com/statuses/friends_timeline.json",
+                 method : "GET"
+             },
+             function (aEvent, xhr) {
+                 if (xhr.readyState == 4) {
+                     twitterPending = false;
+
+                     if (xhr.status != 200) {
+                         display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
+                                                  en: "Failed to get statuses"}));
+                     } else {
+                         var statuses = util.safeEval(xhr.responseText) || [];
+
+                         twitterLastUpdated = new Date();
+                         twitterJSONCache = combineJSONCache(statuses, twitterJSONCache);
+                     }
+
+                     if (!aNoRepeat)
+                         twitterJSONCacheUpdater = setTimeout(self.updateJSONCache, updateInterval);
+
+                     if (typeof aAfterWork == "function")
+                         aAfterWork();
+                 }
+             });
+     };
 
      this.display = function (aEvent, aArg) {
          if (!oauthTokens.oauth_token || !oauthTokens.oauth_token_secret) {
@@ -819,3 +816,5 @@ var yATwitterClientKeySnail = new
 ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display,
         M({ja: 'Twitter クライアントを起動',
            en: "Launch Yet Another Twitter Client KeySnail"}));
+
+yATwitterClientKeySnail.updateJSONCache();
