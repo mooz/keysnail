@@ -831,7 +831,7 @@ var ksPreference = {
      * @returns {string}
      */
     toStringForm: function (aStr) {
-        return aStr ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "";
+        return (typeof aStr == "string") ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "";
     },
 
     generateSpecialKeySettings: function (aContentHolder) {
