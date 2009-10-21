@@ -28,7 +28,9 @@ KeySnail.HTML = {
 
     replacePair : {
         "<" : "&lt;",
-        ">" : "&gt;"
+        ">" : "&gt;",
+        "'" : "&apos;",
+        "\"": "&quot;"
     },
 
     init: function () {

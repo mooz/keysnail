@@ -42,6 +42,12 @@ var PLUGIN_INFO =
             <description>Specify user id who you don't want to see pop up notification</description>
             <description lang="ja">ステータス更新時にポップアップを表示させたくないユーザの id を配列で指定</description>
         </option>
+        <option>
+            <name>twitter_client.automatically_begin</name>
+            <type>boolean</type>
+            <description>Automatically begin fetching the statuses</description>
+            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか (初回起動時間の短縮につながる)</description>
+        </option>
     </options>
     <detail><![CDATA[
 === Usage ===
@@ -817,4 +823,6 @@ ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display,
         M({ja: 'Twitter クライアントを起動',
            en: "Launch Yet Another Twitter Client KeySnail"}));
 
-yATwitterClientKeySnail.updateJSONCache();
+if (plugins.options["twitter_client.automatically_begin"] !== false) {
+    yATwitterClientKeySnail.updateJSONCache();    
+}
