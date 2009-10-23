@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -121,11 +121,8 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 ]]></detail>
 </KeySnailPlugin>;
 
-var twitterJSONCache;
-var twitterJSONCacheUpdater;
 var twitterLastUpdated;
 var twitterPending;
-var twitterHasTimer;
 
 var yATwitterClientKeySnail = new
 (function () {
@@ -653,7 +650,7 @@ var yATwitterClientKeySnail = new
                                      // succeeded
                                      var status = util.safeEval("(" + xhr.responseText + ")");
                                      // immediately add
-                                     twitterJSONCache.unshift(status);
+                                     my.twitterJSONCache.unshift(status);
 
                                      var icon_url  = status.user.profile_image_url;
                                      var user_name = status.user.name;
@@ -704,7 +701,7 @@ var yATwitterClientKeySnail = new
 
      function showFollowersStatus(target, aArg) {
          function callSelector(priorStatus) {
-             var statuses = priorStatus || twitterJSONCache;
+             var statuses = priorStatus || my.twitterJSONCache;
 
              var current = new Date();
 
@@ -771,7 +768,7 @@ var yATwitterClientKeySnail = new
              return;
          }
 
-         if (aArg != null || !twitterJSONCache) {
+         if (aArg != null || !my.twitterJSONCache) {
              // rebuild cache
              self.updateJSONCache(callSelector, aArg != null);
          } else {
@@ -799,12 +796,11 @@ var yATwitterClientKeySnail = new
                          var statuses = util.safeEval(xhr.responseText) || [];
 
                          twitterLastUpdated = new Date();
-                         twitterJSONCache = combineJSONCache(statuses, twitterJSONCache);
+                         my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
                      }
 
                      if (!aNoRepeat) {
-                         twitterJSONCacheUpdater = setTimeout(self.updateJSONCache, updateInterval);
-                         twitterHasTimer = true;
+                         my.twitterJSONCacheUpdater = setTimeout(self.updateJSONCache, updateInterval);
                      }
 
                      if (typeof aAfterWork == "function")
@@ -826,6 +822,9 @@ ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display,
         M({ja: 'Twitter クライアントを起動',
            en: "Launch Yet Another Twitter Client KeySnail"}));
 
-if (plugins.options["twitter_client.automatically_begin"] !== false && !twitterHasTimer) {
+if (my.twitterJSONCacheUpdater)
+    clearTimeout(my.twitterJSONCacheUpdater);
+
+if (plugins.options["twitter_client.automatically_begin"] !== false) {
     yATwitterClientKeySnail.updateJSONCache();
 }
