@@ -167,7 +167,7 @@ key.setGlobalKey("C-M-r",
                         en: '"Reload the initialization file"'}[l] + """);
 
 key.setGlobalKey("M-x",
-                 function (aEvent, aArg) { ext.select(aArg); },
+                 function (aEvent, aArg) { ext.select(aArg, aEvent); },
                  """ + {ja: '"エクステ一覧"',
                         en: '"List exts"'}[l] + """, true);
 

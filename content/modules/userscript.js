@@ -95,7 +95,7 @@ KeySnail.UserScript = {
     },
 
     loadSubScript: function (aURI, aContext) {
-        if (aURI.indexOf("file://") != 0)
+        if (aURI.indexOf("://") == -1)
             aURI = this.modules.util.pathToURL(aURI);
 
         Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
@@ -560,7 +560,7 @@ KeySnail.UserScript = {
                         this.openPluginManager();
                     }
                 } catch (x) {
-                    display.echoStatusBar(x, 2000);
+                    display.notify(x, 2000);
                 }
             } else if (arg.type == "viewsource") {
                 gBrowser.loadOneTab(util.pathToURL(pluginFile.path), null, null, null, false);

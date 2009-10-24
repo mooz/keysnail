@@ -701,7 +701,7 @@ var ksBuiltin = {
 
         ext_select: [
             function (aEvent, aArg) {
-                ext.select(aArg);
+                ext.select(aArg, aEvent);
             }, true]
     }
 };

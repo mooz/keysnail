@@ -50,29 +50,10 @@ KeySnail.Macro = {
                                   event.keyCode,
                                   event.charCode);
             this.getCurrentFocusedElement().dispatchEvent(newEvent);
-            this.sleep(sleepTime);
+            this.modules.util.sleep(sleepTime);
             // stack.push(this.modules.key.keyEventToString(event));
         }
         // Application.console.log(stack.join(" "));
-    },
-
-    /**
-     * sleep current thread for <aWait> [msec] time.
-     * from http://d.hatena.ne.jp/fls/20090224/p1
-     * @param {Integer} aWait sleep time in mili-second
-     */
-    sleep: function (aWait) {
-        var timer = {
-            timeup: false
-        };
-
-        var thread = Components.classes["@mozilla.org/thread-manager;1"]
-            .getService().mainThread;
-
-        var interval = window.setInterval(function () { timer.timeup = true; }, aWait);
-        while (!timer.timeup) {
-            thread.processNextEvent(true);
-        }
-        window.clearInterval(interval);
     }
+
 };

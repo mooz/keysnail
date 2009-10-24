@@ -25,6 +25,10 @@ KeySnail.Util = {
             // en
             "en-US"     : "en"
         }[this.userLocale] || "en";
+
+        this.modules.XHTML = Namespace("html", "http://www.w3.org/1999/xhtml");
+        this.modules.XUL   = Namespace("xul", "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"); 
+        this.modules.NS    = Namespace("keysnail", "http://www.stillpedant.org/namespaces/keysnail");
     },
 
     get focusedElement () {
@@ -654,6 +658,41 @@ KeySnail.Util = {
         }
     },
 
+    // ============================== Thread ============================== //
+
+    /**
+     * sleep current thread for <aWait> [msec] time.
+     * from http://d.hatena.ne.jp/fls/20090224/p1
+     * @param {Integer} aWait sleep time in mili-second
+     */
+    sleep: function (aWait) {
+        var timer = {
+            timeup: false
+        };
+
+        var thread = Components.classes["@mozilla.org/thread-manager;1"]
+            .getService().mainThread;
+
+        var interval = window.setInterval(function () { timer.timeup = true; }, aWait);
+        while (!timer.timeup) {
+            thread.processNextEvent(true);
+        }
+        window.clearInterval(interval);
+    },
+
+    // from liberator.js
+    threadYield: function (flush, interruptable) {
+        let mainThread = Components.classes["@mozilla.org/thread-manager;1"]
+            .getService().mainThread;
+        this.interrupted = false;
+
+        do {
+            mainThread.processNextEvent(!flush);
+            if (this.interrupted)
+                throw new Error("Interrupted");
+        } while (flush === true && mainThread.hasPendingEvents());
+    },
+
     // ============================== XML ============================== //
 
     xmlGetLocaleString: function (aNodes) {
@@ -671,6 +710,48 @@ KeySnail.Util = {
         }
 
         return aNodes[0].text();
+    },
+
+    /**
+     * from util.js of the liberator
+     * 
+     * Converts an E4X XML literal to a DOM node.
+     *
+     * @param {Node} node
+     * @param {Document} doc
+     * @param {Object} nodes If present, nodes with the "key" attribute are
+     *     stored here, keyed to the value thereof.
+     * @returns {Node}
+     */
+    xmlToDom: function xmlToDom(node, doc, nodes)
+    {
+        if (node.length() != 1) {
+            let domnode = doc.createDocumentFragment();
+            for each (let child in node)
+            domnode.appendChild(arguments.callee(child, doc, nodes));
+            return domnode;
+        }
+
+        switch (node.nodeKind()) {
+        case "text":
+            return doc.createTextNode(node);
+        case "element":
+            let domnode = doc.createElementNS(node.namespace(), node.localName());
+
+            for each (let attr in node.@*) {
+                domnode.setAttributeNS(attr.name() == "highlight" ? this.modules.NS.uri : attr.namespace(), attr.name(), String(attr));                
+            }
+
+            for each (let child in node.*) {
+                domnode.appendChild(arguments.callee(child, doc, nodes));                
+            }
+
+            if (nodes && node.@key)
+                nodes[node.@key] = domnode;
+            return domnode;
+        }
+
+        return null;
     },
 
     message: KeySnail.message

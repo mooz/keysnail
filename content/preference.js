@@ -769,12 +769,15 @@ var ksPreference = {
         contentHolder.push("");
         contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription1"));
         contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription2"));
+
+        contentHolder.push("// ============================================================ //");
         contentHolder.push(preserve.beginSign);
         if (this.preservedEditBox.value) {
             contentHolder.push(this.preservedEditBox.value);
             this.modules.userscript.preserve.code = this.preservedEditBox.value;
         }
         contentHolder.push(preserve.endSign);
+        contentHolder.push("// ============================================================ //");
 
         // 1. Special keys
         contentHolder.push("");

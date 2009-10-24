@@ -33,6 +33,10 @@ KeySnail.Prompt = function () {
     var currentCallback;
     var currentUserArg;
 
+    // function which is called in the beggining of the handleKeyPres*()
+    var userOnChange;
+    var userOnFinish;
+
     // event listener remover
     var eventListenerRemover;
 
@@ -55,13 +59,13 @@ KeySnail.Prompt = function () {
     // ==================== Options ==================== //
 
     var options = {
-        substrMatch: true,
-        ignoreDuplication: true,
-        useMigemo: false,
-        migemoMinWordLength: 2,
-        listboxMaxRows: 12,
-        displayDelayTime: 300,
-        actionsListStyle: ["text-decoration: underline;"]
+        substrMatch         : true,
+        ignoreDuplication   : true,
+        useMigemo           : false,
+        migemoMinWordLength : 2,
+        listboxMaxRows      : 12,
+        displayDelayTime    : 300,
+        actionsListStyle    : ["text-decoration: underline;"]
     };
 
     // ==================== Current State ==================== //
@@ -462,6 +466,18 @@ KeySnail.Prompt = function () {
         }
 
         oldTextLength = textbox.value.length;
+
+        if (typeof userOnChange == "function") {
+            let arg = {
+                key     : modules.key.keyEventToString(aEvent),
+                textbox : textbox,
+                event   : aEvent,
+                context : selectorContext[SELECTOR_STATE_CANDIDATES],
+                finish  : finish
+            };
+
+            userOnChange(arg);
+        }
     }
 
     /**
@@ -470,6 +486,7 @@ KeySnail.Prompt = function () {
      */
     function handleKeyPressSelector(aEvent) {
         var key = modules.key.keyEventToString(aEvent);
+
         var stopEventPropagation = true;
         var keymap = actionKeys["selector"];
 
@@ -875,26 +892,28 @@ KeySnail.Prompt = function () {
         // Some KeyPress event is grabbed by KeySnail and stopped.
         // So we need to listen the keyup event for resetting the misc values.
 
-        // modules.display.prettyPrint(["old :: " + oldSelectionStart,
-        //                              "cur :: " + textbox.selectionStart].join("\n"));
-
-        // modules.display.prettyPrint([
-        //                                 "aEvent.charCode :: " + aEvent.charCode,
-        //                                 "current :: " + textbox.value,
-        //                                 "sel :: " + textbox.selectionStart,
-        //                                 "(textbox.selectionStart != oldSelectionStart) :: " + (textbox.selectionStart != oldSelectionStart),
-        //                                 "(textbox.selectionStart != textbox.value.length) :: " + (textbox.selectionStart != textbox.value.length)
-        //                             ].join("\n"));
-
         if (textbox.selectionStart != oldSelectionStart &&
             textbox.selectionStart != textbox.value.length) {
             resetReadState();
         }
+
         oldSelectionStart = textbox.selectionStart;
+
+        if (typeof userOnChange == "function") {
+            let arg = {
+                key     : modules.key.keyEventToString(aEvent),
+                textbox : textbox,
+                event   : aEvent,
+                finish  : finish
+            };
+
+            userOnChange(arg);
+        }
     }
 
     function handleKeyPressRead(aEvent) {
         var key = modules.key.keyEventToString(aEvent);
+
         var stopEventPropagation = true;
         var keymap = actionKeys["read"];
 
@@ -1255,6 +1274,9 @@ KeySnail.Prompt = function () {
         currentCallback    = null;
         currentUserArg     = null;
 
+        userOnChange  = null;
+        userOnFinish  = null;
+
         // -------------------- prompt.selector -------------------- //
 
         delayedCommandTimeout = null;
@@ -1460,6 +1482,63 @@ KeySnail.Prompt = function () {
         },
 
         /**
+         * Extended version of the prompt.read()
+         */
+        reader: function (aContext) {
+            if (!promptbox)
+                return;
+
+            if (currentCallback) {
+                modules.display.echoStatusBar("Prompt is already used by another command");
+                return;
+            }
+
+            savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
+
+            type = TYPE_READ;
+
+            // set up history
+            history.index = 0;
+            var group = aContext.group || "default";
+            if (group && typeof(historyHolder[group]) == "undefined")
+                historyHolder[group] = [];
+            history.list = historyHolder[group];
+
+            // set up completion
+            completion.list  = aContext.collection;
+            completion.index = aContext.initialcount || 0;
+
+            // set up callbacks
+            currentCallback = aContext.callback;
+            currentUserArg  = aContext.userarg;
+
+            userOnChange = aContext.onChange;
+            userOnFinish = aContext.onFinish;
+
+            // display prompt box
+            label.value            = aContext.message;
+            textbox.value          = aContext.initialinput || "";
+            promptbox.hidden       = false;
+            textbox.selectionStart = textbox.selectionEnd = 0;
+
+            textbox.focus();
+
+            // add event listener
+            textbox.addEventListener('keypress', handleKeyPressRead, false);
+            textbox.addEventListener('keyup', handleKeyUpRead, false);
+            listbox.addEventListener('click', modules.util.stopEventPropagation, true);
+            listbox.addEventListener('mousedown', handleMouseDownRead, true);
+            eventListenerRemover = function () {
+                textbox.removeEventListener('keypress', handleKeyPressRead, false);
+                textbox.removeEventListener('keyup', handleKeyUpRead, false);
+                listbox.removeEventListener('click', modules.util.stopEventPropagation, true);
+                listbox.removeEventListener('mousedown', handleMouseDownRead, true);
+            };
+
+            modules.display.echoStatusBar(aContext.description || modules.util.getLocaleString("promptKeyDescription"));
+        },
+
+        /**
          * Read string from prompt and execute <aCallback>
          * @param {string} aMsg message to be displayed
          * @param {function} aCallback function to execute after selection
@@ -1492,6 +1571,9 @@ KeySnail.Prompt = function () {
 
             // set up callbacks
             currentCallback = true;
+
+            userOnChange = aContext.onChange;
+            userOnFinish = aContext.onFinish;
 
             // display prompt box
             label.value = aContext.message;

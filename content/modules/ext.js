@@ -75,9 +75,9 @@ KeySnail.Ext = function () {
             }
         },
 
-        exec: function (aName, aArgument) {
+        exec: function (aName, aArgument, aEvent) {
             if (aName in exts) {
-                exts[aName].action.apply(modules, [{}, aArgument]);
+                exts[aName].action.apply(modules, [aEvent || {}, aArgument]);
             } else {
                 modules.display.echoStatusBar('ext "' + aName + '" not found');
             }
@@ -100,7 +100,7 @@ KeySnail.Ext = function () {
          * Portal of the ext. All exts are listed and executed when user select the one.
          * @param {integer} aArgument Prefix argument passed to the ext
          */
-        select: function (aArgument) {
+        select: function (aArgument, aEvent) {
             extList = createExtList();
 
             // var savedSubstrMatch = modules.prompt.substrMatch;
@@ -122,7 +122,7 @@ KeySnail.Ext = function () {
                     callback: function (aIndex) {
                         if (aIndex >= 0) {
                             var name = extList[aIndex][0];
-                            self.exec(name, aArgument);
+                            self.exec(name, aArgument, aEvent);
                         }
                     },
                     header: ["Name", "Description"],
