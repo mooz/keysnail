@@ -2,7 +2,7 @@ var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Builtin command as Ext</name>
     <name>組み込みコマンドをエクステ化</name>
-    <description>Use builtin commands from ext</description>
+    <description>Make builtin commands to ext</description>
     <description lang="ja">組み込みコマンドをエクステ化します</description>
     <version>1.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/builtin-commands-ext.ks.js</updateURL>
