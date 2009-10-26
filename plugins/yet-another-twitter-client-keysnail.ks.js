@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -208,6 +208,7 @@ var twitterClient = new
      var mainColumnWidth = plugins.options["twitter_client.main_column_width"] || [11, 68, 21];
 
      var blockUser = plugins.options["twitter_client.block_users"] || undefined;
+     var userScreenName;
 
      var timelineCountBeggining = plugins.options["twitter_client.timeline_count_beginning"] || 80;
      var timelineCountEveryUpdates = plugins.options["twitter_client.timeline_count_every_updates"] || 20;
@@ -312,7 +313,9 @@ var twitterClient = new
      function showOldestUnPopUppedStatus() {
          var status = unPopUppedStatuses.pop();
 
-         if (blockUser && blockUser.some(function (username) username == status.user.screen_name)) {
+         if ((blockUser &&
+              blockUser.some(function (username) username == status.user.screen_name))
+             || status.user.screen_name == userScreenName) {
              util.message("ignored :: " + html.unEscapeTag(status.text) + " from " + status.user.screen_name);
 
              if (unPopUppedStatuses && unPopUppedStatuses.length) {
@@ -411,7 +414,7 @@ var twitterClient = new
 
      var prefKeys = {
          oauth_token        : "extensions.keysnail.plugins.twitter_client.oauth_token",
-         oauth_token_secret : "extensions.keysnail.plugins.twitter_client.oauth_token_secret"
+         oauth_token_secret : "extensions.keysnail.plugins.twitter_client.oauth_token_secret",
      };
 
      var oauthTokens = {
@@ -735,6 +738,8 @@ var twitterClient = new
                                      // immediately add
                                      // my.twitterJSONCache.unshift(status);
 
+                                     userScreenName = status.user.screen_name;
+
                                      var icon_url  = status.user.profile_image_url;
                                      var user_name = status.user.name;
                                      var message   = html.unEscapeTag(status.text);
@@ -877,8 +882,6 @@ var twitterClient = new
                              display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
                                                       en: "Failed to get statuses"}));
                          } else {
-                             util.message("fetched " + timelineCount);
-
                              var statuses = util.safeEval(xhr.responseText) || [];
 
                              twitterLastUpdated = new Date();
@@ -952,7 +955,7 @@ ext.add("twitter-client-search-word", twitterClient.search,
            en: "Search word on Twitter"}));
 
 ext.add("twitter-client-show-mentions", twitterClient.showMentions,
-        M({ja: '@ 一覧表示 (返信一覧)',
+        M({ja: '@ 一覧表示 (言及一覧)',
            en: "Display @ (Show mentions)"}));
 
 ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
