@@ -6,6 +6,50 @@ const NEW_FOREGROUND_TAB = 2;
 const NEW_WINDOW         = 3;
 const CURRENT_TAB        = 4;
 
+let XHTML = Namespace("html", "http://www.w3.org/1999/xhtml");
+let XUL   = Namespace("xul", "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"); 
+let NS    = Namespace("keysnail", "http://www.stillpedant-dummy.org/keysnail");
+
+/**
+ * Converts an E4X XML literal to a DOM node.
+ *
+ * @param {Node} node
+ * @param {Document} doc
+ * @param {Object} nodes If present, nodes with the "key" attribute are
+ *     stored here, keyed to the value thereof.
+ * @returns {Node}
+ */
+function xmlToDom(node, doc, nodes)
+{
+    if (node.length() != 1) {
+        let domnode = doc.createDocumentFragment();
+        for each (let child in node)
+        domnode.appendChild(arguments.callee(child, doc, nodes));
+        return domnode;
+    }
+
+    switch (node.nodeKind()) {
+    case "text":
+        return doc.createTextNode(node);
+    case "element":
+        let domnode = doc.createElementNS(node.namespace(), node.localName());
+
+        for each (let attr in node.@*) {
+            domnode.setAttributeNS(attr.name() == "highlight" ? NS.uri : attr.namespace(), attr.name(), String(attr));                
+        }
+
+        for each (let child in node.*) {
+            domnode.appendChild(arguments.callee(child, doc, nodes));                
+        }
+
+        if (nodes && node.@key)
+            nodes[node.@key] = domnode;
+        return domnode;
+    }
+
+    return null;
+}
+
 /**
  * Fakes a click on a link.
  *
@@ -105,6 +149,55 @@ function evaluateXPath(expression, doc, elem, asIterator) {
     : function () { for (let i = 0; i < this.snapshotLength; i++) yield this.snapshotItem(i); };
 
     return result;
+}
+
+/**
+ * An interruptible generator that returns all values between <b>start</b>
+ * and <b>end</b>. The thread yields every <b>time</b> milliseconds.
+ *
+ * @param {number} start The interval's start value.
+ * @param {number} end The interval's end value.
+ * @param {number} time The time in milliseconds between thread yields.
+ * @returns {Iterator(Object)}
+ */
+function interruptibleRange(start, end, time)
+{
+    let endTime = Date.now() + time;
+    while (start < end)
+    {
+        if (Date.now() > endTime)
+        {
+            util.threadYield(true, true);
+            endTime = Date.now() + time;
+        }
+        yield start++;
+    }
+}
+
+/**
+ * A generator that returns the values between <b>start</b> and <b>end</b>,
+ * in <b>step</b> increments.
+ *
+ * @param {number} start The interval's start value.
+ * @param {number} end The interval's end value.
+ * @param {boolean} step The value to step the range by. May be
+ *     negative. @default 1
+ * @returns {Iterator(Object)}
+ */
+function range(start, end, step)
+{
+    if (!step)
+        step = 1;
+    if (step > 0)
+    {
+        for (; start < end; start += step)
+            yield start;
+    }
+    else
+    {
+        while (start > end)
+            yield start += step;
+    }
 }
 
 function flattenArray(array) {
@@ -440,12 +533,19 @@ var ksHah = new function () {
         let width  = win.innerWidth;
         let [scrollX, scrollY] = getBodyOffsets(doc);
 
-        let baseNodeAbsolute = util.xmlToDom(<span highlight="Hint"/>, doc);
+        // CHECK:
+        // let baseNodeAbsolute = xmlToDom(<span highlight="Hint"/>, doc);
+        let baseNodeAbsolute = doc.createElement("span");
+        baseNodeAbsolute.setAttribute("highlight", "Hint");
+        // baseNodeAbsolute.__ksHighlight__ = "Hint";
 
         let elem, text, span, rect, showtext;
         let res = evaluateXPath(hintMode.tags(), doc, null, true);
 
-        let fragment = util.xmlToDom(<div highlight="hints"/>, doc);
+        // let fragment = xmlToDom(<div highlight="hints"/>, doc);
+        let fragment = doc.createElement("div");
+        fragment.setAttribute("highlight", "hints");
+        // fragment.__ksHighlight__ = "hints";
         let start = pageHints.length;
 
         for (let elem in res) {
@@ -470,9 +570,6 @@ var ksHah = new function () {
                 text = elem.textContent.toLowerCase();
 
             span = baseNodeAbsolute.cloneNode(true);
-
-            util.listProperty(span);
-            util.message(span);
 
             let leftpos = Math.max((rect.left + scrollX), scrollX);
             let toppos =  Math.max((rect.top + scrollY), scrollY);
@@ -549,7 +646,7 @@ var ksHah = new function () {
             let [scrollX, scrollY] = getBodyOffsets(doc);
 
         inner:
-            for (let i in (util.interruptibleRange(start, end + 1, 500)))
+            for (let i in (interruptibleRange(start, end + 1, 500)))
             {
                 let hint = pageHints[i];
                 [elem, text, span, imgspan, _a, _b, showtext] = hint;
@@ -573,11 +670,16 @@ var ksHah = new function () {
                         if (!rect)
                             continue;
 
-                        imgspan = util.xmlToDom(<span highlight="Hint"/>, doc);
+
+                        // CHECK:
+                        imgspan = xmlToDom(<span highlight="Hint"/>, doc);
+                        // imgspan = doc.createElement("span");
+                        // imgspan.__ksHighlight__ = "Hint";
+                        // imgspan = doc.setAttribute("class", "HintImage");
                         imgspan.setAttributeNS(NS.uri, "class", "HintImage");
-                        imgspan.style.left = (rect.left + scrollX) + "px";
-                        imgspan.style.top = (rect.top + scrollY) + "px";
-                        imgspan.style.width = (rect.right - rect.left) + "px";
+                        imgspan.style.left   = (rect.left + scrollX) + "px";
+                        imgspan.style.top    = (rect.top + scrollY) + "px";
+                        imgspan.style.width  = (rect.right - rect.left) + "px";
                         imgspan.style.height = (rect.bottom - rect.top) + "px";
                         hint[IMGSPAN] = imgspan;
                         span.parentNode.appendChild(imgspan);
@@ -601,7 +703,7 @@ var ksHah = new function () {
             // FIXME: Broken for imgspans.
             for (let [, { doc: doc }] in Iterator(docs))
             {
-                for (let elem in evaluateXPath("//*[@liberator:highlight and @number]", doc))
+                for (let elem in evaluateXPath("//*[@keysnail:highlight and @number]", doc))
                 {
                     let group = elem.getAttributeNS(NS.uri, "highlight");
                     css.push(highlight.selector(group) + "[number='" + elem.getAttribute("number") + "'] { " + elem.style.cssText + " }");
@@ -627,9 +729,9 @@ var ksHah = new function () {
 
         for (let [,{ doc: doc, start: start, end: end }] in Iterator(docs))
         {
-            for (let elem in evaluateXPath("//*[@liberator:highlight='hints']", doc))
+            for (let elem in evaluateXPath("//*[@keysnail:highlight='hints']", doc))
                 elem.parentNode.removeChild(elem);
-            for (let i in util.range(start, end + 1))
+            for (let i in range(start, end + 1))
             {
                 let hint = pageHints[i];
                 if (!timeout || hint[ELEM] != firstElem)
@@ -640,7 +742,7 @@ var ksHah = new function () {
             if (timeout && firstElem)
                 setTimeout(function () { firstElem.removeAttributeNS(NS.uri, "highlight"); }, timeout);
         }
-        styles.removeSheet(true, "hint-positions");
+        // styles.removeSheet(true, "hint-positions");
 
         reset();
     }
@@ -659,7 +761,7 @@ var ksHah = new function () {
     {
         if (validHints.length == 0)
         {
-            liberator.beep();
+            // beep
             return false;
         }
 
@@ -671,7 +773,7 @@ var ksHah = new function () {
             // OK. return hit. But there's more than one hint, and
             // there's no tab-selected current link. Do not follow in mode 2
             if (options["followhints"] == 2 && validHints.length > 1 && !hintNumber)
-                return liberator.beep();
+                return false;
         }
 
         if (!followFirst)
@@ -686,19 +788,21 @@ var ksHah = new function () {
                 return false;
         }
 
-        let timeout = followFirst || events.feedingKeys ? 0 : 500;
+        // let timeout = followFirst || events.feedingKeys ? 0 : 500;
+        let timeout     = followFirst ? 0 : 500;
         let activeIndex = (hintNumber ? hintNumber - 1 : 0);
-        let elem = validHints[activeIndex];
+        let elem        = validHints[activeIndex];
         removeHints(timeout);
 
-        if (timeout == 0)
-            // force a possible mode change, based on whether an input field has focus
-            events.onFocusChange();
-        setTimeout(function () {
-            if (modes.extended & modes.HINTS)
-                modes.reset();
-            hintMode.action(elem, elem.href || "", extendedhintCount);
-        }, timeout);
+        // if (timeout == 0)
+        //     // force a possible mode change, based on whether an input field has focus
+        //     events.onFocusChange();
+        setTimeout(
+            function () {
+                //        if (modes.extended & modes.HINTS)
+                // modes.reset();
+                hintMode.action(elem, elem.href || "", extendedhintCount);
+            }, timeout);
         return true;
     }
 
@@ -1075,6 +1179,8 @@ var ksHah = new function () {
             // ここらで KeySnail をサスペンドしておく
             // modes.extended = modes.HINTS;
 
+            key.suspended = true;
+
             submode    = aMinor;
             hintString = aFilter || "";
             hintNumber = 0;
@@ -1084,7 +1190,9 @@ var ksHah = new function () {
             generate(aWin);
 
             // get all keys from the input queue
-            // util.threadYield(true);
+            util.threadYield(true);
+
+            display.prettyPrint("hogehoge");
 
             canUpdate = true;
             showHints();
@@ -1096,6 +1204,8 @@ var ksHah = new function () {
             } else {
                 checkUnique();           
             }
+
+            key.suspended = false;
         },
 
         /**
