@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.1.8</version>
+    <version>1.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -12,12 +12,36 @@ var PLUGIN_INFO =
     <minVersion>0.9.6</minVersion>
     <include>main</include>
     <provides>
-        <ext>yet-another-twitter-client-keysnail</ext>
+        <ext>twitter-client-display-timeline</ext>
+        <ext>twitter-client-tweet</ext>
+        <ext>twitter-client-tweet-this-page</ext>
+        <ext>twitter-client-show-mentions</ext>
+        <ext>twitter-client-search-word</ext>
+        <ext>twitter-client-toggle-popup-status</ext>
+        <ext>twitter-client-reauthorize</ext>
     </provides>
     <require>
         <script>http://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
     </require>
     <options>
+        <option>
+            <name>twitter_client.timeline_count_beginning</name>
+            <type>integer</type>
+            <description>Number of timelines this client fetches in the beginning (default 80)</description>
+            <description lang="ja">起動時に取得するステータス数 (デフォルトは 80)</description>
+        </option>
+        <option>
+            <name>twitter_client.timeline_count_every_updates</name>
+            <type>integer</type>
+            <description>Number of timelines this client fetches at once (default 20)</description>
+            <description lang="ja">初回以降の更新で一度に取得するステータス数 (デフォルトは 20)</description>
+        </option>
+        <option>
+            <name>twitter_client.automatically_begin</name>
+            <type>boolean</type>
+            <description>Automatically begin fetching the statuses</description>
+            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか (初回起動時間の短縮につながる)</description>
+        </option>
         <option>
             <name>twitter_client.use_popup_notification</name>
             <type>boolean</type>
@@ -42,28 +66,42 @@ var PLUGIN_INFO =
             <description>Specify user id who you don't want to see pop up notification</description>
             <description lang="ja">ステータス更新時にポップアップを表示させたくないユーザの id を配列で指定</description>
         </option>
-        <option>
-            <name>twitter_client.automatically_begin</name>
-            <type>boolean</type>
-            <description>Automatically begin fetching the statuses</description>
-            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか (初回起動時間の短縮につながる)</description>
-        </option>
     </options>
     <detail><![CDATA[
 === Usage ===
 ==== Launching ====
-Call yet-another-twitter-client-keysnail from ext.select() and twitter client will launch.
+Call twitter-client-display-timeline from ext.select() and twitter client will launch.
 
 You can bind twitter client to some key like below.
 
 >||
 key.setViewKey("t",
     function (ev, arg) {
-        ext.exec("yet-another-twitter-client-keysnail", arg);
-    }, ext.description("yet-another-twitter-client-keysnail"), true);
+        ext.exec("twitter-client-display-timeline", arg);
+    }, "Display your timeline", true);
 ||<
 
-In this example, KeySnail launch twitter client when 't' key is pressed in the browser window.
+Your timeline will be displayed when 't' key is pressed in the browser window.
+
+If you want to tweet directly, paste code like below to your .keysnail.js.
+
+>||
+key.setGlobalKey(["C-c", "t"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet", arg);
+    }, "Tweet", true);
+||<
+
+You can tweet by pressing C-c t.
+
+Next code allows you to tweet with the current page's title and URL by pressing C-c T.
+
+>||
+key.setGlobalKey(["C-c", "T"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet-this-page", arg);
+    }, "Tweet with the title and URL of this page", true);
+||<
 
 ==== Actions ====
 Twitter client displays your time line. If your press 'Enter' key, you can go to the 'tweet' area.
@@ -83,23 +121,55 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
     <detail lang="ja"><![CDATA[
 === 使い方 ===
 ==== 起動 ====
-M-x などのキーから ext.select() を呼び出し yet-another-twitter-client-keysnail を選ぶと Twitter クライアントが起動します。
+M-x などのキーから ext.select() を呼び出し twitter-client-display-timeline を選ぶと Twitter のタイムラインが表示されます。
 
 次のようにして任意のキーへコマンドを割り当てておくことも可能です。
 
 >||
 key.setViewKey("t",
     function (ev, arg) {
-        ext.exec("yet-another-twitter-client-keysnail", arg);
-    }, ext.description("yet-another-twitter-client-keysnail"), true);
+        ext.exec("twitter-client-display-timeline", arg);
+    }, "TL を表示", true);
 ||<
 
-例えば上記のような設定を .keysnail.js へ記述しておくことにより、ブラウズ画面において t キーを押すことでこのクライアントを起動させることが可能となります。
+上記のような設定を .keysnail.js へ記述しておくことにより、ブラウズ画面において t キーを押すことでこのクライアントを起動させることが可能となります。
+
+タイムラインを表示させず即座につぶやきたいという場合は、次のような設定がおすすめです。
+
+>||
+key.setGlobalKey(["C-c", "t"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet", arg);
+    }, "つぶやく", true);
+||<
+
+こうしておくと C-c t を押すことで即座につぶやき画面を表示することが可能となります。
+
+ページのタイトルと URL を使ってつぶやくことが多いのであれば、以下のような設定により作業を素早く行うことができるようになります。
+
+>||
+key.setGlobalKey(["C-c", "T"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet-this-page", arg);
+    }, "このページのタイトルと URL を使ってつぶやく", true);
+||<
+
+KeySnail を使って、じゃんじゃんつぶやいてしまいましょう。
 
 ==== アクションの選択 ====
-Twitter クライアントが起動すると、ユーザのタイムライン一覧が表示されます。ここでそのまま Enter キーを入力すると「つぶやき」画面へ移行することができます。
+タイムライン一覧でそのまま Enter キーを入力すると、つぶやき画面へ移行することができます。
 
 Enter ではなく Ctrl + i キーを押すことにより、様々なアクションを選ぶことも可能となっています。
+
+==== ちょっと便利な使い方 ====
+例えばみんながつぶやいているページを順番に見ていきたいというときは、次のようにします。
+
++ Ctrl + i を押して 「メッセージ中の URL を開く」にカーソルを合わせる
++ もう一度 Ctrl + i を押して TL 一覧へ戻る
++ http と打ち込んで URL の載っているつぶやきだけを一覧表示する
++ あとは Ctrl + Enter を押して (Ctrl がポイント！) 順番にページを開いていく
+
+ね、簡単でしょう？
 
 ==== 自動更新  ====
 このクライアントは起動時にタイマーをセットし Twitter のタイムラインを定期的に更新します。
@@ -124,10 +194,8 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 var twitterLastUpdated;
 var twitterPending;
 
-var yATwitterClientKeySnail = new
+var twitterClient = new
 (function () {
-     let self = this;
-
      // Update interval in mili second
      var updateInterval = plugins.options["twitter_client.update_interval"] || 60 * 1000;
 
@@ -140,6 +208,23 @@ var yATwitterClientKeySnail = new
      var mainColumnWidth = plugins.options["twitter_client.main_column_width"] || [11, 68, 21];
 
      var blockUser = plugins.options["twitter_client.block_users"] || undefined;
+
+     var timelineCountBeggining = plugins.options["twitter_client.timeline_count_beginning"] || 80;
+     var timelineCountEveryUpdates = plugins.options["twitter_client.timeline_count_every_updates"] || 20;
+
+     function normalizeCount(n) {
+         if (n <= 0)
+             n = 20;
+         if (n > 200)
+             n = 200;
+
+         return n;
+     }
+
+     timelineCountBeggining = normalizeCount(timelineCountBeggining);
+     timelineCountEveryUpdates = normalizeCount(timelineCountEveryUpdates);
+
+     var timelineCount = timelineCountBeggining;
 
      var twitterActions = [
          [function (status) {
@@ -173,16 +258,14 @@ var yATwitterClientKeySnail = new
               }
           }, M({ja: "Twitter のサイトでそのつぶやきを見る : ", en: ""}) + "Show status in web page"],
          [function (status) {
-              popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
-              display.echoStatusBar(M({ja: ("ポップアップ通知を" + (popUpStatusWhenUpdated ? "有効にしました" : "無効にしました")),
-                                       en: ("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"))}));
+              self.togglePopupStatus();
           }, M({ja: "ポップアップ通知の切り替え : ", en: ""}) + "Toggle pop up notification status"],
          [function (status) {
               reAuthorize();
           }, M({ja: "再認証 : ", en: ""}) + "Reauthorize"],
          [function (status) {
               if (status) {
-                  tweet(content.document.title + " - " + getTinyURL(window.content.location.href));
+                  self.tweetWithURL();
               }
           }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL"],
          [function (status) {
@@ -302,7 +385,7 @@ var yATwitterClientKeySnail = new
              if (aNew[i].id == oldid) break;
          }
 
-         if (i - 1 > 0) {
+         if (i > 1) {
              var updatedStatus = aNew.slice(0, i);
              var latestTimeline = updatedStatus.concat(aOld);
 
@@ -593,7 +676,7 @@ var yATwitterClientKeySnail = new
 
                          var responseText = oauthSyncRequest(
                              {
-                                 action: "http://search.twitter.com/search.json?q=" + encodeURIComponent(aWord),
+                                 action: "http://search.twitter.com/search.json?q=" + encodeURIComponent(aWord) + "&rpp=100",
                                  method: "POST"
                              });
 
@@ -744,7 +827,7 @@ var yATwitterClientKeySnail = new
          if (target) {
              oauthASyncRequest(
                  {
-                     action : "https://twitter.com/statuses/user_timeline/" + target + ".json",
+                     action : "https://twitter.com/statuses/user_timeline/" + target + ".json?count=" + timelineCountBeggining,
                      method : "GET"
                  },
                  function (aEvent, xhr) {
@@ -777,54 +860,112 @@ var yATwitterClientKeySnail = new
          }
      }
 
-     this.updateJSONCache = function (aAfterWork, aNoRepeat) {
-         twitterPending = true;
+     var self = {
+         updateJSONCache: function (aAfterWork, aNoRepeat) {
+             twitterPending = true;
 
-         oauthASyncRequest(
-             {
-                 action : "https://twitter.com/statuses/friends_timeline.json",
-                 method : "GET"
-             },
-             function (aEvent, xhr) {
-                 if (xhr.readyState == 4) {
-                     twitterPending = false;
+             oauthASyncRequest(
+                 {
+                     action : "https://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
+                     method : "GET"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4) {
+                         twitterPending = false;
 
-                     if (xhr.status != 200) {
-                         display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
-                                                  en: "Failed to get statuses"}));
-                     } else {
-                         var statuses = util.safeEval(xhr.responseText) || [];
+                         if (xhr.status != 200) {
+                             display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
+                                                      en: "Failed to get statuses"}));
+                         } else {
+                             util.message("fetched " + timelineCount);
 
-                         twitterLastUpdated = new Date();
-                         my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
+                             var statuses = util.safeEval(xhr.responseText) || [];
+
+                             twitterLastUpdated = new Date();
+                             my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
+
+                             timelineCount = timelineCountEveryUpdates;
+                         }
+
+                         if (!aNoRepeat) {
+                             my.twitterJSONCacheUpdater = setTimeout(self.updateJSONCache, updateInterval);
+                         }
+
+                         if (typeof aAfterWork == "function")
+                             aAfterWork();
                      }
+                 });
+         },
 
-                     if (!aNoRepeat) {
-                         my.twitterJSONCacheUpdater = setTimeout(self.updateJSONCache, updateInterval);
-                     }
+         togglePopupStatus: function () {
+             popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
+             display.echoStatusBar(M({ja: ("ポップアップ通知を" + (popUpStatusWhenUpdated ? "有効にしました" : "無効にしました")),
+                                      en: ("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"))}));
+         },
 
-                     if (typeof aAfterWork == "function")
-                         aAfterWork();
-                 }
-             });
-     };
+         reAuthorize: function () {
+             reAuthorize();
+         },
 
-     this.display = function (aEvent, aArg) {
-         if (!oauthTokens.oauth_token || !oauthTokens.oauth_token_secret) {
-             authorizationSequence();
-         } else {
-             showFollowersStatus(null, aArg);
+         tweet: function () {
+             tweet();
+         },
+
+         tweetWithTitleAndURL: function () {
+             tweet('"' + content.document.title + '" - ' + getTinyURL(window.content.location.href));
+         },
+
+         showMentions: function () {
+             showMentions();
+         },
+
+         search: function () {
+             search();
+         },
+
+         display: function (aEvent, aArg) {
+             if (!oauthTokens.oauth_token || !oauthTokens.oauth_token_secret) {
+                 authorizationSequence();
+             } else {
+                 showFollowersStatus(null, aArg);
+             }
          }
      };
+
+     return self;
  });
 
-ext.add("yet-another-twitter-client-keysnail", yATwitterClientKeySnail.display,
-        M({ja: 'Twitter クライアントを起動',
-           en: "Launch Yet Another Twitter Client KeySnail"}));
+ext.add("twitter-client-display-timeline", twitterClient.display,
+        M({ja: 'TL を表示',
+           en: "Display your timeline"}));
+
+ext.add("twitter-client-tweet", twitterClient.tweet,
+        M({ja: 'つぶやく',
+           en: "Tweet!"}));
+
+ext.add("twitter-client-tweet-this-page", twitterClient.tweetWithTitleAndURL,
+        M({ja: 'このページのタイトルと URL を使ってつぶやく',
+           en: "Tweet with the title and URL of this page"}));
+
+ext.add("twitter-client-search-word", twitterClient.search,
+        M({ja: 'Twitter 検索',
+           en: "Search word on Twitter"}));
+
+ext.add("twitter-client-show-mentions", twitterClient.showMentions,
+        M({ja: '@ 一覧表示 (返信一覧)',
+           en: "Display @ (Show mentions)"}));
+
+ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
+        M({ja: 'ポップアップ通知の切り替え',
+           en: "Toggle popup status"}));
+
+ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
+        M({ja: '再認証',
+           en: "Reauthorize"}));
 
 if (my.twitterJSONCacheUpdater)
     clearTimeout(my.twitterJSONCacheUpdater);
 
 if (plugins.options["twitter_client.automatically_begin"] !== false) {
-    yATwitterClientKeySnail.updateJSONCache();
+    twitterClient.updateJSONCache();
 }
