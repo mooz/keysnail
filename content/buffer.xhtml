@@ -25,7 +25,7 @@
                 <p>&keySnail.pluginManager.ext.description1;</p>
                 <p>&keySnail.pluginManager.ext.description2;</p>
                 <pre>key.setGlobalKey('M-x', function (aEvent, aArg) {
-    ext.select(aArg);
+    ext.select(aArg, aEvent);
 }, '&keySnail.pluginManager.ext;', true);</pre>
                 <p>&keySnail.pluginManager.ext.description3;</p>
                 <pre>ext.add("change-locale-to-english", function () {
