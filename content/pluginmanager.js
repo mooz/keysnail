@@ -271,13 +271,13 @@ var ksPluginManager = function () {
         var dt, dd, a;
 
         // author
-        dl.appendChild(createElementWithText("dt", "author"));
+        dl.appendChild(createElementWithText("dt", modules.util.getLocaleString("author")));
 
         dd = iframeDoc.createElement("dd");
 
         var authorMailAddress = xmlHolder[aPluginPath].author.@mail;
         var authorName = infoHolder[aPluginPath].author;
-        if (authorMailAddress) {
+        if (authorMailAddress.length()) {
             a = iframeDoc.createElement("a");
             a.appendChild(iframeDoc.createTextNode(authorName));
             a.setAttribute("href", "mailto:" + authorMailAddress);
@@ -287,7 +287,7 @@ var ksPluginManager = function () {
         }
 
         var authorHomepage = xmlHolder[aPluginPath].author.@homepage;
-        if (authorHomepage) {
+        if (authorHomepage.length()) {
             dd.appendChild(iframeDoc.createTextNode(" ["));
 
             a = iframeDoc.createElement("a");
@@ -302,8 +302,21 @@ var ksPluginManager = function () {
         dl.appendChild(dd);
 
         // license
-        dl.appendChild(createElementWithText("dt", "license"));
-        dl.appendChild(createElementWithText("dd", infoHolder[aPluginPath].license));
+        dl.appendChild(createElementWithText("dt", modules.util.getLocaleString("license")));
+
+        var licenseDocumentURL = xmlHolder[aPluginPath].license.@document;
+        if (licenseDocumentURL.length()) {
+            a = iframeDoc.createElement("a");
+            a.appendChild(iframeDoc.createTextNode(infoHolder[aPluginPath].license));
+            a.setAttribute("href", licenseDocumentURL);
+            a.setAttribute("target", "_blank");
+            dd = iframeDoc.createElement("dd");
+            dd.appendChild(a);
+        } else {
+            dd = createElementWithText("dd", infoHolder[aPluginPath].license);
+        }
+
+        dl.appendChild(dd);
 
         // ====================================================================== //
 
