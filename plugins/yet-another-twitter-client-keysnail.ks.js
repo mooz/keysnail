@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.2</version>
+    <version>1.2.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -733,7 +733,7 @@ var twitterClient = new
                                      // succeeded
                                      var status = util.safeEval("(" + xhr.responseText + ")");
                                      // immediately add
-                                     my.twitterJSONCache.unshift(status);
+                                     // my.twitterJSONCache.unshift(status);
 
                                      var icon_url  = status.user.profile_image_url;
                                      var user_name = status.user.name;
