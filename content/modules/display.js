@@ -91,7 +91,7 @@ KeySnail.Display = {
         const NOTIFY_ID = "ksNotifyMessage";
 
         if (typeof(gBrowser) == 'undefined') {
-            this.message(aMsg);
+            window.alert(aMsg);
             return;
         }
 

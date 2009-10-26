@@ -5,23 +5,18 @@
  * @license The MIT License
  */
 
-// var _ksLast = new Date();
-
 var KeySnail = {
     modules: {},
-    moduleObjects: null,
 
     get windowType () {
         return window.document.documentElement.getAttribute("windowtype");
     },
 
     get version () {
-        return "1.0.5";
+        return "1.0.6";
     },
 
     init: function () {
-        // this.showElapsedTime("KeySnail.init called");
-
         var moduleObjects = ["Util",
                              "Display",
                              "Command",
@@ -33,8 +28,6 @@ var KeySnail = {
                              "Ext",
                              // UserScript must be the last
                              "UserScript"];
-        this.moduleObjects = moduleObjects;
-
         this.modules.modules = this.modules;
 
         // local namespace for user
@@ -46,10 +39,9 @@ var KeySnail = {
         for (i = 0; i < len; ++i) {
             this.registerModule.call(this, moduleObjects[i]);
         }
-        // this.showElapsedTime("Register Modules end");
+
         for (i = 0; i < len; ++i) {
             this.initModule.call(this, moduleObjects[i]);
-            // this.showElapsedTime("[" + moduleObjects[i] + "] init end");
         }
 
         // now, run the keyhandler
@@ -179,7 +171,6 @@ var KeySnail = {
         },
 
         onLocationChange: function (aProgress, aRequest, aURI) {
-            // Application.console.log("onLocationChange");
             KeySnail.Hook.callHook("LocationChange", aURI);
         },
 
