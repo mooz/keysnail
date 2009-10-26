@@ -554,7 +554,7 @@ var ksPreference = {
             this.updateFileField(this.editorKey, "keysnail.preference.userscript.editor");
             break;
         case 'PLUGIN':
-            this.modules.util.setUnicharPref(prefKey, fp.file.path);
+            this.modules.userscript.pluginDir = fp.file.path;
             this.updateFileField(this.pluginKey, "keysnail.preference.plugin.location");
             break;
         }
