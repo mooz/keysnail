@@ -471,7 +471,8 @@ KeySnail.UserScript = {
                 util.writeText(util.convertCharCodeFrom(remoteContent, "UTF-8"), aPluginPath, true);
                 this.installRequiredFiles(remoteInfo);
                 var installed = util.openFile(aPluginPath);
-                this.loadPlugin(installed);
+                if (!this.isDisabledPlugin(aPluginPath))
+                    this.loadPlugin(installed);
                 display.notify(util.getLocaleString("pluginUpdated",
                                                     [util.xmlGetLocaleString(remoteInfo.name), remoteVersion]));
 
