@@ -6,7 +6,16 @@ var ksExtViewer = function () {
     function initExtListBox() {
         var exts = modules.ext.exts;
 
-        for (var name in exts) {
+        var keyList = [];
+        var name;
+        for (name in exts) {
+            keyList.push(name);
+        }
+        keyList = keyList.sort();
+
+        for (var i = 0; i < keyList.length; ++i) {
+            name = keyList[i];
+
             var item = document.createElement("listitem");
 
             item.appendChild(createElementWithLabel("listcell", name));
