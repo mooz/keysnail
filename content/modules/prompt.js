@@ -1208,6 +1208,8 @@ KeySnail.Prompt = function () {
     /**
      * Finish inputting and current the prompt and If user can
      * @param {boolean} aCanceled true, if user canceled the prompt
+     * @param {boolean} aAgain when this value is true, prompt will not be closed
+     * and user can select other action
      */
     function finish(aCanceled, aAgain) {
         // ==================== temporary preservation ==================== //

@@ -1,202 +1,3 @@
-var PLUGIN_INFO =
-<KeySnailPlugin>
-    <name>Yet Another Twitter Client KeySnail</name>
-    <description>Make KeySnail behave like Twitter client</description>
-    <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.2.3</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
-    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
-    <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
-    <license lang="ja">MIT ライセンス</license>
-    <minVersion>0.9.6</minVersion>
-    <include>main</include>
-    <provides>
-        <ext>twitter-client-display-timeline</ext>
-        <ext>twitter-client-tweet</ext>
-        <ext>twitter-client-tweet-this-page</ext>
-        <ext>twitter-client-show-mentions</ext>
-        <ext>twitter-client-search-word</ext>
-        <ext>twitter-client-toggle-popup-status</ext>
-        <ext>twitter-client-reauthorize</ext>
-    </provides>
-    <require>
-        <script>http://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
-    </require>
-    <options>
-        <option>
-            <name>twitter_client.timeline_count_beginning</name>
-            <type>integer</type>
-            <description>Number of timelines this client fetches in the beginning (default 80)</description>
-            <description lang="ja">起動時に取得するステータス数 (デフォルトは 80)</description>
-        </option>
-        <option>
-            <name>twitter_client.timeline_count_every_updates</name>
-            <type>integer</type>
-            <description>Number of timelines this client fetches at once (default 20)</description>
-            <description lang="ja">初回以降の更新で一度に取得するステータス数 (デフォルトは 20)</description>
-        </option>
-        <option>
-            <name>twitter_client.automatically_begin</name>
-            <type>boolean</type>
-            <description>Automatically begin fetching the statuses</description>
-            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか (初回起動時間の短縮につながる)</description>
-        </option>
-        <option>
-            <name>twitter_client.use_popup_notification</name>
-            <type>boolean</type>
-            <description>Whether display pop up notification when statuses are updated or not</description>
-            <description lang="ja">ステータス更新時にポップアップ通知を行うかどうか</description>
-        </option>
-        <option>
-            <name>twitter_client.update_interval</name>
-            <type>integer</type>
-            <description>Interval between status updates in mili-seconds</description>
-            <description lang="ja">ステータスを更新する間隔 (ミリ秒)</description>
-        </option>
-        <option>
-            <name>twitter_client.main_column_width</name>
-            <type>[integer]</type>
-            <description>Each column width of [User name, Message, Info] in percentage</description>
-            <description lang="ja">[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定</description>
-        </option>
-        <option>
-            <name>twitter_client.block_users</name>
-            <type>[string]</type>
-            <description>Specify user id who you don't want to see pop up notification</description>
-            <description lang="ja">ステータス更新時にポップアップを表示させたくないユーザの id を配列で指定</description>
-        </option>
-        <option>
-            <name>twitter_client.unread_status_count_style</name>
-            <type>string</type>
-            <description>Specify style of the unread statuses count in the statusbar with CSS</description>
-            <description lang="ja">ステータスバーへ表示される未読ステータス数のスタイルを CSS で指定)</description>
-        </option>
-    </options>
-    <detail><![CDATA[
-=== Usage ===
-==== Launching ====
-Call twitter-client-display-timeline from ext.select() and twitter client will launch.
-
-You can bind twitter client to some key like below.
-
->||
-key.setViewKey("t",
-    function (ev, arg) {
-        ext.exec("twitter-client-display-timeline", arg);
-    }, "Display your timeline", true);
-||<
-
-Your timeline will be displayed when 't' key is pressed in the browser window.
-
-If you want to tweet directly, paste code like below to your .keysnail.js.
-
->||
-key.setGlobalKey(["C-c", "t"],
-    function (ev, arg) {
-        ext.exec("twitter-client-tweet", arg);
-    }, "Tweet", true);
-||<
-
-You can tweet by pressing C-c t.
-
-Next code allows you to tweet with the current page's title and URL by pressing C-c T.
-
->||
-key.setGlobalKey(["C-c", "T"],
-    function (ev, arg) {
-        ext.exec("twitter-client-tweet-this-page", arg);
-    }, "Tweet with the title and URL of this page", true);
-||<
-
-==== Actions ====
-Twitter client displays your time line. If your press 'Enter' key, you can go to the 'tweet' area.
-
-You can select more actions like reply, retweet, search, et al by pressing the Ctrl + i key.
-
-=== Customizing ===
-You can set options through your .keysnail.js.
-
-Put codes like blow to the PRESERVE area of the .keysnail.js and you can customize this plugin's behavior.
-
->||
-plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
-plugins.options["twitter_client.block_users"] = ["foo", "bar"];
-||<
-    ]]></detail>
-    <detail lang="ja"><![CDATA[
-=== 使い方 ===
-==== 起動 ====
-M-x などのキーから ext.select() を呼び出し twitter-client-display-timeline を選ぶと Twitter のタイムラインが表示されます。
-
-次のようにして任意のキーへコマンドを割り当てておくことも可能です。
-
->||
-key.setViewKey("t",
-    function (ev, arg) {
-        ext.exec("twitter-client-display-timeline", arg);
-    }, "TL を表示", true);
-||<
-
-上記のような設定を .keysnail.js へ記述しておくことにより、ブラウズ画面において t キーを押すことでこのクライアントを起動させることが可能となります。
-
-タイムラインを表示させず即座につぶやきたいという場合は、次のような設定がおすすめです。
-
->||
-key.setGlobalKey(["C-c", "t"],
-    function (ev, arg) {
-        ext.exec("twitter-client-tweet", arg);
-    }, "つぶやく", true);
-||<
-
-こうしておくと C-c t を押すことで即座につぶやき画面を表示することが可能となります。
-
-ページのタイトルと URL を使ってつぶやくことが多いのであれば、以下のような設定により作業を素早く行うことができるようになります。
-
->||
-key.setGlobalKey(["C-c", "T"],
-    function (ev, arg) {
-        ext.exec("twitter-client-tweet-this-page", arg);
-    }, "このページのタイトルと URL を使ってつぶやく", true);
-||<
-
-KeySnail を使って、じゃんじゃんつぶやいてしまいましょう。
-
-==== アクションの選択 ====
-タイムライン一覧でそのまま Enter キーを入力すると、つぶやき画面へ移行することができます。
-
-Enter ではなく Ctrl + i キーを押すことにより、様々なアクションを選ぶことも可能となっています。
-
-==== ちょっと便利な使い方 ====
-例えばみんながつぶやいているページを順番に見ていきたいというときは、次のようにします。
-
-+ Ctrl + i を押して 「メッセージ中の URL を開く」にカーソルを合わせる
-+ もう一度 Ctrl + i を押して TL 一覧へ戻る
-+ http と打ち込んで URL の載っているつぶやきだけを一覧表示する
-+ あとは Ctrl + Enter を押して (Ctrl がポイント！) 順番にページを開いていく
-
-ね、簡単でしょう？
-
-==== 自動更新  ====
-このクライアントは起動時にタイマーをセットし Twitter のタイムラインを定期的に更新します。
-
-twitter_client.update_interval に値を設定することにより、この間隔を変更することが可能となっています。
-
-==== ポップアップ通知  ====
-twitter_client.use_popup_notification オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
-
-また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
-
-=== オプションの設定 ===
-以下に初期化ファイル PRESERVE エリアへの設定例を示します。
-
->||
-plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
-plugins.options["twitter_client.block_users"] = ["foo", "bar"];
-||<
-]]></detail>
-</KeySnailPlugin>;
-
 var twitterLastUpdated;
 var twitterPending;
 
@@ -276,11 +77,11 @@ var twitterClient = new
      var unreadStatusLabel   = document.getElementById(UNREAD_STATUS_ID);
 
      var unreadStatusLabelStyle = plugins.options["twitter_client.unread_status_count_style"]
-         || "color:#005889;font-weight:bold;";
+         || "color:#383838;font-weight:bold;";
 
      if (!container) {
          // create a new one
-         container = document.createElement("vbox");
+         container = document.createElement("hbox");
          setAttributes(container,
                        {
                            align: "center",
@@ -293,6 +94,7 @@ var twitterClient = new
          setAttributes(unreadStatusLabel,
                        {
                            id: UNREAD_STATUS_ID,
+                           flex: 1,
                            value: "-"
                        });
 
@@ -303,7 +105,7 @@ var twitterClient = new
 
      unreadStatusLabel.setAttribute("style", unreadStatusLabelStyle);
 
-     unreadStatusLabel.onclick = function () { self.display(); };
+     unreadStatusLabel.onclick = function () { self.showTimeline(); };
 
      // ================================================================================ //
      // }}
@@ -323,7 +125,7 @@ var twitterClient = new
               if (status) {
                   tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
               }
-          }, "Retweet"],
+          }, "RT : Retweet"],
          [function (status) {
               if (status) {
                   showTargetStatus(status.screen_name);
@@ -333,7 +135,7 @@ var twitterClient = new
               if (status) {
                   showMentions();
               }
-          }, M({ja: "自分への返信を一覧表示 : ", en: ""}) + "Show mentions"],
+          }, M({ja: "@ を一覧表示 : ", en: ""}) + "Show mentions"],
          [function (status) {
               if (status) {
                   gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
@@ -341,14 +143,11 @@ var twitterClient = new
               }
           }, M({ja: "Twitter のサイトでそのつぶやきを見る : ", en: ""}) + "Show status in web page"],
          [function (status) {
-              self.togglePopupStatus();
-          }, M({ja: "ポップアップ通知の切り替え : ", en: ""}) + "Toggle pop up notification status"],
-         [function (status) {
-              reAuthorize();
-          }, M({ja: "再認証 : ", en: ""}) + "Reauthorize"],
+              command.setClipboardText(status.text);
+          }, M({ja: "選択中のメッセージをコピー : ", en: ""}) + "Copy selected message"],
          [function (status) {
               if (status) {
-                  self.tweetWithURL();
+                  self.tweetWithTitleAndURL();
               }
           }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL"],
          [function (status) {
@@ -766,6 +565,11 @@ var twitterClient = new
                              });
 
                          var results = (util.safeEval("(" + responseText + ")") || {"results":[]}).results;
+                         if (!results || !results.length) {
+                             display.echoStatusBar(M({ja: aWord + " に対する検索結果はありません",
+                                                      en: "No results for " + aWord}), 3000);
+                             return;
+                         }
 
                          prompt.selector(
                              {
@@ -1030,7 +834,7 @@ var twitterClient = new
              search();
          },
 
-         display: function (aEvent, aArg) {
+         showTimeline: function (aEvent, aArg) {
              if (!oauthTokens.oauth_token || !oauthTokens.oauth_token_secret) {
                  authorizationSequence();
              } else {
@@ -1050,7 +854,7 @@ var twitterClient = new
      return self;
  });
 
-ext.add("twitter-client-display-timeline", twitterClient.display,
+ext.add("twitter-client-display-timeline", twitterClient.showTimeline,
         M({ja: 'TL を表示',
            en: "Display your timeline"}));
 
@@ -1085,3 +889,202 @@ if (plugins.options["twitter_client.automatically_begin"] == undefined ||
     plugins.options["twitter_client.automatically_begin"] == true) {
     twitterClient.updateStatusesCache();
 }
+
+var PLUGIN_INFO =
+<KeySnailPlugin>
+    <name>Yet Another Twitter Client KeySnail</name>
+    <description>Make KeySnail behave like Twitter client</description>
+    <description lang="ja">KeySnail を Twitter クライアントに</description>
+    <version>1.2.4</version>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
+    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+    <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
+    <license lang="ja">MIT ライセンス</license>
+    <minVersion>0.9.6</minVersion>
+    <include>main</include>
+    <provides>
+        <ext>twitter-client-display-timeline</ext>
+        <ext>twitter-client-tweet</ext>
+        <ext>twitter-client-tweet-this-page</ext>
+        <ext>twitter-client-show-mentions</ext>
+        <ext>twitter-client-search-word</ext>
+        <ext>twitter-client-toggle-popup-status</ext>
+        <ext>twitter-client-reauthorize</ext>
+    </provides>
+    <require>
+        <script>http://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
+    </require>
+    <options>
+        <option>
+            <name>twitter_client.timeline_count_beginning</name>
+            <type>integer</type>
+            <description>Number of timelines this client fetches in the beginning (default 80)</description>
+            <description lang="ja">起動時に取得するステータス数 (デフォルトは 80)</description>
+        </option>
+        <option>
+            <name>twitter_client.timeline_count_every_updates</name>
+            <type>integer</type>
+            <description>Number of timelines this client fetches at once (default 20)</description>
+            <description lang="ja">初回以降の更新で一度に取得するステータス数 (デフォルトは 20)</description>
+        </option>
+        <option>
+            <name>twitter_client.automatically_begin</name>
+            <type>boolean</type>
+            <description>Automatically begin fetching the statuses</description>
+            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか (初回起動時間の短縮につながる)</description>
+        </option>
+        <option>
+            <name>twitter_client.use_popup_notification</name>
+            <type>boolean</type>
+            <description>Whether display pop up notification when statuses are updated or not</description>
+            <description lang="ja">ステータス更新時にポップアップ通知を行うかどうか</description>
+        </option>
+        <option>
+            <name>twitter_client.update_interval</name>
+            <type>integer</type>
+            <description>Interval between status updates in mili-seconds</description>
+            <description lang="ja">ステータスを更新する間隔 (ミリ秒)</description>
+        </option>
+        <option>
+            <name>twitter_client.main_column_width</name>
+            <type>[integer]</type>
+            <description>Each column width of [User name, Message, Info] in percentage</description>
+            <description lang="ja">[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定</description>
+        </option>
+        <option>
+            <name>twitter_client.block_users</name>
+            <type>[string]</type>
+            <description>Specify user id who you don't want to see pop up notification</description>
+            <description lang="ja">ステータス更新時にポップアップを表示させたくないユーザの id を配列で指定</description>
+        </option>
+        <option>
+            <name>twitter_client.unread_status_count_style</name>
+            <type>string</type>
+            <description>Specify style of the unread statuses count in the statusbar with CSS</description>
+            <description lang="ja">ステータスバーへ表示される未読ステータス数のスタイルを CSS で指定)</description>
+        </option>
+    </options>
+    <detail><![CDATA[
+=== Usage ===
+==== Launching ====
+Call twitter-client-display-timeline from ext.select() and twitter client will launch.
+
+You can bind twitter client to some key like below.
+
+>||
+key.setViewKey("t",
+    function (ev, arg) {
+        ext.exec("twitter-client-display-timeline", arg);
+    }, "Display your timeline", true);
+||<
+
+Your timeline will be displayed when 't' key is pressed in the browser window.
+
+If you want to tweet directly, paste code like below to your .keysnail.js.
+
+>||
+key.setGlobalKey(["C-c", "t"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet", arg);
+    }, "Tweet", true);
+||<
+
+You can tweet by pressing C-c t.
+
+Next code allows you to tweet with the current page's title and URL by pressing C-c T.
+
+>||
+key.setGlobalKey(["C-c", "T"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet-this-page", arg);
+    }, "Tweet with the title and URL of this page", true);
+||<
+
+==== Actions ====
+Twitter client displays your time line. If your press 'Enter' key, you can go to the 'tweet' area.
+
+You can select more actions like reply, retweet, search, et al by pressing the Ctrl + i key.
+
+=== Customizing ===
+You can set options through your .keysnail.js.
+
+Put codes like blow to the PRESERVE area of the .keysnail.js and you can customize this plugin's behavior.
+
+>||
+plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
+plugins.options["twitter_client.block_users"] = ["foo", "bar"];
+||<
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
+=== 使い方 ===
+==== 起動 ====
+M-x などのキーから ext.select() を呼び出し twitter-client-display-timeline を選ぶと Twitter のタイムラインが表示されます。
+
+次のようにして任意のキーへコマンドを割り当てておくことも可能です。
+
+>||
+key.setViewKey("t",
+    function (ev, arg) {
+        ext.exec("twitter-client-display-timeline", arg);
+    }, "TL を表示", true);
+||<
+
+上記のような設定を .keysnail.js へ記述しておくことにより、ブラウズ画面において t キーを押すことでこのクライアントを起動させることが可能となります。
+
+タイムラインを表示させず即座につぶやきたいという場合は、次のような設定がおすすめです。
+
+>||
+key.setGlobalKey(["C-c", "t"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet", arg);
+    }, "つぶやく", true);
+||<
+
+こうしておくと C-c t を押すことで即座につぶやき画面を表示することが可能となります。
+
+ページのタイトルと URL を使ってつぶやくことが多いのであれば、以下のような設定により作業を素早く行うことができるようになります。
+
+>||
+key.setGlobalKey(["C-c", "T"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet-this-page", arg);
+    }, "このページのタイトルと URL を使ってつぶやく", true);
+||<
+
+KeySnail を使って、じゃんじゃんつぶやいてしまいましょう。
+
+==== アクションの選択 ====
+タイムライン一覧でそのまま Enter キーを入力すると、つぶやき画面へ移行することができます。
+
+Enter ではなく Ctrl + i キーを押すことにより、様々なアクションを選ぶことも可能となっています。
+
+==== ちょっと便利な使い方 ====
+例えばみんながつぶやいているページを順番に見ていきたいというときは、次のようにします。
+
++ Ctrl + i を押して 「メッセージ中の URL を開く」にカーソルを合わせる
++ もう一度 Ctrl + i を押して TL 一覧へ戻る
++ http と打ち込んで URL の載っているつぶやきだけを一覧表示する
++ あとは Ctrl + Enter を押して (Ctrl がポイント！) 順番にページを開いていく
+
+ね、簡単でしょう？
+
+==== 自動更新  ====
+このクライアントは起動時にタイマーをセットし Twitter のタイムラインを定期的に更新します。
+
+twitter_client.update_interval に値を設定することにより、この間隔を変更することが可能となっています。
+
+==== ポップアップ通知  ====
+twitter_client.use_popup_notification オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
+
+また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
+
+=== オプションの設定 ===
+以下に初期化ファイル PRESERVE エリアへの設定例を示します。
+
+>||
+plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
+plugins.options["twitter_client.block_users"] = ["foo", "bar"];
+||<
+]]></detail>
+</KeySnailPlugin>;
