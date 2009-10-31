@@ -202,6 +202,7 @@ KeySnail.UserScript = {
             if (this.parent.windowType == "navigator:browser" ||
                 nsPreferences.getBoolPref("extensions.keysnail.plugin.global_enabled", false)) {
                 this.loadPlugins();
+                this.modules.hook.callHook("PluginLoaded");
             }
         } else {
             // failed. disable the keysnail.
