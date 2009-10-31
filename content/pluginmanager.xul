@@ -15,7 +15,7 @@
         >
     <hbox flex="1">
         <!-- plugin list -->
-        <vbox flex="1">
+        <vbox flex="1" id="plugin-area">
             <richlistbox id="plugin-listbox" flex="1"
                          onselect="ksPluginManager.pluginListboxOnSelect(event);"
                          >

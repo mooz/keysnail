@@ -535,10 +535,43 @@ var ksPluginManager = function () {
 
     var self = {
         onLoad: function () {
-            if (!modules) {
+            pluginDescriptionFrame = document.getElementById("plugin-description");
+            pluginListbox          = document.getElementById("plugin-listbox");
+
+            iframeDoc = pluginDescriptionFrame.contentDocument;
+            container = iframeDoc.getElementById("container");
+            helpBox   = iframeDoc.getElementById("help-box");
+            infoBox   = iframeDoc.getElementById("info-box");
+            detailBox = iframeDoc.getElementById("detail-box");
+
+            parserContext = {};
+
+            if (!modules || !modules.userscript) {
+                // KeySnail not loaded
+
+                var pluginArea = document.getElementById("plugin-area");
+                pluginArea.setAttribute("hidden", true);
+
+
+                removeAllChilds(container);
+                container.appendChild(createElementWithText("h1", "Please reload this page"));
+                container.appendChild(iframeDoc.createElement("hr"));
+                container.appendChild(createElementWithText("p", "Plugin manager does not loaded propery. Plese refresh this page."));
+
+                var form   = iframeDoc.createElement("form");
+                form.setAttribute("style", "text-align:center;margin:auto;");
+                var button = iframeDoc.createElement("input");
+                button.setAttribute("style", "font-size:140%;");
+                button.setAttribute("type", "button");
+                button.setAttribute("value", "Refresh");
+                button.setAttribute("onclick", "content.document.location.reload();");
+                form.appendChild(button);
+                container.appendChild(form);
+
                 return;
             }
 
+            // Check if plugin directory is specified
             if (!modules.userscript.pluginDir) {
                 var nsIFilePicker = Components.interfaces.nsIFilePicker;
                 var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
@@ -553,17 +586,6 @@ var ksPluginManager = function () {
 
                 modules.userscript.pluginDir = fp.file.path;
             }
-
-            pluginDescriptionFrame = document.getElementById("plugin-description");
-            pluginListbox          = document.getElementById("plugin-listbox");
-
-            iframeDoc = pluginDescriptionFrame.contentDocument;
-            container = iframeDoc.getElementById("container");
-            helpBox   = iframeDoc.getElementById("help-box");
-            infoBox   = iframeDoc.getElementById("info-box");
-            detailBox = iframeDoc.getElementById("detail-box");
-
-            parserContext = {};
 
             // load Wiki parser
             try {
@@ -659,13 +681,5 @@ var ksPluginManager = function () {
      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
          .getService(Components.interfaces.nsIWindowMediator);
      var browserWindow = wm.getMostRecentWindow("navigator:browser");
-
-     if (typeof(browserWindow.KeySnail) == "undefined") {
-         // keysnail not loaded yet
-         setTimeout(function () {
-                        content.document.location.reload();
-                    }, 2000);
-     } else {
-         ksPluginManager.modules = browserWindow.KeySnail.modules;
-     }
+     ksPluginManager.modules = (browserWindow.KeySnail || {modules : null}).modules;
  })();
