@@ -331,7 +331,8 @@ KeySnail.Prompt = function () {
         else if (aIndex >= listLen - center)
         {
             setupList(listLen - listboxRows, listboxRows - (listLen - aIndex));
-        } else
+        }
+        else
         {
             setupList(aIndex - center, center);
         }
