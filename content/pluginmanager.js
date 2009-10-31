@@ -535,6 +535,10 @@ var ksPluginManager = function () {
 
     var self = {
         onLoad: function () {
+            if (!modules) {
+                return;
+            }
+
             if (!modules.userscript.pluginDir) {
                 var nsIFilePicker = Components.interfaces.nsIFilePicker;
                 var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
@@ -655,5 +659,13 @@ var ksPluginManager = function () {
      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
          .getService(Components.interfaces.nsIWindowMediator);
      var browserWindow = wm.getMostRecentWindow("navigator:browser");
-     ksPluginManager.modules = browserWindow.KeySnail.modules;
+
+     if (typeof(browserWindow.KeySnail) == "undefined") {
+         // keysnail not loaded yet
+         setTimeout(function () {
+                        content.document.location.reload();
+                    }, 2000);
+     } else {
+         ksPluginManager.modules = browserWindow.KeySnail.modules;
+     }
  })();
