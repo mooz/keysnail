@@ -1,0 +1,123 @@
+[[KeySnail (Japanese)|日本語]]
+
+<img src="http://github.com/mooz/keysnail/raw/master/logo.png"
+     alt="KeySnail"
+     style="margin-left:1em;"
+     title="KeySnail"/>
+
+<p style="font-size:135%;font-weight:bold;font-style:italic;">For Vim users, there is Vimperator. For Emacs users, there is KeySnail.</p>
+
+<div style="margin-left:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/download.png" alt="Download icon" style="vertical-align:middle;"/>
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/13118" style="vertical-align:middle;">Get it now!</a>
+</div>
+
+h2. What's this?
+
+<div style="margin:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/check.png" alt="Check icon" style="vertical-align:middle;"/>
+    KeySnail allows you to bind functions to key sequences
+</div>
+
+This extension provides **very flexible** way of customizing the keybindings.
+
+You can define or choose the **arbitrary function** written in JavaScript, and bind it to the **arbitrary key sequence** through the initialization file.
+
+<img src="http://github.com/mooz/keysnail/raw/master/wiki/images/preference-dialog.png" alt="Preference dialog"/>
+
+Yes, this extension allows you to bind functions to the **key sequence** not just the shortcut key.
+
+<div style="margin:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/check.png" alt="Check icon" style="vertical-align:middle;"/>
+    KeySnail provides many functions which emulates Emacs behavior
+</div>
+
+For Emacs junkies, KeySnail provides a lot of commands and functions which emulates the Emacs behavior.
+
+Part of features are listed below.
+
+* Customization through the **init file** named .keysnail.js which correspond to .emacs file.
+* **Keyboard macro**.
+* **Prefix argument** system.
+* Prompt system. (In elisp, this interface is called **completing-read**)
+* Selector system. (If you are the Emacs user, you may know **anything.el** and this interface provides it to the Firefox!)
+* **Minibuffer** system. Just press **M-x** and you can call a lot of functions.
+
+<div style="margin:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/check.png" alt="Check icon" style="vertical-align:middle;"/>
+    KeySnail is the environment
+</div>
+
+KeySnail has the **plugin system** which allows user to extends KeySnail with lot of features.
+
+<img src="http://github.com/mooz/keysnail/raw/master/wiki/images/plugin-manager.png" alt="Plugin system"/>
+
+<div style="margin:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/plugins.png" alt="Plugins icon" style="vertical-align:middle;"/>
+    <a href="http://wiki.github.com/mooz/keysnail/plugin" style="vertical-align:middle;">Find plugins</a>
+</div>
+
+If you are the Firefox **extension developer** or familiar with the **userChrome.js**, it's easy to start writing the KeySnail plugins.
+
+h2. Init file format
+
+KeySnail loads the .keysnail.js / _keysnail.js from user home directory (or a profile directory in Windows) and execute it. This directory can be changed in the  preference dialog.
+
+Init file is the complete JavaScript program. You can call JavaScript / Firefox API and moreover, other extensions function.
+
+<script src="http://gist.github.com/169146.js"></script>
+
+You can bind the function to the key sequence, using the functions listed below.
+
+<pre>
+key.setGlobalKey(keys, func, ksDescription, ksNoRepeat);
+key.setEditKey(keys, func, ksDescription, ksNoRepeat);
+key.setViewKey(keys, func, ksDescription, ksNoRepeat);
+key.setCaretKey(keys, func, ksDescription, ksNoRepeat);
+</pre>
+
+Here are the descriptions of the each argument.
+
+h3. keys
+
+Specify key (string) or key sequence (array). if you want to bind a function to mutliple key sequence use 'array of array'. The expression of the key follows the Emacs like below example.
+
+|Ctrl + Alt + t | C-M-t                        |
+|Arrow Key      | &lt;up&gt;, &lt;down&gt;, &lt;left&gt;, &lt;right&gt;|
+|PgUp, PgDn     | &lt;prior&gt;, &lt;next&gt;	       |
+|F1, F2, F3     | &lt;f1&gt;, &lt;f2&gt;, &lt;f3&gt;             |
+
+h3. func
+
+Specify anonymous function. This function can take two arguments.
+
+* argument 1 => key event
+* argument 2 => prefix argument (or null)
+
+You can use these arguments through declaring the following expression.
+
+<pre>
+function (aEvent, aArg)
+</pre>
+
+h3. ksDescription
+
+Specify description of the function. You can omit this argument.
+
+h3. ksNoRepeat
+
+When this value is false, command (function) is executed prefix arguments times.
+
+If you want to use prefix argument in your function and do not want to repeat it, set this value to true.
+
+you can omit this argument.
+
+<script type="text/javascript" src="http://i.yimg.jp/images/analytics/js/ywa.js"></script>
+<script type="text/javascript">
+var YWATracker = YWA.getTracker("1000175150938");
+YWATracker.addExcludeProtocol("file:");
+YWATracker.submit();
+</script>
+<noscript>
+<div><img src="http://by.analytics.yahoo.co.jp/p.pl?a=1000175150938&amp;js=no" width="1" height="1" alt="" /></div>
+</noscript>

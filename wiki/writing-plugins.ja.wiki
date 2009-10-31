@@ -1,0 +1,344 @@
+h2. KeySnail プラグインの書き方
+
+先日予告したとおり、今回のエントリでは KeySnail プラグインの書き方について説明したいと思います。これからプラグインを書こうと思われている方の参考になれば幸いです。
+
+h2. KeySnail プラグインの書式
+
+KeySnail プラグインは Chrome 特権の元で動作する JavaScript のプログラムですが、次のような点に留意する必要があります。
+
+* 拡張子は .ks.js
+* マルチバイト文字をプラグイン内で使用する場合は L() や M() でくくる
+* PLUGIN_INFO という変数にメタ情報を記述する
+
+それぞれの詳細については後述します。
+
+h2. 拡張子
+
+KeySnail プラグインの拡張子は .ks.js となっている必要があります。これは userChrome.js のユーザスクリプトが foobar.uc.js となっているのと同様です。
+
+プラグインを作成したのに KeySnail がそのプラグインを認識してくれないというときは、ファイル名が hogehuga.ks.js のようになっているかどうかを確認してみて下さい。
+
+h2. L() と M()
+
+KeySnail プラグインの内部で次のようなコードを書くと、実行時に文字化けが生じてしまいます。
+
+<pre>
+window.alert("こんにちは！");
+</pre>
+
+文字化けを防ぐためには、マルチバイト文字を L() で囲うようにしてください。先ほどの例であれば次のようになります。
+
+<pre>
+window.alert(L("こんにちは！"));
+</pre>
+
+また、 M() を使うと文字化けを防ぎつつ、日本語や英語といったように各ロケール向けにメッセージを用意することができます。
+
+<pre>
+window.alert(M({ja: "こんにちは！",
+                en: "Hello!"}));
+</pre>
+
+日本語環境で上のコードを実行すると「こんにちは！」となり、英語環境では「Hello!」と表示されます。
+
+h2. PLUGIN_INFO
+
+KeySnail はプラグイン内の PLUGIN_INFO という変数に記述された情報を用い、プラグインの管理を行います。そのため PLUGIN_INFO が用意されていないプラグインは「正しい KeySnail プラグイン」とみなされず、インストールをすることが出来ません。
+
+プラグインを書く際は、必ず PLUGIN_INFO を用意するようにして下さい。
+
+PLUGIN_INFO には E4X という技術を用い、 XML 形式でプラグインの情報を記述します。次の例をご覧下さい。
+
+<pre>
+var PLUGIN_INFO =
+<KeySnailPlugin>
+    <name>KeySnail Plugin</name>
+    <name lang="ja">KeySnail プラグイン</name>
+    <description>Hello KeySnail Plugin!</description>
+    <description lang="ja">はじめての KeySnail プラグインです</description>
+    <version>0.1</version>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hello-plugin.ks.js</updateURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hello-plugin.icon.png</iconURL>
+    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+    <license>The MIT License</license>
+    <license lang="ja">MIT ライセンス</license>
+    <minVersion>1.0</minVersion>
+    <include>main</include>
+    <detail><![CDATA[
+=== Usage ===
+Nothing.
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
+=== 使い方 ===
+なし。
+    ]]></detail>
+</KeySnailPlugin>;
+</pre>
+
+PLUGIN_INFO は必ず KeySnailPlugin タグで囲います。以下に、各タグの説明を記します。
+
+* "name":#name
+* "description":#description
+* "version":#version
+* "updateURL":#updateURL
+* "iconURL":#iconURL
+* "author":#author
+* "license":#license
+* "minVersion":#minVersion
+* "maxVersion":#maxVersion
+* "include":#include
+* "exclude":#exclude
+* "provides":#provides
+* "require":#require
+* "options":#options
+* "detail":#detail
+
+h3(#name). name
+
+プラグイン名を指定する。
+
+<pre>
+<name>Plugin name</name>
+<name lang="ja">プラグイン名</name>
+</pre>
+
+name は次の属性を取ることができる。
+
+| lang | 言語環境を指定   |
+
+h3(#description). description
+
+プラグインの説明を指定する。
+
+<pre>
+<description>Plugin description</description>
+<description lang="ja">プラグインの説明</description>
+</pre>
+
+description は次の属性を取ることができる。
+
+| lang | 言語環境を指定   |
+
+h3(#version). version
+
+プラグインのバージョンを指定する。この値はアップデートの有無を確認するために使われる。
+
+<pre>
+<version>1.0</version>
+</pre>
+
+h3(#updateURL). updateURL
+
+プラグインの取得元を URL で指定する。アップデートの際にはここで指定したファイルが用いられる。
+
+<pre>
+<updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hello-plugin.ks.js</updateURL>
+</pre>
+
+h3(#iconURL). iconURL
+
+プラグインのアイコンを URL で指定する。ここで指定したアイコンはプラグインマネージャなどで表示される。省略された場合はデフォルトのアイコンが用いられる。
+
+<pre>
+<iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hello-plugin.icon.png</iconURL>
+</pre>
+
+h3(#author). author
+
+プラグインの作者名を指定する。
+
+<pre>
+<author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+</pre>
+
+author は次のような属性を取ることができる。
+
+| mail     | 作者のメールアドレス |
+| homepage | 作者の Web ページアドレス |
+
+これらの属性を指定した場合、プラグインマネージャにおいてリンクが張られる。
+
+h3(#license). license
+
+ライセンス名を指定する。
+
+<pre>
+<license>The MIT License</license>
+<license lang="ja">MIT ライセンス</license>
+</pre>
+
+license は次の属性を取ることができる。
+
+| lang | 言語環境を指定   |
+
+h3(#minVersion). minVersion
+
+そのプラグインがサポートする KeySnail のバージョン下限を指定する。ユーザの KeySnail がサポート外のバージョンである場合、プラグインは自動的に無効化される。
+
+<pre>
+<minVersion>1.0</minVersion>
+</pre>
+
+h3(#maxVersion). maxVersion
+
+そのプラグインがサポートする KeySnail のバージョン上限を指定する。
+
+<pre>
+<maxVersion>1.0.*</maxVersion>
+</pre>
+
+==no アスタリスク (*)を用いることもできる。例えば 1.0.* とした場合は 1.0.0 から 1.0.9 までがマッチする。==
+
+h3(#include). include
+
+そのプラグインをロードしたいドキュメントの Chrome URI を指定する。 main とだけ書けばそのプラグインは Firefox のメイン画面でのみロードされる。これは chrome://browser/content/browser.xul を指定するのと同じことである。
+
+<pre>
+<include>main</include>
+</pre>
+
+h3(#exclude). exclude
+
+そのプラグインをロードしたくないドキュメントの Chrome URI を指定する。
+
+h3(#provides). provides
+
+そのプラグインが提供するエクステ (コマンド) を記述する。 これは Emacs における M-x (execute-extended-command) に相当するものである。
+
+<pre>
+<provides>
+    <ext>yet-another-twitter-client-keysnail</ext>
+</provides>
+</pre>
+
+ここでの値はプラグインマネージャでのヘルプに使われる。
+
+エクステの追加には、 ext.add() を用いる。
+
+<pre>
+ext.add("コマンド名", コマンド本体, "コマンドの説明");
+</pre>
+
+実例を以下に示す。
+
+<pre>
+ext.add("display-hello-message",
+        function (aEvent, aArg) {
+            window.alert("Hello!");
+        },
+        M({ja: 'Hello メッセージを表示',
+           en: "Display hello message"}));
+</pre>
+
+こうして登録されたエクステは ext.select() から呼び出すことができる。また、次のようにすれば任意のキーへとエクステを割り当てることもできる。
+
+<pre>
+key.setViewKey("h", function (ev, arg) {
+            ext.exec("display-hello-message", arg);
+            }, "Hello メッセージを表示");
+</pre>
+
+プラグインは基本機能をエクステとして提供し、ユーザが好みのキーへとその機能を割り当てることができるようにしておくことが望ましい。
+
+プラグイン内で key.setGlobalKey() などの関数を用いキー設定を変更することは、極力避けるべきである。
+
+h3(#require). require
+
+そのプラグインが必要とする外部ファイルを指定する。現在のところ外部ファイルには script のみが指定可能となっている。
+
+<pre>
+<require>
+    <script>http://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
+</require>
+</pre>
+
+ここで指定されたファイルは、プラグインインストール時に本体とともにダウンロードされる。
+
+プラグイン内でそのスクリプトをロードする際は userscript.require() を使う。
+
+<pre>
+var context = {};
+userscript.require("oauth.js", context);
+</pre>
+
+例えば上のようにした場合 oauth.js の内容が context の中で評価される。
+
+h3(#options). options
+
+そのプラグインが持つオプションを指定する。
+
+<pre>
+<options>
+    <option>
+        <name>twitter_client.use_popup_notification</name>
+        <type>boolean</type>
+        <description>Whether display pop up notification when statuses are updated or not</description>
+        <description lang="ja">ステータス更新時にポップアップ通知を行うかどうか</description>
+    </option>
+    <option>
+        <name>twitter_client.main_column_width</name>
+        <type>[integer]</type>
+        <description>Each column width of [User name, Message, Info] in percentage</description>
+        <description lang="ja">[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定</description>
+    </option>
+</options>
+</pre>
+
+オプションは option タグで囲う。その中には次のようなタグでオプションの内容を記述することが可能となっている。
+
+| name        | オプション名を指定     |
+| type        | オプションの型を指定   |
+| description | オプションの説明を指定 |
+
+ここで指定されたオプションの情報は、はプラグインマネージャでのヘルプに使われる。
+
+プラグイン内でオプションの値にアクセスする場合は、次のようにする。
+
+<pre>
+var optionValue = plugins.options["twitter_client.use_popup_notification"];
+</pre>
+
+オプションの名前空間は各プラグイン間で共通となっているため、各自適切なプリフィックスをつけるなどし、衝突を防ぐ必要がある。
+
+h3(#detail). detail
+
+CDATA セクションに、プラグインのヘルプを Wiki 記法ライクな書式で記述する。この部分は <a href="http://coderepos.org/share/browser/lang/javascript/vimperator-plugins/trunk/pluginManager.js">pluginManager.js</a> のコードをお借りして実現している。
+
+以下に pluginManager.js のヘルプから引用させていだたいた記法の説明を記す。
+
+<pre>
+見出し:
+    - == heading1 == で第一見出し(h1)
+    - === heading2 === で第二見出し(h2)
+    - ==== heading3 ==== で第三見出し(h3)
+
+リスト:
+    - "- "を先頭につけると箇条書きリスト(ul)になります。
+      - 改行が可能
+        >||
+            - 改行
+              可能
+        ||<
+        の場合
+
+        - 改行
+          可能
+
+        となります。
+      - ネスト可能
+
+    - "+ "を先頭につけると番号付きリスト(ol)になります。
+      仕様は箇条書きリストと同じです。
+
+定義リスト:
+    - 末尾が":"で終わる行は定義リスト(dl,dt)になります。
+    - 次行をネストして始めるとdd要素になります。
+    - これもネスト可能です。
+
+整形式テキスト:
+    >|| と ||< で囲むと整形式テキスト(pre)になります。
+    コードなどを書きたい場合に使用できるでしょう。
+
+インライン:
+    - mailtoとhttp、httpsスキームのURLはリンクになります
+</pre>

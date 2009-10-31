@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.1.3</version>
+    <version>1.1.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -87,7 +87,7 @@ function showCommentOfPage(aPageURL, aArg) {
             }
 
             if (!collection.length) {
-                display.echoStatusBar(M({ja: 'ブックマークが見つかりませんでした',
+                display.echoStatusBar(M({ja: (aArg == null) ? 'コメント付きの' : '' + 'ブックマークが見つかりませんでした',
                                          en: "No bookmarks found"}), 2000);
                 return;
             }
@@ -154,7 +154,7 @@ function listHBItems(aEvent, aArg) {
     if (!hblist || aArg != null) {
         if (!hBookmark.User.user) {
             hBookmark.User.login();
-            macro.sleep(2000);
+            util.sleep(2000);
         }
 
         var db = hBookmark.User.user.database.connection;
@@ -185,32 +185,32 @@ function listHBItems(aEvent, aArg) {
                      if (aIndex >= 0) {
                          openUILinkIn(getURL(aIndex), "tab");
                      }
-                 }, "Open Link in new tab (foreground)"],
+                 }, M({en: "Open Link in new tab (foreground)", ja: "新しいタブで開く (前面)"})],
                 [function (aIndex) {
                      if (aIndex >= 0) {
                          openUILinkIn(getURL(aIndex), "tabshifted");
                      }
-                 }, "Open Link in new tab (background)"],
+                 }, M({en: "Open Link in new tab (background)", ja: "新しいタブで開く (背面)"})],
                 [function (aIndex) {
                      if (aIndex >= 0) {
                          openUILinkIn(getURL(aIndex), "window");
                      }
-                 }, "Open Link in new window"],
+                 }, M({en: "Open Link in new window", ja: "新しいウィンドウで開く (背面)"})],
                 [function (aIndex) {
                      if (aIndex >= 0) {
                          openUILinkIn(getURL(aIndex), "current");
                      }
-                 }, "Open Link in current tab"],
+                 }, M({en: "Open Link in current tab", ja: "現在のタブで開く"})],
                 [function (aIndex) {
                      if (aIndex >= 0)
                          hBookmark.AddPanelManager.showPanel(getURL(aIndex));
-                 }, "Edit bookmark entry"],
+                 }, M({en: "Edit bookmars entry", ja: "選択中のブックマークエントリを編集"})],
                [function (aIndex) {
                      if (aIndex >= 0) {
                          var url = getURL(aIndex);
                          showCommentOfPage(url);
                      }
-                 }, "Show comments of the selected item's page"],
+                 }, M({en: "Show comments of the selected item's page", ja: "選択中のブックマークエントリについたコメントを見る"})],
                 [function (aIndex) {
                      if (aIndex >= 0) {
                          var url = getURL(aIndex);
@@ -219,7 +219,7 @@ function listHBItems(aEvent, aArg) {
                              openUILinkIn("http://b.hatena.ne.jp/entry/" + match[2], "tab");
                          }
                      }
-                 }, "Show hatena bookmark page of selected item"]
+                 }, M({en: "Show hatena bookmark page of selected item", ja: "選択中アイテムのブックマークエントリページへ"})]
             ]
         }
     );

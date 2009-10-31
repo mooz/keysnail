@@ -1,0 +1,70 @@
+<img src="http://github.com/mooz/keysnail/raw/master/logo.png"
+     alt="KeySnail"
+     style="margin-left:1em;"
+     title="KeySnail"/>
+
+<p style="font-size:135%;font-weight:bold;font-style:italic;">For Vim users, there is Vimperator. For Emacs users, there is KeySnail.</p>
+
+<div style="margin-left:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/download.png" alt="Download icon" style="vertical-align:middle;"/>
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/13118" style="vertical-align:middle;">今すぐ入手！</a>
+</div>
+
+h2. これは何？
+
+<div style="margin:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/check.png" alt="Check icon" style="vertical-align:middle;"/>
+    KeySnail をインストールすることで「任意の機能」を「任意のキーシーケンス」へ割り当てることが可能となります
+</div>
+
+KeySnail は **非常に柔軟な** キーカスタマイズ機能を Firefox へ追加します。
+
+あらかじめ用意されたコマンドだけでなく、 JavaScript を使ってオリジナルの関数を書き、それらを **自由なキーの組み合わせ** に割り当てることが可能です。
+
+<img src="http://github.com/mooz/keysnail/raw/master/wiki/images/preference-dialog.png" alt="Preference dialog"/>
+
+単なるショートカットキーだけでなく **キーシーケンス** への関数割り当てができる。それがこの拡張機能の強みです。
+
+<div style="margin:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/check.png" alt="Check icon" style="vertical-align:middle;"/>
+    KeySanil は Firefox を Emacs っぽくするための機能を提供します
+</div>
+
+Emacs 中毒の皆さん、お待たせしました。 KeySnail は Firefox を **適度に** Emacs っぽくするための機能をたくさん提供します。
+
+その内の一部をお見せしましょう。
+
+* **初期化ファイル** によるカスタマイズ。 .emacs ファイルをご存知ですよね。 KeySnail では .keysnail.js を使って動作をカスタマイズすることが可能です
+* **キーボードマクロ**
+* **前置引数システム** 。 C-u や M-- を使ってコマンドをもっとフレキシブルに
+* プロンプトシステム。(elisp で言う所の **completing-read** が備わっています)
+* セレクタシステム。(Emacs ユーザならおそらくご存知の **anything.el** ライクなインタフェースも提供されます)
+* **M-x** 。 M-x を入力して色々な関数を呼び出すことができちゃいます
+
+<div style="margin:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/check.png" alt="Check icon" style="vertical-align:middle;"/>
+    KeySnail は環境です
+</div>
+
+KeySnail には **プラグインシステム** が用意されています。
+
+<img src="http://github.com/mooz/keysnail/raw/master/wiki/images/plugin-manager.png" alt="Plugin system"/>
+
+<div style="margin:1em;font-size:140%;font-weight:bold;">
+    <img src="http://github.com/mooz/keysnail/raw/master/wiki/icons/plugins.png" alt="Plugins icon" style="vertical-align:middle;"/>
+    <a href="http://wiki.github.com/mooz/keysnail/plugin" style="vertical-align:middle;">プラグインを探す</a>
+</div>
+
+Firefox 拡張機能の開発者や、 userChrome.js に精通した方ならば、 KeySnail プラグインを書くのはとっても簡単です。
+
+プラグインの書き方は <a href="http://d.hatena.ne.jp/mooz/20091022/p1">ココ</a>を参照してみてください。
+
+<script type="text/javascript" src="http://i.yimg.jp/images/analytics/js/ywa.js"></script>
+<script type="text/javascript">
+var YWATracker = YWA.getTracker("1000175150938");
+YWATracker.addExcludeProtocol("file:");
+YWATracker.submit();
+</script>
+<noscript>
+<div><img src="http://by.analytics.yahoo.co.jp/p.pl?a=1000175150938&amp;js=no" width="1" height="1" alt="" /></div>
+</noscript>
