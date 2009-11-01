@@ -13,6 +13,9 @@ var PLUGIN_INFO =
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.0.8</minVersion>
     <include>main</include>
+    <provides>
+        <ext>site-local-keymap-toggle-status</ext>
+    </provides>
     <options>
         <option>
             <name>remap_pages.local_keymap</name>
@@ -135,6 +138,11 @@ null が指定された場合、 KeySnail はそのサイトにいる間、そ�
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.0.3 (2009 11/01) ====
+//
+// * Added icon which indicates keysnail currently using the site local keymap.
+// * Added ext which toggle the keymap status.
+//
 // ==== 1.0.2 (2009 11/01) ====
 //
 // * Made local key bindings with key sequence work correctly.
@@ -147,6 +155,23 @@ null が指定された場合、 KeySnail はそのサイトにいる間、そ�
 
 // {pattern : keymap}
 var localKeyMaps = {};
+var status = true;
+
+var iconData = "data:image/png;base64," +
+    "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A" +
+    "/wD/oL2nkwAAAAlwSFlzAAACVgAAAlYBSEjC2wAAAAd0SU1FB9kLAQomGZyrHwEAAAItSURBVDjL" +
+    "lZJdSJNhFMd/z7vXvW9lzo9sOmoucGqkY6bMYDPBpEiULkoMKTGLoIi+oC68kboMuyropkZQXUQX" +
+    "FRjShZJOKkVr4Mg+jCkamLo0cUi57e3CemPYKs/VOc/5/3/PgXPE2bauQ4OB8WtDI9OprCKK7OZ5" +
+    "d3HOeUOSpbJ7tWaAqS9hJRJZqpRXYy7KzcS5dRPmjHVomsbI+Fyy/D9GV6GFlmMeiu2mFb1/Ag7s" +
+    "dtB22oUQ4o/9vwI8JVauninT61BY4+nzIC/9k6SYjFS5rEiJzAZJcOlEhV4/80+xo8GLEIILTSWc" +
+    "qncSjWmJJ/CU5pKbrQIwEYpwpPUxPd5GNmcouiZruznxBOXObD2/9WiI5n2lceZfsQJwvM6FQRJk" +
+    "ZSbrb50vPuDM2xCn6/HPMB/+CRBCkGddPofJmQWiMY3v32K6OD1N5UnvWBzAZknhTsfwMkCWZVwO" +
+    "GwCzc1/ZYjHxJjiji5tqnXT4hnnQNcbiooHQQpSW6z1IkoRI9bRpAHvc+fS+GiXdpFJTUUB791t8" +
+    "N+sQQqBpGodbO/ENBnWoapTpv9f4ewvvR6c4WO3g9sMBqstt3Ljfh7d9hKO1doQQ3L1cxeC7WfoC" +
+    "n8lIXcNedw4pKkhFdvM8QPDTLDU7bUgGGaMsU2BL54q3l+7X0/qvJflpnNxfQP2uZTMQNjQ0n5uO" +
+    "RJYqJ0NhY1mhFVVVWL9WRlEU+gMTtPs+Eo0lsc2+ESX+asLAxR/Sxa1hhI4dIQAAAABJRU5ErkJggg==";
+
+var iconElem = document.getElementById("keysnail-statusbar-icon");
 
 // ============================================================ //
 
@@ -154,7 +179,7 @@ var localKeyMaps = {};
 key.modes.SITELOCAL = "sitelocal";
 
 function locationChangeHandler(aNsURI) {
-    if (!aNsURI)
+    if (!aNsURI || !status)
         return;
 
     var url = aNsURI.spec;
@@ -171,6 +196,13 @@ function locationChangeHandler(aNsURI) {
     }
 
     key.keyMapHolder[key.modes.SITELOCAL] = keymap;
+
+    // change statusbar icon
+    if (keymap && key.status && !key.suspended) {
+        iconElem.setAttribute("src", iconData);
+    } else {
+        key.updateStatusBar();
+    }
 }
 
 if (my.remapPagesLocationChangeHandler)
@@ -230,7 +262,8 @@ function processLocalKeyMap() {
                 // key sequence
                 var current = localKeyMaps[regexp];
 
-                for (var i = 0; i < keySetting.length - 1; ++i) {
+                for (var i = 0; i < keySetting.length - 1; ++i)
+                {
                     var keyStr = keySetting[i];
 
                     if (typeof(current[keyStr]) != "object")
@@ -245,4 +278,28 @@ function processLocalKeyMap() {
     }
 }
 
+function toggleStatus() {
+    if (status)
+    {
+        // disable
+        status = false;
+        key.keyMapHolder[key.modes.SITELOCAL] = undefined;
+        key.updateStatusBar();
+    }
+    else
+    {
+        // enable
+        status = true;
+        locationChangeHandler({spec : window.content.location.href});
+    }
+
+    gBrowser.focus();
+    _content.focus();
+    document.commandDispatcher.advanceFocus();
+}
+
 processLocalKeyMap();
+
+ext.add("site-local-keymap-toggle-status", toggleStatus,
+        M({ja: 'サイトローカルなキーマップの有効 / 無効を切り替え',
+           en: "Toggle site local keymap"}));
