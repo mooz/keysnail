@@ -200,6 +200,8 @@ function locationChangeHandler(aNsURI) {
     // change statusbar icon
     if (keymap && key.status && !key.suspended) {
         iconElem.setAttribute("src", iconData);
+        iconElem.tooltipText = M({en: "Site local keymap of this page enabled",
+                                  ja: "このサイトのローカルキーマップが使われています"});
     } else {
         key.updateStatusBar();
     }
