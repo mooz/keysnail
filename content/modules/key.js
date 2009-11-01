@@ -211,7 +211,7 @@ KeySnail.Key = {
         checkbox.setAttribute('checked', this.status);
     },
 
-    getCurrentMode: function (aEvent) {
+    getCurrentMode: function (aEvent, aKey) {
         if (this.modules.util.isWritable(aEvent)) {
             return this.modes.EDIT;
         }
@@ -356,9 +356,17 @@ KeySnail.Key = {
             }
 
             // decide which keymap to use
-            var modeName = this.getCurrentMode(aEvent);
+            var modeName = this.getCurrentMode(aEvent, key);
 
             this.currentKeyMap = this.keyMapHolder[modeName];
+        }
+
+        // KeySnail ignores the keybindings bounded with "null".
+        // this is useful when keymap is the site-local
+        // and user not want this "key" to handled by KeySnail.
+        if (this.currentKeyMap[key] === null) {
+            this.backToNeutral("");
+            return;
         }
 
         if (!this.currentKeyMap[key]) {

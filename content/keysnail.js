@@ -13,7 +13,7 @@ var KeySnail = {
     },
 
     get version () {
-        return "1.0.7b";
+        return "1.0.8";
     },
 
     init: function () {
