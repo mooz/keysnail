@@ -1,3 +1,4 @@
+// PLUGIN INFO: {{{
 var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Clipboard observer</name>
@@ -34,6 +35,7 @@ If you want to enable or disable the observer, use ext below.
 - switch-clipboard-observer-status
     ]]></detail>
 </KeySnailPlugin>;
+// }}}'
 
 var status = true;
 
@@ -53,6 +55,10 @@ function clipboardObserver(aText) {
         aText = aText.slice(aText.indexOf(matched[2]) + matched[2].length);
     }    
 }
+
+if (my.clipboardObserver)
+    hook.removeHook('ClipboardChanged', my.clipboardObserver);
+my.clipboardObserver = clipboardObserver;
 
 hook.addToHook('ClipboardChanged', clipboardObserver);
 

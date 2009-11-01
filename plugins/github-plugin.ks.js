@@ -16,7 +16,7 @@ var PLUGIN_INFO =
         <ext>github-install-plugin-from-this-page</ext>
     </provides>
     <detail><![CDATA[
-=== What's this ===
+=== Usage ===
 ==== Suggestion ====
 By enabling this plugin, when KeySnail plugin is found at current github page, the notification bar will appear top of the browser content area and user can install the plugin easily.
 
@@ -119,6 +119,10 @@ function installPluginFromThisPage(aEvent, aArg) {
 
     userscript.installPluginFromURL(githubGetRawURL(url));
 }
+
+if (my.githubPluginLocationChangeChecker)
+    hook.removeHook('LocationChange', my.githubPluginLocationChangeChecker);
+my.githubPluginLocationChangeChecker = githubLocationChangeChecker;
 
 hook.addToHook('LocationChange', githubLocationChangeChecker);
 
