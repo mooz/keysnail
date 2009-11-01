@@ -37,11 +37,16 @@ KeySnail.Hook = {
     removeHook: function (aHookName, aFunction) {
         var hook = this.hookList[aHookName];
 
-        for (var i = 0; i < hook.length; ++i) {
-                if (hook[i] == aFunction) {
-                    hook.splice(i, 1);
-                    break;
-                }
+        if (!hook)
+            return;
+
+        for (var i = 0; i < hook.length; ++i)
+        {
+            if (hook[i] == aFunction)
+            {
+                hook.splice(i, 1);
+                break;
+            }
         }
     },
 

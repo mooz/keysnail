@@ -152,7 +152,6 @@ var localKeyMaps = {};
 
 // arrange keymap
 key.modes.SITELOCAL = "sitelocal";
-key.declareKeyMap(key.modes.SITELOCAL);
 
 function locationChangeHandler(aNsURI) {
     if (!aNsURI)
