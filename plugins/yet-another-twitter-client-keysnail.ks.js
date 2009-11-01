@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.2.7</version>
+    <version>1.2.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -200,13 +200,17 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.2.8 (2009 11/01) ====
+//
+// * Fixed combineJSONCache again. (There were still bug ...)
+//
 // ==== 1.2.7 (2009 11/01) ====
-// 
+//
 // * Fixed combineJSONCache to avoid the status duplication which occured
 //   when user tweets and its status immediately added.
-// 
+//
 // ==== 1.2.6 (2009 10/31) ====
-// 
+//
 // * Cleaned up codes. (Mainly options default value handling.)
 // * Added "delete selected status" action.
 // * Made all actions use oauthASyncRequest() instead of oauthSyncRequest().
@@ -506,6 +510,7 @@ var twitterClient =
                  return aNew;
 
              var oldid = aOld[0].id;
+             outer:
              for (var i = 0; i < aNew.length; ++i)
              {
                  if (aNew[i].id == oldid)
@@ -518,10 +523,11 @@ var twitterClient =
                              var toRemoveIndex = aOld.indexOf(immediatelyAddedStatuses[j]);
                              if (toRemoveIndex != -1)
                                  aOld.splice(toRemoveIndex, 1);
-                             continue;
+                             continue outer;
                          }
                      }
-                     break;                     
+
+                     break outer;
                  }
              }
 
@@ -811,7 +817,7 @@ var twitterClient =
                                          [{screen_name: status.user.screen_name, id: status.id, text: html.unEscapeTag(status.text)}];
                                  },
                                  actions: twitterActions
-                             });             
+                             });
                      }
                  });
          }
@@ -827,7 +833,7 @@ var twitterClient =
                          if (xhr.readyState == 4) {
                              if (xhr.status != 200) {
                                  display.echoStatusBar(M({ja: "検索に失敗しました",
-                                                          en: "Failed to search word"}), 3000);                             
+                                                          en: "Failed to search word"}), 3000);
                                  return;
                              }
 
@@ -859,7 +865,7 @@ var twitterClient =
                                                text: result.text}];
                                      },
                                      actions: twitterActions
-                                 }); 
+                                 });
                          }
                      }
                  );
@@ -1075,7 +1081,7 @@ var twitterClient =
          }
 
          /**
-          * @public 
+          * @public
           */
          var self = {
              updateStatusesCache: function (aAfterWork, aNoRepeat) {
