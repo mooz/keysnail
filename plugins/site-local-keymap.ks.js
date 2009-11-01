@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -39,20 +39,21 @@ Paste the code below to your .keysnail.js PRESERVE area or preserved codes area 
 
      // ============================================================ //
 
-     local["https?://mail.google.com/mail/*"] = {
-         "j" : null,
-         "k" : null
-     };
+     local["https?://mail.google.com/mail/*"] = [
+         ["j", null],
+         ["k", null],
+         [["C-c", "w"], function () { window.alert("hoge"); }]
+     ];
 
-     local["http://www.google.com/reader/view/*"] = {
-         "j" : fake("n"),
-         "k" : fake("p")
-     };
+     local["http://www.google.com/reader/view/*"] = [
+         ["j", fake("n")],
+         ["k", fake("p")]
+     ];
 
-     local["http://wiki.github.com/*"] = {
-         "j" : null,
-         "k" : null
-     };
+     local["http://wiki.github.com/*"] = [
+         ["j", null],
+         ["k", null]
+     ];
 
      // ============================================================ //
 
@@ -65,11 +66,11 @@ In this example, we disable the KeySnail's j / k keybindings in the Gmail and gi
 You can specify the local key settings to the local["URL pattern"] following the expressions below.
 
 >||
-{
- (key|key sequence) : (function|null),
- (key|key sequence) : (function|null),
+[
+ [(key|[key sequence]), (function|null)],
+ [(key|[key sequence]), (function|null)],
                ...
-}
+]
 ||<
 
 When null is specified, KeySnail ignores the key while in that site. This is useful if you prefer the web site's shortcut key.
@@ -92,20 +93,21 @@ When null is specified, KeySnail ignores the key while in that site. This is use
 
      // ============================================================ //
 
-     local["https?://mail.google.com/mail/*"] = {
-         "j" : null,
-         "k" : null
-     };
+     local["https?://mail.google.com/mail/*"] = [
+         ["j", null],
+         ["k", null],
+         [["C-c", "w"], function () { window.alert("hoge"); }]
+     ];
 
-     local["http://www.google.com/reader/view/*"] = {
-         "j" : fake("n"),
-         "k" : fake("p")
-     };
+     local["http://www.google.com/reader/view/*"] = [
+         ["j", fake("n")],
+         ["k", fake("p")]
+     ];
 
-     local["http://wiki.github.com/*"] = {
-         "j" : null,
-         "k" : null
-     };
+     local["http://wiki.github.com/*"] = [
+         ["j", null],
+         ["k", null]
+     ];
 
      // ============================================================ //
 
@@ -118,11 +120,11 @@ When null is specified, KeySnail ignores the key while in that site. This is use
 上記の例を見て分かるとおり local["キーの再定義を行いたいページの URL パターン"] には
 
 >||
-{
- (キー|キーシーケンス) : (関数|null),
- (キー|キーシーケンス) : (関数|null),
+[
+ [(キー|[キーシーケンス]), (関数|null)],
+ [(キー|[キーシーケンス]), (関数|null)],
                ...
-}
+]
 ||<
 
 といったものを指定します。
@@ -133,9 +135,13 @@ null が指定された場合、 KeySnail はそのサイトにいる間、そ�
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.0.2 (2009 11/01) ====
+//
+// * Made local key bindings with key sequence work correctly.
+//
 // ==== 1.0.1 (2009 11/01) ====
 //
-// * Released
+// * Released.
 //
 // }}}
 
@@ -210,26 +216,31 @@ function processLocalKeyMap() {
         if (!localKeyMaps[regexp])
             localKeyMaps[regexp] = {};
 
-        for (var keySetting in keyMapDefinition[pattern])
+        for each(var pair in keyMapDefinition[pattern])
         {
+            var keySetting = pair[0];
+            var definition = pair[1];
+
             if (typeof keySetting == "string")
             {
                 // single stroke
-                localKeyMaps[regexp][keySetting] = keyMapDefinition[pattern][keySetting];
+                localKeyMaps[regexp][keySetting] = definition;
             }
             else
             {
                 // key sequence
                 var current = localKeyMaps[regexp];
-                for each(var keyStr in keySetting)
-                {
+
+                for (var i = 0; i < keySetting.length - 1; ++i) {
+                    var keyStr = keySetting[i];
+
                     if (typeof(current[keyStr]) != "object")
                         current[keyStr] = {};
 
                     current = current[keyStr];
                 }
 
-                current = keyMapDefinition[pattern][keySetting];
+                current[keySetting[i]] = definition;
             }
         }
     }
