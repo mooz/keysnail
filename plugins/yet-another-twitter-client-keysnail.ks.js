@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.2.6</version>
+    <version>1.2.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -200,6 +200,11 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.2.7 (2009 11/01) ====
+// 
+// * Fixed combineJSONCache to avoid the status duplication which occured
+//   when user tweets and its status immediately added.
+// 
 // ==== 1.2.6 (2009 10/31) ====
 // 
 // * Cleaned up codes. (Mainly options default value handling.)
@@ -501,11 +506,21 @@ var twitterClient =
                  return aNew;
 
              var oldid = aOld[0].id;
-             for (var i = 0; i < aNew.length; ++i) {
-                 if (aNew[i].id == oldid) {
+             for (var i = 0; i < aNew.length; ++i)
+             {
+                 if (aNew[i].id == oldid)
+                 {
                      // ignore immediately added status (from tweet())
-                     if (immediatelyAddedStatuses.some(function (status) aNew[i].id == status.id))
-                         continue;
+                     for (var j = 0; j < immediatelyAddedStatuses.length; ++j)
+                     {
+                         if (immediatelyAddedStatuses[j].id == aNew[i].id)
+                         {
+                             var toRemoveIndex = aOld.indexOf(immediatelyAddedStatuses[j]);
+                             if (toRemoveIndex != -1)
+                                 aOld.splice(toRemoveIndex, 1);
+                             continue;
+                         }
+                     }
                      break;                     
                  }
              }
