@@ -140,6 +140,7 @@ padding:5px;
 
 table td:first-child {
 font-weight: bold;
+width:40%;
 }
 
 table td {

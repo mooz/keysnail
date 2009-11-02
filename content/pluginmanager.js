@@ -113,6 +113,7 @@ var ksPluginManager = function () {
             //                <description>説明</description>
             //            </infoContainer>
             //        </pluginHeader>
+            //
             //        <buttonsContainer>
             //            <button label="無効化" />
             //            <button label="削除" />
@@ -168,9 +169,17 @@ var ksPluginManager = function () {
             var infoContainer = document.createElement("vbox");
             infoContainer.appendChild(pluginNameContainer);
 
+            // plugin description
             description = document.createElement("description");
             description.setAttribute("value", infoHolder[pluginPath].description);
             infoContainer.appendChild(description);
+
+            // notification (for not compatible plugin)
+            description = document.createElement("description");
+            description.setAttribute("hidden", "true");
+            description.setAttribute("style", "font-weight:bold;");
+            infoContainer.appendChild(description);
+            xulHolder[pluginPath].notification = description;
 
             pluginHeader.appendChild(imageContainer);
             pluginHeader.appendChild(infoContainer);
@@ -267,56 +276,59 @@ var ksPluginManager = function () {
 
         var h3 = createElementWithText("h3", modules.util.getLocaleString("info"));
 
-        var dl = iframeDoc.createElement("dl");
-        var dt, dd, a;
-
-        // author
-        dl.appendChild(createElementWithText("dt", modules.util.getLocaleString("author")));
-
-        dd = iframeDoc.createElement("dd");
+        var authorCell;
 
         var authorMailAddress = xmlHolder[aPluginPath].author.@mail;
         var authorName = infoHolder[aPluginPath].author;
         if (authorMailAddress.length()) {
-            a = iframeDoc.createElement("a");
-            a.appendChild(iframeDoc.createTextNode(authorName));
-            a.setAttribute("href", "mailto:" + authorMailAddress);
-            dd.appendChild(a);
+            authorCell = <a href="{'mailto:' + authorMailAddress}">{authorName}</a>;
         } else {
-            dd.appendChild(iframeDoc.createTextNode(authorName));
+            authorCell = <>authorName</>;
         }
 
         var authorHomepage = xmlHolder[aPluginPath].author.@homepage;
         if (authorHomepage.length()) {
-            dd.appendChild(iframeDoc.createTextNode(" ["));
-
-            a = iframeDoc.createElement("a");
-            a.appendChild(iframeDoc.createTextNode("homepage"));
-            a.setAttribute("href", authorHomepage);
-            a.setAttribute("target", "_blank");
-            dd.appendChild(a);
-
-            dd.appendChild(iframeDoc.createTextNode("]"));
+            authorCell += <> [ <a href={authorHomepage} target="_blank">Home page</a> ]</>;
         }
-
-        dl.appendChild(dd);
 
         // license
-        dl.appendChild(createElementWithText("dt", modules.util.getLocaleString("license")));
 
         var licenseDocumentURL = xmlHolder[aPluginPath].license.@document;
+        var licenseCell;
         if (licenseDocumentURL.length()) {
-            a = iframeDoc.createElement("a");
-            a.appendChild(iframeDoc.createTextNode(infoHolder[aPluginPath].license));
-            a.setAttribute("href", licenseDocumentURL);
-            a.setAttribute("target", "_blank");
-            dd = iframeDoc.createElement("dd");
-            dd.appendChild(a);
+            licenseCell = <a href={licenseDocumentURL} target="_blank">{infoHolder[aPluginPath].license}</a>;
         } else {
-            dd = createElementWithText("dd", infoHolder[aPluginPath].license);
+            licenseCell = <>{infoHolder[aPluginPath].license}</>;
         }
 
-        dl.appendChild(dd);
+        // compatible version
+
+        var min     = infoHolder[aPluginPath].minVersion;
+        var max     = infoHolder[aPluginPath].maxVersion;
+
+        var versionMsg = "";
+        if (min)
+            versionMsg += modules.util.getLocaleString("compatibleMinVersion", [min]);
+        if (max)
+            versionMsg += (min ? " " : "") + modules.util.getLocaleString("compatibleMinVersion", [max]);
+
+        // ====================================================================== //
+
+        var table = xmlToDom(<table>
+                             <tr>
+                             <td>{modules.util.getLocaleString("author")}</td>
+                             <td>{authorCell}</td>
+                             </tr>
+                             <tr>
+                             <td>{modules.util.getLocaleString("license")}</td>
+                             <td>{licenseCell}</td>
+                             </tr>
+                             <tr>
+                             <td>{modules.util.getLocaleString("compatibleVersion")}</td>
+                             <td>{versionMsg}</td>
+                             </tr>
+                             </table>
+                             ,"http://www.w3.org/1999/xhtml");
 
         // ====================================================================== //
 
@@ -327,12 +339,12 @@ var ksPluginManager = function () {
         infoBox.appendChild(description);
 
         infoBox.appendChild(h3);
-        infoBox.appendChild(dl);
+        infoBox.appendChild(table);
 
         // ============================== ext / option ============================== //
 
         var xml = xmlHolder[aPluginPath];
-        var table, tr, th, td;
+        var tr, th, td;
 
         // ext
         if (xml.provides.ext.length()) {
@@ -458,18 +470,6 @@ var ksPluginManager = function () {
         var status = infoHolder[pluginPath].status;
 
         if (status == KS_PLUGIN_NOTCOMPATIBLE) {
-            var min = infoHolder[pluginPath].minVersion;
-            var max = infoHolder[pluginPath].maxVersion;
-
-            var versionMsg = "";
-            if (min)
-                versionMsg += min + " <= version ";
-            if (max)
-                versionMsg += (min ? "" : "version ") + " <= " + max;
-
-            modules.display.notify("This plugin is compatible with KeySnail [" +
-                                   versionMsg + "] but current version is " +
-                                   modules.userscript.parent.version);
             return;
         }
 
@@ -531,6 +531,12 @@ var ksPluginManager = function () {
         }
 
         modules.display.notify(modules.util.getLocaleString("newPluginInstalled"));
+    }
+
+    function getNotCompatibleMessage(aPluginPath) {
+        var current = modules.userscript.parent.version;
+
+        return modules.util.getLocaleString("notCompatiblePlugin", [current]);
     }
 
     var self = {
@@ -616,10 +622,19 @@ var ksPluginManager = function () {
                 var buttonsContainer = xulHolder[path].buttonsContainer;
                 var infoContainer = xulHolder[path].infoContainer;
 
-                buttonsContainer.setAttribute("hidden", (path != pluginPath));
-
-                setElementStatus(infoContainer, (path == pluginPath) ?
-                                 true : (infoHolder[path].status == KS_PLUGIN_ENABLED));
+                if (path == pluginPath) {
+                    // selected item
+                    buttonsContainer.setAttribute("hidden", false);
+                    setElementStatus(infoContainer, true);
+                    if (infoHolder[path].status == KS_PLUGIN_NOTCOMPATIBLE) {
+                        xulHolder[path].notification.value = getNotCompatibleMessage(path);
+                        xulHolder[path].notification.setAttribute("hidden", false);
+                    }
+                } else {
+                    buttonsContainer.setAttribute("hidden", true);
+                    setElementStatus(infoContainer, (infoHolder[path].status == KS_PLUGIN_ENABLED));
+                    xulHolder[path].notification.setAttribute("hidden", true);
+                }
             }
 
             updateInfoBox(pluginPath);
