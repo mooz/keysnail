@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.0.2</version>
+    <version>1.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -19,9 +19,15 @@ var PLUGIN_INFO =
     <options>
         <option>
             <name>remap_pages.local_keymap</name>
-            <type>object</type>
+            <type>array</type>
             <description>Local keymaps by each site</description>
             <description lang="ja">サイト毎のローカルキーマップ (詳細は説明を参照のこと)</description>
+        </option>
+        <option>
+            <name>remap_pages.disable_in_textarea</name>
+            <type>boolean</type>
+            <description>Disable site local keymap in the textarea (Default: )</description>
+            <description lang="ja">編集エリアではサイトローカルのキーマップを無視する (デフォルト値 true)</description>
         </option>
     </options>
     <detail><![CDATA[
@@ -138,9 +144,21 @@ null が指定された場合、 KeySnail はそのサイトにいる間、そ�
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.0.4 (2009 11/02) ====
+//
+// * Fixed the bug when user transit to the about:blank from site local keymap defined,
+//   the local keymap will be used and icon left to blue.
+//
+// * Made plugin disabled in editable areas by default.
+//   This is because when we remap "j" to "n" in certain site,
+//   and the site has editable area, we can't use the "j" key which is recognized
+//   as the "n" key by the Firefox.
+//   User can change this behavior by setting the remap_pages.disable_in_textarea option.
+//
 // ==== 1.0.3 (2009 11/01) ====
 //
 // * Added icon which indicates keysnail currently using the site local keymap.
+//
 // * Added ext which toggle the keymap status.
 //
 // ==== 1.0.2 (2009 11/01) ====
@@ -172,6 +190,8 @@ var iconData = "data:image/png;base64," +
     "RJYqJ0NhY1mhFVVVWL9WRlEU+gMTtPs+Eo0lsc2+ESX+asLAxR/Sxa1hhI4dIQAAAABJRU5ErkJggg==";
 
 var iconElem = document.getElementById("keysnail-statusbar-icon");
+if (typeof plugins.options["remap_pages.disable_in_textarea"] == "undefined")
+    plugins.options["remap_pages.disable_in_textarea"] = false;
 
 // ============================================================ //
 
@@ -179,8 +199,16 @@ var iconElem = document.getElementById("keysnail-statusbar-icon");
 key.modes.SITELOCAL = "sitelocal";
 
 function locationChangeHandler(aNsURI) {
-    if (!aNsURI || !status)
+    if (!status)
         return;
+
+    // about:blank?
+    if (!aNsURI)
+    {
+        localKeyMaps[regexp] = null;
+        key.updateStatusBar();
+        return;
+    }
 
     var url = aNsURI.spec;
     var keymap;
@@ -201,7 +229,7 @@ function locationChangeHandler(aNsURI) {
     if (keymap && key.status && !key.suspended) {
         iconElem.setAttribute("src", iconData);
         iconElem.tooltipText = M({en: "Site local keymap of this page enabled",
-                                  ja: "このサイトのローカルキーマップが使われています"});
+                                  ja: "このサイト用のローカルキーマップが使われています"});
     } else {
         key.updateStatusBar();
     }
@@ -222,7 +250,8 @@ if (!my.originalGetCurrentMode) {
 
 // override mode detector
 key.getCurrentMode = function (aEvent, aKey) {
-    if (key.keyMapHolder[key.modes.SITELOCAL])
+    if (key.keyMapHolder[key.modes.SITELOCAL] &&
+        !(plugins.options["remap_pages.disable_in_textarea"] && util.isWritable(aEvent)))
     {
         if (typeof(key.keyMapHolder[key.modes.SITELOCAL][aKey]) != "undefined")
         {

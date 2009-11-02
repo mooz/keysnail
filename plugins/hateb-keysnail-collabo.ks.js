@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.1.4</version>
+    <version>1.1.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -40,6 +40,13 @@ key.setGlobalKey(["C-x", ";"], function (ev, arg) {
 上記のような設定により C-M-c で「現在閲覧しているページのはてなブックマークのコメント一覧」を、 C-x ; により「自分のはてなブックマーク一覧」を、それぞれ表示することが可能となります。
 ]]></detail>
 </KeySnailPlugin>;
+// }}}
+
+// ChangeLog : {{{
+// ==== 1.1.5 (2009 11/02) ====
+//
+// * Made "No bookmarks found" message displayed correctly.
+//
 // }}}
 
 var hblist;
@@ -87,7 +94,7 @@ function showCommentOfPage(aPageURL, aArg) {
             }
 
             if (!collection.length) {
-                display.echoStatusBar(M({ja: (aArg == null) ? 'コメント付きの' : '' + 'ブックマークが見つかりませんでした',
+                display.echoStatusBar(M({ja: ((aArg == null) ? 'コメント付きの' : '') + 'ブックマークが見つかりませんでした',
                                          en: "No bookmarks found"}), 2000);
                 return;
             }
