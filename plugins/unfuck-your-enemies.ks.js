@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Unfu*k your enemies</name>
     <description>Override the content type</description>
     <description lang="ja">クソ野郎が垂れ流す Content type を上書き</description>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/unfuck-your-enemies.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/unfuck-your-enemies.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -92,6 +92,17 @@ Disposition (attachment / inline のこと) を省略し、コンテンツタイ
     ]]></detail>
 </KeySnailPlugin>;
 
+// ChangeLog : {{{
+// ==== 1.0.2 (2009 11/03) ====
+//
+// * Removed the window.alert()
+//
+// ==== 1.2.1 (2009 11/03) ====
+//
+// * Released
+//
+// }}}
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
@@ -149,8 +160,6 @@ var httpFilter = {
 
                 channel.setResponseHeader("Content-Disposition", disposition, false);
                 channel.contentType = type;
-
-                util.message("overrided to " + type);
 
                 break;
             }
@@ -210,7 +219,6 @@ function getHttpFilters() {
 
 getHttpFilters().forEach(
     function (aHttpFilter) {
-        window.alert(aHttpFilter.registered);
         if (aHttpFilter.registered)
             aHttpFilter.unregister();
     });
