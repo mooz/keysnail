@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.2.8</version>
+    <version>1.2.9</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -202,6 +202,10 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // ChangeLog : {{{
 // ==== 1.2.8 (2009 11/01) ====
 //
+// * Fixed combineJSONCache again and again :(. I hope this fix the problem.
+//
+// ==== 1.2.8 (2009 11/01) ====
+//
 // * Fixed combineJSONCache again. (There were still bug ...)
 //
 // ==== 1.2.7 (2009 11/01) ====
@@ -214,6 +218,7 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // * Cleaned up codes. (Mainly options default value handling.)
 // * Added "delete selected status" action.
 // * Made all actions use oauthASyncRequest() instead of oauthSyncRequest().
+//
 // }}}
 
 var optionsDefaultValue = {
@@ -509,41 +514,42 @@ var twitterClient =
              if (!aOld)
                  return aNew;
 
-             var oldid = aOld[0].id;
-             outer:
-             for (var i = 0; i < aNew.length; ++i)
+             if (immediatelyAddedStatuses.length)
              {
-                 if (aNew[i].id == oldid)
-                 {
-                     // ignore immediately added status (from tweet())
-                     for (var j = 0; j < immediatelyAddedStatuses.length; ++j)
-                     {
-                         if (immediatelyAddedStatuses[j].id == aNew[i].id)
-                         {
-                             var toRemoveIndex = aOld.indexOf(immediatelyAddedStatuses[j]);
-                             if (toRemoveIndex != -1)
-                                 aOld.splice(toRemoveIndex, 1);
-                             continue outer;
-                         }
-                     }
+                 // remove immediately added statuses
+                 var removeCount = aOld.indexOf(immediatelyAddedStatuses[0]) + 1;
 
-                     break outer;
+                 if (removeCount > 0)
+                 {
+                     aOld.splice(0, removeCount);
                  }
              }
 
              immediatelyAddedStatuses = [];
 
-             if (i > 1) {
-                 var updatedStatus = aNew.slice(0, i);
-                 var latestTimeline = updatedStatus.concat(aOld);
+             // search
+             var oldid = aOld[0].id;
+             var newStatusCount = aNew.indexOf(oldid);
 
-                 if (popUpStatusWhenUpdated)
-                     popUpNewStatuses(updatedStatus);
+             var newStatuses;
 
-                 return latestTimeline;
+             if (newStatusCount == -1)
+             {
+                 // all statuses in aNew is updated status
+                 newStatuses = aNew;
+             }
+             else
+             {
+                 newStatuses = aNew.slice(0, newStatusCount);
              }
 
-             return aOld;
+
+             var latestTimeline = newStatuses.concat(aOld);
+
+             if (popUpStatusWhenUpdated && newStatuses.length)
+                 popUpNewStatuses(newStatuses);
+
+             return latestTimeline;
          }
 
          // ============================== OAuth ============================== //
@@ -995,7 +1001,13 @@ var twitterClient =
 
              if (!aPriorStatus) {
                  // showing user timeline, mark all statuses read
-                 lastStatusID = statuses[0].id;
+                 setLastStatus(statuses);
+             }
+         }
+
+         function setLastStatus(aStatuses) {
+             if (aStatuses.length) {
+                 lastStatusID = aStatuses[0].id;
                  util.setUnicharPref(LAST_STATUS_KEY, lastStatusID);
                  self.updateStatusbar();
              }
@@ -1011,6 +1023,7 @@ var twitterClient =
                      if (xhr.readyState == 4) {
                          if (xhr.status != 200) {
 
+
                              display.echoStatusBar(M({ja: 'ステータスの削除に失敗しました。',
                                                       en: "Failed to delete status"}), 2000);
                              return;
@@ -1023,6 +1036,8 @@ var twitterClient =
                                  break;
                              }
                          }
+
+                         setLastStatus(my.twitterJSONCache);
 
                          display.echoStatusBar(M({ja: 'ステータスが削除されました',
                                                   en: "Status deleted"}), 2000);
