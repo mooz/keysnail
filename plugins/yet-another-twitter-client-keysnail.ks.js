@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -201,6 +201,10 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.3.1 (2009 11/03) ====
+//
+// * Fixed the crucial bug in the combineJSONCache
+// 
 // ==== 1.3.0 (2009 11/03) ====
 //
 // * Refactored!
@@ -536,7 +540,7 @@ var twitterClient =
 
              // search
              var oldid = aOld[0].id;
-             var newStatusCount = aNew.indexOf(oldid);
+             var newStatusCount = aNew.map(function (status) status.id).indexOf(oldid);
 
              var newStatuses;
 
