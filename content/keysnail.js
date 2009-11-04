@@ -34,6 +34,11 @@ var KeySnail = {
         this.My = {};
         this.registerModule.call(this, "My");
 
+        // global namespace for user
+        try {
+            Components.utils.import("resource://keysnail-share/share.js", this.modules);
+        } catch (x) {}
+
         var i;
         var len = moduleObjects.length;
         for (i = 0; i < len; ++i) {
