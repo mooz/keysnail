@@ -174,8 +174,7 @@ var ksPreference = {
     onInitFileCreate: function () {
         var error;
         if ((error = ksKeybindTreeView.checkSyntax())) {
-            this.modules.util.alert(null, "Syntax error",
-                                    this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+            this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
             return false;
         }
 
@@ -400,8 +399,7 @@ var ksPreference = {
 
             var error;
             if ((error = ksKeybindTreeView.checkSyntax())) {
-                this.modules.util.alert(null, "Syntax error",
-                                        this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+                this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
                 this.functionTextarea.focus();
                 return;
             }
@@ -605,8 +603,7 @@ var ksPreference = {
 
             this.needsApply = true;
         } else {
-            this.modules.util.alert(null, "Notice", "Item already exists in the list");
-            // this.notify("Item already exists in the list", 1000);
+            this.notify("Item already exists in the list");
         }
     },
 
@@ -1035,28 +1032,35 @@ var ksPreference = {
         ksKeybindTreeView.appendItem(params.out);
     },
 
-    msgTimeOut: null,
-    notify: function (aMsg, aTime) {
-        var messageBox = document.getElementById("notification-area");
-        var createButtonArea = document.getElementById("create-button-area");
+    notify: function (aMsg, aButtons) {
+        const NOTIFY_ID = "ksNotifyMessage";
+        var notifyBox = document.getElementById("keysnail-preference-notification");
 
-        if (this.msgTimeOut) {
-            clearTimeout(this.msgTimeOut);
-            this.msgTimeOut = null;
+        if (!aButtons) {
+            aButtons = [
+                {
+                    label: "OK",
+                    callback: function (aNotification) {
+                        try {
+                            aNotification.close();
+                        } catch (e) {
+                            Application.console.log(e);
+                        }
+                    },
+                    accessKey: "o"
+                }
+            ];
         }
 
-        messageBox.value = aMsg;
+        var current = notifyBox.currentNotification;
+        if (current && current.value == NOTIFY_ID)
+            current.close();
 
-        messageBox.collapsed       = !aMsg;
-        createButtonArea.collapsed = !messageBox.collapsed;
-
-        let self = this;
-        if (aTime) {
-            this.msgTimeOut = setTimeout(
-                function () {
-                    self.notify("", 0);
-                }, aTime);
-        }
+        notifyBox.appendNotification(aMsg,
+                                     NOTIFY_ID,
+                                     "chrome://keysnail/skin/notify-icon16.png",
+                                     "PRIORITY_WARNING_HIGH",
+                                     aButtons);
     }
 };
 

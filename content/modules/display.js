@@ -177,7 +177,9 @@ KeySnail.Display = function () {
                     {
                         label: "OK",
                         callback: function (aNotification) {
-                            aNotification.close();
+                            try {
+                                aNotification.close();
+                            } catch (x) {}
                         },
                         accessKey: "o"
                     }
