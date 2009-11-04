@@ -284,6 +284,26 @@ KeySnail.UserScript = {
 
     // ============================== Plugin ============================== //
 
+    setPluginPathViaDialog: function (aForce) {
+        var nsIFilePicker = Components.interfaces.nsIFilePicker;
+        var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+
+        fp.init(window,
+                this.modules.util.getLocaleString("selectPluginDirectory"),
+                nsIFilePicker.modeGetFolder);
+
+        var response;
+        // TODO: Is it really good to force user to select the directory?
+        while (response !== nsIFilePicker.returnOK) {
+            response = fp.show();
+
+            if (!aForce)
+                break;
+        }
+
+        this.pluginDir = fp.file.path;
+    },
+
     getPluginInformation: function (aText) {
         let m = /\bPLUGIN_INFO[ \t\r\n]*=[ \t\r\n]*(<KeySnailPlugin(?:[ \t\r\n][^>]*)?>([\s\S]+?)<\/KeySnailPlugin[ \t\r\n]*>)/(aText);
 
@@ -309,6 +329,10 @@ KeySnail.UserScript = {
      * @returns {nsIFile} newly instaled file
      */
     installFile: function (aFile) {
+        if (!this.pluginDir) {
+            this.setPluginPathViaDialog(true);
+        }
+
         with (this.modules) {
             try {
                 var destinationDir  = util.openFile(this.pluginDir);

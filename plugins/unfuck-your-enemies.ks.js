@@ -150,7 +150,7 @@ var httpFilter = {
                 else if (siteInfo[pattern][extension] === null)
                 {
                     // null specified which means get content type from extension
-                    type = mimeService.getTypeFromExtension(extension);
+                    type        = mimeService.getTypeFromExtension(extension);
                     disposition = plugins.options["unfuck_your_enemies.default_content_disposition"];
                 }
                 else

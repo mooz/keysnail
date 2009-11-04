@@ -579,18 +579,7 @@ var ksPluginManager = function () {
 
             // Check if plugin directory is specified
             if (!modules.userscript.pluginDir) {
-                var nsIFilePicker = Components.interfaces.nsIFilePicker;
-                var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-
-                fp.init(window, modules.util.getLocaleString("selectPluginDirectory"), nsIFilePicker.modeGetFolder);
-
-                var response;
-                // TODO: Is it really good to force user to select the directory?
-                while (response !== nsIFilePicker.returnOK) {
-                    response = fp.show();
-                }
-
-                modules.userscript.pluginDir = fp.file.path;
+                modules.userscript.setPluginPathViaDialog(true);
             }
 
             // load Wiki parser

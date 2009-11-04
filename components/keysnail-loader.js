@@ -50,6 +50,8 @@ KeySnailLoader.prototype = {
         case 'chrome://keysnail/content/builtinviewer.xul':
         case 'chrome://keysnail/content/keyGrabber.xul':
         case 'chrome://keysnail/content/installplugindialog.xul':
+            // some
+        case 'chrome://global/content/alerts/alert.xul':
         case 'chrome://browser/content/aboutDialog.xul':
         case 'chrome://mozapps/content/downloads/unknownContentType.xul':
             return;
@@ -135,24 +137,24 @@ var module = {
             .getService(Components.interfaces.nsICategoryManager);
         catMgr.addCategoryEntry(STARTUP_TOPIC, CLASS_NAME, CONTRACT_ID, true, true, null);
     },
-    
+
     unregisterSelf: function (aCompMgr, aLocation, aType) {
         aCompMgr = aCompMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        aCompMgr.unregisterFactoryLocation(CLASS_ID, aLocation);        
+        aCompMgr.unregisterFactoryLocation(CLASS_ID, aLocation);
     },
-    
+
     getClassObject: function (aCompMgr, aCID, aIID) {
         if (!aIID.equals(Components.interfaces.nsIFactory)) {
             throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
         }
-        
+
         if (!aCID.equals(CID)) {
             throw Components.results.NS_ERROR_NO_INTERFACE;
         }
 
         return this.factory;
     },
-    
+
     canUnload: function (aCompMgr) {
         return true;
     },

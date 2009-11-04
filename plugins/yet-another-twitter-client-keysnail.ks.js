@@ -272,7 +272,7 @@ var twitterClient =
                   if (status) {
                       tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
                   }
-              }, M({ja: "このつぶやきに ", en: ""}) + "RT : Retweet"],
+              }, M({ja: "このつぶやきを ", en: ""}) + "RT : Retweet"],
              [function (status) {
                   if (status) {
                       deleteStatus(status.id);
@@ -294,7 +294,7 @@ var twitterClient =
               }, M({ja: "このつぶやきをクリップボードにコピー : ", en: ""}) + "Copy selected message"],
              [function (status) {
                   window.alert(status.text);
-              }, M({ja: "このつぶやきを全文表示 : ", en: ""}) + "Display all message"],
+              }, M({ja: "このつぶやきを全文表示 : ", en: ""}) + "Display entire message"],
              [function (status) {
                   if (status) {
                       showTargetStatus(status.screen_name);
