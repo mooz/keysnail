@@ -10,7 +10,7 @@ var PLUGIN_INFO =
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.0.3</minVersion>
+    <minVersion>1.0.1</minVersion>
     <include>main</include>
     <provides>
         <ext>twitter-client-display-timeline</ext>
@@ -1257,7 +1257,6 @@ ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
 
 if (my.twitterStatusesCacheUpdater)
     clearTimeout(my.twitterStatusesCacheUpdater);
-
 
 if (getOption("automatically_begin")) {
     twitterClient.updateStatusesCache();
