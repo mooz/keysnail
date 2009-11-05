@@ -1,9 +1,9 @@
 // PLUGIN_INFO : {{
 var PLUGIN_INFO =
 <KeySnailPlugin>
-    <name>Yah!</name>
+    <name>YaH!</name>
     <description>Yet Another HaH Plugin for KeySnail</description>
-    <description lang="ja">HaH プラグイン</description>
+    <description lang="ja">キーボードでリンクをごにょごにょ</description>
     <version>1.0.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yah.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yah.icon.png</iconURL>
