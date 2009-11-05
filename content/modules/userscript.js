@@ -486,6 +486,16 @@ KeySnail.UserScript = {
                 return false;
             }
 
+            if (!this.checkCompatibility(remoteInfo) &&
+                !util.confirm(util.getLocaleString("installingNotCompatiblePlugin"),
+                              util.getLocaleString("installingNotCompatiblePluginPrompt",
+                                                   [util.xmlGetLocaleString(remoteInfo.name),
+                                                    remoteVersion,
+                                                    KeySnail.version]))) {
+                // The file to be installed is not compatible with the current KeySnail
+                return false;
+            }
+
             /**
              * TODO: It's better to display the diff file of local and remote ones.
              * Are there good diff implementation on JavaScript?
@@ -575,6 +585,16 @@ KeySnail.UserScript = {
 
             if (arg.type == "install") {
                 // install
+                if (!this.checkCompatibility(arg.xml) &&
+                    !util.confirm(util.getLocaleString("installingNotCompatiblePlugin"),
+                                  util.getLocaleString("installingNotCompatiblePluginPrompt",
+                                                       [util.xmlGetLocaleString(arg.xml.name),
+                                                        arg.xml.version,
+                                                        KeySnail.version]))) {
+                    // The file to be installed is not compatible with the current KeySnail
+                    return;
+                }
+
                 try {
                     var installed = this.installFile(pluginFile);
                     // install required files

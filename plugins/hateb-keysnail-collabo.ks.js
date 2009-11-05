@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -16,6 +16,14 @@ var PLUGIN_INFO =
         <ext>list-hateb-comments</ext>
         <ext>list-hateb-items</ext>
     </provides>
+    <options>
+        <option>
+            <name>hatebnail.list_bookmarks_limit</name>
+            <type>integer</type>
+            <description>Limit count of bookmark items to be displayed (Default: 5000)</description>
+            <description lang="ja">表示するブックマークの上限数 (デフォルト値: 5000)</description>
+        </option>
+    </options>
     <detail lang="ja"><![CDATA[
 === 使い方 ===
 このプラグインをインストールすることにより
@@ -43,6 +51,10 @@ key.setGlobalKey(["C-x", ";"], function (ev, arg) {
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.1.6 (2009 11/04) ====
+//
+// * Added option "hatebnail.list_bookmarks_limit"
+//
 // ==== 1.1.5 (2009 11/02) ====
 //
 // * Made "No bookmarks found" message displayed correctly.
@@ -135,7 +147,7 @@ function listHBItems(aEvent, aArg) {
     if (KeySnail.windowType != "navigator:browser")
         return;
 
-    var limit = 4000;
+    var limit = plugins.options["hatebnail.list_bookmarks_limit"] || 5000;
 
     const HB_ICON    = 0;
     const HB_TITLE   = 1;
@@ -184,7 +196,7 @@ function listHBItems(aEvent, aArg) {
             message: "pattern:",
             collection: hblist,
             flags: [ICON | IGNORE, IGNORE, IGNORE, HIDDEN | IGNORE, IGNORE, HIDDEN],
-            style: [null, null, "color:#001d6b;"],
+            style: [null, "color:#0a1e89;", "color:#001d6b;"],
             header: ["Title", "Comment", "Date"],
             width: [40, 45, 15],
             actions: [

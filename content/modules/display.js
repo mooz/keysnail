@@ -125,13 +125,37 @@ KeySnail.Display = function () {
             }
 
             var ksMessageId = "_ks_message";
-            var ksMessageStyle = aOptions.style ||
-                "z-index: 500; font-size: 30px; font-family: 'Bitstream Vera Sans Mono';"
-                + " padding: 10px; margin: 3px;"
-                + " color: #ff5e61; background-color: #111111;"
-                + " position: fixed; -moz-border-radius: 5px;"
-                + " top: 0.5em; right: 0.5em;"
-                + "-moz-opacity: 0; opacity: 0;";
+            var ksMessageStyle =
+                (function (aStyles) {
+                     var array = [];
+                     var prop;
+                     var userDefined = aOptions.style || {};
+
+                     for (prop in aStyles) {
+                         if (userDefined.hasOwnProperty(prop))
+                             array.push(prop + ":" + userDefined[prop]);
+                         else
+                             array.push(prop + ":" + aStyles[prop]);
+                     }
+
+                     return array.join(";");
+                 })(
+                {
+                    "z-index"            : "500",
+                    "font-size"          : "30px",
+                    "font-family"        : '"Trebuchet MS", Verdana, Arial, Helvetica, sans-serif',
+                    "padding"            : "10px",
+                    "margin"             : "3px",
+                    "color"              : "#ff5e61",
+                    "background-color"   : "#111111",
+                    "position"           : "fixed",
+                    "-moz-border-radius" : "5px",
+                    "top"                : "0.5em",
+                    "right"              : "0.5em",
+                    "-moz-opacity"       : "0",
+                    "opacity"            : "0"
+                }
+                );
 
             var lines = aMsg.split('\n');
             var container = doc.getElementById(ksMessageId);

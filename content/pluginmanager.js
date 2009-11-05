@@ -277,28 +277,40 @@ var ksPluginManager = function () {
         var h3 = createElementWithText("h3", modules.util.getLocaleString("info"));
 
         var authorCell;
+        if (xmlHolder[aPluginPath].author.length())
+        {
+            var authorMailAddress = xmlHolder[aPluginPath].author.@mail;
+            var authorName = infoHolder[aPluginPath].author;
+            if (authorMailAddress.length())
+            {
+                authorCell = <a href={'mailto:' + authorMailAddress}>{authorName}</a>;
+            }
+            else
+            {
+                authorCell = <>{authorName}</>;
+            }
 
-        var authorMailAddress = xmlHolder[aPluginPath].author.@mail;
-        var authorName = infoHolder[aPluginPath].author;
-        if (authorMailAddress.length()) {
-            authorCell = <a href="{'mailto:' + authorMailAddress}">{authorName}</a>;
-        } else {
-            authorCell = <>authorName</>;
-        }
-
-        var authorHomepage = xmlHolder[aPluginPath].author.@homepage;
-        if (authorHomepage.length()) {
-            authorCell += <> [ <a href={authorHomepage} target="_blank">Home page</a> ]</>;
+            var authorHomepage = xmlHolder[aPluginPath].author.@homepage;
+            if (authorHomepage.length())
+            {
+                authorCell += <> [ <a href={authorHomepage} target="_blank">Home page</a> ]</>;
+            }
         }
 
         // license
-
-        var licenseDocumentURL = xmlHolder[aPluginPath].license.@document;
         var licenseCell;
-        if (licenseDocumentURL.length()) {
-            licenseCell = <a href={licenseDocumentURL} target="_blank">{infoHolder[aPluginPath].license}</a>;
-        } else {
-            licenseCell = <>{infoHolder[aPluginPath].license}</>;
+        if (xmlHolder[aPluginPath].license.length())
+        {
+
+            var licenseDocumentURL = xmlHolder[aPluginPath].license.@document;
+            if (licenseDocumentURL.length())
+            {
+                licenseCell = <a href={licenseDocumentURL} target="_blank">{infoHolder[aPluginPath].license}</a>;
+            }
+            else
+            {
+                licenseCell = <>{infoHolder[aPluginPath].license}</>;
+            }
         }
 
         // compatible version
@@ -488,11 +500,11 @@ var ksPluginManager = function () {
 
             if (!modules.plugins.context[pluginPath].__ksLoaded__) {
                 // failed to load plugin
-                var msg = modules.util.getLocaleString("failedToLoadPlugin");
-                modules.util.alert(window, msg, mgs + ' "' + pluginPath + '"');
-
                 setPluginStatus(pluginPath, modules.plugins.context[pluginPath].__ksNotCompatible__ ?
                                 KS_PLUGIN_NOTCOMPATIBLE : KS_PLUGIN_DISABLED);
+
+                var msg = modules.util.getLocaleString("failedToLoadPlugin");
+                modules.util.alert(window, msg, msg + ' "' + pluginPath + '"');
             }
         }
 
