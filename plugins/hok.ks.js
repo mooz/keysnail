@@ -1,59 +1,59 @@
 // PLUGIN_INFO : {{
 var PLUGIN_INFO =
 <KeySnailPlugin>
-    <name>YaH!</name>
-    <description>Yet Another HaH Plugin for KeySnail</description>
+    <name>HoK</name>
+    <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
     <version>1.0.0</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yah.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yah.icon.png</iconURL>
-    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
+    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz, myuhe</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.0.0</minVersion>
     <include>main</include>
     <provides>
-        <ext>yah-start</ext>
+        <ext>hok-start</ext>
     </provides>
     <options>
         <option>
-            <name>yah.hint_keys</name>
+            <name>hok.hint_keys</name>
             <type>string</type>
             <description>Hints keys (default asdfghjkl)</description>
             <description lang="ja">ヒントに使うキー (デフォルトは asdfghjkl)</description>
         </option>
         <option>
-            <name>yah.unique_fire</name>
+            <name>hok.unique_fire</name>
             <type>boolean</type>
             <description>When current focused hint is unique, auto fire the link or not</description>
             <description lang="ja">キーを入力した際、他に候補が無ければ自動的にそのリンクをたどるか (デフォルト true)</description>
         </option>
         <option>
-            <name>yah.selector</name>
+            <name>hok.selector</name>
             <type>string</type>
             <description>SelectorAPI query</description>
             <description lang="ja">ヒントの取得に使う SelectorAPI クエリ</description>
         </option>
         <option>
-            <name>yah.hint_color_link</name>
+            <name>hok.hint_color_link</name>
             <type>string</type>
             <description>Color of the hints for links</description>
             <description lang="ja">リンク用ヒントの色</description>
         </option>
         <option>
-            <name>yah.hint_color_form</name>
+            <name>hok.hint_color_form</name>
             <type>string</type>
             <description>Color of the hints for forms</description>
             <description lang="ja">フォーム用ヒントの色</description>
         </option>
         <option>
-            <name>yah.hint_color_focused</name>
+            <name>hok.hint_color_focused</name>
             <type>string</type>
             <description>Color of focused hints</description>
             <description lang="ja">フォーカスされているヒントの色</description>
         </option>
         <option>
-            <name>yah.hint_base_style</name>
+            <name>hok.hint_base_style</name>
             <type>object</type>
             <description>Color of focused hints</description>
             <description lang="ja">ヒントのスタイルを設定する。</description>
@@ -69,7 +69,7 @@ Paste code below to your .keysnail.js file.
 >||
 key.setViewKey("e",
     function (ev, arg) {
-        ext.exec("yah-start", arg);
+        ext.exec("hok-start", arg);
     }, "Start HaH", true);
 ||<
 
@@ -80,7 +80,7 @@ In this example, you can start hah by pressing e key in the view mode.
 You can change keys for generating hints to paste the code with following form to your .keysnail.js file.
 
 >||
-plugins.options["yah.hint_keys"] = "0123456789";
+plugins.options["hok.hint_keys"] = "0123456789";
 ||<
 
 In this example, you make this plugin to use number keys instead of the alphabets.
@@ -88,7 +88,7 @@ In this example, you make this plugin to use number keys instead of the alphabet
 Style of the hints can be customized by changing the value of hint_base_style.
 
 >||
-plugins.options["yah.hint_base_style"] = {
+plugins.options["hok.hint_base_style"] = {
     position        : 'absolute',
     zIndex          : '2147483647',
     color           : '#000',
@@ -104,15 +104,15 @@ plugins.options["yah.hint_base_style"] = {
 Each background color of hints for link, form, focused can be changed by following forms.
 
 >||
-plugins.options["yah.hint_color_link"]    = 'rgba(180, 255, 81, 0.7)';
-plugins.options["yah.hint_color_form"]    = 'rgba(157, 82, 255, 0.7)';
-plugins.options["yah.hint_color_focused"] = 'rgba(255, 82, 93, 0.7)';
+plugins.options["hok.hint_color_link"]    = 'rgba(180, 255, 81, 0.7)';
+plugins.options["hok.hint_color_form"]    = 'rgba(157, 82, 255, 0.7)';
+plugins.options["hok.hint_color_focused"] = 'rgba(255, 82, 93, 0.7)';
 ||<
 
 If you are familiar with the Selectors API and want this plugin to use arbitrary one, you can set the query.
 
 >||
-plugins.options["yah.selector"] = 'a[href], input:not([type="hidden"]),
+plugins.options["hok.selector"] = 'a[href], input:not([type="hidden"]),
                                    textarea, select, img[onclick], button';
 ||<
 	       ]]></detail>
@@ -121,12 +121,12 @@ plugins.options["yah.selector"] = 'a[href], input:not([type="hidden"]),
 
 ==== 起動 ====
 
-次のようにして適当なキーへ YaH を割り当てておきましょう。
+次のようにして適当なキーへ Hok を割り当てておきましょう。
 
 >||
 key.setViewKey("e",
     function (ev, arg) {
-        ext.exec("yah-start", arg);
+        ext.exec("hok-start", arg);
     }, "Hit a Hint を開始", true);
 ||<
 
@@ -137,7 +137,7 @@ key.setViewKey("e",
 ヒントに用いるキーは次のようにして変更することが可能です。
 
 >||
-plugins.options["yah.hint_keys"] = "0123456789";
+plugins.options["hok.hint_keys"] = "0123456789";
 ||<
 
 例えば上記のようなコードを .keysnail.js 内の PRESERVE エリアへ張り付けることで、ヒントに数字キーを使うことが可能となります。
@@ -145,7 +145,7 @@ plugins.options["yah.hint_keys"] = "0123456789";
 ヒントのスタイルは hint_base_style で設定することが可能です。
 
 >||
-plugins.options["yah.hint_base_style"] = {
+plugins.options["hok.hint_base_style"] = {
     position        : 'absolute',
     zIndex          : '2147483647',
     color           : '#000',
@@ -161,15 +161,15 @@ plugins.options["yah.hint_base_style"] = {
 ヒントの背景色については hint_color_link, hint_color_form, hint_color_focused の値を変更してください。
 
 >||
-plugins.options["yah.hint_color_link"]    = 'rgba(180, 255, 81, 0.7)';
-plugins.options["yah.hint_color_form"]    = 'rgba(157, 82, 255, 0.7)';
-plugins.options["yah.hint_color_focused"] = 'rgba(255, 82, 93, 0.7)';
+plugins.options["hok.hint_color_link"]    = 'rgba(180, 255, 81, 0.7)';
+plugins.options["hok.hint_color_form"]    = 'rgba(157, 82, 255, 0.7)';
+plugins.options["hok.hint_color_focused"] = 'rgba(255, 82, 93, 0.7)';
 ||<
 
 もし Selector API を知っていて、カスタマイズしたい気があるのなら、次のようにしてヒント取得用のクエリを変更することもできます。
 
 >||
-plugins.options["yah.selector"] = 'a[href], input:not([type="hidden"]),
+plugins.options["hok.selector"] = 'a[href], input:not([type="hidden"]),
                                    textarea, select, img[onclick], button';
 ||<
 
@@ -206,7 +206,7 @@ var optionsDefaultValue = {
 };
 
 function getOption(aName) {
-    var fullName = "yah." + aName;
+    var fullName = "hok." + aName;
 
     if (typeof(plugins.options[fullName]) != "undefined")
     {
@@ -312,7 +312,7 @@ function followLink(elem, where) {
     // util.setUnicharPref("browser.tabs.loadInBackground", savedOption);
 }
 
-var yah = function () {
+var hok = function () {
     var hintKeys         = getOption("hint_keys");
     var selector         = getOption("selector");
     var hintBaseStyle    = getOption("hint_base_style");
@@ -579,9 +579,9 @@ var yah = function () {
     return self;
 }();
 
-ext.add("yah-start", function (ev, arg) {
+ext.add("hok-start", function (ev, arg) {
             var argumentGiven = !(arg == null);
-            yah.start(function (elem) {
+            hok.start(function (elem) {
                           followLink(elem, argumentGiven ? NEW_TAB : CURRENT_TAB);
                       });
         }, M({ja: "Hit a Hint を開始", en: "Start Hit a Hint"}));
