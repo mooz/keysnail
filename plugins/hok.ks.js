@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -13,7 +13,7 @@ var PLUGIN_INFO =
     <minVersion>1.0.0</minVersion>
     <include>main</include>
     <provides>
-        <ext>hok-start-forground-mode</ext>
+        <ext>hok-start-foreground-mode</ext>
         <ext>hok-start-background-mode</ext>
         <ext>hok-start-continuous-mode</ext>
         <ext>hok-start-extended-mode</ext>
@@ -83,8 +83,8 @@ Paste code below to your .keysnail.js file.
 
 >||
 key.setViewKey('e', function (aEvent, aArg) {
-    ext.exec("hok-start-forground-mode", aArg);
-}, 'Hok - Forground hint mode', true);
+    ext.exec("hok-start-foreground-mode", aArg);
+}, 'Hok - Foreground hint mode', true);
 
 key.setViewKey('E', function (aEvent, aArg) {
     ext.exec("hok-start-background-mode", aArg);
@@ -151,7 +151,7 @@ plugins.options["hok.selector"] = 'a[href], input:not([type="hidden"]),
 
 >||
 key.setViewKey('e', function (aEvent, aArg) {
-    ext.exec("hok-start-forground-mode", aArg);
+    ext.exec("hok-start-foreground-mode", aArg);
 }, 'Hit a Hint を開始', true);
 
 key.setViewKey('E', function (aEvent, aArg) {
@@ -262,7 +262,7 @@ var originalSuspendedStatus;
 
 var optionsDefaultValue = {
     "hint_keys"          : 'asdfghjkl',
-    "selector"           : 'a[href], input:not([type="hidden"]), textarea, select, img[onclick], button',
+    "selector"           : 'a[href], input:not([type="hidden"]), textarea, select, iframe, img[onclick], button',
     "unique_fire"        : true,
     "actions"            : null,
     "hint_base_style"    : {
@@ -580,7 +580,7 @@ var hok = function () {
     }
 
     function resetHintsColor() {
-        for each(let span in hintElements)
+        for each (let span in hintElements)
         {
             span.style.backgroundColor = getHintColor(span.element);
         }
@@ -613,16 +613,11 @@ var hok = function () {
         var doc = win.document;
 
         var hintContainer = doc.getElementById(hintContainerId);
-        if (doc.body && hintContainer)
+        if (doc && doc.body && hintContainer)
         {
             try {
-                doc.body.removeChild(hintContainer);    
+                doc.body.removeChild(hintContainer);
             } catch (x) {}
-        }
-
-        for each (var span in hintElements)
-        {
-            span.style.backgroundColor = "";
         }
 
         Array.forEach(win.frames, removeHints);
@@ -634,7 +629,7 @@ var hok = function () {
         aHint.element.focus();
     }
 
-    function destruct(aForce) {
+    function destruction(aForce) {
         inputKey = '';
 
         if (continuousMode && !aForce)
@@ -670,7 +665,7 @@ var hok = function () {
 
         if (keyCode in keyMap === false)
         {
-            destruct(true);
+            destruction(true);
             return;
         }
 
@@ -684,7 +679,7 @@ var hok = function () {
         case 'Delete':
             if (!inputKey)
             {
-                destruct(true);
+                destruction(true);
                 return;
             }
             // reset but not exit
@@ -696,12 +691,12 @@ var hok = function () {
             if (lastMatchHint)
             {
                 try {
-                    currentAction(lastMatchHint.element);                    
+                    currentAction(lastMatchHint.element);
                 } catch (x) {
-                    destruct(true);
+                    destruction(true);
                 }
             }
-            destruct();
+            destruction();
             return;
         default :
             inputKey += onkey;
@@ -722,12 +717,12 @@ var hok = function () {
                 if (foundCount == 1)
                 {
                     var targetElem = lastMatchHint.element;
-                    destruct();
+                    destruction();
 
                     try {
-                        currentAction(targetElem);                        
+                        currentAction(targetElem);
                     } catch (x) {
-                        destruct(true);
+                        destruction(true);
                     }
                 }
             }
@@ -759,7 +754,18 @@ var hok = function () {
 
             if (hintCount > 0)
             {
-                document.addEventListener('keypress', onKeyPress, true);
+                util.message(hintCount);
+                if (hintCount == 1)
+                {
+                    destruction(true);
+                    try {
+                        currentAction(hintElements[0]);
+                    } catch (x) {}
+                }
+                else
+                {
+                    document.addEventListener('keypress', onKeyPress, true);
+                }
             }
             else
             {
@@ -796,7 +802,7 @@ if (getOption("actions"))
     getOption("actions").forEach(function (aRow) actions.push(aRow));
 }
 
-function hokStartForground(supressAutoFire) {
+function hokStartForeground(supressAutoFire) {
     hok.start(function (elem) followLink(elem, CURRENT_TAB),
               {
                   supressAutoFire: supressAutoFire
@@ -818,9 +824,9 @@ function hokStartContinuous() {
               });
 }
 
-ext.add("hok-start-forground-mode", function (ev, arg) {
-            hokStartForground(!(arg === null));
-        }, M({ja: "HoK - リンクをフォアグラウンドで開く", en: "Start Hit a Hint forground mode"}));
+ext.add("hok-start-foreground-mode", function (ev, arg) {
+            hokStartForeground(!(arg === null));
+        }, M({ja: "HoK - リンクをフォアグラウンドで開く", en: "Start Hit a Hint foreground mode"}));
 
 ext.add("hok-start-background-mode", function (ev, arg) {
             hokStartBackground(!(arg === null));
@@ -834,7 +840,7 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                 {
                     message: "Extended hint mode (Press TAB to see completions): ",
                     onChange: function (arg) {
-                        if (arg.event.keyCode === KeyEvent.DOM_VK_TAB)
+                        if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT || arg.event.keyCode === KeyEvent.DOM_VK_TAB)
                         {
                             return;
                         }
@@ -848,10 +854,10 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                         M({ja: "キー", en: "Key"}), M({ja: "説明", en: "Description"})
                     ],
                     style: [
-                        null, "color:#600003;"
+                        "font-weight:bold;text-align:right;margin-right:2em;", "color:#5100ae;"
                     ],
-                    flags: [
-                        0, 0, HIDDEN | IGNORE, HIDDEN | IGNORE, HIDDEN | IGNORE
+                    width: [
+                        40, 60
                     ],
                     callback: function (aStr) {
                         if (aStr !== null)
