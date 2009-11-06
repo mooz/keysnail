@@ -218,6 +218,100 @@ function getOption(aName) {
     }
 }
 
+function createMouseEvent(aDocument, aType, aOptions) {
+    var defaults = {
+        type          : aType,
+        bubbles       : true,
+        cancelable    : true,
+        view          : aDocument.defaultView,
+        detail        : 1,
+        screenX       : 0, screenY : 0,
+        clientX       : 0, clientY : 0,
+        ctrlKey       : false,
+        altKey        : false,
+        shiftKey      : false,
+        metaKey       : false,
+        button        : 0,
+        relatedTarget : null
+    };
+
+    var event = aDocument.createEvent("MouseEvents");
+
+    for (let prop in aOptions)
+    {
+        defaults[prop] = aOptions[prop];
+    }
+
+    event.initMouseEvent.apply(event, [v for each(v in defaults)]);
+
+    return event;
+}
+
+const NEW_TAB            = 1;
+const NEW_BACKGROUND_TAB = 2;
+const NEW_WINDOW         = 3;
+const CURRENT_TAB        = 4;
+
+/**
+ * Fakes a click on a link. from hint.js in liberator
+ *
+ * @param {Node} elem The element to click.
+ * @param {number} where Where to open the link.
+ */
+function followLink(elem, where) {
+    let doc     = elem.ownerDocument;
+    let view    = doc.defaultView;
+    let offsetX = 1;
+    let offsetY = 1;
+
+    if (elem instanceof HTMLFrameElement || elem instanceof HTMLIFrameElement)
+    {
+        elem.contentWindow.focus();
+        return;
+    }
+    else if (elem instanceof HTMLAreaElement) // for imagemap
+    {
+        let coords = elem.getAttribute("coords").split(",");
+        offsetX = Number(coords[0]) + 1;
+        offsetY = Number(coords[1]) + 1;
+    }
+
+    let ctrlKey = false, shiftKey = false;
+
+    switch (where) {
+    case NEW_TAB:
+    case NEW_BACKGROUND_TAB:
+        ctrlKey  = true;
+        shiftKey = (where != NEW_BACKGROUND_TAB);
+        break;
+    case NEW_WINDOW:
+        shiftKey = true;
+        break;
+    case CURRENT_TAB:
+        break;
+    default:
+        display.echoStatusBar("Invalid where argument for followLink()");
+    }
+
+    elem.focus();
+
+    // var savedOption = util.getUnicharPref("browser.tabs.loadInBackground");
+    // util.setUnicharPref("browser.tabs.loadInBackground", true);
+    try {
+        ["mousedown", "mouseup", "click"].forEach(
+            function (event) {
+                elem.dispatchEvent(
+                    createMouseEvent(doc,
+                                     event,
+                                     {
+                                         screenX: offsetX, screenY: offsetY,
+                                         ctrlKey: ctrlKey, shiftKey: shiftKey, metaKey: ctrlKey
+                                     }));
+            });
+    } catch (x) { util.message(x); }
+    // util.setUnicharPref("browser.tabs.loadInBackground", savedOption);
+}
+
 var yah = function () {
     var hintKeys         = getOption("hint_keys");
     var selector         = getOption("selector");
@@ -228,6 +322,7 @@ var yah = function () {
     var keyMap           = {'8': 'Bkspc', '46': 'Delete'};
 
     var uniqueFire       = getOption("unique_fire");
+    var currentAction;
 
     var hintKeysLength  = null;
     var fragment        = null;
@@ -241,128 +336,6 @@ var yah = function () {
     var inHeight        = null;
     var inputKey        = '';
     var lastMatchHint   = null;
-
-
-    function createMouseEvent(aDocument, aType, aOptions) {
-        var defaults = {
-            type          : aType,
-            bubbles       : true,
-            cancelable    : true,
-            view          : aDocument.defaultView,
-            detail        : 1,
-            screenX       : 0, screenY : 0,
-            clientX       : 0, clientY : 0,
-            ctrlKey       : false,
-            altKey        : false,
-            shiftKey      : false,
-            metaKey       : false,
-            button        : 0,
-            relatedTarget : null
-        };
-
-        var event = aDocument.createEvent("MouseEvents");
-
-        for (let prop in aOptions)
-        {
-            defaults[prop] = aOptions[prop];
-        }
-
-        event.initMouseEvent.apply(event, [v for each(v in defaults)]);
-
-        return event;
-    }
-
-    const NEW_TAB            = 1;
-    const NEW_BACKGROUND_TAB = 2;
-    const NEW_WINDOW         = 3;
-    const CURRENT_TAB        = 4;
-
-    /**
-     * Fakes a click on a link. from hint.js in liberator
-     *
-     * @param {Node} elem The element to click.
-     * @param {number} where Where to open the link.
-     */
-    function followLink(elem, where) {
-        let doc     = elem.ownerDocument;
-        let view    = doc.defaultView;
-        let offsetX = 1;
-        let offsetY = 1;
-
-        // if (elem instanceof HTMLFrameElement || elem instanceof HTMLIFrameElement)
-        // {
-        //     elem.contentWindow.focus();
-        //     return;
-        // }
-        // else if (elem instanceof HTMLAreaElement) // for imagemap
-        // {
-        //     let coords = elem.getAttribute("coords").split(",");
-        //     offsetX = Number(coords[0]) + 1;
-        //     offsetY = Number(coords[1]) + 1;
-        // }
-
-        let ctrlKey = false, shiftKey = false;
-
-        switch (where) {
-        case NEW_TAB:
-        case NEW_BACKGROUND_TAB:
-            ctrlKey  = true;
-            shiftKey = (where != NEW_BACKGROUND_TAB);
-            break;
-        case NEW_WINDOW:
-            shiftKey = true;
-            break;
-        case CURRENT_TAB:
-            break;
-        default:
-            display.echoStatusBar("Invalid where argument for followLink()");
-        }
-
-        elem.focus();
-
-        // var savedOption = util.getUnicharPref("browser.tabs.loadInBackground");
-        // util.setUnicharPref("browser.tabs.loadInBackground", true);
-        try {
-            ["mousedown", "mouseup", "click"].forEach(
-                function (event) {
-                    elem.dispatchEvent(
-                        createMouseEvent(doc,
-                                         event,
-                                         {
-                                             screenX: offsetX, screenY: offsetY,
-                                             ctrlKey: ctrlKey, shiftKey: shiftKey, metaKey: ctrlKey
-                                         }));
-                });
-        } catch (x) { util.message(e); }
-        // util.setUnicharPref("browser.tabs.loadInBackground", savedOption);
-    }
-
-    function getAbsolutePosition(elem) {
-        var style = getComputedStyle(elem, null);
-
-        // if (style.visibility === 'hidden' || style.opacity === '0')
-        if (style.visibility !== "visible" || style.visibility === "none")
-        {
-            return false;
-        }
-
-        var rect = elem.getClientRects()[0];
-
-        if (rect &&
-            rect.right - rect.left &&
-            rect.left >= 0 &&
-            rect.top >= -5 &&
-            rect.bottom <= inHeight + 5 &&
-            rect.right <= inWidth)
-        {
-            return {
-                top: (body.scrollTop || html.scrollTop) - html.clientTop + rect.top,
-                left: (body.scrollLeft || html.scrollLeft) - html.clientLeft + rect.left
-            };
-        }
-
-        return false;
-    }
 
     function createText(num) {
         var text = '';
@@ -392,32 +365,61 @@ var yah = function () {
         if (!win)
             win = window.content;
 
-        Array.slice(content.document.querySelectorAll(selector)).forEach(
-            function (elem, ind) {
-                var pos = getAbsolutePosition(elem);
-                if (pos === false)
-                {
-                    return;
-                }
+        let doc    = win.document;
+        let height = win.innerHeight;
+        let width  = win.innerWidth;
+        // let [scrollX, scrollY] = getBodyOffsets(doc);
 
-                var hint = createText(k);
-                var span = hintSpan.cloneNode(false);
-                span.appendChild(content.document.createTextNode(hint));
-                var ss   = span.style;
-                ss.left  = Math.max(0, pos.left - 8) + 'px';
-                ss.top   = Math.max(0, pos.top - 8) + 'px';
+        var result = doc.querySelectorAll(selector);
 
-                if (elem.hasAttribute('href') === false)
-                {
-                    ss.backgroundColor = hintColorForm;
-                }
+        for each(var elem in result)
+        {
+            var style = getComputedStyle(elem, null);
 
-                hintElements[hint] = span;
-                span.element       = elem;
-                hintContainer.appendChild(span);
+            if (style.visibility !== "visible" || style.visibility === "none")
+            {
+                continue;
+            }
 
-                k++;
-            });
+            var rect = elem.getClientRects()[0];
+            var top, left;
+
+            if (rect &&
+                rect.right - rect.left &&
+                rect.left >= 0 &&
+                rect.top >= -5 &&
+                rect.bottom <= height + 5 &&
+                rect.right <= width)
+            {
+                top = (body.scrollTop || html.scrollTop) - html.clientTop + rect.top;
+                left = (body.scrollLeft || html.scrollLeft) - html.clientLeft + rect.left;
+            }
+            else
+            {
+                continue;
+            }
+
+            var hint = createText(k);
+            var span = hintSpan.cloneNode(false);
+            span.appendChild(doc.createTextNode(hint));
+
+            var ss   = span.style;
+            ss.left  = Math.max(0, left - 8) + 'px';
+            ss.top   = Math.max(0, top - 8) + 'px';
+
+            if (elem.hasAttribute('href') === false)
+            {
+                ss.backgroundColor = hintColorForm;
+            }
+
+            hintElements[hint] = span;
+            span.element       = elem;
+            hintContainer.appendChild(span);
+
+            k++;            
+        }
+
+        util.message("k = " + k);
 
         // for (var i = 0; i < win.frames; ++i)
         // {
@@ -485,8 +487,6 @@ var yah = function () {
         html           = content.document.documentElement;
         body           = content.document.body;
         hintKeysLength = hintKeys.length;
-        inHeight       = window.innerHeight;
-        inWidth        = window.innerWidth;
 
         hintKeys.split('').forEach(
             function (l) {
@@ -540,10 +540,12 @@ var yah = function () {
                         foundCount++;
                 }
 
+                // util.message(foundCount);
+
                 if (foundCount == 1)
                 {
                     // fire!
-                    followLink(lastMatchHint.element, CURRENT_TAB);                        
+                    currentAction(lastMatchHint.element);
                     destruct();
                 }
             }
@@ -555,9 +557,11 @@ var yah = function () {
     }
 
     var self = {
-        start: function () {
+        start: function (aAction) {
+            currentAction = aAction;
             originalSuspendesStatus = key.suspended;
             key.suspended = true;
+
             init();
 
             if (drawHints())
@@ -575,4 +579,9 @@ var yah = function () {
     return self;
 }();
 
-ext.add("yah-start", yah.start, M({ja: "Hit a Hint を開始", en: "Start Hit a Hint"}));
+ext.add("yah-start", function (ev, arg) {
+            var argumentGiven = !(arg == null);
+            yah.start(function (elem) {
+                          followLink(elem, argumentGiven ? NEW_TAB : CURRENT_TAB);
+                      });
+        }, M({ja: "Hit a Hint を開始", en: "Start Hit a Hint"}));
