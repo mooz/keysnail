@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -518,7 +518,7 @@ var hok = function () {
 
         for each (var elem in result)
         {
-            var style = getComputedStyle(elem, null);
+            var style = win.getComputedStyle(elem, null);
 
             if (style.visibility !== "visible" || style.visibility === "none")
             {
