@@ -4,12 +4,11 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.2</version>
+    <version>1.1.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
-    <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
-    <license lang="ja">MIT ライセンス</license>
+    <license>MPL</license>
     <minVersion>1.0.0</minVersion>
     <include>main</include>
     <provides>
@@ -29,7 +28,13 @@ var PLUGIN_INFO =
             <name>hok.unique_fire</name>
             <type>boolean</type>
             <description>When current focused hint is unique, auto fire the link or not</description>
-            <description lang="ja">キーを入力した際、他に候補が無ければ自動的にそのリンクをたどるか (デフォルト true)</description>
+            <description lang="ja">キーを入力した際、他に候補が無ければ自動的にそのリンクをたどるか (デフォルト: true)</description>
+        </option>
+        <option>
+            <name>hok.statusbar_feedback</name>
+            <type>boolean</type>
+            <description>Whether display your inputs to the statusbar or not</description>
+            <description lang="ja">入力したキーをステータスバーへ表示するかどうか (デフォルト: true)</description>
         </option>
         <option>
             <name>hok.actions</name>
@@ -248,6 +253,14 @@ plugins.options["hok.actions"] = [
 
 ポイントは「アクション毎に Selectors API クエリを設定できる」というところにあります。例えばフレームだけを対象にさせたいのであれば body を設定しておけば良いのですし、画像だけなら img で OK なのです。
 
+各アクションは次のような形式となります。
+
+>||
+['キー', '説明', 関数, autoFire を抑制するか, continuous とするか, 'selectors api query']
+||<
+
+関数には element が渡ります。 element.href とすればリンクの URL が得られ、 element.textContent とすればそのリンクのテキストが得られます。画像なら element.src としてその URL を得ることも出来るでしょう。
+
 === 説明 ===
 
 このプラグインは以下のブックマークレットと Vimperator の hint を参考にして作成されました。
@@ -263,6 +276,7 @@ var originalSuspendedStatus;
 var optionsDefaultValue = {
     "hint_keys"          : 'asdfghjkl',
     "selector"           : 'a[href], input:not([type="hidden"]), textarea, select, iframe, img[onclick], button',
+    "statusbar_feedback" : true,
     "unique_fire"        : true,
     "actions"            : null,
     "hint_base_style"    : {
@@ -438,6 +452,7 @@ var hok = function () {
 
     var lastFocusedInfo;
 
+    var useStatusBarFeedBack = getOption("statusbar_feedback");
     var uniqueFire          = getOption("unique_fire");
     var uniqueFireSuspended;
     var continuousMode;
@@ -478,6 +493,12 @@ var hok = function () {
         return text;
     }
 
+    function getBodyOffsets(doc)
+    {
+        let bodyRect = (doc.body || doc.documentElement).getBoundingClientRect();
+        return [-bodyRect.left, -bodyRect.top];
+    }
+
     function drawHints(win) {
         if (!win)
             win = window.content;
@@ -488,6 +509,8 @@ var hok = function () {
 
         let height = win.innerHeight;
         let width  = win.innerWidth;
+
+        let [scrollX, scrollY] = getBodyOffsets(doc);
 
         // Arrange hint containers {{ ==================================
 
@@ -520,7 +543,7 @@ var hok = function () {
         {
             var style = win.getComputedStyle(elem, null);
 
-            if (style.visibility !== "visible" || style.visibility === "none")
+            if (!style || style.visibility !== "visible" || style.visibility === "none")
             {
                 continue;
             }
@@ -545,8 +568,8 @@ var hok = function () {
             span.appendChild(doc.createTextNode(hint));
 
             var ss   = span.style;
-            ss.left  = Math.max(0, left - 8) + 'px';
-            ss.top   = Math.max(0, top - 8) + 'px';
+            ss.left  = Math.max((rect.left + scrollX + 4), scrollX + 8) + 'px';
+            ss.top   = Math.max((rect.top + scrollY + 4), scrollY + 8) + 'px';
 
             if (elem.hasAttribute('href') === false)
             {
@@ -634,6 +657,7 @@ var hok = function () {
 
         if (continuousMode && !aForce)
         {
+            lastMatchHint = null;
             resetHintsColor();
         }
         else
@@ -730,7 +754,11 @@ var hok = function () {
         else
         {
             lastMatchHint = null;
+            inputKey = "";
         }
+
+        if (inputKey.length && useStatusBarFeedBack)
+            display.echoStatusBar("input : " + inputKey);
     }
 
     var self = {
@@ -754,7 +782,6 @@ var hok = function () {
 
             if (hintCount > 0)
             {
-                util.message(hintCount);
                 if (hintCount == 1)
                 {
                     destruction(true);
@@ -782,7 +809,7 @@ function formatActions(aActions) {
 }
 
 var actions = [
-    [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus(), false],
+    [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus()],
     ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, false)],
     ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, "body"],
     ['o', M({ja: "リンク先へジャンプ", en: "Follow hint"}), function (elem) followLink(elem, CURRENT_TAB)],
@@ -793,8 +820,8 @@ var actions = [
     ['y', M({ja: "リンク先の URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
     ['Y', M({ja: "要素の内容をコピー", en: "Yank hint description"}), function (elem) command.setClipboardText(elem.textContent || "")],
     ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) openContextMenu(elem)],
-    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) open(elem.src), true, false, "img"],
-    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) open(elem.src, NEW_TAB), true, false, "img"]
+    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) open(elem.src), false, false, "img"],
+    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) open(elem.src, NEW_TAB), false, false, "img"]
 ];
 
 if (getOption("actions"))
@@ -840,7 +867,8 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                 {
                     message: "Extended hint mode (Press TAB to see completions): ",
                     onChange: function (arg) {
-                        if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT || arg.event.keyCode === KeyEvent.DOM_VK_TAB)
+                        if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT ||
+                            arg.event.keyCode === KeyEvent.DOM_VK_TAB)
                         {
                             return;
                         }
@@ -860,23 +888,23 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                         40, 60
                     ],
                     callback: function (aStr) {
-                        if (aStr !== null)
+                        if (aStr === null)
+                            return;
+
+                        for (var i = 0; i < actions.length; ++i)
                         {
-                            for (var i = 0; i < actions.length; ++i)
+                            if (actions[i][0] == aStr[0])
                             {
-                                if (actions[i][0] == aStr)
-                                {
-                                    var func = actions[i][2];
-                                    var desc = actions[i][1];
-                                    // display.prettyPrint(desc, {timeout: 1000, fade:100});
-                                    hok.start(function (elem) func(elem),
-                                              {
-                                                  supressAutoFire : actions[i].length > 2 ? actions[i][3] : false,
-                                                  continuous      : actions[i].length > 3 ? actions[i][4] : false,
-                                                  selector        : actions[i].length > 4 ? actions[i][5] : null
-                                              });
-                                    break;
-                                }
+                                var func = actions[i][2];
+                                var desc = actions[i][1];
+                                // display.prettyPrint(desc, {timeout: 1000, fade:100});
+                                hok.start(function (elem) func(elem),
+                                          {
+                                              supressAutoFire : actions[i].length > 3 ? actions[i][3] : false,
+                                              continuous      : actions[i].length > 4 ? actions[i][4] : false,
+                                              selector        : actions[i].length > 5 ? actions[i][5] : null
+                                          });
+                                break;
                             }
                         }
                     }
