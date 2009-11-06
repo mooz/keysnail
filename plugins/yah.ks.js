@@ -10,7 +10,7 @@ var PLUGIN_INFO =
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.0.1</minVersion>
+    <minVersion>1.0.0</minVersion>
     <include>main</include>
     <provides>
         <ext>yah-start</ext>
