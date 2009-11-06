@@ -1280,7 +1280,7 @@ KeySnail.Prompt = function () {
         userOnChange  = null;
         userOnFinish  = null;
 
-        // -------------------- prompt.selector -------------------- //
+        // -------------------- prompt.selector (and prompt.reader) -------------------- //
 
         delayedCommandTimeout = null;
         selectorFilter        = null;
@@ -1518,11 +1518,16 @@ KeySnail.Prompt = function () {
             userOnChange = aContext.onChange;
             userOnFinish = aContext.onFinish;
 
+            flags      = aContext.flags;
+            listHeader = aContext.header;
+            listStyle  = aContext.style;
+            listWidth  = aContext.width;
+
             // display prompt box
             label.value            = aContext.message;
             textbox.value          = aContext.initialinput || "";
             promptbox.hidden       = false;
-            textbox.selectionStart = textbox.selectionEnd = 0;
+            textbox.selectionStart = textbox.selectionEnd = aContext.cursorEnd ? textbox.value.length : 0;
 
             textbox.focus();
 
