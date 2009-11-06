@@ -784,7 +784,7 @@ function formatActions(aActions) {
 var actions = [
     [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus(), false],
     ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, false)],
-    ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), true, false, "body"],
+    ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, "body"],
     ['o', M({ja: "リンク先へジャンプ", en: "Follow hint"}), function (elem) followLink(elem, CURRENT_TAB)],
     ['t', M({ja: "新しいタブでリンクを開く", en: "Follow hint in a new tab"}), function (elem) followLink(elem, NEW_TAB)],
     ['b', M({ja: "背面のタブでリンクを開く", en: "Follow hint in a background tab"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB)],
