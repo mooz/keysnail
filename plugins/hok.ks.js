@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.6</version>
+    <version>1.1.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -44,10 +44,10 @@ var PLUGIN_INFO =
             <description lang="ja">拡張ヒントモード用に独自のアクションを設定</description>
         </option>
         <option>
-            <name>hok.selector</name>
+            <name>hok.xpath</name>
             <type>string</type>
-            <description>SelectorAPI query</description>
-            <description lang="ja">ヒントの取得に使う Selectors API クエリ</description>
+            <description>XPath query</description>
+            <description lang="ja">ヒントの取得に使う XPath クエリ</description>
         </option>
         <option>
             <name>hok.hint_color_link</name>
@@ -141,11 +141,10 @@ plugins.options["hok.hint_color_form"]    = 'rgba(157, 82, 255, 0.7)';
 plugins.options["hok.hint_color_focused"] = 'rgba(255, 82, 93, 0.7)';
 ||<
 
-If you are familiar with the Selectors API and want this plugin to use arbitrary one, you can set the query.
+If you are familiar with the XPath and want this plugin to use arbitrary one, you can set the query.
 
 >||
-plugins.options["hok.selector"] = 'a[href], input:not([type="hidden"]),
-                                   textarea, select, img[onclick], button';
+plugins.options["hok.xpath"] = '//a | //textarea || //button';
 ||<
 	       ]]></detail>
     <detail lang="ja"><![CDATA[
@@ -214,11 +213,10 @@ plugins.options["hok.hint_color_candidates"] = 'rgba(240, 82, 93, 0.9)';
 plugins.options["hok.hint_color_focused"]    = 'rgba(255, 4, 5, 1.0)';
 ||<
 
-Selector API を知っていてカスタマイズしたいという方は、次のようにしてヒント取得用のクエリを変更することもできます。
+XPath を知っていてカスタマイズしたいという方は、次のようにしてヒント取得用のクエリを変更することもできます。
 
 >||
-plugins.options["hok.selector"] = 'a[href], input:not([type="hidden"]),
-                                   textarea, select, img[onclick], button';
+plugins.options["hok.xpath"] = '//a | //textarea || //button';
 ||<
 
 === 拡張ヒントモード ===
@@ -244,7 +242,7 @@ plugins.options["hok.actions"] = [
     ['1',
      M({ja: "画像の URL をコピー", en: "Copy image's url"}),
      function (elem) { command.setClipboardText(elem.src); },
-     true, false, "img"],
+     true, false, "//img"],
     ['2',
      M({ja: "要素のプロパティを一覧表示", en: "List elements properties"}),
      function (elem) { util.listProperty(elem); },
@@ -254,14 +252,14 @@ plugins.options["hok.actions"] = [
 
 こうすることにより ; 1 と入力すれば画像にだけヒントがつき、その後選択された画像の src がクリップボードへコピーされるようになります。
 
-ポイントは「アクション毎に Selectors API クエリを設定できる」というところにあります。例えばフレームだけを対象にさせたいのであれば body を設定しておけば良いのですし、画像だけなら img で OK なのです。可能性は無限大ですね。
+ポイントは「アクション毎に XPath クエリを設定できる」というところにあります。例えばフレームだけを対象にさせたいのであれば //body を設定しておけば良いのですし、画像だけなら //img で OK なのです。可能性は無限大ですね。
 
 各アクションは次のような形式となります。
 
 >||
 ['キー', '説明',
  function (elem) { /* elem を使った処理 */ },
- autoFire を抑制するか, continuous とするか, 'Selectors API のクエリ']
+ autoFire を抑制するか, continuous とするか, 'XPath のクエリ']
 ||<
 
 関数にはヒントを使って選択した要素が渡ります。 elem.href とすればリンクの URL が得られ、 elem.textContent とすればそのリンクのテキストが得られます。画像であれば elem.src としてその URL を得ることも出来ます。
@@ -283,6 +281,11 @@ http://github.com/myuhe
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.1.7 (2009 11/08) ====
+//
+// * Fixed the hints position bug.
+// * Made HoK use XPath instead of Selectors API.
 // 
 // ==== 1.1.6 (2009 11/07) ====
 //
@@ -307,6 +310,8 @@ var optionsDefaultValue = {
     "hint_keys"          : 'asdfghjkl',
     "selector"           : 'a, input:not([type="hidden"]), textarea, iframe, area, select, button, ' +
         '*[onclick], *[onmouseover], *[onmousedown], *[onmouseup], *[oncommand], *[role="link"]',
+    "xpath"              : '//input[not(@type="hidden")] | //a | //area | //iframe | //textarea | //button | //select'
+        + ' | //*[@onclick or @onmouseover or @onmousedown or @onmouseup or @oncommand or @role="link"]',
     "statusbar_feedback" : true,
     "unique_fire"        : true,
     "actions"            : null,
@@ -323,9 +328,9 @@ var optionsDefaultValue = {
         textTransform   : 'uppercase'
     },
     "hint_color_link"       : 'rgba(180, 255, 81, 0.90)',
-    "hint_color_form"       : 'rgba(151, 138, 240, 0.90)',
-    "hint_color_candidates" : 'rgba(255, 149, 153, 0.90)',
-    "hint_color_focused"    : 'rgba(255, 10, 10, 1.0)'
+    "hint_color_form"       : 'rgba(155, 174, 255, 0.90)',
+    "hint_color_candidates" : 'rgba(255, 81, 116, 0.90)',
+    "hint_color_focused"    : 'rgba(255, 0, 51, 1.0)'
 };
 
 function getOption(aName) {
@@ -344,6 +349,8 @@ function getOption(aName) {
 // }} ======================================================================= //
 
 // Misc utils {{ ============================================================ //
+
+// Most functions are borrowed from liberator. Thanks a lot :)
 
 function createMouseEvent(aDocument, aType, aOptions) {
     var defaults = {
@@ -498,6 +505,7 @@ var originalSuspendedStatus;
 var hok = function () {
     var hintKeys            = getOption("hint_keys");
     var selector            = getOption("selector");
+    var xPathExp            = getOption("xpath");
     var hintBaseStyle       = getOption("hint_base_style");
     var hintColorLink       = getOption("hint_color_link");
     var hintColorForm       = getOption("hint_color_form");
@@ -525,7 +533,7 @@ var hok = function () {
     // }} ======================================================================= //
 
     var currentAction;
-    var priorSelector;
+    var priorXPath;
 
     // length of the hint keys like 'asdfghjkl'
     var hintKeysLength  = null;
@@ -561,12 +569,91 @@ var hok = function () {
         return text;
     }
 
-    function getBodyOffsets(doc)
+    /**
+     * Gets the actual offset of an imagemap area.
+     *
+     * Only called by generate().
+     *
+     * @param {Object} elem  The <area> element.
+     * @param {number} leftpos  The left offset of the image.
+     * @param {number} toppos  The top offset of the image.
+     * @returns [leftpos, toppos]  The updated offsets.
+     */
+    function getAreaOffset(elem, leftpos, toppos)
     {
-        let bodyRect = (doc.body || doc.documentElement).getBoundingClientRect();
-        return [-bodyRect.left, -bodyRect.top];
+        try
+        {
+            // Need to add the offset to the area element.
+            // Always try to find the top-left point, as per liberator default.
+            let shape = elem.getAttribute("shape").toLowerCase();
+            let coordstr = elem.getAttribute("coords");
+            // Technically it should be only commas, but hey
+            coordstr = coordstr.replace(/\s+[;,]\s+/g, ",").replace(/\s+/g, ",");
+            let coords = coordstr.split(",").map(Number);
+
+            if ((shape == "rect" || shape == "rectangle") && coords.length == 4)
+            {
+                leftpos += coords[0];
+                toppos += coords[1];
+            }
+            else if (shape == "circle" && coords.length == 3)
+            {
+                leftpos += coords[0] - coords[2] / Math.sqrt(2);
+                toppos += coords[1] - coords[2] / Math.sqrt(2);
+            }
+            else if ((shape == "poly" || shape == "polygon") && coords.length % 2 == 0)
+            {
+                let leftbound = Infinity;
+                let topbound = Infinity;
+                var i;
+
+                // First find the top-left corner of the bounding rectangle (offset from image topleft can be noticably suboptimal)
+                for (i = 0; i < coords.length; i += 2)
+                {
+                    leftbound = Math.min(coords[i], leftbound);
+                    topbound = Math.min(coords[i + 1], topbound);
+                }
+
+                let curtop = null;
+                let curleft = null;
+                let curdist = Infinity;
+
+                // Then find the closest vertex. (we could generalise to nearest point on an edge, but I doubt there is a need)
+                for (i = 0; i < coords.length; i += 2)
+                {
+                    let leftoffset = coords[i] - leftbound;
+                    let topoffset = coords[i + 1] - topbound;
+                    let dist = Math.sqrt(leftoffset * leftoffset + topoffset * topoffset);
+                    if (dist < curdist)
+                    {
+                        curdist = dist;
+                        curleft = coords[i];
+                        curtop = coords[i + 1];
+                    }
+                }
+
+                // If we found a satisfactory offset, let's use it.
+                if (curdist < Infinity)
+                    return [leftpos + curleft, toppos + curtop];
+            }
+        } catch (e) {} // badly formed document, or shape == "default" in which case we don't move the hint
+
+        return [leftpos, toppos];
     }
 
+    // function getBodyOffsets(doc)
+    // {
+    //     let bodyRect = (doc.body || doc.documentElement).getBoundingClientRect();
+    //     return [-bodyRect.left, -bodyRect.top];
+    // }
+
+    function getBodyOffsets(doc)
+    {
+        return [
+            (doc.body.scrollLeft || doc.documentElement.scrollLeft) - doc.documentElement.clientLeft,
+            (doc.body.scrollTop || doc.documentElement.scrollTop) - doc.documentElement.clientTop
+        ];
+    }
 
     function drawHints(win) {
         if (!win)
@@ -602,7 +689,6 @@ var hok = function () {
 
         // }} ======================================================================= //
 
-
         // Arrange hints seed {{ ==================================================== //
 
         var hintSpan = doc.createElement('span');
@@ -618,39 +704,50 @@ var hok = function () {
 
         // }} ======================================================================= //
 
-        var result = doc.querySelectorAll(priorSelector || selector);
+        var result, elem;
+        result = doc.evaluate(priorXPath || xPathExp, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
-        for each (var elem in result)
+        var style, rect, hint, span, top, left, ss;
+        var leftpos, toppos;
+
+        for (var i = 0; i < result.snapshotLength; ++i)
         {
-            var style = win.getComputedStyle(elem, null);
+            elem = result.snapshotItem(i);
 
-            if (!style || style.visibility !== "visible" || style.visibility === "none")
+            rect = elem.getBoundingClientRect();
+            if (!rect || rect.top > height || rect.bottom < 0 || rect.left > width || rect.right < 0)
+                continue;
+
+            rect = elem.getClientRects()[0];
+            if (!rect)
+                continue;
+
+            // ========================================================================== //
+
+            style = win.getComputedStyle(elem, null);
+
+            if (!style || style.visibility !== "visible" || style.display === "none")
             {
                 continue;
             }
 
-            var rect = elem.getClientRects()[0];
-
-            if (!rect             ||
-                rect.top > height ||
-                rect.bottom < 0   ||
-                rect.left > width ||
-                rect.right < 0)
-            {
-                continue;
-            }
-
-            var top, left;
-            top  = (body.scrollTop || html.scrollTop) - html.clientTop + rect.top;
-            left = (body.scrollLeft || html.scrollLeft) - html.clientLeft + rect.left;
-
-            var hint = createText(hintCount);
-            var span = hintSpan.cloneNode(false);
+            hint = createText(hintCount);
+            span = hintSpan.cloneNode(false);
             span.appendChild(doc.createTextNode(hint));
 
-            var ss   = span.style;
-            ss.left  = Math.max((rect.left + scrollX), scrollX + 6) + 'px';
-            ss.top   = Math.max((rect.top + scrollY), scrollY + 6) + 'px';
+            // Set hint position {{ ===================================================== //
+            
+            leftpos = Math.max((rect.left + scrollX), scrollX);
+            toppos =  Math.max((rect.top + scrollY), scrollY);
+
+            if (elem instanceof HTMLAreaElement)
+                [leftpos, toppos] = getAreaOffset(elem, leftpos, toppos);
+
+            ss = span.style;
+            ss.left = leftpos + "px";
+            ss.top  =  toppos + "px";
+
+            // }} ======================================================================= //
 
             if (elem.hasAttribute('href') === false)
             {
@@ -876,14 +973,14 @@ var hok = function () {
 
     var self = {
         start: function (aAction, aContext) {
-            if (!window.content || !document.querySelectorAll)
+            if (!window.content)
                 return;
 
             uniqueFireSuspended = aContext.suspendUniqueFire;
             continuousMode      = aContext.continuous;
 
             currentAction = aAction;
-            priorSelector = aContext.selector;
+            priorXPath    = aContext.xpath;
 
             // suspend keysnail's keyhandler
             originalSuspendedStatus = key.suspended;
@@ -891,7 +988,11 @@ var hok = function () {
 
             init();
 
+            // var fromDate = new Date();
             drawHints();
+            // var endDate = new Date();
+
+            // window.alert((endDate - fromDate) + " msec");
 
             if (hintCount > 1)
             {
@@ -962,18 +1063,17 @@ function formatActions(aActions) {
     return aActions.map(function (row) row.slice(0, 2));
 }
 
-// Selectors API query
-var selectors = {
-    images : "img",
-    frames : "body"
+var xpath = {
+    images : "//img",
+    frames : "//body"
 };
 
-// ['Key', 'Description', function (elem) { /* process hint elem */ }, supressAutoFire, continuousMode, 'Selectors API query']
+// ['Key', 'Description', function (elem) { /* process hint elem */ }, supressAutoFire, continuousMode, 'XPath query']
 var actions = [
     [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus()],
     ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, true)],
     ['a', M({ja: "名前をつけてリンク先を保存", en: "Save hint with prompt"}), function (elem) saveLink(elem, false)],
-    ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, selectors.frames],
+    ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, xpath.frames],
     ['o', M({ja: "リンクを開く", en: "Follow hint"}), function (elem) followLink(elem, CURRENT_TAB)],
     ['t', M({ja: "新しいタブでリンクを開く", en: "Follow hint in a new tab"}), function (elem) followLink(elem, NEW_TAB)],
     ['b', M({ja: "背面のタブでリンクを開く", en: "Follow hint in a background tab"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB)],
@@ -984,8 +1084,8 @@ var actions = [
     ['y', M({ja: "リンク先の URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
     ['Y', M({ja: "要素の内容をコピー", en: "Yank hint description"}), function (elem) command.setClipboardText(elem.textContent || "")],
     ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) openContextMenu(elem)],
-    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) openURI(elem.src), false, false, selectors.images],
-    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) openURI(elem.src, NEW_TAB), false, false, selectors.images]
+    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) openURI(elem.src), false, false, xpath.images],
+    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) openURI(elem.src, NEW_TAB), false, false, xpath.images]
 ];
 
 if (getOption("actions"))
@@ -1058,7 +1158,7 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                                           {
                                               supressAutoFire : actions[i].length > 3 ? actions[i][3] : false,
                                               continuous      : actions[i].length > 4 ? actions[i][4] : false,
-                                              selector        : actions[i].length > 5 ? actions[i][5] : null
+                                              xpath           : actions[i].length > 5 ? actions[i][5] : null
                                           });
                                 return;
                             }
@@ -1072,9 +1172,9 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
 
 // }} ======================================================================= //
 
-if (!document.querySelectorAll)
-{
-    display.notify(M({ja: "HoK :: このプラグインは Firefox 3.1 以降専用です。 Firefox をアップデートするか、このプラグインを無効にしてください。",
-                      en: "HoK :: This plugin is only works over Firefox version 3.1. Please update your Firefox or disable this plugin."}));
-    hok = null;
-}
+// if (!document.querySelectorAll)
+// {
+//     display.notify(M({ja: "HoK :: このプラグインは Firefox 3.1 以降専用です。 Firefox をアップデートするか、このプラグインを無効にしてください。",
+//                       en: "HoK :: This plugin is only works over Firefox version 3.1. Please update your Firefox or disable this plugin."}));
+//     hok = null;
+// }
