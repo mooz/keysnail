@@ -995,6 +995,8 @@ ext.add("hok-start-continuous-mode",
         M({ja: "HoK - リンクを連続して開く", en: "Start Hit a Hint continuous mode"}));
 
 ext.add("hok-start-extended-mode", function (ev, arg) {
+            var savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
+
             prompt.reader(
                 {
                     message: "Extended hint mode (Press TAB to see completions): ",
@@ -1022,7 +1024,10 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                     supressRecoverFocus: true,
                     callback: function (aStr) {
                         if (aStr === null)
+                        {
+                            savedFocusedElement.focus();
                             return;
+                        }
 
                         for (var i = 0; i < actions.length; ++i)
                         {
@@ -1040,6 +1045,9 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                                 break;
                             }
                         }
+
+                        if (i == actions.length)
+                            savedFocusedElement.focus();
                     }
                 }
             );
