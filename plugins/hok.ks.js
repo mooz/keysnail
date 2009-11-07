@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -284,6 +284,10 @@ http://github.com/myuhe
 
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.1.6 (2009 11/07) ====
+//
+// * Modified default hint style. Made more elements to be gathered.
+//
 // ==== 1.1.5 (2009 11/07) ====
 //
 // * Fixed the silly bug. Images not gathered collectly.
@@ -301,25 +305,27 @@ http://github.com/myuhe
 
 var optionsDefaultValue = {
     "hint_keys"          : 'asdfghjkl',
-    "selector"           : 'a[href], input:not([type="hidden"]), textarea, select, img[onclick], button',
+    "selector"           : 'a, input:not([type="hidden"]), textarea, iframe, area, select, button, ' +
+        '*[onclick], *[onmouseover], *[onmousedown], *[onmouseup], *[oncommand], *[role="link"]',
     "statusbar_feedback" : true,
     "unique_fire"        : true,
     "actions"            : null,
     "hint_base_style"    : {
-            position        : 'absolute',
-            zIndex          : '2147483647',
-            color           : '#000',
-            fontSize        : '10pt',
-            fontFamily      : 'monospace',
-            lineHeight      : '10pt',
-            padding         : '0px',
-            margin          : '0px',
-            textTransform   : 'uppercase'
+        position        : 'absolute',
+        zIndex          : '2147483647',
+        color           : '#000',
+        fontFamily      : 'monospace',
+        fontSize        : '10pt',
+        fontWeight      : 'bold',
+        lineHeight      : '10pt',
+        padding         : '2px',
+        margin          : '0px',
+        textTransform   : 'uppercase'
     },
-    "hint_color_link"       : 'rgba(180, 255, 81, 0.9)',
-    "hint_color_form"       : 'rgba(157, 82, 255, 0.9)',
-    "hint_color_candidates" : 'rgba(255, 149, 153, 0.9)',
-    "hint_color_focused"    : 'rgba(255, 4, 5, 1.0)'
+    "hint_color_link"       : 'rgba(180, 255, 81, 0.90)',
+    "hint_color_form"       : 'rgba(151, 138, 240, 0.90)',
+    "hint_color_candidates" : 'rgba(255, 149, 153, 0.90)',
+    "hint_color_focused"    : 'rgba(255, 10, 10, 1.0)'
 };
 
 function getOption(aName) {
@@ -643,8 +649,8 @@ var hok = function () {
             span.appendChild(doc.createTextNode(hint));
 
             var ss   = span.style;
-            ss.left  = Math.max((rect.left + scrollX + 4), scrollX + 8) + 'px';
-            ss.top   = Math.max((rect.top + scrollY + 4), scrollY + 8) + 'px';
+            ss.left  = Math.max((rect.left + scrollX), scrollX + 6) + 'px';
+            ss.top   = Math.max((rect.top + scrollY), scrollY + 6) + 'px';
 
             if (elem.hasAttribute('href') === false)
             {
@@ -903,7 +909,14 @@ var hok = function () {
                         // TODO: Is there a good way to do this?
                         for each (let hintElem in hintElements)
                         {
-                            fire(hintElem.element);
+                            if (supressAutoFire)
+                            {
+                                hintElem.element.focus();
+                            }
+                            else
+                            {
+                                fire(hintElem.element);
+                            }
                             break;
                         }
                     } catch (x) {}
@@ -951,23 +964,23 @@ function formatActions(aActions) {
 
 // Selectors API query
 var selectors = {
-    images  : "img",
+    images : "img",
     frames : "body"
 };
 
 // ['Key', 'Description', function (elem) { /* process hint elem */ }, supressAutoFire, continuousMode, 'Selectors API query']
 var actions = [
     [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus()],
-    ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, false)],
-    ['a', M({ja: "名前をつけてリンク先を保存", en: "Save hint with prompt"}), function (elem) saveLink(elem, true)],
+    ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, true)],
+    ['a', M({ja: "名前をつけてリンク先を保存", en: "Save hint with prompt"}), function (elem) saveLink(elem, false)],
     ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, selectors.frames],
-    ['o', M({ja: "リンク先へジャンプ", en: "Follow hint"}), function (elem) followLink(elem, CURRENT_TAB)],
+    ['o', M({ja: "リンクを開く", en: "Follow hint"}), function (elem) followLink(elem, CURRENT_TAB)],
     ['t', M({ja: "新しいタブでリンクを開く", en: "Follow hint in a new tab"}), function (elem) followLink(elem, NEW_TAB)],
     ['b', M({ja: "背面のタブでリンクを開く", en: "Follow hint in a background tab"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB)],
     ['w', M({ja: "新しいウィンドウでリンクを開く", en: "Follow hint in a new window"}), function (elem) followLink(elem, NEW_WINDOW)],
+    ['F', M({ja: "連続してリンクを開く", en: "Open multiple hints in tabs"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB), false, true],
     ['v', M({ja: "ヒントのソースコードを表示", en: "View hint source"}), function (elem) viewSource(elem.href, false)],
     ['V', M({ja: "ヒントのソースコードを外部エディタで表示", en: "View hint source in external editor"}), function (elem) viewSource(elem.href, true)],
-    ['F', M({ja: "連続してリンクを開く", en: "Open multiple hints in tabs"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB), false, true],
     ['y', M({ja: "リンク先の URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
     ['Y', M({ja: "要素の内容をコピー", en: "Yank hint description"}), function (elem) command.setClipboardText(elem.textContent || "")],
     ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) openContextMenu(elem)],
