@@ -1497,6 +1497,8 @@ KeySnail.Prompt = function () {
             }
 
             savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
+            if (aContext.supressRecoverFocus)
+                savedFocusedElement = null;
 
             type = TYPE_READ;
 
@@ -1564,6 +1566,8 @@ KeySnail.Prompt = function () {
             }
 
             savedFocusedElement = document.commandDispatcher.focusedElement || content.window;
+            if (aContext.supressRecoverFocus)
+                savedFocusedElement = null;
 
             // tell current command is the selector
             type = TYPE_SELECTOR;

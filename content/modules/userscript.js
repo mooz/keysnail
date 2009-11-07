@@ -734,7 +734,8 @@ KeySnail.UserScript = {
         if (!aPath)
             return;
 
-        var files = this.modules.util.readDirectory(aPath);
+        // load plugins in sorted order
+        var files = this.modules.util.readDirectory(aPath, true);
 
         files.forEach(
             function (aFile) {

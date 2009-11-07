@@ -481,8 +481,9 @@ function viewSource(url, useExternalEditor) {
 
 // }} ======================================================================= //
 
-
 // HoK object {{ ============================================================ //
+
+var originalSuspendedStatus;
 
 var hok = function () {
     var hintKeys            = getOption("hint_keys");
@@ -825,6 +826,8 @@ var hok = function () {
 
         if (inputKey in hintElements === true)
         {
+            util.message("Focused " + inputKey);
+
             lastMatchHint = hintElements[inputKey];
             focusHint(lastMatchHint);
 
@@ -849,13 +852,13 @@ var hok = function () {
         }
 
         if (useStatusBarFeedBack)
-            display.echoStatusBar("input : " + inputKey);
+            display.echoStatusBar("hint input : " + inputKey);
     }
 
     function init() {
         hintKeysLength = hintKeys.length;
-        hintElements = [];
-        hintCount = 0;
+        hintElements   = [];
+        hintCount      = 0;
 
         hintKeys.split('').forEach(
             function (l) {
@@ -1016,6 +1019,7 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                     width: [
                         40, 60
                     ],
+                    supressRecoverFocus: true,
                     callback: function (aStr) {
                         if (aStr === null)
                             return;
@@ -1027,7 +1031,7 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                                 var func = actions[i][2];
                                 var desc = actions[i][1];
                                 // display.prettyPrint(desc, {timeout: 1000, fade:200});
-                                hok.start(function (elem) func(elem),
+                                hok.start(func,
                                           {
                                               supressAutoFire : actions[i].length > 3 ? actions[i][3] : false,
                                               continuous      : actions[i].length > 4 ? actions[i][4] : false,
