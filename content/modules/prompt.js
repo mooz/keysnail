@@ -1175,7 +1175,7 @@ KeySnail.Prompt = function () {
     // ============================== finish ============================== //
 
     function executeCallback(aCallback, aCallbackArg, aCanceled) {
-        if (typeof(aCallback) === "function" && !aCanceled) {
+        if (typeof(aCallback) === "function") {
             // try to execute
             try {
                 aCallback.apply(modules, aCallbackArg);

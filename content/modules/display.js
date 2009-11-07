@@ -14,6 +14,7 @@ KeySnail.Display = function () {
     // ==== status bar ====
     var statusBar;            // reference to the status bar
     var msgTimeOut;           // timeout object to the status bar
+    var hideMessageTimeout;
 
     var smooth = 15;
 
@@ -106,7 +107,9 @@ KeySnail.Display = function () {
                     container.style.opacity = origOpacity;
 
                     if (aTimeout) {
-                        setTimeout(hideMessage, aTimeout);
+                        if (hideMessageTimeout)
+                            clearTimeout(hideMessageTimeout);
+                        hideMessageTimeout = setTimeout(hideMessage, aTimeout);
                     }
                 }
 
