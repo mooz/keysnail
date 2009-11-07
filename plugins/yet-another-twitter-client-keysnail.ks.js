@@ -293,7 +293,7 @@ var twitterClient =
                   command.setClipboardText(status.text);
               }, M({ja: "このつぶやきをクリップボードにコピー : ", en: ""}) + "Copy selected message"],
              [function (status) {
-                  window.alert(status.text);
+                  display.prettyPrint(status.text, {timeout: 6000, fade: 300});
               }, M({ja: "このつぶやきを全文表示 : ", en: ""}) + "Display entire message"],
              [function (status) {
                   if (status) {

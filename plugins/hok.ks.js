@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.4</version>
+    <version>1.1.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -283,6 +283,10 @@ http://github.com/myuhe
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.1.5 (2009 11/07) ====
+//
+// * Fixed the silly bug. Images not gathered collectly.
 //
 // ==== 1.1.4 (2009 11/07) ====
 //
@@ -826,8 +830,6 @@ var hok = function () {
 
         if (inputKey in hintElements === true)
         {
-            util.message("Focused " + inputKey);
-
             lastMatchHint = hintElements[inputKey];
             focusHint(lastMatchHint);
 
@@ -949,7 +951,7 @@ function formatActions(aActions) {
 
 // Selectors API query
 var selectors = {
-    image  : "img",
+    images  : "img",
     frames : "body"
 };
 
@@ -995,7 +997,10 @@ ext.add("hok-start-continuous-mode",
         M({ja: "HoK - リンクを連続して開く", en: "Start Hit a Hint continuous mode"}));
 
 ext.add("hok-start-extended-mode", function (ev, arg) {
-            var savedFocusedElement = window.document.commandDispatcher.focusedElement || window.content.window;
+            function recoverFocus() {
+                gBrowser.focus();
+                _content.focus();
+            }
 
             prompt.reader(
                 {
@@ -1023,9 +1028,9 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                     ],
                     supressRecoverFocus: true,
                     callback: function (aStr) {
-                        if (aStr === null)
+                        if (aStr == null)
                         {
-                            savedFocusedElement.focus();
+                            recoverFocus();
                             return;
                         }
 
@@ -1035,19 +1040,18 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                             {
                                 var func = actions[i][2];
                                 var desc = actions[i][1];
-                                // display.prettyPrint(desc, {timeout: 1000, fade:200});
+
                                 hok.start(func,
                                           {
                                               supressAutoFire : actions[i].length > 3 ? actions[i][3] : false,
                                               continuous      : actions[i].length > 4 ? actions[i][4] : false,
                                               selector        : actions[i].length > 5 ? actions[i][5] : null
                                           });
-                                break;
+                                return;
                             }
                         }
 
-                        if (i == actions.length)
-                            savedFocusedElement.focus();
+                        recoverFocus();
                     }
                 }
             );
