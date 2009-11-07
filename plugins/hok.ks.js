@@ -496,6 +496,11 @@ function viewSource(url, useExternalEditor) {
     }
 }
 
+function recoverFocus() {
+    gBrowser.focus();
+    _content.focus();
+}
+
 // }} ======================================================================= //
 
 // HoK object {{ ============================================================ //
@@ -1025,6 +1030,7 @@ var hok = function () {
                 else
                 {
                     display.echoStatusBar(M({ja: "ヒントが見つかりませんでした", en: "No hints found"}), 1000);
+                    recoverFocus();
                 }
             }
         },
@@ -1055,6 +1061,10 @@ var hok = function () {
     return self;
 }();
 
+// export
+
+plugins.hok = hok;
+
 // }} ======================================================================= //
 
 // Actions {{ =============================================================== //
@@ -1079,9 +1089,9 @@ var actions = [
     ['b', M({ja: "背面のタブでリンクを開く", en: "Follow hint in a background tab"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB)],
     ['w', M({ja: "新しいウィンドウでリンクを開く", en: "Follow hint in a new window"}), function (elem) followLink(elem, NEW_WINDOW)],
     ['F', M({ja: "連続してリンクを開く", en: "Open multiple hints in tabs"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB), false, true],
-    ['v', M({ja: "ヒントのソースコードを表示", en: "View hint source"}), function (elem) viewSource(elem.href, false)],
-    ['V', M({ja: "ヒントのソースコードを外部エディタで表示", en: "View hint source in external editor"}), function (elem) viewSource(elem.href, true)],
-    ['y', M({ja: "リンク先の URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
+    ['v', M({ja: "リンク先のソースコードを表示", en: "View hint source"}), function (elem) viewSource(elem.href, false)],
+    ['V', M({ja: "リンク先のソースコードを外部エディタで表示", en: "View hint source in external editor"}), function (elem) viewSource(elem.href, true)],
+    ['y', M({ja: "リンクの URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
     ['Y', M({ja: "要素の内容をコピー", en: "Yank hint description"}), function (elem) command.setClipboardText(elem.textContent || "")],
     ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) openContextMenu(elem)],
     ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) openURI(elem.src), false, false, xpath.images],
@@ -1110,11 +1120,6 @@ ext.add("hok-start-continuous-mode",
         M({ja: "HoK - リンクを連続して開く", en: "Start Hit a Hint continuous mode"}));
 
 ext.add("hok-start-extended-mode", function (ev, arg) {
-            function recoverFocus() {
-                gBrowser.focus();
-                _content.focus();
-            }
-
             prompt.reader(
                 {
                     message: "Extended hint mode (Press TAB to see completions): ",
