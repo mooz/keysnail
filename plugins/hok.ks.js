@@ -1,15 +1,16 @@
-// PLUGIN_INFO : {{
+// Plugin info {{ =========================================================== //
+
 var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.3</version>
+    <version>1.1.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>MPL</license>
-    <minVersion>1.0.0</minVersion>
+    <minVersion>1.0.1</minVersion>
     <include>main</include>
     <provides>
         <ext>hok-start-foreground-mode</ext>
@@ -46,7 +47,7 @@ var PLUGIN_INFO =
             <name>hok.selector</name>
             <type>string</type>
             <description>SelectorAPI query</description>
-            <description lang="ja">ヒントの取得に使う SelectorAPI クエリ</description>
+            <description lang="ja">ヒントの取得に使う Selectors API クエリ</description>
         </option>
         <option>
             <name>hok.hint_color_link</name>
@@ -213,7 +214,7 @@ plugins.options["hok.hint_color_candidates"] = 'rgba(240, 82, 93, 0.9)';
 plugins.options["hok.hint_color_focused"]    = 'rgba(255, 4, 5, 1.0)';
 ||<
 
-もし Selector API を知っていて、カスタマイズしたい気があるのなら、次のようにしてヒント取得用のクエリを変更することもできます。
+Selector API を知っていてカスタマイズしたいという方は、次のようにしてヒント取得用のクエリを変更することもできます。
 
 >||
 plugins.options["hok.selector"] = 'a[href], input:not([type="hidden"]),
@@ -222,7 +223,7 @@ plugins.options["hok.selector"] = 'a[href], input:not([type="hidden"]),
 
 === 拡張ヒントモード ===
 
-次のような設定を .keysnail.js 内に含めておくと、 Vimperator における拡張ヒントモードと同様のことを行うことができるようになります。
+次のような設定を .keysnail.js 内に含めておくと、 Vimperator における拡張ヒントモードのようなことを行うことができるようになります。
 
 >||
 key.setViewKey(';', function (aEvent, aArg) {
@@ -234,7 +235,9 @@ key.setViewKey(';', function (aEvent, aArg) {
 
 また ; c と押してからヒントを選択すれば、あたかもその要素の上で右クリックをしたかのような振る舞いをさせることも可能となっています。
 
-このアクションはユーザが独自に追加することもできます。次のような設定を .keysnail.js 内に張り付けてみてください。
+それ以外にも様々なアクションが用意されています。拡張ヒントモードで HoK を起動してから TAB を押して、アクションの一覧を確認してみてください。
+
+アクションはユーザが独自に追加することもできます。次のような設定を .keysnail.js 内に張り付けてみてください。
 
 >||
 plugins.options["hok.actions"] = [
@@ -249,33 +252,52 @@ plugins.options["hok.actions"] = [
 ];
 ||<
 
-こうすることにより ; 1 と入力すれば画像にだけヒントがつき、その後選択された画像の src がクリップボードへコピーされるようになります。可能性は無限大ですね。
+こうすることにより ; 1 と入力すれば画像にだけヒントがつき、その後選択された画像の src がクリップボードへコピーされるようになります。
 
-ポイントは「アクション毎に Selectors API クエリを設定できる」というところにあります。例えばフレームだけを対象にさせたいのであれば body を設定しておけば良いのですし、画像だけなら img で OK なのです。
+ポイントは「アクション毎に Selectors API クエリを設定できる」というところにあります。例えばフレームだけを対象にさせたいのであれば body を設定しておけば良いのですし、画像だけなら img で OK なのです。可能性は無限大ですね。
 
 各アクションは次のような形式となります。
 
 >||
-['キー', '説明', 関数, autoFire を抑制するか, continuous とするか, 'selectors api query']
+['キー', '説明',
+ function (elem) { /* elem を使った処理 */ },
+ autoFire を抑制するか, continuous とするか, 'Selectors API のクエリ']
 ||<
 
-関数には element が渡ります。 element.href とすればリンクの URL が得られ、 element.textContent とすればそのリンクのテキストが得られます。画像なら element.src としてその URL を得ることも出来るでしょう。
+関数にはヒントを使って選択した要素が渡ります。 elem.href とすればリンクの URL が得られ、 elem.textContent とすればそのリンクのテキストが得られます。画像であれば elem.src としてその URL を得ることも出来ます。
+
+後ろ三つの引数に関しては省略することが可能です。
 
 === 説明 ===
 
-このプラグインは以下のブックマークレットと Vimperator の hint を参考にして作成されました。
+このプラグインは以下のブックマークレットと Vimperator の hints.js を参考にして作成されました。
 
 http://d.hatena.ne.jp/Griever/20090223/1235407852
 
-KeySnail プラグインへの移植は myuhe さんと mooz が行いました。
+HoK のオリジナル開発者は myuhe さんです。
+
+http://github.com/myuhe
 	       ]]></detail>
 </KeySnailPlugin>;
 
-var originalSuspendedStatus;
+// }} ======================================================================= //
+
+// ChangeLog {{ ============================================================= //
+//
+// ==== 1.1.4 (2009 11/07) ====
+//
+// * Made hok immediatly fire When only one hint found.
+// * Made hok works correctly in the pages which does not has "document" elemt (like XUL)
+// * Added action view source code
+// * Refactored the source code
+//
+// }} ======================================================================= //
+
+// Options {{ =============================================================== //
 
 var optionsDefaultValue = {
     "hint_keys"          : 'asdfghjkl',
-    "selector"           : 'a[href], input:not([type="hidden"]), textarea, select, iframe, img[onclick], button',
+    "selector"           : 'a[href], input:not([type="hidden"]), textarea, select, img[onclick], button',
     "statusbar_feedback" : true,
     "unique_fire"        : true,
     "actions"            : null,
@@ -308,6 +330,10 @@ function getOption(aName) {
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
     }
 }
+
+// }} ======================================================================= //
+
+// Misc utils {{ ============================================================ //
 
 function createMouseEvent(aDocument, aType, aOptions) {
     var defaults = {
@@ -409,7 +435,7 @@ function openContextMenu(elem) {
     menu.showPopup(elem, -1, -1, "context", "bottomleft", "topleft");
 }
 
-function open(url, where) {
+function openURI(url, where) {
     where = where || CURRENT_TAB;
     // decide where to load the first url
     switch (where) {
@@ -434,6 +460,30 @@ function saveLink(elem, skipPrompt) {
     } catch (e) {}
 }
 
+function viewSource(url, useExternalEditor) {
+    url = url || window.content.location.href;
+
+    if (useExternalEditor)
+    {
+        userscript.editFile(url);
+    }
+    else
+    {
+        const PREFIX = "view-source:";
+        if (url.indexOf(PREFIX) == 0)
+            url = url.substr(PREFIX.length);
+        else
+            url = PREFIX + url;
+
+        openURI(url);
+    }
+}
+
+// }} ======================================================================= //
+
+
+// HoK object {{ ============================================================ //
+
 var hok = function () {
     var hintKeys            = getOption("hint_keys");
     var selector            = getOption("selector");
@@ -452,10 +502,17 @@ var hok = function () {
 
     var lastFocusedInfo;
 
+    // misc options {{ ========================================================== //
+
     var useStatusBarFeedBack = getOption("statusbar_feedback");
-    var uniqueFire          = getOption("unique_fire");
+
+    var uniqueFire = getOption("unique_fire");
     var uniqueFireSuspended;
+
     var continuousMode;
+
+    // }} ======================================================================= //
+
     var currentAction;
     var priorSelector;
 
@@ -499,20 +556,32 @@ var hok = function () {
         return [-bodyRect.left, -bodyRect.top];
     }
 
+
     function drawHints(win) {
         if (!win)
             win = window.content;
 
-        let doc    = win.document;
+        var doc = win.document;
+
+        if (!doc)
+            return;
+
         var html   = doc.documentElement;
         var body   = doc.body;
 
-        let height = win.innerHeight;
-        let width  = win.innerWidth;
+        if (!body)
+        {
+            // process childs only
+            Array.forEach(win.frames, drawHints);
+            return;
+        }
 
-        let [scrollX, scrollY] = getBodyOffsets(doc);
+        var height = win.innerHeight;
+        var width  = win.innerWidth;
 
-        // Arrange hint containers {{ ==================================
+        var [scrollX, scrollY] = getBodyOffsets(doc);
+
+        // Arrange hint containers {{ =============================================== //
 
         var fragment      = doc.createDocumentFragment();
         var hintContainer = doc.createElement('div');
@@ -520,9 +589,10 @@ var hok = function () {
         fragment.appendChild(hintContainer);
         hintContainer.id = hintContainerId;
 
-        // }} ==========================================================
+        // }} ======================================================================= //
 
-        // Arrange span seed {{ ========================================
+
+        // Arrange hints seed {{ ==================================================== //
 
         var hintSpan = doc.createElement('span');
 
@@ -535,7 +605,7 @@ var hok = function () {
 
         st.backgroundColor = hintColorLink;
 
-        // }} ==========================================================
+        // }} ======================================================================= //
 
         var result = doc.querySelectorAll(priorSelector || selector);
 
@@ -549,7 +619,6 @@ var hok = function () {
             }
 
             var rect = elem.getClientRects()[0];
-            var top, left;
 
             if (!rect             ||
                 rect.top > height ||
@@ -560,7 +629,8 @@ var hok = function () {
                 continue;
             }
 
-            top = (body.scrollTop || html.scrollTop) - html.clientTop + rect.top;
+            var top, left;
+            top  = (body.scrollTop || html.scrollTop) - html.clientTop + rect.top;
             left = (body.scrollLeft || html.scrollLeft) - html.clientLeft + rect.left;
 
             var hint = createText(hintCount);
@@ -602,31 +672,60 @@ var hok = function () {
         }
     }
 
-    function resetHintsColor() {
-        for each (let span in hintElements)
+    function focusHint(aHint) {
+        // set hint color
+        aHint.style.backgroundColor = hintColorFocused;
+
+        // aHint.element.__ks_saved_background_color__ = aHint.element.style.backgroundColor || true;
+        // aHint.element.style.backgroundColor = "#ddff5e";
+
+        aHint.element.focus();
+    }
+
+    function recoverOriginalStyle(elem) {
+        if (elem.__ks_saved_background_color__)
         {
-            span.style.backgroundColor = getHintColor(span.element);
+            if (elem.__ks_saved_background_color__ === true)
+            {
+                elem.style.backgroundColor = "";
+            }
+            else
+            {
+                elem.style.backgroundColor = elem.__ks_saved_background_color__;
+            }
         }
     }
 
     function updateHeaderMatchHints() {
-        let foundCount = 0;
+        var foundCount = 0;
 
-        for (let hintStr in hintElements)
+        for (var hintStr in hintElements)
         {
             if (hintStr.indexOf(inputKey) == 0)
             {
                 if (hintStr != inputKey)
+                {
                     hintElements[hintStr].style.backgroundColor = hintColorCandidates;
+                    // recoverOriginalStyle(hintElements[hintStr].element);
+                }
+
                 foundCount++;
             }
             else
             {
                 hintElements[hintStr].style.backgroundColor = getHintColor(hintElements[hintStr].element);
+                // recoverOriginalStyle(hintElements[hintStr].element);
             }
         }
 
         return foundCount;
+    }
+
+    function resetHintsColor() {
+        for each (var span in hintElements)
+        {
+            span.style.backgroundColor = getHintColor(span.element);
+        }
     }
 
     function removeHints(win) {
@@ -646,17 +745,15 @@ var hok = function () {
         Array.forEach(win.frames, removeHints);
     }
 
-    function focusHint(aHint) {
-        // set hint color
-        aHint.style.backgroundColor = hintColorFocused;
-        aHint.element.focus();
-    }
-
     function destruction(aForce) {
         inputKey = '';
 
+        // if (lastMatchHint)
+        //     recoverOriginalStyle(lastMatchHint.element);
+
         if (continuousMode && !aForce)
         {
+            // not remove the hints
             lastMatchHint = null;
             resetHintsColor();
         }
@@ -672,16 +769,20 @@ var hok = function () {
 
             document.removeEventListener('keypress', onKeyPress, true);
         }
+
+        display.echoStatusBar("");
     }
 
-    function init() {
-        hintKeysLength = hintKeys.length;
-        hintElements = [];
+    function fire(elem) {
+        // recoverOriginalStyle(elem);
 
-        hintKeys.split('').forEach(
-            function (l) {
-                keyMap[l.charCodeAt(0)] = l;
-            });
+        try {
+            currentAction(elem);
+        } catch (x) {
+            return x;
+        }
+
+        return null;
     }
 
     function onKeyPress(event) {
@@ -713,13 +814,7 @@ var hok = function () {
             return;
         case 'Enter':
             if (lastMatchHint)
-            {
-                try {
-                    currentAction(lastMatchHint.element);
-                } catch (x) {
-                    destruction(true);
-                }
-            }
+                fire(lastMatchHint.element);
             destruction();
             return;
         default :
@@ -743,22 +838,29 @@ var hok = function () {
                     var targetElem = lastMatchHint.element;
                     destruction();
 
-                    try {
-                        currentAction(targetElem);
-                    } catch (x) {
-                        destruction(true);
-                    }
+                    fire(targetElem);
                 }
             }
         }
         else
         {
             lastMatchHint = null;
-            inputKey = "";
+            inputKey      = "";
         }
 
-        if (inputKey.length && useStatusBarFeedBack)
+        if (useStatusBarFeedBack)
             display.echoStatusBar("input : " + inputKey);
+    }
+
+    function init() {
+        hintKeysLength = hintKeys.length;
+        hintElements = [];
+        hintCount = 0;
+
+        hintKeys.split('').forEach(
+            function (l) {
+                keyMap[l.charCodeAt(0)] = l;
+            });
     }
 
     var self = {
@@ -772,56 +874,100 @@ var hok = function () {
             currentAction = aAction;
             priorSelector = aContext.selector;
 
+            // suspend keysnail's keyhandler
             originalSuspendedStatus = key.suspended;
             key.suspended = true;
 
             init();
 
-            hintCount = 0;
             drawHints();
 
-            if (hintCount > 0)
+            if (hintCount > 1)
             {
+                document.addEventListener('keypress', onKeyPress, true);
+            }
+            else
+            {
+                // remove hints, recover keysnail's keyhandler, ...
+                destruction(true);
+
                 if (hintCount == 1)
                 {
-                    destruction(true);
+                    // only one hint found, immediatly fire
                     try {
-                        currentAction(hintElements[0]);
+                        // TODO: Is there a good way to do this?
+                        for each (let hintElem in hintElements)
+                        {
+                            fire(hintElem.element);
+                            break;
+                        }
                     } catch (x) {}
                 }
                 else
                 {
-                    document.addEventListener('keypress', onKeyPress, true);
+                    display.echoStatusBar(M({ja: "ヒントが見つかりませんでした", en: "No hints found"}), 1000);
                 }
             }
-            else
-            {
-                key.suspended = originalSuspendedStatus;
-            }
+        },
+
+        startForeground: function (supressAutoFire) {
+            self.start(function (elem) followLink(elem, CURRENT_TAB),
+                      {
+                          supressAutoFire: supressAutoFire
+                      });
+        },
+
+        startBackground: function (supressAutoFire) {
+            hok.start(function (elem) followLink(elem, NEW_BACKGROUND_TAB),
+                      {
+                          supressAutoFire: supressAutoFire
+                      });
+        },
+
+        startContinuous: function () {
+            hok.start(function (elem) followLink(elem, NEW_BACKGROUND_TAB),
+                      {
+                          supressAutoFire: false,
+                          continuous: true
+                      });
         }
     };
 
     return self;
 }();
 
+// }} ======================================================================= //
+
+// Actions {{ =============================================================== //
+
 function formatActions(aActions) {
     return aActions.map(function (row) row.slice(0, 2));
 }
 
+// Selectors API query
+var selectors = {
+    image  : "img",
+    frames : "body"
+};
+
+// ['Key', 'Description', function (elem) { /* process hint elem */ }, supressAutoFire, continuousMode, 'Selectors API query']
 var actions = [
     [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus()],
     ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, false)],
-    ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, "body"],
+    ['a', M({ja: "名前をつけてリンク先を保存", en: "Save hint with prompt"}), function (elem) saveLink(elem, true)],
+    ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, selectors.frames],
     ['o', M({ja: "リンク先へジャンプ", en: "Follow hint"}), function (elem) followLink(elem, CURRENT_TAB)],
     ['t', M({ja: "新しいタブでリンクを開く", en: "Follow hint in a new tab"}), function (elem) followLink(elem, NEW_TAB)],
     ['b', M({ja: "背面のタブでリンクを開く", en: "Follow hint in a background tab"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB)],
     ['w', M({ja: "新しいウィンドウでリンクを開く", en: "Follow hint in a new window"}), function (elem) followLink(elem, NEW_WINDOW)],
+    ['v', M({ja: "ヒントのソースコードを表示", en: "View hint source"}), function (elem) viewSource(elem.href, false)],
+    ['V', M({ja: "ヒントのソースコードを外部エディタで表示", en: "View hint source in external editor"}), function (elem) viewSource(elem.href, true)],
     ['F', M({ja: "連続してリンクを開く", en: "Open multiple hints in tabs"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB), false, true],
     ['y', M({ja: "リンク先の URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
     ['Y', M({ja: "要素の内容をコピー", en: "Yank hint description"}), function (elem) command.setClipboardText(elem.textContent || "")],
     ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) openContextMenu(elem)],
-    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) open(elem.src), false, false, "img"],
-    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) open(elem.src, NEW_TAB), false, false, "img"]
+    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) openURI(elem.src), false, false, selectors.images],
+    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) openURI(elem.src, NEW_TAB), false, false, selectors.images]
 ];
 
 if (getOption("actions"))
@@ -829,37 +975,20 @@ if (getOption("actions"))
     getOption("actions").forEach(function (aRow) actions.push(aRow));
 }
 
-function hokStartForeground(supressAutoFire) {
-    hok.start(function (elem) followLink(elem, CURRENT_TAB),
-              {
-                  supressAutoFire: supressAutoFire
-              });
-}
+// }} ======================================================================= //
 
-function hokStartBackground(supressAutoFire) {
-    hok.start(function (elem) followLink(elem, NEW_BACKGROUND_TAB),
-              {
-                  supressAutoFire: supressAutoFire
-              });
-}
+// Exts {{ ================================================================== //
 
-function hokStartContinuous() {
-    hok.start(function (elem) followLink(elem, NEW_BACKGROUND_TAB),
-              {
-                  supressAutoFire: false,
-                  continuous: true
-              });
-}
+ext.add("hok-start-foreground-mode",
+        function (ev, arg) hok.startForeground(!(arg === null)),
+        M({ja: "HoK - リンクをフォアグラウンドで開く", en: "Start Hit a Hint foreground mode"}));
 
-ext.add("hok-start-foreground-mode", function (ev, arg) {
-            hokStartForeground(!(arg === null));
-        }, M({ja: "HoK - リンクをフォアグラウンドで開く", en: "Start Hit a Hint foreground mode"}));
+ext.add("hok-start-background-mode",
+        function (ev, arg) hok.startBackground(!(arg === null)),
+        M({ja: "HoK - リンクをバックグラウンドで開く", en: "Start Hit a Hint background mode"}));
 
-ext.add("hok-start-background-mode", function (ev, arg) {
-            hokStartBackground(!(arg === null));
-        }, M({ja: "HoK - リンクをバックグラウンドで開く", en: "Start Hit a Hint background mode"}));
-
-ext.add("hok-start-continuous-mode", hokStartContinuous,
+ext.add("hok-start-continuous-mode",
+        hok.startContinuous,
         M({ja: "HoK - リンクを連続して開く", en: "Start Hit a Hint continuous mode"}));
 
 ext.add("hok-start-extended-mode", function (ev, arg) {
@@ -897,7 +1026,7 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                             {
                                 var func = actions[i][2];
                                 var desc = actions[i][1];
-                                // display.prettyPrint(desc, {timeout: 1000, fade:100});
+                                // display.prettyPrint(desc, {timeout: 1000, fade:200});
                                 hok.start(function (elem) func(elem),
                                           {
                                               supressAutoFire : actions[i].length > 3 ? actions[i][3] : false,
@@ -912,9 +1041,11 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
             );
         }, M({ja: "HoK - 拡張ヒントモードを開始", en: "Start Hit a Hint extended mode"}));
 
+// }} ======================================================================= //
+
 if (!document.querySelectorAll)
 {
     display.notify(M({ja: "HoK :: このプラグインは Firefox 3.1 以降専用です。 Firefox をアップデートするか、このプラグインを無効にしてください。",
-                      en: "This plugin is only works over Firefox version 3.1. Please update your Firefox or disable this plugin."}));
+                      en: "HoK :: This plugin is only works over Firefox version 3.1. Please update your Firefox or disable this plugin."}));
     hok = null;
 }
