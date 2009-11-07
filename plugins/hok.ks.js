@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -281,6 +281,10 @@ http://github.com/myuhe
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.1.8 (2009 11/08) ====
+//
+// * Does not focus when hint keys are inputted.
 // 
 // ==== 1.1.7 (2009 11/08) ====
 //
@@ -792,7 +796,8 @@ var hok = function () {
         // aHint.element.__ks_saved_background_color__ = aHint.element.style.backgroundColor || true;
         // aHint.element.style.backgroundColor = "#ddff5e";
 
-        aHint.element.focus();
+        // This scrolls up / down the view.
+        // aHint.element.focus();
     }
 
     function recoverOriginalStyle(elem) {
