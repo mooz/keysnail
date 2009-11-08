@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.8</version>
+    <version>1.1.9</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -535,7 +535,7 @@ var hok = function () {
     var useStatusBarFeedBack = getOption("statusbar_feedback");
 
     var uniqueFire = getOption("unique_fire");
-    var uniqueFireSuspended;
+    var supressUniqueFire;
 
     var continuousMode;
 
@@ -679,6 +679,7 @@ var hok = function () {
         if (!body)
         {
             // process childs only
+            util.message("here");
             Array.forEach(win.frames, drawHints);
             return;
         }
@@ -857,7 +858,7 @@ var hok = function () {
         {
             try {
                 doc.body.removeChild(hintContainer);
-            } catch (x) {}
+            } catch (x) { util.message(x); }
         }
 
         Array.forEach(win.frames, removeHints);
@@ -986,8 +987,8 @@ var hok = function () {
             if (!window.content)
                 return;
 
-            uniqueFireSuspended = aContext.suspendUniqueFire;
-            continuousMode      = aContext.continuous;
+            supressUniqueFire = aContext.supressUniqueFire;
+            continuousMode  = aContext.continuous;
 
             currentAction = aAction;
             priorXPath    = aContext.xpath;
@@ -1020,7 +1021,7 @@ var hok = function () {
                         // TODO: Is there a good way to do this?
                         for each (let hintElem in hintElements)
                         {
-                            if (supressAutoFire)
+                            if (supressUniqueFire)
                             {
                                 hintElem.element.focus();
                             }
@@ -1030,7 +1031,9 @@ var hok = function () {
                             }
                             break;
                         }
-                    } catch (x) {}
+                    } catch (x) {
+                        util.message(x);
+                    }
                 }
                 else
                 {
@@ -1040,24 +1043,24 @@ var hok = function () {
             }
         },
 
-        startForeground: function (supressAutoFire) {
+        startForeground: function (supressUniqueFire) {
             self.start(function (elem) followLink(elem, CURRENT_TAB),
                       {
-                          supressAutoFire: supressAutoFire
+                          supressUniqueFire: supressUniqueFire
                       });
         },
 
-        startBackground: function (supressAutoFire) {
+        startBackground: function (supressUniqueFire) {
             hok.start(function (elem) followLink(elem, NEW_BACKGROUND_TAB),
                       {
-                          supressAutoFire: supressAutoFire
+                          supressUniqueFire: supressUniqueFire
                       });
         },
 
         startContinuous: function () {
             hok.start(function (elem) followLink(elem, NEW_BACKGROUND_TAB),
                       {
-                          supressAutoFire: false,
+                          supressUniqueFire: false,
                           continuous: true
                       });
         }
@@ -1083,7 +1086,7 @@ var xpath = {
     frames : "//body"
 };
 
-// ['Key', 'Description', function (elem) { /* process hint elem */ }, supressAutoFire, continuousMode, 'XPath query']
+// ['Key', 'Description', function (elem) { /* process hint elem */ }, supressUniqueFire, continuousMode, 'XPath query']
 var actions = [
     [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus()],
     ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, true)],
@@ -1166,9 +1169,9 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
 
                                 hok.start(func,
                                           {
-                                              supressAutoFire : actions[i].length > 3 ? actions[i][3] : false,
-                                              continuous      : actions[i].length > 4 ? actions[i][4] : false,
-                                              xpath           : actions[i].length > 5 ? actions[i][5] : null
+                                              supressUniqueFire : actions[i].length > 3 ? actions[i][3] : false,
+                                              continuous        : actions[i].length > 4 ? actions[i][4] : false,
+                                              xpath             : actions[i].length > 5 ? actions[i][5] : null
                                           });
                                 return;
                             }
