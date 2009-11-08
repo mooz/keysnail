@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -229,7 +229,7 @@ function locationChangeHandler(aNsURI) {
     if (keymap && key.status && !key.suspended) {
         iconElem.setAttribute("src", iconData);
         iconElem.tooltipText = M({en: "Site local keymap of this page enabled",
-                                  ja: "このサイト用のローカルキーマップが使われています"});
+                                  ja: "このサイト用のローカルキーマップが使われています"}) + " [" + regexp + "]";
     } else {
         key.updateStatusBar();
     }
