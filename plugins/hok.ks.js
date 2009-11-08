@@ -948,7 +948,7 @@ var hok = function () {
             focusHint(lastMatchHint);
 
             // fire if hint is unique
-            if (uniqueFire && !uniqueFireSuspended)
+            if (uniqueFire && !supressUniqueFire)
             {
                 let foundCount = updateHeaderMatchHints();
 
