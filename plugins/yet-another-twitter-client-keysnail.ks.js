@@ -928,7 +928,7 @@ var twitterClient =
                  );
              }
 
-             prompt.read("search:", doSearch);
+             prompt.read("search:", doSearch, null, null, null, 0, "twitter_search");
          }
 
          function tweet(aInitialInput, aReplyID) {
@@ -986,7 +986,7 @@ var twitterClient =
                                      }
                                  }
                              );
-                         }, null, null, aInitialInput);
+                         }, null, null, aInitialInput, 0, "twitter_tweet");
          }
 
          function deleteStatus(aStatusID) {

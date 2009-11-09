@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.1.9</version>
+    <version>1.2.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -42,6 +42,18 @@ var PLUGIN_INFO =
             <type>array</type>
             <description>Actions for extended hint mode</description>
             <description lang="ja">拡張ヒントモード用に独自のアクションを設定</description>
+        </option>
+        <option>
+            <name>hok.use_selector</name>
+            <type>boolean</type>
+            <description>Use Selectors API instead of XPath. Performance up but only works after Firefox 3.1 (default: true)</description>
+            <description lang="ja">ヒントの取得に Selectors API を用いるかどうか。 XPath より高速となるが Firefox 3.1 以降専用。 (デフォルト: true)</description>
+        </option>
+        <option>
+            <name>hok.selector</name>
+            <type>string</type>
+            <description>Selectors API Path query</description>
+            <description lang="ja">ヒントの取得に使う Selectors API クエリ</description>
         </option>
         <option>
             <name>hok.xpath</name>
@@ -144,7 +156,7 @@ plugins.options["hok.hint_color_focused"] = 'rgba(255, 82, 93, 0.7)';
 If you are familiar with the XPath and want this plugin to use arbitrary one, you can set the query.
 
 >||
-plugins.options["hok.xpath"] = '//a | //textarea || //button';
+plugins.options["hok.selector"] = 'a, textarea, button';
 ||<
 	       ]]></detail>
     <detail lang="ja"><![CDATA[
@@ -213,10 +225,10 @@ plugins.options["hok.hint_color_candidates"] = 'rgba(240, 82, 93, 0.9)';
 plugins.options["hok.hint_color_focused"]    = 'rgba(255, 4, 5, 1.0)';
 ||<
 
-XPath を知っていてカスタマイズしたいという方は、次のようにしてヒント取得用のクエリを変更することもできます。
+Selectors API を知っていてカスタマイズしたいという方は、次のようにしてヒント取得用のクエリを変更することもできます。
 
 >||
-plugins.options["hok.xpath"] = '//a | //textarea || //button';
+plugins.options["hok.selector"] = 'a, textarea, button';
 ||<
 
 === 拡張ヒントモード ===
@@ -242,7 +254,7 @@ plugins.options["hok.actions"] = [
     ['1',
      M({ja: "画像の URL をコピー", en: "Copy image's url"}),
      function (elem) { command.setClipboardText(elem.src); },
-     true, false, "//img"],
+     true, false, "img"],
     ['2',
      M({ja: "要素のプロパティを一覧表示", en: "List elements properties"}),
      function (elem) { util.listProperty(elem); },
@@ -252,14 +264,14 @@ plugins.options["hok.actions"] = [
 
 こうすることにより ; 1 と入力すれば画像にだけヒントがつき、その後選択された画像の src がクリップボードへコピーされるようになります。
 
-ポイントは「アクション毎に XPath クエリを設定できる」というところにあります。例えばフレームだけを対象にさせたいのであれば //body を設定しておけば良いのですし、画像だけなら //img で OK なのです。可能性は無限大ですね。
+ポイントは「アクション毎に Selectros API クエリを設定できる」というところにあります。例えばフレームだけを対象にさせたいのであれば body を設定しておけば良いのですし、画像だけなら img で OK なのです。可能性は無限大ですね。
 
 各アクションは次のような形式となります。
 
 >||
 ['キー', '説明',
  function (elem) { /* elem を使った処理 */ },
- autoFire を抑制するか, continuous とするか, 'XPath のクエリ']
+ autoFire を抑制するか, continuous とするか, 'Selectors API のクエリ']
 ||<
 
 関数にはヒントを使って選択した要素が渡ります。 elem.href とすればリンクの URL が得られ、 elem.textContent とすればそのリンクのテキストが得られます。画像であれば elem.src としてその URL を得ることも出来ます。
@@ -281,6 +293,10 @@ http://github.com/myuhe
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.2.0 (2009 11/09) ====
+//
+// * Made HoK use Selectors API again and added XPath option.
 // 
 // ==== 1.1.8 (2009 11/08) ====
 //
@@ -312,13 +328,14 @@ http://github.com/myuhe
 
 var optionsDefaultValue = {
     "hint_keys"          : 'asdfghjkl',
-    "selector"           : 'a, input:not([type="hidden"]), textarea, iframe, area, select, button, ' +
+    "selector"           : 'a[href], input:not([type="hidden"]), textarea, iframe, area, select, button, ' +
         '*[onclick], *[onmouseover], *[onmousedown], *[onmouseup], *[oncommand], *[role="link"]',
-    "xpath"              : '//input[not(@type="hidden")] | //a | //area | //iframe | //textarea | //button | //select'
-        + ' | //*[@onclick or @onmouseover or @onmousedown or @onmouseup or @oncommand or @role="link"]',
+    "xpath"              : '//input[not(@type="hidden")] | //a | //area | //iframe | //textarea | //button | //select' +
+        ' | //*[@onclick or @onmouseover or @onmousedown or @onmouseup or @oncommand or @role="link"]',
     "statusbar_feedback" : true,
     "unique_fire"        : true,
     "actions"            : null,
+    "use_selector"       : !!document.querySelectorAll,
     "hint_base_style"    : {
         position        : 'absolute',
         zIndex          : '2147483647',
@@ -510,6 +527,7 @@ function recoverFocus() {
 // HoK object {{ ============================================================ //
 
 var originalSuspendedStatus;
+var useSelector = getOption("use_selector");
 
 var hok = function () {
     var hintKeys            = getOption("hint_keys");
@@ -542,7 +560,7 @@ var hok = function () {
     // }} ======================================================================= //
 
     var currentAction;
-    var priorXPath;
+    var priorQuery;
 
     // length of the hint keys like 'asdfghjkl'
     var hintKeysLength  = null;
@@ -656,11 +674,11 @@ var hok = function () {
     //     return [-bodyRect.left, -bodyRect.top];
     // }
 
-    function getBodyOffsets(doc)
+    function getBodyOffsets(body, html)
     {
         return [
-            (doc.body.scrollLeft || doc.documentElement.scrollLeft) - doc.documentElement.clientLeft,
-            (doc.body.scrollTop || doc.documentElement.scrollTop) - doc.documentElement.clientTop
+            (body.scrollLeft || html.scrollLeft) - html.clientLeft,
+            (body.scrollTop || html.scrollTop) - html.clientTop
         ];
     }
 
@@ -673,13 +691,12 @@ var hok = function () {
         if (!doc)
             return;
 
-        var html   = doc.documentElement;
-        var body   = doc.body;
+        var html = doc.documentElement;
+        var body = doc.body;
 
         if (!body)
         {
             // process childs only
-            util.message("here");
             Array.forEach(win.frames, drawHints);
             return;
         }
@@ -687,7 +704,7 @@ var hok = function () {
         var height = win.innerHeight;
         var width  = win.innerWidth;
 
-        var [scrollX, scrollY] = getBodyOffsets(doc);
+        var [scrollX, scrollY] = getBodyOffsets(body, html);
 
         // Arrange hint containers {{ =============================================== //
 
@@ -715,14 +732,26 @@ var hok = function () {
         // }} ======================================================================= //
 
         var result, elem;
-        result = doc.evaluate(priorXPath || xPathExp, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+        if (useSelector)
+        {
+            result = doc.querySelectorAll(priorQuery || selector);
+        }
+        else
+        {
+            let xpathResult = doc.evaluate(priorQuery || xPathExp, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            result = [];
+
+            for (let i = 0; i < xpathResult.snapshotLength; ++i)
+                result.push(xpathResult.snapshotItem(i));
+        }
 
         var style, rect, hint, span, top, left, ss;
         var leftpos, toppos;
 
-        for (var i = 0; i < result.snapshotLength; ++i)
+        for (var i = 0; i < result.length; ++i)
         {
-            elem = result.snapshotItem(i);
+            elem = result[i];
 
             rect = elem.getBoundingClientRect();
             if (!rect || rect.top > height || rect.bottom < 0 || rect.left > width || rect.right < 0)
@@ -771,8 +800,13 @@ var hok = function () {
             hintCount++;
         }
 
-        if (doc.body)
-            doc.body.appendChild(fragment);
+        if (doc)
+        {
+            body.appendChild(fragment);
+        }
+
+        // if (doc.body)
+        //     doc.body.appendChild(fragment);
 
         Array.forEach(win.frames, drawHints);
     };
@@ -991,7 +1025,7 @@ var hok = function () {
             continuousMode  = aContext.continuous;
 
             currentAction = aAction;
-            priorXPath    = aContext.xpath;
+            priorQuery    = aContext.query;
 
             // suspend keysnail's keyhandler
             originalSuspendedStatus = key.suspended;
@@ -1081,17 +1115,17 @@ function formatActions(aActions) {
     return aActions.map(function (row) row.slice(0, 2));
 }
 
-var xpath = {
-    images : "//img",
-    frames : "//body"
+var query = {
+    images : useSelector ? "img" : "//img",
+    frames : useSelector ? "body" : "//body"
 };
 
-// ['Key', 'Description', function (elem) { /* process hint elem */ }, supressUniqueFire, continuousMode, 'XPath query']
+// ['Key', 'Description', function (elem) { /* process hint elem */ }, supressUniqueFire, continuousMode, 'Query query']
 var actions = [
     [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus()],
     ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, true)],
     ['a', M({ja: "名前をつけてリンク先を保存", en: "Save hint with prompt"}), function (elem) saveLink(elem, false)],
-    ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, xpath.frames],
+    ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, query.frames],
     ['o', M({ja: "リンクを開く", en: "Follow hint"}), function (elem) followLink(elem, CURRENT_TAB)],
     ['t', M({ja: "新しいタブでリンクを開く", en: "Follow hint in a new tab"}), function (elem) followLink(elem, NEW_TAB)],
     ['b', M({ja: "背面のタブでリンクを開く", en: "Follow hint in a background tab"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB)],
@@ -1102,8 +1136,8 @@ var actions = [
     ['y', M({ja: "リンクの URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
     ['Y', M({ja: "要素の内容をコピー", en: "Yank hint description"}), function (elem) command.setClipboardText(elem.textContent || "")],
     ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) openContextMenu(elem)],
-    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) openURI(elem.src), false, false, xpath.images],
-    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) openURI(elem.src, NEW_TAB), false, false, xpath.images]
+    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) openURI(elem.src), false, false, query.images],
+    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) openURI(elem.src, NEW_TAB), false, false, query.images]
 ];
 
 if (getOption("actions"))
@@ -1171,7 +1205,7 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                                           {
                                               supressUniqueFire : actions[i].length > 3 ? actions[i][3] : false,
                                               continuous        : actions[i].length > 4 ? actions[i][4] : false,
-                                              xpath             : actions[i].length > 5 ? actions[i][5] : null
+                                              query             : actions[i].length > 5 ? actions[i][5] : null
                                           });
                                 return;
                             }
