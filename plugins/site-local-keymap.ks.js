@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -191,7 +191,7 @@ var iconData = "data:image/png;base64," +
 
 var iconElem = document.getElementById("keysnail-statusbar-icon");
 if (typeof plugins.options["remap_pages.disable_in_textarea"] == "undefined")
-    plugins.options["remap_pages.disable_in_textarea"] = false;
+    plugins.options["remap_pages.disable_in_textarea"] = true;
 
 // ============================================================ //
 
