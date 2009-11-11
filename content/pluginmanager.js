@@ -504,7 +504,7 @@ var ksPluginManager = function () {
                                 KS_PLUGIN_NOTCOMPATIBLE : KS_PLUGIN_DISABLED);
 
                 var msg = modules.util.getLocaleString("failedToLoadPlugin");
-                modules.util.alert(window, msg, msg + ' "' + pluginPath + '"');
+                modules.util.alert(msg, msg + ' "' + pluginPath + '"');
             }
         }
 

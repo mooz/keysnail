@@ -140,6 +140,9 @@ if scheme != 'doc':
 // ==================== set hooks ==================== //
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
+                if (key.currentKeySequence.length)
+                    return;
+
                 // """ + {ja: "検索バーが開いていたら閉じる",
                           en: "Close the find bar if opened"}[l] + """
                 command.closeFindBar();

@@ -49,6 +49,9 @@ KeySnail.Key = {
     // ==== status ====
     status: false,
     suspended: false,
+
+    // userful for github wiki, auto complete in amazon
+    preventKeyUpDown: true,
     hasEventListener: false,
     useCapture: true,
 
@@ -79,11 +82,12 @@ KeySnail.Key = {
         this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
 
         this.useCapture = !nsPreferences.getBoolPref("extensions.keysnail.keyhandler.low_priority", false);
+        this.preventKeyUpDown = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.prevent_key_up_down", true);
 
         this.status = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.status", true);
     },
 
-    // ==================== Run / Stop ====================
+    // Run / Stop {{ ============================================================ //
 
     /**
      * start key handler
@@ -94,7 +98,10 @@ KeySnail.Key = {
              * third boolean value means "use capture or not".
              * so to say "keysnail prior to webpage's shortcut key or not".
              */
-            window.addEventListener("keypress", this, this.useCapture);
+            for each (var eventType in ["keypress", "keydown", "keyup"])
+            {
+                window.addEventListener(eventType, this, this.useCapture);
+            }
             this.hasEventListener = true;
         }
         this.status = true;
@@ -106,7 +113,10 @@ KeySnail.Key = {
      */
     stop: function () {
         if (this.hasEventListener == true) {
-            window.removeEventListener("keypress", this, this.useCapture);
+            for each (var eventType in ["keypress", "keydown", "keyup"])
+            {
+                window.removeEventListener(eventType, this, this.useCapture);
+            }
             this.hasEventListener = false;
         }
         this.status = false;
@@ -160,6 +170,10 @@ KeySnail.Key = {
         this.updateStatusBar();
     },
 
+    // }} ======================================================================= //
+
+    // Update GUI {{ ============================================================ //
+
     /**
      * update the status bar icon
      */
@@ -211,6 +225,10 @@ KeySnail.Key = {
         checkbox.setAttribute('checked', this.status);
     },
 
+    // }} ======================================================================= //
+
+    // Mode {{ ================================================================== //
+
     getCurrentMode: function (aEvent, aKey) {
         if (this.modules.util.isWritable(aEvent)) {
             return this.modes.EDIT;
@@ -221,7 +239,93 @@ KeySnail.Key = {
             this.modes.CARET : this.modes.VIEW;
     },
 
-    // ==================== Handle Key Event ====================
+    // }} ======================================================================= //
+
+    // Utils {{ ================================================================= //
+
+    /**
+     * feed keys to web pages content
+     * ex)
+     * In Gmail, try key.feed(["j", "j"], 5); or key.feed(["j", "j"], -1);
+     * @param {(string|[string])} aKeys
+     * @param {integer} aFrameNum
+     */
+    feed: function (aKeys, aFrameNum) {
+        if (typeof aFrameNum !== 'number')
+            aFrameNum = 0;
+
+        var dest = document.commandDispatcher.focusedWindow;
+
+        // inspired from feedSomeKey.js
+        // http://coderepos.org/share/browser/lang/javascript/vimperator-plugins/trunk/feedSomeKey.js
+        if (aFrameNum != 0)
+        {
+            var frames = [];
+
+            // push all frames (includes frames frames) to frames
+            (function (frame) {
+                 if (frame.document.body.localName.toLowerCase() == 'body')
+                 {
+                     frames.push(frame);
+                 }
+
+                 for (var i = 0; i < frame.frames.length; ++i)
+                 {
+                     arguments.callee(frame.frames[i]);
+                 }
+             })(content);
+
+            frames = frames.filter(function (frame) {
+                                       frame.focus();
+                                       return (document.commandDispatcher.focusedWindow == frame);
+                                   });
+
+            if (aFrameNum < 0)
+                aFrameNum = frames.length + aFrameNum;
+
+            dest = frames[aFrameNum];
+        }
+
+        var target = dest.document.body || dest.document;
+
+        if (typeof aKeys == "string")
+            aKeys = [aKeys];
+
+        target.focus();
+
+        aKeys.forEach(
+            function (key) {
+                for each (var type in ["keydown", "keypress", "keyup"])
+                {
+                    var event = this.stringToKeyEvent(key, true, type, true);
+                    target.dispatchEvent(event);
+                }
+            }, this);
+    },
+
+    // }} ======================================================================= //
+
+    // Key handler {{ =========================================================== //
+
+    /**
+     * Reset Key handler status
+     * @param {string} aMsg message echoed to the status bar.
+     * @param {integer} aTime message timeout in milli second
+     */
+    backToNeutral: function (aMsg, aTime) {
+        // reset keymap
+        this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
+        // reset statusbar
+        this.modules.display.echoStatusBar(aMsg, aTime);
+        // reset key sequence
+        this.currentKeySequence.length = 0;
+        // reset prefixArgument
+        this.inputtingPrefixArgument = false;
+        this.prefixArgument = null;
+        this.prefixArgumentString = null;
+        // reset escape char
+        this.escapeCurrentChar = false;
+    },
 
     /**
      * first seek for the key from local-key-map
@@ -231,9 +335,24 @@ KeySnail.Key = {
      * @param {KeyboardEvent} aEvent event to handle
      */
     handleEvent: function (aEvent) {
-        if (aEvent.ksNoHandle) {
+        if (aEvent.ksNoHandle)
+        {
             // ignore key event generated by generateKey
             // when ksNoHandle is set to true
+            return;
+        }
+
+        // for pages like github which uses keydown event for shortcut key
+        if (aEvent.type === 'keydown' || aEvent.type === 'keyup')
+        {
+            if (this.preventKeyUpDown &&
+                !this.suspended &&
+                !this.escapeCurrentChar &&
+                !this.modules.util.isWritable(aEvent))
+            {
+                aEvent.stopPropagation();
+            }
+
             return;
         }
 
@@ -241,7 +360,8 @@ KeySnail.Key = {
 
         var key = this.keyEventToString(aEvent);
 
-        if (this.escapeCurrentChar) {
+        if (this.escapeCurrentChar)
+        {
             // no stop event propagation
             this.backToNeutral(key + " Escaped", 3000);
             return;
@@ -250,7 +370,8 @@ KeySnail.Key = {
         if (!key)
             return;
 
-        if (key == this.suspendKey) {
+        if (key == this.suspendKey)
+        {
             this.modules.util.stopEventPropagation(aEvent);
             this.suspended = !this.suspended;
             this.updateStatusBar();
@@ -261,13 +382,13 @@ KeySnail.Key = {
         if (this.suspended)
             return;
 
-        if (this.inputtingMacro) {
+        if (this.inputtingMacro)
             this.currentMacro.push(aEvent);
-        }
 
         this.modules.hook.callHook("KeyPress", key);
 
-        switch (key) {
+        switch (key)
+        {
         case this.escapeKey:
             this.modules.util.stopEventPropagation(aEvent);
             this.modules.display.echoStatusBar("Escape next key: ");
@@ -282,24 +403,33 @@ KeySnail.Key = {
             return;
         case this.macroEndKey:
             this.modules.util.stopEventPropagation(aEvent);
-            if (this.inputtingMacro) {
+            if (this.inputtingMacro)
+            {
                 this.currentMacro.pop();
                 this.modules.display.echoStatusBar("Keyboard macro defined", 3000);
                 this.inputtingMacro = false;
-            } else {
-                if (this.currentMacro.length) {
+            }
+            else
+            {
+                if (this.currentMacro.length)
+                {
                     this.modules.display.echoStatusBar("Do macro", 3000);
                     this.modules.macro.doMacro(this.currentMacro);
-                } else {
+                }
+                else
+                {
                     this.modules.display.echoStatusBar("No macro defined", 3000);
                 }
             }
             return;
         case this.macroStartKey:
             this.modules.util.stopEventPropagation(aEvent);
-            if (this.inputtingMacro) {
+            if (this.inputtingMacro)
+            {
                 this.currentMacro.pop();
-            } else {
+            }
+            else
+            {
                 this.modules.display.echoStatusBar("Defining Keyboard macro ...", 3000);
                 this.currentMacro.length = 0;
                 this.inputtingMacro = true;
@@ -307,11 +437,13 @@ KeySnail.Key = {
             return;
         }
 
-        if (this.inputtingPrefixArgument) {
-            if (this.isKeyEventNum(aEvent) ||
+        if (this.inputtingPrefixArgument)
+        {
+            if (this.isNumKey(aEvent) ||
                 key == this.universalArgumentKey ||
                 ((this.currentKeySequence[this.currentKeySequence.length - 1] == this.universalArgumentKey) &&
-                 (key == '-'))) {
+                 (key == '-')))
+            {
                 // append to currentKeySequence, while the key event is number value.
                 // sequencial C-u like C-u C-u => 4 * 4 = 16 is also supported.
                 // sequencial C-u - begins negative prefix argument
@@ -333,18 +465,23 @@ KeySnail.Key = {
             this.currentKeySequence.length = 0;
         }
 
-        if (this.currentKeySequence.length) {
+        if (this.currentKeySequence.length)
+        {
             // after second stroke
-            if (key == this.helpKey) {
+            if (key == this.helpKey)
+            {
                 this.modules.util.stopEventPropagation(aEvent);
                 this.interactiveHelp();
                 this.backToNeutral("");
                 return;
             }
-        } else {
+        }
+        else
+        {
             // first stroke
             if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument")
-                && this.isPrefixArgumentKey(key, aEvent)) {
+                && this.isPrefixArgumentKey(key, aEvent))
+            {
                 // transit state: to inputting prefix argument
                 this.modules.util.stopEventPropagation(aEvent);
                 this.currentKeySequence.push(key);
@@ -364,29 +501,34 @@ KeySnail.Key = {
         // KeySnail ignores the keybindings bounded with "null".
         // this is useful when keymap is the site-local
         // and user not want this "key" to handled by KeySnail.
-        if (this.currentKeyMap[key] === null) {
+        if (this.currentKeyMap[key] === null)
+        {
             this.backToNeutral("");
             return;
         }
 
-        if (!this.currentKeyMap[key]) {
+        if (!this.currentKeyMap[key])
+        {
             // if key is not found in the local key map
             // check for the global key map, using currentKeySequence
             this.currentKeyMap = this.trailByKeySequence(this.keyMapHolder[this.modes.GLOBAL],
                                                          this.currentKeySequence);
 
-            if (!this.currentKeyMap) {
+            if (!this.currentKeyMap)
+            {
                 // failed to trace the currentKeySequence
                 this.backToNeutral("");
                 return;
             }
         }
 
-        if (this.currentKeyMap[key]) {
+        if (this.currentKeyMap[key])
+        {
             // prevent browser default behaviour
             this.modules.util.stopEventPropagation(aEvent);
 
-            if (typeof(this.currentKeyMap[key]) == "function") {
+            if (typeof(this.currentKeyMap[key]) == "function")
+            {
                 // save function and prefixArgument
                 var func = this.currentKeyMap[key];
                 var arg  = this.prefixArgument;
@@ -394,44 +536,64 @@ KeySnail.Key = {
 
                 // call saved function
                 this.executeFunction(func, aEvent, arg);
-            } else {
+            }
+            else
+            {
                 // add key to the key sequece
                 this.currentKeySequence.push(key);
 
                 // Display key sequence
-                if (this.prefixArgumentString) {
+                if (this.prefixArgumentString)
+                {
                     this.modules.display.echoStatusBar(this.prefixArgumentString
                                                        + this.currentKeySequence.join(" "));
-                } else {
+                }
+                else
+                {
                     this.modules.display.echoStatusBar(this.currentKeySequence.join(" "));
                 }
 
                 // move to the next keymap
                 this.currentKeyMap = this.currentKeyMap[key];
             }
-        } else {
+        }
+        else
+        {
             this.lastFunc = null;
 
             // call default handler or insert text
-            if (this.currentKeySequence.length) {
+            if (this.currentKeySequence.length)
+            {
                 this.modules.util.stopEventPropagation(aEvent);
                 this.backToNeutral(this.currentKeySequence.join(" ")
                                    + " " + key + " is undefined", 3000);
-            } else {
-                if (this.prefixArgument > 0) {
-                    if (!this.isDisplayableKey(aEvent)) {
+            }
+            else
+            {
+                if (this.prefixArgument > 0)
+                {
+                    if (!this.isDisplayableKey(aEvent))
+                    {
                         this.modules.util.stopEventPropagation(aEvent);
 
-                        for (var i = 0; i < this.prefixArgument; ++i) {
-                            if (key == "<tab>") {
+                        for (var i = 0; i < this.prefixArgument; ++i)
+                        {
+                            if (key == "<tab>")
+                            {
                                 document.commandDispatcher.advanceFocus();
-                            } else if (key == "S-<tab>") {
+                            }
+                            else if (key == "S-<tab>")
+                            {
                                 document.commandDispatcher.rewindFocus();
-                            } else {
+                            }
+                            else
+                            {
                                 aEvent.originalTarget.dispatchEvent(this.stringToKeyEvent(key, true));
                             }
                         }
-                    } else if (this.modules.util.isWritable(aEvent)) {
+                    }
+                    else if (this.modules.util.isWritable(aEvent))
+                    {
                         // displayable and writable
                         this.modules.util.stopEventPropagation(aEvent);
                         // insert repeated string
@@ -443,12 +605,14 @@ KeySnail.Key = {
         }
     },
 
-    // ==================== magic key ==================== //
+    // }} ======================================================================= //
+
+    // Predicatives {{ ========================================================== //
 
     /**
      * check if the key event is ctrl key (predicative)
      * @param {KeyboardEvent} aEvent
-     * @return true when <aEvent> is control key
+     * @returns true when <aEvent> is control key
      */
     isControlKey: function (aEvent) {
         return aEvent.ctrlKey || aEvent.commandKey;
@@ -457,7 +621,7 @@ KeySnail.Key = {
     /**
      * check if the key event is meta key (predicative)
      * @param {KeyboardEvent} aEvent
-     * @return true when <aEvent> is meta key
+     * @returns true when <aEvent> is meta key
      */
     isMetaKey: function (aEvent) {
         return aEvent.altKey || aEvent.metaKey;
@@ -467,12 +631,77 @@ KeySnail.Key = {
         return aEvent.charCode >= 0x20 && aEvent.charCode <= 0x7e;
     },
 
-    // ==================== key event => string ==================== //
+    /**
+     * check if the key event is number
+     * @param {KeyboardEvent} aEvent
+     * @returns {bool} true when <aEvent> is the event of the number key
+     * e.g. 0, 1, 2, 3, 4 ,5, 6, 7, 8, 9
+     */
+    isNumKey: function (aEvent) {
+        return (aEvent.charCode >= 0x30 &&
+                aEvent.charCode <= 0x39);
+    },
+
+    /**
+     * Return true if In keymap
+     * @param {} aEvent
+     * @returnss
+     */
+    isInKeyMap: function (aEvent) {
+        aEvent.keyCode;
+    },
+
+    /**
+     * Check whether key event (and string expression) is the digit argument key
+     * @param {KeyBoardEvent} aEvent key event
+     * @returnss {boolean} true when the <aEvent> is regarded as the digit argument
+     */
+    isDigitArgumentKey: function (aEvent) {
+        var modifier = false;
+
+        switch (this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type"))
+        {
+        case "C":
+            modifier = this.isControlKey(aEvent) && !this.isMetaKey(aEvent);
+            break;
+        case "M":
+            modifier = this.isMetaKey(aEvent) && !this.isControlKey(aEvent);
+            break;
+        case "C-M":
+            modifier = this.isControlKey(aEvent) && this.isMetaKey(aEvent);
+            break;
+        default:
+            break;
+        }
+
+        return (modifier && this.isNumKey(aEvent));
+    },
+
+    /**
+     * Check whether key event (and string expression) is the prefix argument key
+     * @param {string} aKey literal expression of the aEvent
+     * @param {KeyBoardEvent} aEvent key event
+     * @returnss {boolean} true, is the key specified by <aKey> and <aEvent>
+     * will be followed by prefix argument
+     */
+    isPrefixArgumentKey: function (aKey, aEvent) {
+        return aKey == this.universalArgumentKey ||
+            // negative argument
+            aKey == this.negativeArgument1Key ||
+            aKey == this.negativeArgument2Key ||
+            aKey == this.negativeArgument3Key ||
+            // [prefix]-digit
+            this.isDigitArgumentKey(aEvent);
+    },
+
+    // }} ======================================================================= //
+
+    // Convert key event to string, vice versa {{ =============================== //
 
     /**
      * convert key event to string expression
      * @param {KeyboardEvent} aEvent
-     * @return {String} string expression of <aEvent>
+     * @returns {String} string expression of <aEvent>
      */
     keyEventToString: function (aEvent) {
         var key;
@@ -485,21 +714,28 @@ KeySnail.Key = {
         //      "meta      :: " + (aEvent.metaKey ? "on" : "off"),
         //      "command   :: " + (aEvent.commandKey ? "on" : "off")].join("\n"));
 
-        if (this.isDisplayableKey(aEvent)) {
+        if (this.isDisplayableKey(aEvent))
+        {
             // ASCII displayable characters (0x20 : SPC)
             key = String.fromCharCode(aEvent.charCode);
-            if (aEvent.charCode == 0x20) {
+            if (aEvent.charCode == 0x20)
+            {
                 key = "SPC";
             }
-        } else if (aEvent.keyCode >= KeyEvent.DOM_VK_F1 &&
-                   aEvent.keyCode <= KeyEvent.DOM_VK_F24) {
+        }
+        else if (aEvent.keyCode >= KeyEvent.DOM_VK_F1 &&
+                 aEvent.keyCode <= KeyEvent.DOM_VK_F24)
+        {
             // function keys
             key = "<f"
                 + (aEvent.keyCode - KeyEvent.DOM_VK_F1 + 1)
                 + ">";
-        } else {
+        }
+        else
+        {
             // special charactors
-            switch (aEvent.keyCode) {
+            switch (aEvent.keyCode)
+            {
             case KeyEvent.DOM_VK_ESCAPE:
                 key = "ESC";
                 break;
@@ -578,10 +814,12 @@ KeySnail.Key = {
      * convert string to key event
      * @param {string} aKey string expression of the key
      * @param {boolean} aKsNoHandle whether keysnail handle the generated keyevent or not
-     * @return {keyboardevent}
+     * @param {string} aType keyboard event type (keydown, keypress, keyup)
+     * @param {boolean} aContent which to use content.docuemnt (true) or docuemnt (false)
+     * @returns {keyboardevent}
      */
-    stringToKeyEvent: function (aKey, aKsNoHandle) {
-        var newEvent = document.createEvent('KeyboardEvent');
+    stringToKeyEvent: function (aKey, aKsNoHandle, aType, aIsContent) {
+        var newEvent = (aIsContent ? content.document : document).createEvent('KeyboardEvent');
         var ctrlKey  = false;
         var altKey   = false;
         var shiftKey = false;
@@ -589,9 +827,12 @@ KeySnail.Key = {
         var charCode = 0;
 
         // process modifier
-        if (aKey.length > 1 && aKey.charAt(1) == '-') {
-            while (aKey.charAt(0) == 'C' || aKey.charAt(0) == 'M' || aKey.charAt(0) == 'S') {
-                switch (aKey.charAt(0)) {
+        if (aKey.length > 1 && aKey.charAt(1) == '-')
+        {
+            while (aKey.charAt(0) == 'C' || aKey.charAt(0) == 'M' || aKey.charAt(0) == 'S')
+            {
+                switch (aKey.charAt(0))
+                {
                 case 'C':
                     ctrlKey = true;
                     break;
@@ -607,19 +848,25 @@ KeySnail.Key = {
             // has modifier
         }
 
-        if (aKey.charAt(0) == '<') {
+        if (aKey.charAt(0) == '<')
+        {
             // special key
-            if (aKey.charAt(1).toLowerCase() == 'f') {
+            if (aKey.charAt(1).toLowerCase() == 'f')
+            {
                 // <f
                 // function key
                 var num = aKey.match("<f(\d+\)>");
                 num = !!num ? parseInt(num[0]) : 0;
 
-                if (num > 0 && num < 25) {
+                if (num > 0 && num < 25)
+                {
                     keyCode = KeyEvent.DOM_VK_F1 + num - 1;
                 }
-            } else {
-                switch (aKey) {
+            }
+            else
+            {
+                switch (aKey)
+                {
                 case "<right>":
                     keyCode = KeyEvent.DOM_VK_RIGHT;
                     break;
@@ -664,12 +911,18 @@ KeySnail.Key = {
                     break;
                 }
             }
-        } else {
-            if (aKey.length == 1) {
+        }
+        else
+        {
+            if (aKey.length == 1)
+            {
                 // ascii char
                 charCode = aKey.charCodeAt(0);
-            } else {
-                switch (aKey) {
+            }
+            else
+            {
+                switch (aKey)
+                {
                 case "ESC":
                     keyCode = KeyEvent.DOM_VK_ESCAPE;
                     break;
@@ -683,7 +936,9 @@ KeySnail.Key = {
             }
         }
 
-        newEvent.initKeyEvent('keypress', true, true, null,
+        newEvent.initKeyEvent(aType || 'keypress',
+                              true, true,
+                              aIsContent ? content : null,
                               ctrlKey, altKey, shiftKey, false,
                               keyCode, charCode);
 
@@ -693,74 +948,38 @@ KeySnail.Key = {
         return newEvent;
     },
 
-    /**
-     * check if the key event is number
-     * @param {KeyboardEvent} aEvent
-     * @return {bool} true when <aEvent> is the event of the number key
-     * e.g. 0, 1, 2, 3, 4 ,5, 6, 7, 8, 9
-     */
-    isKeyEventNum: function (aEvent) {
-        return (aEvent.charCode >= 0x30 &&
-                aEvent.charCode <= 0x39);
+    // }} ======================================================================= //
+
+    // Key map manipulation {{ ================================================== //
+
+    declareKeyMap: function (aKeyMapName) {
+        this.keyMapHolder[aKeyMapName] = new Object();
     },
 
-    /**
-     * @param {} aKey
-     * @returns {boolean} true if aKey is the valid literal key expression
-     * example)
-     * a   => valid
-     * C-t => valid
-     * M-< => valid
-     * C=C => invalid
-     * %%% => invalid
-     */
-    validateKey: function (aKey) {
-        return true;
-    },
+    copyKeyMap: function (aTargetKeyMapName, aDestinationKeyMapName) {
+        var aTarget = this.keyMapHolder[aTargetKeyMapName];
+        var aDestination = this.keyMapHolder[aDestinationKeyMapName];
 
-    /**
-     * @param {} aKeys
-     * @returns {integer} index of the invalid key in the k
-     *            -1 when there are no invalid keys
-     */
-    seekInvalidKey: function (aKeys) {
-        var i = 0;
-        var len = 0;
-        for (; i < len; ++i) {
-            if (!this.validateKey(aKeys[i])) {
-                return i;
-            }
+        for (var property in aTarget)
+        {
+            aDestination[property] = aTarget[property];
         }
-
-        return -1;
     },
 
     registerKeySequence: function (aKeys, aFunc, aKeyMap) {
-        // validate (currently, not works)
-
-        // var invalidKeyIndex = this.seekInvalidKey(aKeys);
-
-        // if (invalidKeyIndex >= 0) {
-        //     this.message("'" + aKeys[invalidKeyIndex]
-        //                  + "' isn't a valid key");
-        //     return false;
-        // }
-
         var key;
         var to = aKeys.length - 1;
-        for (var i = 0; i < to; ++i) {
+
+        for (var i = 0; i < to; ++i)
+        {
             key = aKeys[i];
 
-            switch (typeof(aKeyMap[key])) {
+            switch (typeof(aKeyMap[key]))
+            {
             case "function":
-                this.message(aKeyMap[key].ksDescription
-                             + " bound to [" + aKeys.slice(0, i + 1).join(" ")
-                             + "] overrided with the prefix key.");
-                // this.message("[" + aKeys.slice(0, i + 1).join(" ")
-                //              + "] is already bound to "
-                //              + aKeyMap[key].ksDescription);
-                // this.message("Failed to bind "+ aFunc.ksDescription
-                //              + " to [" + aKeys.join(" ") + "] ");
+                this.message("%s bound to [%s] overrided with the prefix key.",
+                             aKeyMap[key].ksDescription,
+                             aKeys.slice(0, i + 1).join(" "));
                 // no break;
             case "undefined":
                 // create a new (pseudo) aKeyMap
@@ -774,8 +993,6 @@ KeySnail.Key = {
 
         aKeyMap[aKeys[i]] = aFunc;
     },
-
-    // ==================== set key sequence to the keymap  ====================
 
     setGlobalKey: function (aKeys, aFunc, aKsdescription, aKsNoRepeat) {
         this.defineKey(this.modes.GLOBAL, aKeys, aFunc, aKsdescription, aKsNoRepeat);
@@ -794,7 +1011,8 @@ KeySnail.Key = {
     },
 
     defineKey: function (aKeyMapName, aKeys, aFunc, aKsDescription, aKsNoRepeat) {
-        if (!aKeyMapName || !aKeys || !aFunc) {
+        if (!aKeyMapName || !aKeys || !aFunc)
+        {
             return;
         }
 
@@ -808,18 +1026,23 @@ KeySnail.Key = {
         if (this.inExternalFile)
             aFunc.ksDefinedInExternalFile = this.inExternalFile;
 
-        switch (typeof(aKeys)) {
+        switch (typeof(aKeys))
+        {
         case "string":
             // one key stroke
             addTo[aKeys] = aFunc;
             break;
         case "object":
-            if (typeof(aKeys[0]) == "object") {
+            if (typeof(aKeys[0]) == "object")
+            {
                 // multi registration
-                for (var i = 0; i < aKeys.length; ++i) {
+                for (var i = 0; i < aKeys.length; ++i)
+                {
                     this.registerKeySequence(aKeys[i], aFunc, addTo);
                 }
-            } else {
+            }
+            else
+            {
                 // simple form
                 this.registerKeySequence(aKeys, aFunc, addTo);
             }
@@ -827,50 +1050,21 @@ KeySnail.Key = {
         }
     },
 
-    declareKeyMap: function (aKeyMapName) {
-        this.keyMapHolder[aKeyMapName] = new Object();
-    },
-
-    copyKeyMap: function (aTargetKeyMapName, aDestinationKeyMapName) {
-        var aTarget = this.keyMapHolder[aTargetKeyMapName];
-        var aDestination = this.keyMapHolder[aDestinationKeyMapName];
-
-        for (var property in aTarget) {
-            aDestination[property] = aTarget[property];
-        }
-    },
-
-    copy: function (aTargetKeyMapName, aDestinationKeyMapName) {
-        this.message("key.copy() is obsoleted. Use key.copyKeyMap.");
-        this.copyKeyMap(aTargetKeyMapName, aDestinationKeyMapName);
-    },
-
-    backToNeutral: function (aMsg, aTime) {
-        // reset keymap
-        this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
-        // reset statusbar
-        this.modules.display.echoStatusBar(aMsg, aTime);
-        // reset key sequence
-        this.currentKeySequence.length = 0;
-        // reset prefixArgument
-        this.inputtingPrefixArgument = false;
-        this.prefixArgument = null;
-        this.prefixArgumentString = null;
-        // reset escape char
-        this.escapeCurrentChar = false;
-    },
+    // }} ======================================================================= //
 
     /**
      * @param {keyMap} aKeyMap
      * @param {[String]} aKeySequence
-     * @return {keyMap} trailed keymap using <keyMap>. null when failed to trail
+     * @returns {keyMap} trailed keymap using <keyMap>. null when failed to trail
      */
     trailByKeySequence: function (aKeyMap, aKeySequence) {
         var key;
         var to = aKeySequence.length;
-        for (var i = 0; i < to; ++i) {
+        for (var i = 0; i < to; ++i)
+        {
             key = aKeySequence[i];
-            if (typeof(aKeyMap[key]) != "object") {
+            if (typeof(aKeyMap[key]) != "object")
+            {
                 // failed to trail
                 return null;
             }
@@ -888,10 +1082,11 @@ KeySnail.Key = {
      * [this.universalArgumentKey, this.universalArgumentKey, this.universalArgumentKey] => 64
      * ["C-9", "2"] => 92
      * @param {[String]} aKeySequence key sequence (array) to be parsed
-     * @return {Integer} prefix argument
+     * @returns {Integer} prefix argument
      */
     parsePrefixArgument: function (aKeySequence) {
-        if (!aKeySequence.length) {
+        if (!aKeySequence.length)
+        {
             return null;
         }
 
@@ -900,19 +1095,23 @@ KeySnail.Key = {
         var coef = 1;
         var i = 1;
 
-        switch (aKeySequence[0]) {
+        switch (aKeySequence[0])
+        {
         case this.universalArgumentKey:
             arg = 4;
-            while (aKeySequence[i] == this.universalArgumentKey && i < aKeySequence.length) {
+            while (aKeySequence[i] == this.universalArgumentKey && i < aKeySequence.length)
+            {
                 // Repeating C-u without digits or minus sign
                 // multiplies the argument by 4 each time.
                 arg <<= 2;
                 i++;
             }
-            if (i != aKeySequence.length) {
+            if (i != aKeySequence.length)
+            {
                 // followed by non C-u key
                 arg = 0;
-                if (aKeySequence[1] == '-') {
+                if (aKeySequence[1] == '-')
+                {
                     // C-u -
                     coef = -1;
                     i = 2;
@@ -927,7 +1126,8 @@ KeySnail.Key = {
             break;
         default:
             while (typeof(aKeySequence[i]) == "string" &&
-                   this.isDigitArgumentKey(this.stringToKeyEvent(aKeySequence[i]))) {
+                   this.isDigitArgumentKey(this.stringToKeyEvent(aKeySequence[i])))
+            {
                 i++;
             }
 
@@ -938,58 +1138,18 @@ KeySnail.Key = {
         }
 
         // ["3", "2", "1"] => [1, 2, 3]
-        for (; i < aKeySequence.length; ++i) {
+        for (; i < aKeySequence.length; ++i)
+        {
             numSequence.unshift(Number(aKeySequence[i]));
         }
 
         var base = 1;
-        for (i = 0; i < numSequence.length; base *= 10, ++i) {
+        for (i = 0; i < numSequence.length; base *= 10, ++i)
+        {
             arg += (numSequence[i] * base);
         }
 
         return coef * arg;
-    },
-
-    /**
-     * Check whether key event (and string expression) is the digit argument key
-     * @param {KeyBoardEvent} aEvent key event
-     * @returns {boolean} true when the <aEvent> is regarded as the digit argument
-     */
-    isDigitArgumentKey: function (aEvent) {
-        var modifier = false;
-
-        switch (this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type")) {
-        case "C":
-            modifier = this.isControlKey(aEvent) && !this.isMetaKey(aEvent);
-            break;
-        case "M":
-            modifier = this.isMetaKey(aEvent) && !this.isControlKey(aEvent);
-            break;
-        case "C-M":
-            modifier = this.isControlKey(aEvent) && this.isMetaKey(aEvent);
-            break;
-        default:
-            break;
-        }
-
-        return (modifier && this.isKeyEventNum(aEvent));
-    },
-
-    /**
-     * Check whether key event (and string expression) is the prefix argument key
-     * @param {string} aKey literal expression of the aEvent
-     * @param {KeyBoardEvent} aEvent key event
-     * @returns {boolean} true, is the key specified by <aKey> and <aEvent>
-     * will be followed by prefix argument
-     */
-    isPrefixArgumentKey: function (aKey, aEvent) {
-        return aKey == this.universalArgumentKey ||
-            // negative argument
-            aKey == this.negativeArgument1Key ||
-            aKey == this.negativeArgument2Key ||
-            aKey == this.negativeArgument3Key ||
-            // [prefix]-digit
-            this.isDigitArgumentKey(aEvent);
     },
 
     /**
@@ -1014,12 +1174,16 @@ KeySnail.Key = {
             return;
         }
 
-        if (!aFunc.ksNoRepeat && aArg) {
+        if (!aFunc.ksNoRepeat && aArg)
+        {
             // iterate
-            for (var i = 0; i < aArg; ++i) {
+            for (var i = 0; i < aArg; ++i)
+            {
                 aFunc.apply(KeySnail, [aEvent, aArg]);
             }
-        } else {
+        }
+        else
+        {
             // one time
             aFunc.apply(KeySnail, [aEvent, aArg]);
         }
@@ -1046,7 +1210,8 @@ KeySnail.Key = {
                               true, true, null,
                               false, false, false, false,
                               aKey, 0);
-        if (aNoHandle) {
+        if (aNoHandle)
+        {
             // KeySnail does not handle this key event.
             // See "handleEvent".
             newEvent.ksNoHandle = true;
@@ -1058,12 +1223,13 @@ KeySnail.Key = {
      * original code from Firemacs
      * http://www.mew.org/~kazu/proj/firemacs/
      * @param {String} text
-     * @return
+     * @returns
      */
     insertText: function (text) {
         var command = 'cmd_insertText';
         var controller = document.commandDispatcher.getControllerForCommand(command);
-        if (controller && controller.isCommandEnabled(command)) {
+        if (controller && controller.isCommandEnabled(command))
+        {
             controller = controller.QueryInterface(Components.interfaces.nsICommandController);
             var params = Components.classes['@mozilla.org/embedcomp/command-params;1'];
             params = params.createInstance(Components.interfaces.nsICommandParams);
@@ -1072,24 +1238,30 @@ KeySnail.Key = {
         }
     },
 
+    // Key binding list, help {{ ================================================ //
+
     /**
      *
      * @param {[String]} aContentHolder
      * @param {[String]} aKeyMap
      * @param {[String]} aKeySequence
-     * @return
+     * @returns
      */
     generateKeyBindingRows: function (aContentHolder, aKeyMap, aKeySequence) {
-        if (!aKeyMap) {
+        if (!aKeyMap)
+        {
             return;
         }
 
-        if (!aKeySequence) {
+        if (!aKeySequence)
+        {
             aKeySequence = [];
         }
 
-        for (key in aKeyMap) {
-            switch (typeof(aKeyMap[key])) {
+        for (key in aKeyMap)
+        {
+            switch (typeof(aKeyMap[key]))
+            {
             case "function":
                 var pad = (aKeySequence.length == 0) ? "" : " ";
                 aContentHolder.push("<tr><td>" +
@@ -1116,10 +1288,11 @@ KeySnail.Key = {
      * @param {} aAnchor
      * @param {} aKeyMap
      * @param {} aKeySequence
-     * @return
+     * @returns
      */
     generateKeyBindingTable: function (aContentHolder, aH2, aAnchor, aKeyMap, aKeySequence) {
-        if (aKeyMap) {
+        if (aKeyMap)
+        {
             aContentHolder.push("<h2 id='" + aAnchor + "'>" + aH2 + "</h2>");
             aContentHolder.push("<table class='table-keybindings'>");
             aContentHolder.push("<tr><th>" + "Key" + "</th><th>" + "Binding" + "</th></tr>");
@@ -1161,7 +1334,8 @@ KeySnail.Key = {
             contentHolder.push("</table>\n");
 
             contentHolder.push("<h2 id='parg'>Prefix Argument Keys</h2>");
-            if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true)) {
+            if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true))
+            {
                 contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanDisable") + "</p>\n");
                 contentHolder.push("<table class='table-keybindings'>");
                 contentHolder.push("<tr><th>Key</th><th>Description</th></tr>");
@@ -1172,7 +1346,8 @@ KeySnail.Key = {
 
                 var digitArgumentKey = "-[0-9]";
                 var modifier;
-                switch (modifier = this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type")) {
+                switch (modifier = this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type"))
+                {
                 case "C":
                 case "M":
                 case "C-M":
@@ -1188,7 +1363,9 @@ KeySnail.Key = {
                 contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument2Key) + "</td><td>" + paNegDesc);
                 contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument3Key) + "</td><td>" + paNegDesc);
                 contentHolder.push("</table>\n");
-            } else {
+            }
+            else
+            {
                 contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanEnable") + "</p>\n");
             }
         }
@@ -1275,6 +1452,8 @@ KeySnail.Key = {
 
         mainWindow.getBrowser().loadOneTab(aURI, null, null, null, false, false);
     },
+
+    // }} ======================================================================= //
 
     message: KeySnail.message
 };

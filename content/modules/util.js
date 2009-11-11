@@ -33,14 +33,13 @@ KeySnail.Util = {
 
     // ==================== Utils  ==================== //
 
-    alert: function (aWindow, aTitle, aMessage) {
-        var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-            .getService(Components.interfaces.nsIPromptService);
-        prompts.alert(aWindow, aTitle, aMessage);
-    },
+    // File IO {{ =============================================================== //
 
-    // ==================== I / O ==================== //
-
+    /**
+     * Open file specified by <aPath> and returns it.
+     * @param {string} aPath file path to be opened
+     * @returns {nsILocalFile} opened file
+     */
     openFile: function (aPath) {
         var file = Components.classes["@mozilla.org/file/local;1"]
             .createInstance(Components.interfaces.nsILocalFile);
@@ -49,14 +48,19 @@ KeySnail.Util = {
         return file;
     },
 
-    // @return Object which contains text as the 'value' property
+    /**
+     * Open text file, read its content, and returns it.
+     * @param {string} aPath file path to be read
+     * @param {string} aCharset specify text charset
+     * @returns {string} text content of the file
+     * @throws {}
+     */
     readTextFile: function (aPath, aCharset) {
         // Create the file instance
         var file = this.openFile(aPath);
 
-        if (!file.exists()) {
+        if (!file.exists())
             throw aPath + " not found";
-        }
 
         // Create stream for reading text
         var fileStream = Components
@@ -67,9 +71,8 @@ KeySnail.Util = {
         var converterStream = Components
             .classes["@mozilla.org/intl/converter-input-stream;1"]
             .createInstance(Components.interfaces.nsIConverterInputStream);
-        if (!aCharset) {
+        if (!aCharset)
             aCharset = 'UTF-8';
-        }
         converterStream.init(fileStream, aCharset, fileStream.available(),
                              converterStream.DEFAULT_REPLACEMENT_CHARACTER);
         // Output
@@ -79,10 +82,51 @@ KeySnail.Util = {
         converterStream.close();
         fileStream.close();
 
-        return out;
+        return out.value;
     },
 
-    writeText: function (aString, aPath, aForce, aCheckID) {
+    /**
+     * read file contained in the package (jar)
+     * original code by Torisugari
+     * http://forums.mozillazine.org/viewtopic.php?p=921150
+     * @param {string} aURL location of the file
+     * @returns {string} content of the file
+     */
+    readTextFileFromPackage: function (aURL) {
+        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+            .getService(Components.interfaces.nsIIOService);
+        var scriptableStream = Components
+            .classes["@mozilla.org/scriptableinputstream;1"]
+            .getService(Components.interfaces.nsIScriptableInputStream);
+
+        try {
+            var channel = ioService.newChannel(aURL, null, null);
+            var input = channel.open();
+
+            scriptableStream.init(input);
+            var str = scriptableStream.read(input.available());
+        } catch (e) {
+            // this.message("readTextFileFromPackage: " + e);
+            return null;
+        }
+
+        scriptableStream.close();
+        input.close();
+
+        return str;
+    },
+
+    /**
+     * Write <aString> to the local file specified by <aPath>.
+     * Overwrite confirmation will be ommitted if <aForce> is true.
+     * "Don't show me again" checkbox value managed by <aCheckID>.
+     * @param {string} aString
+     * @param {string} aPath
+     * @param {boolean} aForce
+     * @param {string} aCheckID
+     * @throws {}
+     */
+    writeTextFile: function (aString, aPath, aForce, aCheckID) {
         var file = this.openFile(aPath);
 
         if (file.exists() &&
@@ -111,11 +155,35 @@ KeySnail.Util = {
         fileStream.close();
     },
 
-    confirm: function (aTitle, aMessage) {
+    // }} ======================================================================= //
+
+    // Prompt wrapper {{ ======================================================== //
+
+    /**
+     * window.alert alternative.
+     * This method can specify the window title while window.alert can't.
+     * @param {string} aTitle
+     * @param {string} aMessage
+     * @param {window} aWindow
+     */
+    alert: function (aTitle, aMessage, aWindow) {
+        var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+            .getService(Components.interfaces.nsIPromptService);
+        prompts.alert(aWindow || window, aTitle, aMessage);
+    },
+
+    /**
+     * window.confirm alternative.
+     * This method can specify the window title while window.confirm can't.
+     * @param {} aTitle
+     * @param {} aMessage
+     * @returns {}
+     */
+    confirm: function (aTitle, aMessage, aWindow) {
         var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
             .getService(Components.interfaces.nsIPromptService);
 
-        return prompts.confirm(null, aTitle, aMessage);
+        return prompts.confirm(aWindow || window, aTitle, aMessage);
     },
 
     /**
@@ -147,36 +215,9 @@ KeySnail.Util = {
         return result;
     },
 
-    /**
-     * read file contained in the package (jar)
-     * original code by Torisugari
-     * http://forums.mozillazine.org/viewtopic.php?p=921150
-     * @param {string} aURL location of the file
-     * @returns {string} content of the file
-     */
-    getContents: function (aURL) {
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-            .getService(Components.interfaces.nsIIOService);
-        var scriptableStream = Components
-            .classes["@mozilla.org/scriptableinputstream;1"]
-            .getService(Components.interfaces.nsIScriptableInputStream);
+    // }} ======================================================================= //
 
-        try {
-            var channel = ioService.newChannel(aURL, null, null);
-            var input = channel.open();
-
-            scriptableStream.init(input);
-            var str = scriptableStream.read(input.available());
-        } catch (e) {
-            // this.message("getContents: " + e);
-            return null;
-        }
-
-        scriptableStream.close();
-        input.close();
-
-        return str;
-    },
+    // Misc utils {{ ============================================================ //
 
     /**
      * list all properties of the object
@@ -205,7 +246,9 @@ KeySnail.Util = {
         return (controller && controller.isCommandEnabled(aCommand));
     },
 
-    // ==================== Predicatives ====================
+    // }} ======================================================================= //
+
+    // Predicatives {{ ========================================================== //
 
     /**
      * check if user can input any text in current situation
@@ -275,18 +318,9 @@ KeySnail.Util = {
         return (listElem && listElem.length > 0);
     },
 
-    // ==================== nsI ==================== //
+    // }} ======================================================================= //
 
-    getEventStateManager: function () {
-        this.listProperty(esm);
-        // var docShell = document.commandDispatcher.focusedWindow
-        //     .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
-        //     .getInterface(Components.interfaces.nsIWebNavigation)
-        //     .QueryInterface(Components.interfaces.nsIDocShell);
-
-        // return docShell
-        //     .QueryInterface(Components.interfaces.nsIEventStateManager);
-    },
+    // nsI {{ =================================================================== //
 
     getSelectionController: function () {
         var docShell = document.commandDispatcher.focusedWindow
@@ -300,7 +334,9 @@ KeySnail.Util = {
             .QueryInterface(Components.interfaces.nsISelectionController);
     },
 
-    // ==================== event ==================== //
+    // }} ======================================================================= //
+
+    // Event {{ ================================================================= //
 
     /**
      * stop event propagation and prevent browser default behavior
@@ -311,7 +347,9 @@ KeySnail.Util = {
         aEvent.preventDefault();
     },
 
-    // ==================== pref ==================== //
+    // }} ======================================================================= //
+
+    // Preference {{ ============================================================ //
 
     /**
      * set preference value at a stroke
@@ -362,6 +400,10 @@ KeySnail.Util = {
                               str);
     },
 
+    // }} ======================================================================= //
+
+    // Localization {{ ========================================================== //
+
     /**
      * get localized string
      * original code from Firegestures
@@ -389,6 +431,10 @@ KeySnail.Util = {
             return aStringKey;
         }
     },
+
+    // }} ======================================================================= //
+
+    // Directory {{ ============================================================= //
 
     /**
      * check if the directory has certain files
@@ -421,8 +467,7 @@ KeySnail.Util = {
      * @returns {nsIFile[]}
      * @throws exception when no file found in aDirectory
      */
-    readDirectory: function (aDirectory, aSort)
-    {
+    readDirectory: function (aDirectory, aSort) {
         if (typeof aDirectory == "string")
             aDirectory = this.openFile(aDirectory);
 
@@ -457,6 +502,10 @@ KeySnail.Util = {
         return dirService.get(aProp, Components.interfaces.nsILocalFile);
     },
 
+    // }} ======================================================================= //
+
+    // Charactor code {{ ======================================================== //
+
     /**
      * convert given string's char code
      * original function from sage
@@ -479,6 +528,14 @@ KeySnail.Util = {
         return tmpString;
     },
 
+    // }} ======================================================================= //
+
+    // Misc information {{ ====================================================== //
+
+    /**
+     * get system information service
+     * @returns {}
+     */
     getSystemInfo: function () {
         return Components.classes['@mozilla.org/system-info;1'].
             getService(Components.interfaces.nsIPropertyBag2);
@@ -496,6 +553,15 @@ KeySnail.Util = {
         return env.exists(aName) ? env.get(aName) : null;
     },
 
+    // }} ======================================================================= //
+
+
+    // DB {{ ==================================================================== //
+
+    /**
+     * get places db, works correctly under any version of Firefox I hope.
+     * @returns {dbconnection} places db
+     */
     getPlacesDB: function () {
         try {
             return Components.classes['@mozilla.org/browser/nav-history-service;1']
@@ -511,7 +577,9 @@ KeySnail.Util = {
         }
     },
 
-    // ==================== Path / URL ====================
+    // }} ======================================================================= //
+
+    // Path / URL {{ ============================================================ //
 
     /**
      * convert local file path to the URL expression
@@ -602,7 +670,9 @@ KeySnail.Util = {
         return aURL.slice(aURL.lastIndexOf("/") + 1);
     },
 
-    // ==================== eval ==================== //
+    // }} ======================================================================= //
+
+    // Eval / Voodoo {{ ========================================================= //
 
     safeEval: function (aText) {
         return Components.utils.evalInSandbox(aText, this.sandboxForSafeEval);
@@ -615,7 +685,9 @@ KeySnail.Util = {
         return Components.utils.evalInSandbox(aContent, sandbox);
     },
 
-    // ==================== ajax ==================== //
+    // }} ======================================================================= //
+
+    // Network {{ =============================================================== //
 
     /**
      * Original code from liberator
@@ -654,7 +726,9 @@ KeySnail.Util = {
         }
     },
 
-    // ============================== Thread ============================== //
+    // }} ======================================================================= //
+
+    // Thread {{ ================================================================ //
 
     /**
      * sleep current thread for <aWait> [msec] time.
@@ -689,8 +763,15 @@ KeySnail.Util = {
         } while (flush === true && mainThread.hasPendingEvents());
     },
 
-    // ============================== XML ============================== //
+    // }} ======================================================================= //
 
+    // XML {{ =================================================================== //
+
+    /**
+     * Get locale specific string from given node.
+     * @param {XML} aNodes E4X type XML object
+     * @returns {string} locale specific string of the <aNodes>
+     */
     xmlGetLocaleString: function (aNodes) {
         if (typeof aNodes == "string")
             return aNodes;
@@ -707,6 +788,8 @@ KeySnail.Util = {
 
         return aNodes[0].text();
     },
+
+    // }} ======================================================================= //
 
     message: KeySnail.message
 };

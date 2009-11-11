@@ -189,7 +189,7 @@ var ksPreference = {
         }
 
         try {
-            this.modules.util.writeText(output, this.modules.userscript.initFilePath, false, "preference.ask_when_overwrite");
+            this.modules.util.writeTextFile(output, this.modules.userscript.initFilePath, false, "preference.ask_when_overwgrite");
             this.modules.userscript.reload();
 
             this.needsApply = ksKeybindTreeView.changed = keyCustomizer.changed = false;
@@ -534,7 +534,7 @@ var ksPreference = {
                                         userscript.directoryDelimiter,
                                         userscript.defaultInitFileNames)) {
                     // directory has no rc file.
-                    util.alert(window, "keysnail:dialog",
+                    util.alert("keysnail:dialog",
                                util.getLocaleString("selectDirectoryContainsInitFile", [fp.file.path]));
                     return;
                 }
@@ -813,7 +813,7 @@ var ksPreference = {
                              " (" + ksKeybindTreeView.modes[row[KS_MODE]] + ")");
             }
 
-            this.modules.util.alert(null, "Notice!", message.join("\n"));
+            this.modules.util.alert("Notice!", message.join("\n"));
 
             return null;
         }

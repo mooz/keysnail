@@ -9,14 +9,24 @@ var KeySnail = {
     modules: {},
 
     get windowType () {
-        return window.document.documentElement.getAttribute("windowtype");
+        if (this._windowType)
+            return this._windowType;
+
+        return this._windowType = window.document.documentElement.getAttribute("windowtype");
     },
 
     get version () {
-        return "1.1.2";
+        return this.extInfo.version;
     },
 
     init: function () {
+        var extmanager = Components.classes["@mozilla.org/extensions/manager;1"]
+            .createInstance(Components.interfaces.nsIExtensionManager);
+
+        this.extInfo = extmanager.getItemForID("keysnail@mooz.github.com");
+
+        // Arrange modules {{ ======================================================= //
+
         var moduleObjects = ["Util",
                              "Display",
                              "Command",
@@ -48,6 +58,8 @@ var KeySnail = {
         for (i = 0; i < len; ++i) {
             this.initModule.call(this, moduleObjects[i]);
         }
+
+        // }} ======================================================================= //
 
         // now, run the keyhandler
         if (this.modules.key.status &&
@@ -161,7 +173,14 @@ var KeySnail = {
         _ksLast = now;
     },
 
-    message: Application.console.log,
+    message: function (aFormat) {
+        for (var i = 1; i < arguments.length; ++i)
+        {
+            aFormat = aFormat.replace("%s", arguments[i]);
+        }
+
+        Application.console.log(aFormat);
+    },
 
     /**
      * For checking the "LocationChange"

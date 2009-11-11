@@ -22,6 +22,7 @@
 <!ENTITY keySnail.preference.keyhandler.enabled "Enabled">
 <!ENTITY keySnail.preference.keyhandler.globalEnabled "Use KeySnail outside the browser window (Enable KeySnail in every window)">
 <!ENTITY keySnail.preference.keyhandler.lowPriority "Make KeySnail work in low priority (Changes applied from newly opened window)">
+<!ENTITY keySnail.preference.keyhandler.preventKeyUpDown "Prevent webpages handling keyup, keydown event. (For pages like github)">
 
 <!-- Prefix argument -->
 <!ENTITY keySnail.preference.keyhandler.prefixArgument "Prefix argument">

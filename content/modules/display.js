@@ -160,7 +160,7 @@ KeySnail.Display = function () {
                 }
                 );
 
-            var lines = aMsg.split('\n');
+            var lines = (aMsg || "").toString().split('\n');
             var container = doc.getElementById(ksMessageId);
 
             if (!container)

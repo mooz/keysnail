@@ -36,6 +36,10 @@
                  name="extensions.keysnail.keyhandler.low_priority"
                  type="bool"/>
             <preference
+                 id="extensions.keysnail.keyhandler.prevent_key_up_down"
+                 name="extensions.keysnail.keyhandler.prevent_key_up_down"
+                 type="bool"/>
+            <preference
                  id="extensions.keysnail.plugin.global_enabled"
                  name="extensions.keysnail.plugin.global_enabled"
                  type="bool"/>
@@ -48,6 +52,8 @@
                           preference="extensions.keysnail.keyhandler.global_enabled" />
                 <checkbox label="&keySnail.preference.keyhandler.lowPriority;"
                           preference="extensions.keysnail.keyhandler.low_priority" />
+                <checkbox label="&keySnail.preference.keyhandler.preventKeyUpDown;"
+                          preference="extensions.keysnail.keyhandler.prevent_key_up_down" />
             </vbox>
         </groupbox>
 
@@ -468,7 +474,7 @@
                          >Visit KeySnail wiki</description>
             <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://d.hatena.ne.jp/mooz/')"
-                         >Visit Author's blog (Japanese)</description>
+                         >Visit Authors blog (Japanese)</description>
             <spacer height="10px"/>
             <description>KeySnail using ...</description>
             <description class="text-link"

@@ -190,6 +190,10 @@ E を押すことで「タブを背面で開く HaH」を開始させること�
 
 ページ内のリンクを一度に開きたいときは hok-start-continuous-mode がきっと役に立つでしょう。一度リンクを開いてもヒントモードが継続されるのです。終了したい時は ESC などのキーを押せば OK です。
 
+==== ポップアップブロックへの対処 ====
+
+HoK でヒントを選択しタブを開こうとしたときポップアップブロックに引っかかってしまうという方は、ロケーションバーに about:config と打ち込んでから dom.popup_allowed_events と入力し、その値に keypress を付け加えてみてください。
+
 ==== カスタマイズ ====
 
 ヒントに用いるキーは次のようにして変更することが可能です。
@@ -293,20 +297,20 @@ http://github.com/myuhe
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
-// 
+//
 // ==== 1.2.0 (2009 11/09) ====
 //
 // * Made HoK use Selectors API again and added XPath option.
-// 
+//
 // ==== 1.1.8 (2009 11/08) ====
 //
 // * Does not focus when hint keys are inputted.
-// 
+//
 // ==== 1.1.7 (2009 11/08) ====
 //
 // * Fixed the hints position bug.
 // * Made HoK use XPath instead of Selectors API.
-// 
+//
 // ==== 1.1.6 (2009 11/07) ====
 //
 // * Modified default hint style. Made more elements to be gathered.
@@ -775,7 +779,7 @@ var hok = function () {
             span.appendChild(doc.createTextNode(hint));
 
             // Set hint position {{ ===================================================== //
-            
+
             leftpos = Math.max((rect.left + scrollX), scrollX);
             toppos =  Math.max((rect.top + scrollY), scrollY);
 
@@ -954,14 +958,15 @@ var hok = function () {
 
         switch (onkey) {
         case 'Backspace':
-        case 'Delete':
             if (!inputKey)
             {
                 destruction(true);
                 return;
             }
+
+            inputKey = inputKey.slice(0, inputKey.length - 1);
+
             // reset but not exit
-            inputKey = '';
             blurHint();
             resetHintsColor();
             return;

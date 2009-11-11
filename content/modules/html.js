@@ -76,7 +76,7 @@ KeySnail.HTML = {
 
         if (!this.styleSheet) {
             this.styleSheet = this.modules.util
-                .getContents("chrome://keysnail/content/resources/design.css");
+                .readTextFileFromPackage("chrome://keysnail/content/resources/design.css");
         }
 
         source = source.replace("##CSS##", this.styleSheet);

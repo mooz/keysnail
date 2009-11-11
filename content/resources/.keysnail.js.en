@@ -17,6 +17,9 @@
 // ==================== set hooks ==================== //
 hook.setHook("KeyBoardQuit",
             function (aEvent) {
+                if (key.currentKeySequence.length)
+                    return;
+
                 // Close the find bar if opened
                 command.closeFindBar();
                 if (util.isCaretEnabled()) {

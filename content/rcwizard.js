@@ -115,7 +115,7 @@ var rcWizard = {
                                                  this.directoryDelimiter,
                                                  this.defaultInitFileNames)) {
                 // directory has no rc file.
-                this.modules.util.alert(window, "KeySnail",
+                this.modules.util.alert("KeySnail",
                                         this.modules.util.getLocaleString("noUserScriptFound",
                                                                           [fp.file.path]));
                 return;

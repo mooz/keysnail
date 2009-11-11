@@ -13,7 +13,7 @@ KeySnail.UserScript = {
      * @param {string} aScriptPath
      */
     jsFileLoader: function (aScriptPath, aPreserve) {
-        var code = this.modules.util.readTextFile(aScriptPath).value;
+        var code = this.modules.util.readTextFile(aScriptPath);
         if (KeySnail.windowType == "navigator:browser" && aPreserve)
             this.preserveCode(code);
         Function("with (KeySnail.modules) {" + code + " }")();
@@ -315,7 +315,7 @@ KeySnail.UserScript = {
         if (!read)
             return null;
 
-        return this.getPluginInformation(read.value);
+        return this.getPluginInformation(read);
     },
 
     /**
@@ -430,8 +430,8 @@ KeySnail.UserScript = {
         var tmpFile  = this.modules.util.getSpecialDir("TmpD");
         tmpFile.append(aFileName);
 
-        this.modules.util.writeText(this.modules.util.convertCharCodeFrom(aText, "UTF-8"),
-                                    tmpFile.path, true);
+        this.modules.util.writeTextFile(this.modules.util.convertCharCodeFrom(aText, "UTF-8"),
+                                        tmpFile.path, true);
 
         return tmpFile;
     },
@@ -448,7 +448,7 @@ KeySnail.UserScript = {
 
         with (this.modules) {
             // local file
-            localContent = util.readTextFile(aPluginPath).value;
+            localContent = util.readTextFile(aPluginPath);
             localInfo    = this.getPluginInformation(localContent);
 
             var updateURL = util.xmlGetLocaleString(localInfo.updateURL);
@@ -503,7 +503,7 @@ KeySnail.UserScript = {
             if (util.confirm(util.getLocaleString("updateFoundTitle"),
                              util.getLocaleString("updateFoundMessage",
                                                   [util.xmlGetLocaleString(remoteInfo.name), remoteVersion]))) {
-                util.writeText(util.convertCharCodeFrom(remoteContent, "UTF-8"), aPluginPath, true);
+                util.writeTextFile(util.convertCharCodeFrom(remoteContent, "UTF-8"), aPluginPath, true);
                 this.installRequiredFiles(remoteInfo);
                 var installed = util.openFile(aPluginPath);
                 if (!this.isDisabledPlugin(aPluginPath))
@@ -531,7 +531,7 @@ KeySnail.UserScript = {
             if (isLocalFile) {
                 // local file
                 try {
-                    source = util.readTextFile(util.urlToPath(aURL)).value;
+                    source = util.readTextFile(util.urlToPath(aURL));
                 } catch (x) {
                     throw "Failed to read plugin from '" + aURL + "'";
                 }
@@ -1002,10 +1002,10 @@ KeySnail.UserScript = {
             var scheme = (params.out.selectedScheme == null) ? "" : params.out.selectedScheme + ".";
             var userLocale = params.out.selectedLocale || "en";
 
-            var defaultInitFile = this.modules.util.getContents(defaultInitFileBase + scheme + userLocale);
+            var defaultInitFile = this.modules.util.readTextFileFromPackage(defaultInitFileBase + scheme + userLocale);
 
             if (!defaultInitFile) {
-                defaultInitFile = this.modules.util.getContents(defaultInitFileBase + scheme + "en");
+                defaultInitFile = this.modules.util.readTextFileFromPackage(defaultInitFileBase + scheme + "en");
             }
 
             if (!defaultInitFile) {
@@ -1018,9 +1018,9 @@ KeySnail.UserScript = {
             var documentString = "";
             if (params.out.insertDocument) {
                 var doc = "doc.";
-                documentString = this.modules.util.getContents(defaultInitFileBase + doc + userLocale);
+                documentString = this.modules.util.readTextFileFromPackage(defaultInitFileBase + doc + userLocale);
                 if (!documentString) {
-                    documentString = this.modules.util.getContents(defaultInitFileBase + doc + "en");
+                    documentString = this.modules.util.readTextFileFromPackage(defaultInitFileBase + doc + "en");
                 }
             }
             defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_DOC####', documentString);
@@ -1043,8 +1043,8 @@ KeySnail.UserScript = {
 
             // ================ write content ================ //
             try {
-                this.modules.util.writeText(defaultInitFile,
-                                            rcFilePlace + this.directoryDelimiter + configFileName);
+                this.modules.util.writeTextFile(defaultInitFile,
+                                                rcFilePlace + this.directoryDelimiter + configFileName);
             } catch (e) {
                 this.modules.display.notify(this.modules.util
                                             .getLocaleString("failedToWriteText"));
