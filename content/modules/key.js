@@ -82,7 +82,7 @@ KeySnail.Key = {
         this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
 
         this.useCapture = !nsPreferences.getBoolPref("extensions.keysnail.keyhandler.low_priority", false);
-        this.preventKeyUpDown = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.prevent_key_up_down", true);
+        // this.preventKeyUpDown = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.prevent_key_up_down", true);
 
         this.status = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.status", true);
     },
@@ -93,15 +93,13 @@ KeySnail.Key = {
      * start key handler
      */
     run: function () {
-        if (this.hasEventListener == false) {
+        if (this.hasEventListener == false)
+        {
             /**
              * third boolean value means "use capture or not".
              * so to say "keysnail prior to webpage's shortcut key or not".
              */
-            for each (var eventType in ["keypress", "keydown", "keyup"])
-            {
-                window.addEventListener(eventType, this, this.useCapture);
-            }
+            window.addEventListener("keypress", this, this.useCapture);
             this.hasEventListener = true;
         }
         this.status = true;
@@ -112,11 +110,9 @@ KeySnail.Key = {
      * stop key handler
      */
     stop: function () {
-        if (this.hasEventListener == true) {
-            for each (var eventType in ["keypress", "keydown", "keyup"])
-            {
-                window.removeEventListener(eventType, this, this.useCapture);
-            }
+        if (this.hasEventListener == true)
+        {
+            window.removeEventListener("keypress", this, this.useCapture);
             this.hasEventListener = false;
         }
         this.status = false;
@@ -128,19 +124,26 @@ KeySnail.Key = {
      * when init file is not loaded, reject
      */
     toggleStatus: function () {
-        if (this.status) {
+        if (this.status)
+        {
             this.stop();
-        } else {
-            if (!this.modules.userscript.initFileLoaded) {
+        }
+        else
+        {
+            if (!this.modules.userscript.initFileLoaded)
+            {
                 // load init file
                 this.modules.userscript.load();
             }
-            if (!this.modules.userscript.initFileLoaded) {
+            if (!this.modules.userscript.initFileLoaded)
+            {
                 // Failed to load init file
                 // this.modules.display.notify(this.modules.util
                 //                             .getLocaleString("noUserScriptLoaded"));
                 this.status = false;
-            } else {
+            }
+            else
+            {
                 this.run();
             }
         }
@@ -159,10 +162,13 @@ KeySnail.Key = {
         if (!aBlackList)
             return;
 
-        if (aURL) {
+        if (aURL)
+        {
             this.suspended =
                 aBlackList.some(function (elem) { return (aURL == elem || !!aURL.match(elem)); });
-        } else {
+        }
+        else
+        {
             // about:blank ...
             this.suspended = false;
         }
@@ -182,18 +188,24 @@ KeySnail.Key = {
         if (!icon)
             return;
 
-        if (this.status) {
+        if (this.status)
+        {
             // enabled
-            if (this.suspended) {
+            if (this.suspended)
+            {
                 icon.src = "chrome://keysnail/skin/icon16suspended.png";
                 icon.tooltipText = this.modules.util
                     .getLocaleString("keySnailSuspended");
-            } else {
+            }
+            else
+            {
                 icon.src = "chrome://keysnail/skin/icon16.png";
                 icon.tooltipText = this.modules.util
                     .getLocaleString("keySnailEnabled");
             }
-        } else {
+        }
+        else
+        {
             // disabled
             icon.src = "chrome://keysnail/skin/icon16gray.png";
             icon.tooltipText = this.modules.util
@@ -206,9 +218,8 @@ KeySnail.Key = {
      */
     updateMenu: function () {
         var checkbox = document.getElementById("keysnail-menu-status");
-        if (!checkbox) {
+        if (!checkbox)
             return;
-        }
 
         checkbox.setAttribute('checked', this.status);
     },
@@ -218,9 +229,8 @@ KeySnail.Key = {
      */
     updateToolMenu: function () {
         var checkbox = document.getElementById("keysnail-tool-menu-status");
-        if (!checkbox) {
+        if (!checkbox)
             return;
-        }
 
         checkbox.setAttribute('checked', this.status);
     },
@@ -230,7 +240,8 @@ KeySnail.Key = {
     // Mode {{ ================================================================== //
 
     getCurrentMode: function (aEvent, aKey) {
-        if (this.modules.util.isWritable(aEvent)) {
+        if (this.modules.util.isWritable(aEvent))
+        {
             return this.modes.EDIT;
         }
 
@@ -273,7 +284,7 @@ KeySnail.Key = {
                  {
                      arguments.callee(frame.frames[i]);
                  }
-             })(content);
+             })(window.content);
 
             frames = frames.filter(function (frame) {
                                        frame.focus();
@@ -339,20 +350,6 @@ KeySnail.Key = {
         {
             // ignore key event generated by generateKey
             // when ksNoHandle is set to true
-            return;
-        }
-
-        // for pages like github which uses keydown event for shortcut key
-        if (aEvent.type === 'keydown' || aEvent.type === 'keyup')
-        {
-            if (this.preventKeyUpDown &&
-                !this.suspended &&
-                !this.escapeCurrentChar &&
-                !this.modules.util.isWritable(aEvent))
-            {
-                aEvent.stopPropagation();
-            }
-
             return;
         }
 
