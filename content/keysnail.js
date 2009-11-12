@@ -180,6 +180,8 @@ var KeySnail = {
         }
 
         Application.console.log(aFormat);
+
+        return aFormat;
     },
 
     /**
