@@ -160,10 +160,11 @@ KeySnail.UserScript = {
             return this.modules.L(msg);
         };
 
-        // Arrange plugin scope, option holder
+        // Arrange plugin scope, option holder, and lib area
         this.modules.plugins         = {};
         this.modules.plugins.context = {};
         this.modules.plugins.options = {};
+        this.modules.plugins.lib     = {};
 
         if (this.pluginDir)
             this.addLoadPath(this.pluginDir);
@@ -182,6 +183,9 @@ KeySnail.UserScript = {
      */
     load: function () {
         var loadStatus = -1;
+
+        // before load init file, load special plugins
+        this.loadSpecialPlugins();
 
         loadStatus = this.loadUserScript(this.initFileLoader,
                                          this.userPath,
@@ -728,6 +732,32 @@ KeySnail.UserScript = {
         this.modules.key.inExternalFile = false;
     },
 
+    /**
+     * 
+     */
+    loadSpecialPlugins: function () {
+        var aPath = this.pluginDir;
+
+        if (!aPath)
+            return;
+
+        var files = this.modules.util.readDirectory(aPath, true);
+
+        files.forEach(
+            function (aFile) {
+                // special plugins filename must be like "_special_plugin_name.ks.js"
+                if (!aFile.leafName.match("^_.+\\.ks\\.js$") || aFile.isDirectory())
+                    return;
+
+                try {
+                    this.loadPlugin(aFile);
+                } catch (x) {}
+            }, this);
+    },
+
+    /**
+     * 
+     */
     loadPlugins: function () {
         var aPath = this.pluginDir;
 
@@ -740,7 +770,7 @@ KeySnail.UserScript = {
         files.forEach(
             function (aFile) {
                 // plugins's filename must be like "plugin_name.ks.js"
-                if (!aFile.leafName.match("\\.ks\\.js$") || aFile.isDirectory())
+                if (aFile.leafName.match("^_.+\\.ks\\.js$") || !aFile.leafName.match("\\.ks\\.js$") || aFile.isDirectory())
                     return;
 
                 try {
