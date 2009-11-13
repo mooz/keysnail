@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -144,6 +144,10 @@ null が指定された場合、 KeySnail はそのサイトにいる間、そ�
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.0.5 (2009 11/13) ====
+// 
+// * Added prefer LDRize cooperation
+//
 // ==== 1.0.4 (2009 11/02) ====
 //
 // * Fixed the bug when user transit to the about:blank from site local keymap defined,
@@ -203,7 +207,7 @@ function locationChangeHandler(aNsURI) {
         return;
 
     // about:blank?
-    if (!aNsURI)
+    if (!aNsURI || !aNsURI.spec)
     {
         localKeyMaps[regexp] = null;
         key.updateStatusBar();
@@ -226,12 +230,16 @@ function locationChangeHandler(aNsURI) {
     key.keyMapHolder[key.modes.SITELOCAL] = keymap;
 
     // change statusbar icon
-    if (keymap && key.status && !key.suspended) {
+    if (keymap && key.status && !key.suspended)
+    {
         iconElem.setAttribute("src", iconData);
         iconElem.tooltipText = M({en: "Site local keymap of this page enabled",
                                   ja: "このサイト用のローカルキーマップが使われています"}) + " [" + regexp + "]";
-    } else {
-        key.updateStatusBar();
+    }
+    else
+    {
+        if (!key.keyMapHolder[key.modes.LDRIZE])
+            key.updateStatusBar();
     }
 }
 
@@ -244,7 +252,8 @@ hook.addToHook('LocationChange', locationChangeHandler);
 // ============================================================ //
 
 // save key.getCurrentMode
-if (!my.originalGetCurrentMode) {
+if (!my.originalGetCurrentMode)
+{
     my.originalGetCurrentMode = key.getCurrentMode;
 }
 
@@ -259,7 +268,7 @@ key.getCurrentMode = function (aEvent, aKey) {
         }
     }
 
-    return my.originalGetCurrentMode.call(key, aEvent);
+    return my.originalGetCurrentMode.call(key, aEvent, aKey);
 };
 
 // ============================================================ //
