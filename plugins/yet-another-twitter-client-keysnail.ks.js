@@ -1,10 +1,11 @@
-// PLUGIN INFO: {{{
+// PLUGIN_INFO {{ =========================================================== //
+
 var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.1</version>
+    <version>1.3.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -198,9 +199,15 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 ||<
 ]]></detail>
 </KeySnailPlugin>;
-// }}}
 
-// ChangeLog : {{{
+// }} ======================================================================= //
+
+// ChangeLog {{ ============================================================= //
+// 
+// ==== 1.3.2 (2009 11/13) ====
+// 
+// * Added character count to the tweet phase.
+// 
 // ==== 1.3.1 (2009 11/03) ====
 //
 // * Fixed the crucial bug in the combineJSONCache
@@ -229,7 +236,7 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // * Added "delete selected status" action.
 // * Made all actions use oauthASyncRequest() instead of oauthSyncRequest().
 //
-// }}}
+// }} ======================================================================= //
 
 var optionsDefaultValue = {
     "update_interval"              : 60 * 1000, // 1 minute
@@ -932,61 +939,85 @@ var twitterClient =
          }
 
          function tweet(aInitialInput, aReplyID) {
-             prompt.read("tweet:",
-                         function (aTweet) {
-                             if (aTweet == null) {
-                                 return;
-                             }
+             var statusbar = document.getElementById('statusbar-display');
+             var limit = 140;
 
-                             var parameters = [["source", "KeySnail"], ["status" , aTweet]];
-                             if (aReplyID)
-                                 parameters.push(["in_reply_to_status_id", aReplyID.toString()]);;
+             prompt.reader(
+                 {
+                     message: "tweet:",
+                     initialcount: 0,
+                     initialinput: aInitialInput,
+                     group: "twitter_tweet",
+                     onChange: function (arg) {
+                         var current = arg.textbox.value;
+                         var length  = current.length;
+                         var count   = limit - length;
+                         var msg     = M({ja: ("残り " + count + " 文字"), en: count});
 
-                             var aQuery = "source=KeySnail&status=" + encodeURIComponent(aTweet);
-                             if (aReplyID) aQuery += "&in_reply_to_status_id=" + aReplyID;
+                         if (count < 0)
+                         {
+                             msg = M({ja: ((-count) + " 文字オーバー"), en: ("Over " + (-count) + " characters")});
+                         }
 
-                             oauthASyncRequest(
-                                 {
-                                     action     : "http://twitter.com/statuses/update.json",
-                                     method     : "POST",
-                                     send       : aQuery,
-                                     parameters : parameters
-                                 },
-                                 function (aEvent, xhr) {
-                                     if (xhr.readyState == 4) {
-                                         if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
-                                         {
-                                             // token expired
-                                             reAuthorize();
-                                         }
-                                         else if (xhr.status != 200)
-                                         {
-                                             // misc error
-                                             alertsService.showAlertNotification(null,
-                                                                                 M({ja: "ごめんなさい", en: "I'm sorry..."}),
-                                                                                 M({ja: "つぶやけませんでした", en: "Failed to tweet"}),
-                                                                                 false, "", null);
-                                             util.message(xhr.responseText);
-                                         }
-                                         else
-                                         {
-                                             // succeeded
-                                             var status = util.safeEval("(" + xhr.responseText + ")");
-                                             // immediately add
-                                             my.twitterJSONCache.unshift(status);
-                                             immediatelyAddedStatuses.push(status);
+                         statusbar.label = msg;
+                     },
+                     callback: function (aTweet) {
+                         statusbar.label = "";
 
-                                             myScreenName = status.user.screen_name;
+                         if (aTweet == null) {
+                             return;
+                         }
 
-                                             var icon_url  = status.user.profile_image_url;
-                                             var user_name = status.user.name;
-                                             var message   = html.unEscapeTag(status.text);
-                                             alertsService.showAlertNotification(icon_url, user_name, message, false, "", null);
-                                         }
+                         var parameters = [["source", "KeySnail"], ["status" , aTweet]];
+                         if (aReplyID)
+                             parameters.push(["in_reply_to_status_id", aReplyID.toString()]);;
+
+                         var aQuery = "source=KeySnail&status=" + encodeURIComponent(aTweet);
+                         if (aReplyID) aQuery += "&in_reply_to_status_id=" + aReplyID;
+
+                         oauthASyncRequest(
+                             {
+                                 action     : "http://twitter.com/statuses/update.json",
+                                 method     : "POST",
+                                 send       : aQuery,
+                                 parameters : parameters
+                             },
+                             function (aEvent, xhr) {
+                                 if (xhr.readyState == 4) {
+                                     if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
+                                     {
+                                         // token expired
+                                         reAuthorize();
+                                     }
+                                     else if (xhr.status != 200)
+                                     {
+                                         // misc error
+                                         alertsService.showAlertNotification(null,
+                                                                             M({ja: "ごめんなさい", en: "I'm sorry..."}),
+                                                                             M({ja: "つぶやけませんでした", en: "Failed to tweet"}),
+                                                                             false, "", null);
+                                     }
+                                     else
+                                     {
+                                         // succeeded
+                                         var status = util.safeEval("(" + xhr.responseText + ")");
+                                         // immediately add
+                                         my.twitterJSONCache.unshift(status);
+                                         immediatelyAddedStatuses.push(status);
+
+                                         myScreenName = status.user.screen_name;
+
+                                         var icon_url  = status.user.profile_image_url;
+                                         var user_name = status.user.name;
+                                         var message   = html.unEscapeTag(status.text);
+                                         alertsService.showAlertNotification(icon_url, user_name, message, false, "", null);
                                      }
                                  }
-                             );
-                         }, null, null, aInitialInput, 0, "twitter_tweet");
+                             }
+                         );
+                     }
+                 }
+             );
          }
 
          function deleteStatus(aStatusID) {
