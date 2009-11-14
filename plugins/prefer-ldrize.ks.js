@@ -43,7 +43,6 @@ This plugin allows user to disable / change the part of KeySnail keybindings in 
 
 By default, keybindings listed below are disabled in the LDRize enabled site.
 
-- M-x
 - :
 - ?
 - j
@@ -324,19 +323,18 @@ var preferLDRize =
                  {
                      // disable
                      status = false;
-                     key.keyMapHolder[key.modes.LDRIZE] = undefined;
+                     setKeymap(false);
                      key.updateStatusBar();
                  }
                  else
                  {
                      // enable
                      status = true;
-                     locationChangeHandler();
+                     setKeymap(true);
                  }
 
                  gBrowser.focus();
                  _content.focus();
-                 document.commandDispatcher.advanceFocus();
              }
          };
 
