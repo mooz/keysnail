@@ -4,8 +4,8 @@ var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Prefer LDRize</name>
     <description>Prefer LDRize keyboard shortcut</description>
-    <description lang="ja">LDRize と KeySnail で快適ブラウジング</description>
-    <version>1.0.2</version>
+    <description lang="ja">LDRize と KeySnail を共存</description>
+    <version>1.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/prefer-ldrize.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/prefer-ldrize.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -158,6 +158,10 @@ LDRize と KeySnail で快適なブラウジングを！
 
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.0.3 (2009 11/14) ====
+// 
+// * Fixed the crucial bug (around the greasemonkey hook)
+// 
 // ==== 1.0.2 (2009 11/14) ====
 // 
 // * Added statusbar icon.
@@ -288,19 +292,18 @@ var preferLDRize =
              container = document.createElement("statusbarpanel");
              setAttributes(container,
                            {
-                               align: "center",
-                               id: CONTAINER_ID
+                               align : "center",
+                               id    : CONTAINER_ID
                            });
 
              iconElem = document.createElement("image");
              setAttributes(iconElem,
                            {
-                               id: ICON_ID,
+                               id  : ICON_ID,
                                src : disabledIconData
                            });
 
              container.appendChild(iconElem);
-
              statusbar.insertBefore(container, statusbarPanel);
          }
 
@@ -323,9 +326,13 @@ var preferLDRize =
          var savedEvalInSandbox = gmService.evalInSandbox.__original__ || gmService.evalInSandbox;
 
          gmService.evalInSandbox = function (code, codebase, sandbox) {
-             if (sandbox.window.LDRize != undefined && sandbox.window.Minibuffer != undefined)
+             savedEvalInSandbox.apply(gmService, arguments);
+
+             if (sandbox.window.Minibuffer != undefined && sandbox.window.LDRize != undefined)
              {
-                 sandbox.window.addEventListener("focus", function () { decideKeyMap(); }, false);
+                 sandbox.window.addEventListener("focus", function () {
+                                                     decideKeyMap();
+                                                 }, false);
                  sandbox.window.addEventListener("blur", function () {
                                                      setKeymap(false);
                                                      setStatusbarIcon();
@@ -336,13 +343,14 @@ var preferLDRize =
                      if (window.content.wrappedJSObject == sandbox.unsafeWindow)
                          decideKeyMap();
                  }
-                 catch (x) { }
+                 catch (x)
+                 {
+                     util.message(x);
+                 }
              }
-
-             gmService.evalInSandbox.__original__ = savedEvalInSandbox;
-
-             savedEvalInSandbox.apply(gmService, arguments);
          };
+
+         gmService.evalInSandbox.__original__ = savedEvalInSandbox;
 
          // }} ======================================================================= //
 
