@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Prefer LDRize</name>
     <description>Prefer LDRize keyboard shortcut</description>
     <description lang="ja">LDRize と KeySnail を共存</description>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/prefer-ldrize.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/prefer-ldrize.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -33,6 +33,12 @@ var PLUGIN_INFO =
             <type>object</type>
             <description>Local keymaps in LDRize enabled site</description>
             <description lang="ja">LDRize が有効となっているサイトでのキーマップ</description>
+        </option>
+        <option>
+            <name>prefer_ldrize.black_list</name>
+            <type>[regexp]</type>
+            <description>URL regexp list of sites you want to suspend the Prefer LDRize.</description>
+            <description lang="ja">Prefer LDRize を自動的に一時停止とさせたいサイトの URL リストを正規表現指定</description>
         </option>
     </options>
     <detail><![CDATA[
@@ -84,6 +90,19 @@ plugins.options["prefer_ldrize.keymap"] = {
     "o"   : null
 }
 ||<
+
+==== Using black list ====
+
+If you want Prefer LDRize to be suspend in the certain site LDRize enabled, paste the code like below example to your .keysnail.js file.
+
+>||
+plugins.options["prefer_ldrize.black_list"] = [
+    "www\\.youtube\\.com/watch.*",
+    "(www|tw|es|de|)\\.nicovideo\\.jp/watch/.*"
+];
+||<
+
+You can specify the regular expression matches URL of certain sites you want Prefer LDRize to be suspend.
 
 Have a nice browsing with LDRize and KeySnail!
     ]]></detail>
@@ -143,6 +162,19 @@ plugins.options["prefer_ldrize.keymap"] = {
 }
 ||<
 
+==== LDRize 対応のサイトではじめから KeySnail のキーバインドを優先 ====
+
+LDRize 対応のサイトでも、 KeySnail で定義したほうのキーバインドを優先させたい。いちいち Prefer LDRize をサスペンドするのは面倒だ、という方は次のような設定を初期化ファイルへ仕込んでおくと幸せになれます。
+
+>||
+plugins.options["prefer_ldrize.black_list"] = [
+    "www\\.youtube\\.com/watch.*",
+    "(www|tw|es|de|)\\.nicovideo\\.jp/watch/.*"
+];
+||<
+
+prefer_ldrize.black_list には「デフォルトで Prefer LDRize を無効にさせたいページの URL 正規表現」を指定します。
+
 ==== LDRize のコマンドをエクステ化 ====
 
 このプラグインを有効にすることにより LDRize のコマンドがエクステ化されます。
@@ -158,12 +190,20 @@ LDRize と KeySnail で快適なブラウジングを！
 
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.0.4 (2009 11/14) ====
+// 
+// * Added suspend icon.
+// 
+// * Made status site local.
+// 
+// * Fixed the bug that when use reload this plugin, suspend function does not work
+//
 // ==== 1.0.3 (2009 11/14) ====
-// 
+//
 // * Fixed the crucial bug (around the greasemonkey hook)
-// 
+//
 // ==== 1.0.2 (2009 11/14) ====
-// 
+//
 // * Added statusbar icon.
 //
 // ==== 1.0.1 (2009 11/14) ====
@@ -180,8 +220,6 @@ LDRize と KeySnail で快適なブラウジングを！
 
 var preferLDRize =
     (function () {
-         var status = true;
-
          // Keymap handling {{ ======================================================= //
 
          key.modes.LDRIZE = "ldrize";
@@ -211,15 +249,15 @@ var preferLDRize =
              // change statusbar icon
              if (keymap)
              {
-                 if (status)
+                 if (self.status)
                  {
-                     iconElem.setAttribute("src", enabledIconData);                         
+                     iconElem.setAttribute("src", enabledIconData);
                      iconElem.tooltipText = M({en: "LDRize preferred",
-                                               ja: "LDRize が優先されてますぅ"});
+                                               ja: "LDRize が優先されてます"});
                  }
                  else
                  {
-                     iconElem.setAttribute("src", disabledIconData);
+                     iconElem.setAttribute("src", suspendedIconData);
                      iconElem.tooltipText = M({en: "Prefer LDRize disabled",
                                                ja: "Prefer LDRize にはちょっとお休みしてもらってます"});
                  }
@@ -228,11 +266,39 @@ var preferLDRize =
              {
                  iconElem.setAttribute("src", disabledIconData);
                  iconElem.tooltipText = M({en: "LDRize is not enabled",
-                                           ja: "ここは LDRize の管轄外ですよね"});
+                                           ja: "ここは LDRize の管轄外です"});
              }
          }
 
-         function decideKeyMap() {
+         function setup() {
+             // check for site local status
+             if (typeof content.document.__preferLDRizeStatus__ === "undefined")
+             {
+                 // check for the black list
+                 if (plugins.options["prefer_ldrize.black_list"] &&
+                     // check if current url does not match any pattrens in black list
+                     plugins.options["prefer_ldrize.black_list"].some(
+                         function (aPattern) {
+                             return (typeof content.location.href == "string" &&
+                                     content.location.href.match(aPattern));
+                         }))
+                 {
+                     // matched black list
+                     self.status = false;
+
+                 }
+                 else
+                 {
+                     self.status = true;
+                 }
+
+                 content.document.__preferLDRizeStatus__ = self.status;
+             }
+             else
+             {
+                 self.status = content.document.__preferLDRizeStatus__;
+             }
+
              setKeymap(ldrizeEnabled());
              setStatusbarIcon();
          }
@@ -241,7 +307,7 @@ var preferLDRize =
 
          // Status bar icon {{ ======================================================= //
 
-         var enabledIconData = 'data:image/png;base64,' + 
+         var enabledIconData = 'data:image/png;base64,' +
              'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A' +
              '/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9kLDgQHD7Ydgu8AAAAZdEVYdENv' +
              'bW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAACTUlEQVQ4y22Tv0vbbRTFPzdWaCGiiwRXB3Gp' +
@@ -273,8 +339,25 @@ var preferLDRize =
              'oyAIUKlUco1Gg263i3OO0dFRUqmU1Wo1fX192cTEhJaWlqhUKvb8/Kz+/n7W1taoVqvW7XYVW9R6' +
              'Zfu7ds79WLenNkC/AENaUIUshyj4AAAAAElFTkSuQmCC';
 
+         var suspendedIconData = 'data:image/png;base64,' +
+             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz' +
+             'AAAN1wAADdcBQiibeAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAJsSURB' +
+             'VDiNbZMxSNtREId/91dMqTWkUEWxUDAgqV0UpItT5+IgRIt2aOnQyaWFLt0MhAo6CeLiVMcER0EI' +
+             'LVgc0qFIIFI3IcRCI1pR0ID/+zo8NS3twcG79+5973f3OHN3BxRFkUkSIEkuKZKEzIQkA5kkN5NJ' +
+             'JsDMLLq6LElIwswwMxESpMND6ft3ySx4tSpzR2bhNYDZ2Vm/Bkgim806gO/tuefzeDaLr6w4r165' +
+             'S+4SvrfnAAoVEAIJAH7+hFwOnj6FsTF48wa+fIF374ijCJfwiYkW4KoPTE5Owvo63LsHEty/D48e' +
+             'QRQFf/sW//gxAGZmbgAxEAP+6+tXSCTg1i348IEbazRgaipAl5bwZ8/cm83YIRbA2dmZn5ycwPg4' +
+             '3L4N6TS0t0Oh0ILEcSinsxMOD1tlAz4/P++fSiVIJuH5c/jxAzKZfyGFQlBRKnGlPAAAp14Ph7lc' +
+             'SP4fpFIJOcvLNwraFxYWVK/X9fLFCw3fvStVq5Ik9fZKnz9LT55I09Nh7/JSksTDh4ovL9XW1iZV' +
+             'q1Xv6+vznZ0dJ5sNDdzdbcn+U0k6DakUjf19BgYGWiVkMhk/Ojpy9vfhzh148AA2N0PjAMplSKWC' +
+             '/NVV1tbWfGRkxP8CNBoNB4g3N8P/S6Gp/f1h3dEBuRzb29tI8mazGQNElUrFjo+PtbGxYaVSSY/f' +
+             'v9dZuSwtLUnj49LwsDQ3J7590+taje7ubg4ODiyRSFi9XpctLi56rVbT+fm53F2Dg4NKJpOcnp5a' +
+             'T0+PhoaGNDo6qmKxyNbWlnV1dSmfz6tYLHJxcWF2PQOSTC37K3b364n9M0aS/QbbOmNBJc4luQAA' +
+             'AABJRU5ErkJggg==';
+
          function setAttributes(aElem, aAttributes) {
-             for (var key in aAttributes) {
+             for (var key in aAttributes)
+             {
                  aElem.setAttribute(key, aAttributes[key]);
              }
          }
@@ -287,7 +370,8 @@ var preferLDRize =
          var container      = document.getElementById(CONTAINER_ID);
          var iconElem       = document.getElementById(ICON_ID);
 
-         if (!container) {
+         if (!container)
+         {
              // create a new one
              container = document.createElement("statusbarpanel");
              setAttributes(container,
@@ -331,7 +415,7 @@ var preferLDRize =
              if (sandbox.window.Minibuffer != undefined && sandbox.window.LDRize != undefined)
              {
                  sandbox.window.addEventListener("focus", function () {
-                                                     decideKeyMap();
+                                                     setup();
                                                  }, false);
                  sandbox.window.addEventListener("blur", function () {
                                                      setKeymap(false);
@@ -341,7 +425,7 @@ var preferLDRize =
                  try
                  {
                      if (window.content.wrappedJSObject == sandbox.unsafeWindow)
-                         decideKeyMap();
+                         setup();
                  }
                  catch (x)
                  {
@@ -353,6 +437,8 @@ var preferLDRize =
          gmService.evalInSandbox.__original__ = savedEvalInSandbox;
 
          // }} ======================================================================= //
+
+         // Misc utils {{ ============================================================ //
 
          function ldrizeEnabled() {
              var enabled = false;
@@ -374,6 +460,8 @@ var preferLDRize =
              return enabled;
          }
 
+         // }} ======================================================================= //
+
          // Override mode detector {{ ================================================ //
 
          // save key.getCurrentMode
@@ -384,7 +472,7 @@ var preferLDRize =
 
          // override mode detector
          key.getCurrentMode = function (aEvent, aKey) {
-             if (status && key.keyMapHolder[key.modes.LDRIZE] && !util.isWritable(aEvent))
+             if (self.status && key.keyMapHolder[key.modes.LDRIZE] && !util.isWritable(aEvent))
              {
                  if (typeof(key.keyMapHolder[key.modes.LDRIZE][aKey]) != "undefined")
                  {
@@ -400,14 +488,23 @@ var preferLDRize =
          // Public {{ ================================================================ //
 
          var self = {
+             get status() {
+                 return my.preferLDRizeStatus;
+             },
+
+             set status(aStatus) {
+                 my.preferLDRizeStatus = aStatus;
+                 content.document.__preferLDRizeStatus__ = aStatus;
+             },
+
              toggleStatus: function toggleStatus() {
-                 status = !status;
-                 setKeymap(status);
+                 self.status = !self.status;
+                 setKeymap(self.status);
 
                  setStatusbarIcon();
 
                  display.echoStatusBar(M({ja: "Prefer LDRize が", en: "Prefer LDRize"}) +
-                                       (status ?
+                                       (self.status ?
                                         M({ja: "有効になりました", en: " enabled"}) :
                                         M({ja: "無効になりました", en: " disabled"})));
 
@@ -415,6 +512,10 @@ var preferLDRize =
                  _content.focus();
              }
          };
+
+         // on the first time (not reloaded)
+         if (typeof self.status == "undefined")
+             self.status = true;
 
          // }} ======================================================================= //
 
