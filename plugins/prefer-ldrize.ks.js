@@ -96,7 +96,6 @@ LDRize が有効となっているサイトで、 KeySnail のキーバインド
 
 デフォルトの状態では LDRize の有効となっているサイトで以下のキーバインドが無効となります。
 
-- M-x
 - :
 - ?
 - j
@@ -182,7 +181,6 @@ var preferLDRize =
 
          var ldrizeKeymap = plugins.options["prefer_ldrize.keymap"] ||
              {
-                 "M-x" : null,
                  ":"   : null,
                  "?"   : null,
                  "j"   : null,
