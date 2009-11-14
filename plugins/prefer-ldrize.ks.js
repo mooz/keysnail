@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Prefer LDRize</name>
     <description>I prefer LDRize</description>
     <description lang="ja">LDRize と KeySnail で快適ブラウジング</description>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/prefer-ldrize.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/prefer-ldrize.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -15,6 +15,17 @@ var PLUGIN_INFO =
     <include>main</include>
     <provides>
         <ext>prefer-ldrize-toggle-status</ext>
+        <ext>prefer-ldrize-open-minibuffer</ext>
+        <ext>prefer-ldrize-toggle-help</ext>
+        <ext>prefer-ldrize-scroll-next-item</ext>
+        <ext>prefer-ldrize-scroll-previous-item</ext>
+        <ext>prefer-ldrize-pin</ext>
+        <ext>prefer-ldrize-toggle-pinned-items-list</ext>
+        <ext>prefer-ldrize-focus-on-search-box</ext>
+        <ext>prefer-ldrize-open-in-current-tab</ext>
+        <ext>prefer-ldrize-open-pinned-items-or-current-item</ext>
+        <ext>prefer-ldrize-open-in-iframe</ext>
+        <ext>prefer-ldrize-change-siteinfo</ext>
     </provides>
     <options>
         <option>
@@ -58,7 +69,7 @@ plugins.options["prefer_ldrize.keymap"] = {
 };
 ||<
 
-You can also set function to the keymap.
+You can also set functions to the keymap.
 
 >||
 plugins.options["prefer_ldrize.keymap"] = {
@@ -107,7 +118,9 @@ plugins.options["prefer_ldrize.keymap"] = {
     "k"   : null,
     "p"   : null,
     "v"   : null,
-    "o"   : null
+    "o"   : null,
+    "J"   : function () { goDoCommand("cmd_scrollLineDown"); },
+    "K"   : function () { goDoCommand("cmd_scrollLineUp"); }
 };
 ||<
 
@@ -126,9 +139,17 @@ plugins.options["prefer_ldrize.keymap"] = {
     "k"   : null,
     "p"   : null,
     "v"   : null,
-    "o"   : null
+    "o"   : null,
+    "J"   : function () { goDoCommand("cmd_scrollLineDown"); },
+    "K"   : function () { goDoCommand("cmd_scrollLineUp"); }
 }
 ||<
+
+==== LDRize のコマンドをエクステ化 ====
+
+このプラグインを有効にすることにより LDRize のコマンドがエクステ化されます。
+
+これにより、 KeySnail の強みを生かして LDRize のコマンドをキーシーケンスへ割り当てる、といったことも可能となります。
 
 LDRize と KeySnail で快適なブラウジングを！
 
@@ -138,7 +159,13 @@ LDRize と KeySnail で快適なブラウジングを！
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
-
+//
+// ==== 1.0.1 (2009 11/14) ====
+//
+// * Convert all LDRize commands to KeySnail exts.
+// * Made plugin work correctly in the site which has LDRize enabled iframe content like p2.2ch.net.
+// * Fixed the typo.
+//
 // ==== 1.0.0 (2009 11/14) ====
 //
 // * Released
@@ -182,7 +209,7 @@ var preferLDRize =
              if (keymap && key.status && !key.suspended)
              {
                  iconElem.setAttribute("src", iconData);
-                 iconElem.tooltipText = M({en: "LDRize prefered",
+                 iconElem.tooltipText = M({en: "LDRize preferred",
                                            ja: "LDRize が優先されてますぅ"});
              }
              else
@@ -222,9 +249,9 @@ var preferLDRize =
              // greasemonkey not installed
              return null;
          }
-         
+
          gmService = gmService.getService().wrappedJSObject;
-             
+
          var savedEvalInSandbox = gmService.evalInSandbox.__original__ || gmService.evalInSandbox;
 
          gmService.evalInSandbox = function (code, codebase, sandbox) {
@@ -233,10 +260,12 @@ var preferLDRize =
                  sandbox.window.addEventListener("focus", function () { decideKeyMap(); }, false);
                  sandbox.window.addEventListener("blur", function () { setKeymap(false); }, false);
 
-                 if (window.content.wrappedJSObject == sandbox.unsafeWindow)
+                 try
                  {
-                     decideKeyMap();
+                     if (window.content.wrappedJSObject == sandbox.unsafeWindow)
+                         decideKeyMap();
                  }
+                 catch (x) { }
              }
 
              gmService.evalInSandbox.__original__ = savedEvalInSandbox;
@@ -247,7 +276,23 @@ var preferLDRize =
          // }} ======================================================================= //
 
          function ldrizeEnabled() {
-             return !!content.document.getElementById("gm_ldrize");
+             var enabled = false;
+
+             (function (frame) {
+                  if (frame.document.getElementById("gm_ldrize") &&
+                      document.commandDispatcher.focusedWindow == frame)
+                  {
+                      enabled = true;
+                      return;
+                  }
+
+                  for (var i = 0; i < frame.frames.length; ++i)
+                  {
+                      arguments.callee(frame.frames[i]);
+                  }
+              })(window.content);
+
+             return enabled;
          }
 
          // Override mode detector {{ ================================================ //
@@ -309,7 +354,58 @@ if (preferLDRize)
 {
     ext.add("prefer-ldrize-toggle-status", preferLDRize.toggleStatus,
             M({ja: 'LDRize 優先状態の切り替え',
-               en: "Toggle prefer ldrize status"}));    
+               en: "Toggle prefer ldrize status"}));
+
+    // Make LDRize commands as exts  {{ ========================================= //
+
+    // var ldRizeKeys = {
+    //     "M-x" : "Open Minibuffer",
+    //     "?"   : "Toggle help",
+    //     "j"   : "Scroll next item",
+    //     "k"   : "Scroll previous item",
+    //     "p"   : "Pin",
+    //     "l"   : "Toggle pinned items list",
+    //     "f"   : "Focus on search box",
+    //     "v"   : "Open in current tab",
+    //     "o"   : "Open pinned items or current item",
+    //     "i"   : "Open in iframe",
+    //     "s"   : "Change Siteinfo"
+    // };
+
+    // function makeExtName(aDescription) {
+    //     return "prefer-ldrize-" + aDescription.replace(" ", "-", "g").toLowerCase();
+    // }
+
+    var ldRizeKeys = {
+        ":" : ["prefer-ldrize-open-minibuffer"                  , M({en: "Open Minibuffer",                  ja: "ミニバッファを開く"})],
+        "?" : ["prefer-ldrize-toggle-help"                      , M({en: "Toggle help",                      ja: "ヘルプを表示 / 非表示"})],
+        "j" : ["prefer-ldrize-scroll-next-item"                 , M({en: "Scroll next item",                 ja: "次のアイテムへスクロール"})],
+        "k" : ["prefer-ldrize-scroll-previous-item"             , M({en: "Scroll previous item",             ja: "前のアイテムへスクロール"})],
+        "p" : ["prefer-ldrize-pin"                              , M({en: "Pin",                              ja: "ピンを立てる"})],
+        "l" : ["prefer-ldrize-toggle-pinned-items-list"         , M({en: "Toggle pinned items list",         ja: "ピンの立てられたアイテム一覧の表示タイプを切り替え"})],
+        "f" : ["prefer-ldrize-focus-on-search-box"              , M({en: "Focus on search box",              ja: "検索ボックスへフォーカス"})],
+        "v" : ["prefer-ldrize-open-in-current-tab"              , M({en: "Open in current tab",              ja: "現在のタブでアイテムを開く"})],
+        "o" : ["prefer-ldrize-open-pinned-items-or-current-item", M({en: "Open pinned items or current item",ja: "ピンの立ったアイテム / 現在のアイテムを開く"})],
+        "i" : ["prefer-ldrize-open-in-iframe"                   , M({en: "Open in iframe",                   ja: "インラインフレームでアイテムを開く"})],
+        "s" : ["prefer-ldrize-change-siteinfo"                  , M({en: "Change Siteinfo",                  ja: "使用する Siteinfo を変更"})]
+    };
+
+    function makeLDRizeCommand(aKey) {
+        return function (ev, arg) {
+            key.feed(aKey, 0, "keypress");
+        };
+    }
+
+    function makeLDRizeDescription(aDescription) {
+        return "LDRize - " + aDescription;
+    }
+
+    for (var keystr in ldRizeKeys)
+    {
+        ext.add(ldRizeKeys[keystr][0], makeLDRizeCommand(keystr), makeLDRizeDescription(ldRizeKeys[keystr][1]));
+    }
+
+    // }} ======================================================================= //
 }
 
 // }} ======================================================================= //
