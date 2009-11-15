@@ -328,6 +328,79 @@ KeySnail.Key = {
         this.passAllKeys = false;
     },
 
+    /**
+     * key.feed is too heavy to call many times.
+     * This method makes key.feed like function for certain iframe.
+     * @param {integer} aFrameNum
+     */
+    getKeyFeeder: function (aFrameNum) {
+        if (typeof aFrameNum !== 'number')
+            aFrameNum = 0;
+
+        var dest = document.commandDispatcher.focusedWindow;
+
+        if (aFrameNum != 0)
+        {
+            var frames = [];
+
+            // push all frames (includes frames frames) to frames
+            (function (frame) {
+                 if (frame.document.body.localName.toLowerCase() == 'body')
+                 {
+                     frames.push(frame);
+                 }
+
+                 for (var i = 0; i < frame.frames.length; ++i)
+                 {
+                     arguments.callee(frame.frames[i]);
+                 }
+             })(window.content);
+
+            frames = frames.filter(function (frame) {
+                                       frame.focus();
+                                       return (document.commandDispatcher.focusedWindow == frame);
+                                   });
+
+            if (aFrameNum < 0)
+                aFrameNum = frames.length + aFrameNum;
+
+            dest = frames[aFrameNum];
+        }
+
+        var target = dest.document.body || dest.document;
+        var self = this;
+
+        return function (aKeys, aType) {
+            if (typeof aKeys == "string")
+                aKeys = [aKeys];
+
+            if (typeof aType == "string")
+            {
+                aType = [aType];
+            }
+            else if (!(aType instanceof Array))
+            {
+                aType = ["keydown", "keypress", "keyup"];
+            }
+
+            target.focus();
+
+            self.passAllKeys = true;
+
+            aKeys.forEach(
+                function (key) {
+                    for each (var type in aType)
+                    {
+                        var event = self.stringToKeyEvent(key, true, type, true);
+                        // event.ksNoHandle becomes undefined while propagating
+                        target.dispatchEvent(event);
+                    }
+                }, this);
+
+            self.passAllKeys = false;
+        };
+    },
+
     // }} ======================================================================= //
 
     // Key handler {{ =========================================================== //

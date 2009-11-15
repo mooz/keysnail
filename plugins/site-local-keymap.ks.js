@@ -144,8 +144,14 @@ null が指定された場合、 KeySnail はそのサイトにいる間、そ�
 // }}}
 
 // ChangeLog : {{{
+//
+// ==== 1.0.6 (2009 11/13) ====
+//
+// * Removed Prefer LDRize cooperation
+//   (Prefer LDRize behavior changed. So removed codes no longer needed)
+//
 // ==== 1.0.5 (2009 11/13) ====
-// 
+//
 // * Added prefer LDRize cooperation
 //
 // ==== 1.0.4 (2009 11/02) ====
@@ -238,8 +244,7 @@ function locationChangeHandler(aNsURI) {
     }
     else
     {
-        if (!key.keyMapHolder[key.modes.LDRIZE])
-            key.updateStatusBar();
+        key.updateStatusBar();
     }
 }
 
@@ -252,9 +257,9 @@ hook.addToHook('LocationChange', locationChangeHandler);
 // ============================================================ //
 
 // save key.getCurrentMode
-if (!my.originalGetCurrentMode)
+if (!my.siteLocalOriginalGetCurrentMode)
 {
-    my.originalGetCurrentMode = key.getCurrentMode;
+    my.siteLocalOriginalGetCurrentMode = key.getCurrentMode;
 }
 
 // override mode detector
@@ -268,7 +273,7 @@ key.getCurrentMode = function (aEvent, aKey) {
         }
     }
 
-    return my.originalGetCurrentMode.call(key, aEvent, aKey);
+    return my.siteLocalOriginalGetCurrentMode.call(key, aEvent, aKey);
 };
 
 // ============================================================ //

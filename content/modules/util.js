@@ -36,7 +36,7 @@ KeySnail.Util = {
     // File IO {{ =============================================================== //
 
     /**
-     * Open file specified by <aPath> and returns it.
+     * Open file specified by <b>aPath</b> and returns it.
      * @param {string} aPath file path to be opened
      * @returns {nsILocalFile} opened file
      */
@@ -117,9 +117,9 @@ KeySnail.Util = {
     },
 
     /**
-     * Write <aString> to the local file specified by <aPath>.
-     * Overwrite confirmation will be ommitted if <aForce> is true.
-     * "Don't show me again" checkbox value managed by <aCheckID>.
+     * Write <b>aString</b> to the local file specified by <b>aPath</b>.
+     * Overwrite confirmation will be ommitted if <b>aForce</b> is true.
+     * "Don't show me again" checkbox value managed by <b>aCheckID</b>.
      * @param {string} aString
      * @param {string} aPath
      * @param {boolean} aForce
@@ -322,6 +322,10 @@ KeySnail.Util = {
 
     // nsI {{ =================================================================== //
 
+    /**
+     * Returns selection controller, which has lot of commands like scroll.
+     * @returns {nsISelectionController} selection controller
+     */
     getSelectionController: function () {
         var docShell = document.commandDispatcher.focusedWindow
             .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
@@ -377,7 +381,7 @@ KeySnail.Util = {
      * get unicode string preference value. when localized version is available,
      * that one is used.
      * @param {string} aStringKey key of the preference
-     * @returns {string} fetched preference value specified by <aStringKey>
+     * @returns {string} fetched preference value specified by <b>aStringKey</b>
      */
     getUnicharPref: function (aStringKey) {
         return nsPreferences.getLocalizedUnicharPref(aStringKey)
@@ -387,7 +391,7 @@ KeySnail.Util = {
     /**
      * set unicode string preference value
      * @param {string} aStringKey key of the preference
-     * @param {string} aValue value of the preference specified by <aStringKey>
+     * @param {string} aValue value of the preference specified by <b>aStringKey</b>
      */
     setUnicharPref: function (aStringKey, aValue) {
         var prefs = Components.classes["@mozilla.org/preferences-service;1"].
@@ -441,7 +445,7 @@ KeySnail.Util = {
      * @param {string} aPath
      * @param {string} aDirectoryDelimiter
      * @param {[string]} aFileNames
-     * @returns {boolean} true if the directory specified <aPath> has any file contained in <aFileNames>.
+     * @returns {boolean} true if the directory specified <b>aPath</b> has any file contained in <b>aFileNames</b>.
      */
     isDirHasFiles: function (aPath, aDirectoryDelimiter, aFileNames) {
         var file;
@@ -459,7 +463,7 @@ KeySnail.Util = {
 
     /**
      * Original code from liberator
-     * Returns the list of files in <aDirectory>.
+     * Returns the list of files in <b>aDirectory</b>.
      * @param {nsIFile|string} aDirectory The directory to read, either a full
      *     pathname or an instance of nsIFile.
      * @param {boolean} sort Whether to sort the returned directory
@@ -642,7 +646,7 @@ KeySnail.Util = {
     },
 
     /**
-     * return favicon path of the page specified by <aUrl>
+     * return favicon path of the page specified by <b>aUrl</b>
      * @param {string} aURL url of the page
      * @param {string} aDefault default favicon path
      * @returns {string} favicon path
@@ -666,6 +670,11 @@ KeySnail.Util = {
         return iconURL;
     },
 
+    /**
+     * Get leaf name from URL path.
+     * @param {string} aURL a URL.
+     * @returns {string} leaf name
+     */
     getLeafNameFromURL: function (aURL) {
         return aURL.slice(aURL.lastIndexOf("/") + 1);
     },
@@ -674,10 +683,21 @@ KeySnail.Util = {
 
     // Eval / Voodoo {{ ========================================================= //
 
+    /**
+     * Eval in sandbox. This method is useful to parse JSON object.
+     * @param {} aText
+     * @returns {object} result of evaluation
+     */
     safeEval: function (aText) {
         return Components.utils.evalInSandbox(aText, this.sandboxForSafeEval);
     },
 
+    /**
+     * Eval in sandbox 
+     * @param {} aContent
+     * @param {} aURI
+     * @returns {} 
+     */
     evalInSandbox: function (aContent, aURI) {
         var sandbox = new Components.utils.Sandbox(aURI || content.document.location.href);
         sandbox.window   = content.window;
@@ -691,9 +711,9 @@ KeySnail.Util = {
 
     /**
      * Original code from liberator
-     * Sends a synchronous HTTP request to <aUrl> and returns the
-     * XMLHttpRequest object. If <aCallback> is specified the request is
-     * asynchronous and the <aCallback> is invoked with the object as its
+     * Sends a synchronous HTTP request to <b>aUrl</b> and returns the
+     * XMLHttpRequest object. If <b>aCallback</b> is specified the request is
+     * asynchronous and the <b>aCallback</b> is invoked with the object as its
      * argument.
      * @param {string} aUrl
      * @param {boolean} aRaw
@@ -731,7 +751,7 @@ KeySnail.Util = {
     // Thread {{ ================================================================ //
 
     /**
-     * sleep current thread for <aWait> [msec] time.
+     * sleep current thread for <b>aWait</b> [msec] time.
      * from http://d.hatena.ne.jp/fls/20090224/p1
      * @param {Integer} aWait sleep time in mili-second
      */
@@ -750,19 +770,6 @@ KeySnail.Util = {
         window.clearInterval(interval);
     },
 
-    // from liberator.js
-    threadYield: function (flush, interruptable) {
-        let mainThread = Components.classes["@mozilla.org/thread-manager;1"]
-            .getService().mainThread;
-        this.interrupted = false;
-
-        do {
-            mainThread.processNextEvent(!flush);
-            if (this.interrupted)
-                throw new Error("Interrupted");
-        } while (flush === true && mainThread.hasPendingEvents());
-    },
-
     // }} ======================================================================= //
 
     // XML {{ =================================================================== //
@@ -770,7 +777,7 @@ KeySnail.Util = {
     /**
      * Get locale specific string from given node.
      * @param {XML} aNodes E4X type XML object
-     * @returns {string} locale specific string of the <aNodes>
+     * @returns {string} locale specific string of the <b>aNodes</b>
      */
     xmlGetLocaleString: function (aNodes) {
         if (typeof aNodes == "string")

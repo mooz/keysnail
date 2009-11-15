@@ -77,7 +77,7 @@ var ksPluginManager = function () {
             if (!plugin.__ksLoaded__) {
                 try {
                     var script = modules.util.readTextFile(pluginPath);
-                    var xml = modules.userscript.getPluginInformation(script.value);
+                    var xml = modules.userscript.getPluginInformation(script);
                     plugin.PLUGIN_INFO = xml;
                 } catch (x) {
                     continue;
