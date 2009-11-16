@@ -294,7 +294,7 @@ plugins.options["hok.actions"] = [
 
 >||
 plugins.options["hok.local_queries"] = [
-    ["^http://www\\.google\\.(co\\.jp|com)/reader/view/", "*.unselectable"]
+    ["^http://www\\.google\\.(co\\.jp|com)/reader/view/", "*.unselectable, *.link"]
 ];
 ||<
 
