@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -60,6 +60,12 @@ var PLUGIN_INFO =
             <type>string</type>
             <description>XPath query</description>
             <description lang="ja">ヒントの取得に使う XPath クエリ</description>
+        </option>
+        <option>
+            <name>hok.local_queries</name>
+            <type>array</type>
+            <description>Site local queries (Only effective when Selectors API is used)</description>
+            <description lang="ja">サイト毎のクエリ (Selectors API 使用時のみ有効)</description>
         </option>
         <option>
             <name>hok.hint_color_link</name>
@@ -282,7 +288,19 @@ plugins.options["hok.actions"] = [
 
 後ろ三つの引数に関しては省略することが可能です。
 
-=== 説明 ===
+==== サイト毎にクエリを指定 ====
+
+次のようにして、サイト毎にクエリを追加したり、変更したりすることが可能です。
+
+>||
+plugins.options["hok.local_queries"] = [
+    ["^http://www\\.google\\.(co\\.jp|com)/reader/view/", "*.unselectable"]
+];
+||<
+
+こうすることにより、通常は取得できていなかった部分も HoK で選択することができるようになります。
+
+=== 謝辞 ===
 
 このプラグインは以下のブックマークレットと Vimperator の hints.js を参考にして作成されました。
 
@@ -298,6 +316,10 @@ http://github.com/myuhe
 
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.2.1 (2009 11/16) ====
+//
+// * Added site local query system.
+// 
 // ==== 1.2.0 (2009 11/09) ====
 //
 // * Made HoK use Selectors API again and added XPath option.
@@ -565,6 +587,7 @@ var hok = function () {
 
     var currentAction;
     var priorQuery;
+    var localQuery;
 
     // length of the hint keys like 'asdfghjkl'
     var hintKeysLength  = null;
@@ -739,7 +762,7 @@ var hok = function () {
 
         if (useSelector)
         {
-            result = doc.querySelectorAll(priorQuery || selector);
+            result = doc.querySelectorAll(priorQuery || localQuery || selector);
         }
         else
         {
@@ -1010,6 +1033,32 @@ var hok = function () {
             display.echoStatusBar("hint input : " + inputKey);
     }
 
+    function setLocalQuery() {
+        if (plugins.options["hok.local_queries"] && typeof content.location.href == "string")
+        {
+            for each (var row in plugins.options["hok.local_queries"])
+            {
+                if (content.location.href.match(row[0]))
+                {
+                    if (row[2])
+                    {
+                        // not append   
+                        localQuery = row[1];
+                    }
+                    else
+                    {
+                        // append
+                        localQuery = selector + ", " + row[1];
+                    }
+
+                    return;
+                }
+            }
+        }
+
+        localQuery = undefined;
+    }
+
     function init() {
         hintKeysLength = hintKeys.length;
         hintElements   = [];
@@ -1037,6 +1086,7 @@ var hok = function () {
             key.suspended = true;
 
             init();
+            setLocalQuery();
 
             // var fromDate = new Date();
             drawHints();
