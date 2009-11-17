@@ -450,11 +450,19 @@ var ksPluginManager = function () {
 
         var pluginPath = item.value;
 
-        try {
+        try
+        {
             var updated = modules.userscript.updatePlugin(pluginPath);
+
             if (updated)
+            {
                 initPluginList();
-        } catch (x) {
+                updateInfoBox(pluginPath);
+                updateDetailBox(pluginPath);
+            }
+        }
+        catch (x)
+        {
             modules.display.notify(x);
         }
     }
