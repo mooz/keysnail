@@ -256,34 +256,43 @@ KeySnail.Prompt = function () {
     function createRow(aCells) {
         var row = document.createElement("listitem");
 
-        if (aCells.length > 1) {
+        if (aCells.length > 1)
+        {
             var cell;
 
-            for (var i = 0, j = 0; i < aCells.length; ++i) {
+            for (var i = 0, j = 0; i < aCells.length; ++i)
+            {
                 if (isFlagOn(i, modules.HIDDEN))
                     continue;
 
                 cell = document.createElement("listcell");
 
-                if (isFlagOn(i, modules.ICON)) {
+                if (isFlagOn(i, modules.ICON))
+                {
                     cell.setAttribute("class", "listcell-iconic");
                     cell.setAttribute("image", getCellValue(aCells, i));
                     i = getNextVisibleRowIndex(i);
                 }
 
                 var style = "";
-                if (i < aCells.length) {
+                if (i < aCells.length)
+                {
                     cell.setAttribute("label", getCellValue(aCells, i));
                     if (listStyle && j < listStyle.length && listStyle[j])
+                    {
                         style += listStyle[j];
+                    }
                 }
+
                 if (style)
                     cell.setAttribute("style", style);
 
                 row.appendChild(cell);
                 ++j;
             }
-        } else {
+        }
+        else
+        {
             row.setAttribute("label", getCellValue(aCells, 0));
         }
 
@@ -291,14 +300,17 @@ KeySnail.Prompt = function () {
     }
 
     function applyRow(aRow, aCells) {
-        if (aCells.length > 1) {
+        if (aCells.length > 1)
+        {
             var cell = aRow.firstChild;
 
-            for (var i = 0; i < aCells.length; ++i) {
+            for (var i = 0; i < aCells.length; ++i)
+            {
                 if (isFlagOn(i, modules.HIDDEN))
                     continue;
 
-                if (isFlagOn(i, modules.ICON)) {
+                if (isFlagOn(i, modules.ICON))
+                {
                     cell.setAttribute("image", getCellValue(aCells, i));
                     i = getNextVisibleRowIndex(i);
                 }
@@ -308,7 +320,9 @@ KeySnail.Prompt = function () {
 
                 cell = cell.nextSibling;
             }
-        } else {
+        }
+        else
+        {
             row.setAttribute("label", getCellValue(aCells, 0));
         }
     }
