@@ -660,6 +660,30 @@ var ksPreference = {
 
     // ============================== Generate init file ============================== //
 
+    createSeparator: function createSeparator(label) {
+        var separator = [];
+        const SEPARATOR_LENGTH = 74;
+
+        separator.push("// ");
+
+        if (label)
+        {
+            var hunkLen = Math.round((SEPARATOR_LENGTH - label.length) / 2) - 1;
+
+            separator.push(new Array(hunkLen).join("="));
+            separator.push(" " + label + " ");
+            separator.push(new Array(hunkLen + (label.length % 2 == 0 ? 1 : 0)).join("="));
+        }
+        else
+        {
+            separator.push(new Array(SEPARATOR_LENGTH).join("="));
+        }
+
+        separator.push(" //");
+
+        return separator.join("");
+    },
+
     formatDescription: function (desc) {
         desc = desc.replace(/\(.*\)/g, "");
         desc = desc.replace(/\//g, "");
@@ -730,7 +754,7 @@ var ksPreference = {
                 continue;
 
             if (row[KS_MODE] != mode) {
-                contentHolder.push("// =========================================================================== //");
+                contentHolder.push(this.createSeparator());
                 mode = row[KS_MODE];
             }
 
@@ -758,7 +782,7 @@ var ksPreference = {
     },
 
     generateInitFile: function () {
-        var contentHolder = ["// ================ KeySnail Init File ================ //"];
+        var contentHolder = [this.createSeparator("KeySnail Init File")];
 
         // 0. Preserved code
         var preserve = this.modules.userscript.preserve;
@@ -767,24 +791,24 @@ var ksPreference = {
         contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription1"));
         contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription2"));
 
-        contentHolder.push("// ============================================================ //");
+        contentHolder.push(this.createSeparator());
         contentHolder.push(preserve.beginSign);
         if (this.preservedEditBox.value) {
             contentHolder.push(this.preservedEditBox.value);
             this.modules.userscript.preserve.code = this.preservedEditBox.value;
         }
         contentHolder.push(preserve.endSign);
-        contentHolder.push("// ============================================================ //");
+        contentHolder.push(this.createSeparator());
 
         // 1. Special keys
         contentHolder.push("");
-        contentHolder.push("// ================ Special Keys ====================== //");
+        contentHolder.push(this.createSeparator("Special key settings"));
         this.generateSpecialKeySettings(contentHolder);
         contentHolder.push("");
 
         // 2. Hooks
 
-        contentHolder.push("// ================ Hooks ============================= //");
+        contentHolder.push(this.createSeparator("Hooks"));
         this.generateHookSettings(contentHolder);
         contentHolder.push("");
 
@@ -794,7 +818,7 @@ var ksPreference = {
 
         // 4. KeyBindings
 
-        contentHolder.push("// ================ Key Bindings ====================== //");
+        contentHolder.push(this.createSeparator("Key bindings"));
         contentHolder.push("");
 
         var crushingIndexList = this.generateKeyBindSettings(contentHolder);
@@ -880,7 +904,7 @@ var ksPreference = {
 
     generateBlackListSettings: function (aContentHolder) {
         if (this.blackList.length) {
-            aContentHolder.push("// ================ Black List ======================== //");
+            aContentHolder.push(this.createSeparator("Black list"));
             aContentHolder.push("");
             aContentHolder.push(ksPreference.beautifyCode(['hook.addToHook("LocationChange",',
                                              'function (aNsURI) {',
