@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.2</version>
+    <version>1.3.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -204,6 +204,10 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.3.3 (2009 11/16) ====
+// 
+// * Made all messages to be unescaped
+// 
 // ==== 1.3.2 (2009 11/13) ====
 // 
 // * Added character count to the tweet phase.
@@ -297,10 +301,10 @@ var twitterClient =
                   }
               }, M({ja: "このつぶやきを Twitter で見る : ", en: ""}) + "Show status in web page"],
              [function (status) {
-                  command.setClipboardText(status.text);
+                  command.setClipboardText(html.unEscapeTag(status.text));
               }, M({ja: "このつぶやきをクリップボードにコピー : ", en: ""}) + "Copy selected message"],
              [function (status) {
-                  display.prettyPrint(status.text, {timeout: 6000, fade: 300});
+                  display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 300});
               }, M({ja: "このつぶやきを全文表示 : ", en: ""}) + "Display entire message"],
              [function (status) {
                   if (status) {
@@ -913,7 +917,7 @@ var twitterClient =
                                      message: "regexp:",
                                      collection: results.map(
                                          function (result) {
-                                             return [result.profile_image_url, result.from_user, result.text];
+                                             return [result.profile_image_url, result.from_user, html.unEscapeTag(result.text)];
                                          }),
                                      style: ["color:#003870;", null],
                                      width: [15, 85],
@@ -926,7 +930,7 @@ var twitterClient =
                                              [{screen_name: result.from_user,
                                                id: result.id,
                                                user_id: result.from_user_id,
-                                               text: result.text}];
+                                               text: html.unEscapeTag(result.text)}];
                                      },
                                      actions: twitterActions
                                  });

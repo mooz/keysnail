@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -95,7 +95,13 @@ var PLUGIN_INFO =
             <name>hok.hint_base_style</name>
             <type>object</type>
             <description>Color of focused hints</description>
-            <description lang="ja">ヒントのスタイルを設定する。</description>
+            <description lang="ja">ヒントのスタイルを設定</description>
+        </option>
+        <option>
+            <name>hok.user_keymap</name>
+            <type>object</type>
+            <description>Specify user keymap</description>
+            <description lang="ja">ユーザ定義のキーマップを指定</description>
         </option>
     </options>
     <detail><![CDATA[
@@ -315,6 +321,10 @@ http://github.com/myuhe
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.2.2 (2009 11/17) ====
+//
+// * Added user keymap system.
 //
 // ==== 1.2.1 (2009 11/16) ====
 //
@@ -567,6 +577,9 @@ var hok = function () {
     var elementColorFocused = getOption("element_color_focused");
 
     var keyMap = {};
+    if (plugins.options["hok.user_keymap"])
+        keyMap = plugins.options["hok.user_keymap"];
+
     keyMap[KeyEvent.DOM_VK_DELETE]     = 'Delete';
     keyMap[KeyEvent.DOM_VK_BACK_SPACE] = 'Backspace';
     keyMap[KeyEvent.DOM_VK_RETURN]     = 'Enter';

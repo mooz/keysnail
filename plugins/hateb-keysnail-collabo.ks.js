@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.1.6</version>
+    <version>1.1.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -51,9 +51,13 @@ key.setGlobalKey(["C-x", ";"], function (ev, arg) {
 // }}}
 
 // ChangeLog : {{{
+// ==== 1.1.7 (2009 11/15) ====
+//
+// * Added some useful actions.
+//
 // ==== 1.1.6 (2009 11/04) ====
 //
-// * Added option "hatebnail.list_bookmarks_limit"
+// * Added option "hatebnail.list_bookmarks_limit".
 //
 // ==== 1.1.5 (2009 11/02) ====
 //
@@ -132,7 +136,19 @@ function showCommentOfPage(aPageURL, aArg) {
                                  openUILinkIn(url, "tab");
                              }
                          }, M({ja: '選択中ユーザのブックマークコメントページを新しいタブで開く',
-                               en: "Open User Comment Page in new tab"})]
+                               en: "Open User Comment Page in new tab"})],
+                        [function (aIndex) {
+                             if (aIndex >= 0) {
+                                 command.setClipboardText(collection[aIndex][HB_COMMENT]);
+                             }
+                         }, M({ja: 'コメントをクリップボードにコピー',
+                               en: "Copy selected comment"})],
+                        [function (aIndex) {
+                             if (aIndex >= 0) {
+                                 display.prettyPrint(collection[aIndex][HB_COMMENT], {timeout: 6000, fade: 300});
+                             }
+                         }, M({ja: 'コメントを全文表示',
+                               en: "Display entire comment"})]
                     ]
                 }
             );
