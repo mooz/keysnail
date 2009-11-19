@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -322,6 +322,10 @@ http://github.com/myuhe
 
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.2.3 (2009 11/19) ====
+//
+// * Made user keymap system use keysnails key expression instead of raw keycode.
+// 
 // ==== 1.2.2 (2009 11/17) ====
 //
 // * Added user keymap system.
@@ -580,10 +584,11 @@ var hok = function () {
     if (plugins.options["hok.user_keymap"])
         keyMap = plugins.options["hok.user_keymap"];
 
-    keyMap[KeyEvent.DOM_VK_DELETE]     = 'Delete';
-    keyMap[KeyEvent.DOM_VK_BACK_SPACE] = 'Backspace';
-    keyMap[KeyEvent.DOM_VK_RETURN]     = 'Enter';
-    keyMap[KeyEvent.DOM_VK_ENTER]      = 'Enter';
+    keyMap["<delete>"]    = 'Delete';
+    keyMap["<backspace>"] = 'Backspace';
+    keyMap["C-h"]         = 'Backspace';
+    keyMap["RET"]         = 'Enter';
+    keyMap["C-m"]         = 'Enter';
 
     var lastFocusedInfo;
 
@@ -979,9 +984,9 @@ var hok = function () {
     }
 
     function onKeyPress(event) {
-        var keyCode = event.keyCode || event.charCode;
+        var keyStr = key.keyEventToString(event);
 
-        if (keyCode in keyMap === false)
+        if (keyStr in keyMap === false)
         {
             destruction(true);
             return;
@@ -990,9 +995,9 @@ var hok = function () {
         event.preventDefault();
         event.stopPropagation();
 
-        var onkey = keyMap[keyCode];
+        var role = keyMap[keyStr];
 
-        switch (onkey) {
+        switch (role) {
         case 'Backspace':
             if (!inputKey)
             {
@@ -1012,7 +1017,7 @@ var hok = function () {
             destruction();
             return;
         default :
-            inputKey += onkey;
+            inputKey += role;
         };
 
         blurHint();
@@ -1079,7 +1084,7 @@ var hok = function () {
 
         hintKeys.split('').forEach(
             function (l) {
-                keyMap[l.charCodeAt(0)] = l;
+                keyMap[l] = l;
             });
     }
 
