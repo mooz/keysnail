@@ -6,5 +6,6 @@ locale	keysnail	en-US	jar:chrome/keysnail.jar!/locale/en-US/
 locale	keysnail	ja	jar:chrome/keysnail.jar!/locale/ja/
 
 resource	keysnail-share	share/
+resource	keysnail-scheme	schemes/
 
 overlay	chrome://browser/content/browser.xul	chrome://keysnail/content/browser.xul
