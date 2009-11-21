@@ -75,7 +75,8 @@ KeySnail.UserScript = {
             this.jsFileLoader(aInitFilePath, true);
             var end = new Date();
         } catch (e) {
-            if (!e.fileName || e.fileName == "chrome://keysnail/content/modules/userscript.js") {
+            if (!e.fileName || e.fileName == "chrome://keysnail/content/modules/userscript.js")
+            {
                 e.fileName = aInitFilePath;
                 e.lineNumber -= (this.userScriptOffset - 1);
             }
@@ -117,7 +118,8 @@ KeySnail.UserScript = {
         this.userPath = this.modules.util
             .getUnicharPref("extensions.keysnail.userscript.location");
 
-        if (!this.userPath) {
+        if (!this.userPath)
+        {
             this.userPath = this.prefDirectory;
             this.modules.util.setUnicharPref("extensions.keysnail.userscript.location", this.userPath);
         }
@@ -146,11 +148,14 @@ KeySnail.UserScript = {
         this.modules.M = function (aMultiLang) {
             var msg = aMultiLang[this.modules.util.userLocale];
 
-            if (msg === undefined) {
+            if (msg === undefined)
+            {
                 msg = aMultiLang["en"];
 
-                if (msg === undefined) {
-                    for (var lang in aMultiLang) {
+                if (msg === undefined)
+                {
+                    for (var lang in aMultiLang)
+                    {
                         msg = aMultiLang[lang];
                         break;
                     }
@@ -173,7 +178,8 @@ KeySnail.UserScript = {
     },
 
     linkMembers: function (aFrom, aTo, aMembers) {
-        for (var i = 0; i < aMembers.length; ++i) {
+        for (var i = 0; i < aMembers.length; ++i)
+        {
             aTo[aMembers[i]] = aFrom[aMembers[i]];
         }
     },
@@ -191,24 +197,30 @@ KeySnail.UserScript = {
                                          this.userPath,
                                          this.defaultInitFileNames);
 
-        if (loadStatus == -1) {
+        if (loadStatus == -1)
+        {
             // file not found.
             // we need to create the new one
             // or let user to select the init file place
-            if (this.parent.windowType == "navigator:browser") {
+            if (this.parent.windowType == "navigator:browser")
+            {
                 loadStatus = this.beginRcFileWizard();
             }
         }
 
-        if (loadStatus == 0) {
+        if (loadStatus == 0)
+        {
             this.initFileLoaded = true;
 
             if (this.parent.windowType == "navigator:browser" ||
-                nsPreferences.getBoolPref("extensions.keysnail.plugin.global_enabled", false)) {
+                nsPreferences.getBoolPref("extensions.keysnail.plugin.global_enabled", false))
+            {
                 this.loadPlugins();
                 this.modules.hook.callHook("PluginLoaded");
             }
-        } else {
+        }
+        else
+        {
             // failed. disable the keysnail.
             this.initFileLoaded = false;
 
@@ -247,26 +259,31 @@ KeySnail.UserScript = {
         var prefix = aBaseDir + this.directoryDelimiter;
         var filePath;
 
-        for (var i = 0; i < aUserScriptNames.length; ++i) {
+        for (var i = 0; i < aUserScriptNames.length; ++i)
+        {
             filePath = prefix + aUserScriptNames[i];
 
-            if (!this.modules.util.openFile(filePath).exists()) {
+            if (!this.modules.util.openFile(filePath).exists())
+            {
                 // not exist. skip
                 continue;
             }
 
-            try {
+            try
+            {
                 aLoader.call(this, filePath);
                 // success
                 return 0;
-            } catch (e) {
+            } catch (e)
+            {
                 // userscript error
                 var msgstr = this.modules.util
                     .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
                 msgstr += " :: " + e.message;
 
                 var buttons;
-                if ((e.fileName || "").indexOf("chrome://") == -1) {
+                if ((e.fileName || "").indexOf("chrome://") == -1)
+                {
                     let self = this;
                     buttons = [{
                                    label     : this.modules.util.getLocaleString("openErrorOccurredPlace"),
@@ -298,7 +315,8 @@ KeySnail.UserScript = {
 
         var response;
         // TODO: Is it really good to force user to select the directory?
-        while (response !== nsIFilePicker.returnOK) {
+        while (response !== nsIFilePicker.returnOK)
+        {
             response = fp.show();
 
             if (!aForce)
@@ -333,19 +351,23 @@ KeySnail.UserScript = {
      * @returns {nsIFile} newly instaled file
      */
     installFile: function (aFile) {
-        if (!this.pluginDir) {
+        if (!this.pluginDir)
+        {
             this.setPluginPathViaDialog(true);
         }
 
-        with (this.modules) {
-            try {
+        with (this.modules)
+        {
+            try
+            {
                 var destinationDir  = util.openFile(this.pluginDir);
                 var destinationFile = util.openFile(this.pluginDir);
                 destinationFile.append(aFile.leafName);
 
                 if (destinationFile.exists() &&
                     !util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
-                                  util.getLocaleString("overWriteConfirmation", [destinationFile.path]))) {
+                                  util.getLocaleString("overWriteConfirmation", [destinationFile.path])))
+                {
                     // canceled
                     throw util.getLocaleString("canceledByUser");
                 }
@@ -353,7 +375,8 @@ KeySnail.UserScript = {
                 aFile.moveTo(destinationDir, "");
 
                 return destinationFile;
-            } catch (x) {
+            } catch (x)
+            {
                 throw util.getLocaleString("failedToInstallFile", [aFile.leafName]) + " :: " + x;
             }
         }
@@ -369,20 +392,26 @@ KeySnail.UserScript = {
 
         var scripts = aXml.require.script;
 
-        for each (var script in scripts) {
+        for each (var script in scripts)
+        {
             var url = script.text();
             var xhr = this.modules.util.httpGet(url);
 
-            if (xhr && xhr.responseText) {
-                try {
+            if (xhr && xhr.responseText)
+            {
+                try
+                {
                     var fileName     = this.modules.util.getLeafNameFromURL(url);
                     var tmpFile      = this.writeTextTmp(fileName, xhr.responseText);
                     var installed    = this.installFile(tmpFile);
                     this.message(installed.path + " installed");
-                } catch (x) {
+                } catch (x)
+                {
                     this.modules.display.notify("Error occurred while installing the required file :: " + x);
                 }
-            } else {
+            }
+            else
+            {
                 this.message(url + " skipped");
             }
         }
@@ -405,7 +434,8 @@ KeySnail.UserScript = {
         var b = aVersionB.split(".");
         var cmpLen = Math.min(a.length, b.length);
 
-        for (var i = 0; i < cmpLen; ++i) {
+        for (var i = 0; i < cmpLen; ++i)
+        {
             if (a[i] == "*" || b[i] == "*")
                 continue;
 
@@ -450,14 +480,16 @@ KeySnail.UserScript = {
         var localContent, localInfo;
         var remoteContent, remoteInfo;
 
-        with (this.modules) {
+        with (this.modules)
+        {
             // local file
             localContent = util.readTextFile(aPluginPath);
             localInfo    = this.getPluginInformation(localContent);
 
             var updateURL = util.xmlGetLocaleString(localInfo.updateURL);
 
-            if (!updateURL) {
+            if (!updateURL)
+            {
                 throw "This plugin does not have a update url";
             }
 
@@ -465,13 +497,15 @@ KeySnail.UserScript = {
             var xhr       = util.httpGet(updateURL);
             remoteContent = xhr.responseText;
 
-            if (!remoteContent) {
+            if (!remoteContent)
+            {
                 throw "Failed to get update info";
             }
 
             remoteInfo = this.getPluginInformation(remoteContent);
 
-            if (!remoteInfo) {
+            if (!remoteInfo)
+            {
                 // not a valid keysnail plugin
                 throw "Failed to get update info";
             }
@@ -479,11 +513,13 @@ KeySnail.UserScript = {
             var localVersion = util.xmlGetLocaleString(localInfo.version);
             var remoteVersion = util.xmlGetLocaleString(remoteInfo.version);
 
-            if (!localVersion || !remoteVersion) {
+            if (!localVersion || !remoteVersion)
+            {
                 throw "Plugin does not have an verison information";
             }
 
-            if (this.compareVersion(localVersion, remoteVersion) >= 0) {
+            if (this.compareVersion(localVersion, remoteVersion) >= 0)
+            {
                 // local one is equal or newer than remote one
                 display.echoStatusBar(util.getLocaleString("updateNotFound",
                                                            [util.xmlGetLocaleString(remoteInfo.name)]), 2000);
@@ -495,7 +531,8 @@ KeySnail.UserScript = {
                               util.getLocaleString("installingNotCompatiblePluginPrompt",
                                                    [util.xmlGetLocaleString(remoteInfo.name),
                                                     remoteVersion,
-                                                    KeySnail.version]))) {
+                                                    KeySnail.version])))
+            {
                 // The file to be installed is not compatible with the current KeySnail
                 return false;
             }
@@ -506,7 +543,8 @@ KeySnail.UserScript = {
              */
             if (util.confirm(util.getLocaleString("updateFoundTitle"),
                              util.getLocaleString("updateFoundMessage",
-                                                  [util.xmlGetLocaleString(remoteInfo.name), remoteVersion]))) {
+                                                  [util.xmlGetLocaleString(remoteInfo.name), remoteVersion])))
+            {
                 util.writeTextFile(util.convertCharCodeFrom(remoteContent, "UTF-8"), aPluginPath, true);
                 this.installRequiredFiles(remoteInfo);
                 var installed = util.openFile(aPluginPath);
@@ -531,34 +569,42 @@ KeySnail.UserScript = {
         var source;
         var isLocalFile = (aURL.indexOf("file://") == 0);
 
-        with (this.modules) {
-            if (isLocalFile) {
+        with (this.modules)
+        {
+            if (isLocalFile)
+            {
                 // local file
                 try {
                     source = util.readTextFile(util.urlToPath(aURL));
                 } catch (x) {
                     throw "Failed to read plugin from '" + aURL + "'";
                 }
-            } else {
+            }
+            else
+            {
                 // http
                 var xhr     = util.httpGet(aURL);
                 var headers = {};
                 source  = xhr.responseText;
 
-                if (!source) {
+                if (!source)
+                {
                     throw "Failed to get plugin from '" + aURL + "'";
                 }
 
-                try {
+                try
+                {
                     xhr.getAllResponseHeaders()
                         .split(/\r?\n/).forEach(
                             function (h) {
                                 var pair = h.split(': ');
-                                if (pair && pair.length > 1) {
+                                if (pair && pair.length > 1)
+                                {
                                     headers[pair.shift()] = pair.join('');
                                 }
                             });
-                } catch (e) {
+                } catch (e)
+                {
                     this.message(e);
                 }
             }
@@ -569,7 +615,8 @@ KeySnail.UserScript = {
                 type: null
             };
 
-            if (!arg.xml) {
+            if (!arg.xml)
+            {
                 // not a valid keysnail plugin
                 display.notify(util.getLocaleString("invalidPlugin"));
                 return;
@@ -587,32 +634,39 @@ KeySnail.UserScript = {
             var fileName   = util.getLeafNameFromURL(aURL);
             var pluginFile = this.writeTextTmp(fileName, source);
 
-            if (arg.type == "install") {
+            if (arg.type == "install")
+            {
                 // install
                 if (!this.checkCompatibility(arg.xml) &&
                     !util.confirm(util.getLocaleString("installingNotCompatiblePlugin"),
                                   util.getLocaleString("installingNotCompatiblePluginPrompt",
                                                        [util.xmlGetLocaleString(arg.xml.name),
                                                         arg.xml.version,
-                                                        KeySnail.version]))) {
+                                                        KeySnail.version])))
+                {
                     // The file to be installed is not compatible with the current KeySnail
                     return;
                 }
 
-                try {
+                try
+                {
                     var installed = this.installFile(pluginFile);
                     // install required files
                     this.installRequiredFiles(arg.xml);
                     // successfully finished
                     this.loadPlugin(installed);
                     this.newlyInstalledPlugin = installed.path;
-                    if (!isLocalFile) {
+                    if (!isLocalFile)
+                    {
                         this.openPluginManager();
                     }
-                } catch (x) {
+                } catch (x)
+                {
                     display.notify(x, 2000);
                 }
-            } else if (arg.type == "viewsource") {
+            }
+            else if (arg.type == "viewsource")
+            {
                 gBrowser.loadOneTab(util.pathToURL(pluginFile.path), null, null, null, false);
             }
         }
@@ -622,8 +676,10 @@ KeySnail.UserScript = {
         var pluginManagerURL = "chrome://keysnail/content/pluginmanager.xul";
 
         var tabs = gBrowser.mTabContainer.childNodes;
-        for (var i = 0; i < tabs.length; ++i) {
-            if (tabs[i].linkedBrowser.currentURI.spec == pluginManagerURL) {
+        for (var i = 0; i < tabs.length; ++i)
+        {
+            if (tabs[i].linkedBrowser.currentURI.spec == pluginManagerURL)
+            {
                 gBrowser.mTabContainer.selectedIndex = i;
 
                 tabs[i].linkedBrowser.reload();
@@ -651,7 +707,8 @@ KeySnail.UserScript = {
         var max = aXml.maxVersion;
 
         if ((min && this.compareVersion(KeySnail.version, min) < 0) ||
-            (max && this.compareVersion(KeySnail.version, max) > 0)) {
+            (max && this.compareVersion(KeySnail.version, max) > 0))
+        {
             return false;
         }
 
@@ -668,14 +725,16 @@ KeySnail.UserScript = {
             main: "chrome://browser/content/browser.xul"
         };
 
-        for each (entry in includeURI) {
+        for each (entry in includeURI)
+        {
             uri = replacePair[entry] || entry;
 
             if (uri != documentURI)
                 return false;
         }
 
-        for each (entry in excludeURI) {
+        for each (entry in excludeURI)
+        {
             uri = replacePair[entry] || entry;
 
             if (uri == documentURI)
@@ -694,14 +753,16 @@ KeySnail.UserScript = {
         context = this.modules.plugins.context[filePath];
         context.__ksFileName__ = aFile.leafName;
 
-        if (this.isDisabledPlugin(aFile.path)) {
+        if (this.isDisabledPlugin(aFile.path))
+        {
             context.__ksLoaded__ = false;
             return;
         }
 
         var xml = this.getPluginInformationFromPath(aFile.path);
 
-        if (!this.checkCompatibility(xml)) {
+        if (!this.checkCompatibility(xml))
+        {
             context.__ksLoaded__        = false;
             context.__ksNotCompatible__ = true;
             // this.message("keysnail :: plugin " + aFile.leafName + " is not compatible with KeySnail " + KeySnail.version);
@@ -709,7 +770,8 @@ KeySnail.UserScript = {
         }
         context.__ksNotCompatible__ = false;
 
-        if (!this.checkDocumentURI(xml)) {
+        if (!this.checkDocumentURI(xml))
+        {
             // this.message("keysnail :: plugin " + aFile.leafName + " will not be loaded on this URI ... skip");
             context.__ksLoaded__ = false;
             return;
@@ -720,10 +782,12 @@ KeySnail.UserScript = {
 
         this.modules.key.inExternalFile = true;
 
-        try {
+        try
+        {
             this.loadSubScript(filePath, context);
             context.__ksLoaded__ = true;
-        } catch (e) {
+        } catch (e)
+        {
             context.__ksLoaded__ = false;
             // delete KeySnail.modules.plugins.context[filePath];
             var msgstr = this.modules.util
@@ -795,18 +859,21 @@ KeySnail.UserScript = {
         aContext = aContext || this.modules;
 
         this.modules.key.inExternalFile = true;
-        for (var i = 0; i < this.loadPath.length; ++i) {
+        for (var i = 0; i < this.loadPath.length; ++i)
+        {
             filePath = this.loadPath[i] + this.directoryDelimiter + aFileName;
             file = this.modules.util.openFile(filePath);
 
             if (!file.exists())
                 continue;
 
-            try {
+            try
+            {
                 this.loadSubScript(filePath, aContext);
                 loaded = true;
                 break;
-            } catch (e) {
+            } catch (e)
+            {
                 var msgstr = this.modules.util
                     .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
                 this.modules.display.notify(msgstr + "\n" + e);
@@ -826,13 +893,15 @@ KeySnail.UserScript = {
         // sh-like expansion
         aPath = aPath.replace(/^~/, this.prefDirectory);
 
-        if (aPath[aPath.length - 1] == this.directoryDelimiter) {
+        if (aPath[aPath.length - 1] == this.directoryDelimiter)
+        {
             aPath = aPath.substr(0, aPath.length - 1);
         }
 
         // avoid duplication / not existing directory
         if (!this.loadPath.some(function (aContainedPath) { return aContainedPath == aPath; } )
-            && this.modules.util.openFile(aPath).exists()) {
+            && this.modules.util.openFile(aPath).exists())
+        {
             this.loadPath.push(aPath);
         }
     },
@@ -841,7 +910,8 @@ KeySnail.UserScript = {
 
     syncEditorWithGM: function () {
         var gmEditor = this.modules.util.getUnicharPref("greasemonkey.editor");
-        if (gmEditor) {
+        if (gmEditor)
+        {
             this.modules.util.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
         }
 
@@ -867,7 +937,8 @@ KeySnail.UserScript = {
         if (typeof(aLineNum) == 'number')
             args.push("+" + aLineNum.toString());
 
-        if (!aFilePath) {
+        if (!aFilePath)
+        {
             this.modules.display.notify(this.modules.util
                                         .getLocaleString("invalidFilePath"));
             return;
@@ -877,7 +948,8 @@ KeySnail.UserScript = {
             .getUnicharPref("extensions.keysnail.userscript.editor");
 
         if (!editorPath &&
-            !(editorPath = this.syncEditorWithGM())) {
+            !(editorPath = this.syncEditorWithGM()))
+        {
             this.modules.display.notify(this.modules.util
                                         .getLocaleString("noEditorSelected"));
             return;
@@ -886,7 +958,8 @@ KeySnail.UserScript = {
         var editorFile;
         var xulRuntime = Components.classes["@mozilla.org/xre/app-info;1"]
             .getService(Components.interfaces.nsIXULRuntime);
-        if ("Darwin" == xulRuntime.OS) {
+        if ("Darwin" == xulRuntime.OS)
+        {
             // wrap with open command (inspired from GreaseMonkey)
 
             args.unshift(editorPath);
@@ -896,16 +969,20 @@ KeySnail.UserScript = {
                 .createInstance(Components.interfaces.nsILocalFile);
             editorFile.followLinks = true;
             editorFile.initWithPath("/usr/bin/open");
-        } else {
+        }
+        else
+        {
             try {
                 editorFile = this.modules.util.openFile(editorPath);
-            } catch (e) {
+            } catch (e)
+            {
                 this.modules.display.notify(this.modules.util
                                             .getLocaleString("editorErrorOccurred"));
                 return;
             }
 
-            if (!editorFile.exists()) {
+            if (!editorFile.exists())
+            {
                 this.modules.display.notify(this.modules.util
                                             .getLocaleString("editorNotFound", [editorFile.path]));
                 return;
@@ -929,11 +1006,14 @@ KeySnail.UserScript = {
         var beginPos = aCode.indexOf(this.preserve.beginSign);
         var endPos = aCode.indexOf(this.preserve.endSign);
 
-        if (beginPos != -1 && endPos != -1) {
+        if (beginPos != -1 && endPos != -1)
+        {
             beginPos += this.preserve.beginSign.length + 1;
             endPos--;
             this.preserve.code = aCode.slice(beginPos, endPos);
-        } else {
+        }
+        else
+        {
             this.preserve.code = "";
         }
     },
@@ -948,10 +1028,13 @@ KeySnail.UserScript = {
         var osName = this.modules.util.getSystemInfo()
             .getProperty("name");
 
-        if (osName.search(/windows/i) != -1) {
+        if (osName.search(/windows/i) != -1)
+        {
             pref = this.modules.util.getEnv("USERPROFILE");
             delimiter = "\\";
-        } else {
+        }
+        else
+        {
             pref = this.modules.util.getEnv("HOME");
             delimiter = "/";
         }
@@ -1131,7 +1214,7 @@ KeySnail.UserScript = {
     },
 
     generateHookSettingsFromScheme: function (aScheme, aContentHolder) {
-        if (!aScheme.hooks.length)
+        if (!aScheme.hooks || !aScheme.hooks.length)
         {
             return;
         }
@@ -1155,10 +1238,12 @@ KeySnail.UserScript = {
 
         var builtin = {};
 
-        try {
+        try
+        {
             Components.utils.import("resource://keysnail-share/functions.js", builtin);
             builtin = builtin.ksBuiltin;
-        } catch (x) {
+        } catch (x)
+        {
             return;
         }
 
@@ -1194,9 +1279,12 @@ KeySnail.UserScript = {
         var stringBundle = bundleSvc.createBundle(kBundleURI);
 
         function getBuiltinDescription(aStringKey) {
-            try {
+            try
+            {
                 return stringBundle.GetStringFromName(aStringKey);
-            } catch (x) {
+            }
+            catch (x)
+            {
                 return aStringKey;
             }
         }
@@ -1217,6 +1305,9 @@ KeySnail.UserScript = {
 
             for each (var setting in settings)
             {
+                if (!setting)
+                    continue;
+
                 [keys, command, ksNoRepeat] = setting;
 
                 var keyStr = (typeof keys === "string") ?

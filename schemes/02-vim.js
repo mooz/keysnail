@@ -46,7 +46,8 @@ SCHEME.keybindings["global"] = [
                  }
 
                  key.generateKey(ev.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
-             }], "Escape"]
+             }, "Escape"],
+     true]
 ];
 
 SCHEME.keybindings["view"] = [
