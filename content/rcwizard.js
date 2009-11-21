@@ -63,7 +63,6 @@ var rcWizard = {
 
                 context[leaf] = {};
                 var path = "resource://keysnail-scheme/" + leaf;
-                window.alert(path);
                 Components.utils.import(path, context[leaf]);
                 var scheme = context[leaf].SCHEME;
 
