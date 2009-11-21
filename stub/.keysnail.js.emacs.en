@@ -1,0 +1,558 @@
+// ==================== KeySnail configuration file ==================== //
+####REPLACE_WITH_DOC####
+// You can preserve your code in this area when generating the init file using GUI.
+// Put all your code except special key, set*key, hook, blacklist.
+//{{%PRESERVE%
+// prompt.rows                = 12;
+// prompt.useMigemo           = false;
+// prompt.migemoMinWordLength = 2;
+// prompt.displayDelayTime    = 300;
+// command.kill.killRingMax   = 15;
+// command.kill.textLengthMax = 8192;
+//}}%PRESERVE%
+
+// ==================== special keys ==================== //
+####REPLACE_WITH_SPECIAL_KEYS####
+
+// ==================== set hooks ==================== //
+hook.setHook("KeyBoardQuit",
+            function (aEvent) {
+                if (key.currentKeySequence.length)
+                    return;
+
+                // Close the find bar if opened
+                command.closeFindBar();
+                if (util.isCaretEnabled()) {
+                    // in edit area or caret browsing mode, reset the mark
+                    command.resetMark(aEvent);
+                } else {
+                    // in view mode, deselect all
+                    goDoCommand('cmd_selectNone');
+                }
+                // generate general cancell event
+                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
+            });
+
+// ==================== set global keys ==================== //
+
+key.setGlobalKey("C-M-r",
+                 function () { userscript.reload(); },
+                 "Reload the initialization file");
+
+key.setGlobalKey("M-x",
+                 function (aEvent, aArg) { ext.select(aArg, aEvent); },
+                 "List exts", true);
+
+// -------------------- help command -------------------- //
+
+key.setGlobalKey([key.helpKey, "b"], function () {
+                     key.listKeyBindings();
+                 }, "List all keybindings");
+key.setGlobalKey([key.helpKey, "F"], function () {
+                     openHelpLink('firefox-help');
+                 }, "Display Firefox help");
+
+// -------------------- misc -------------------- //
+
+key.setGlobalKey("C-t", function () {
+                     document.getElementById("cmd_newNavigatorTab").doCommand();
+                 }, "Open the new tab");
+key.setGlobalKey(["C-x", "j"], function (aEvent) {
+                     hah.enterStartKey(aEvent);
+                 }, "Start LoL");
+key.setGlobalKey("C-m", function (aEvent) {
+                     key.generateKey(aEvent.originalTarget,
+                                     KeyEvent.DOM_VK_RETURN, true);
+                 },
+                 "Generate the return key code");
+key.setGlobalKey("C-j",
+                 function (aEvent, arg) {
+                     command.bookMarkToolBarJumpTo(aEvent, arg);
+                 },
+                 "Open the bookmark toolbar item", true);
+
+// -------------------- useful focus -------------------- //
+
+key.setGlobalKey(["C-x", "l"],
+                 function () {
+                     command.focusToById('urlbar');
+                 },
+                 "Focus to the location bar", true);
+key.setGlobalKey(["C-x", "g"],
+                 function () {
+                     command.focusToById('searchbar');
+                 },
+                 "Focus to the search bar", true);
+key.setGlobalKey(["C-x", "t"],
+                 function () {
+                     command.focusElement(command.elementsRetrieverTextarea, 0);
+                 },
+                 "Focus to the first textarea", true);
+key.setGlobalKey(["C-x", "s"],
+                 function () {
+                     command.focusElement(command.elementsRetrieverButton, 0);
+                 },
+                 "Focus to the first button", true);
+
+// -------------------- copy -------------------- //
+
+key.setGlobalKey("M-w",
+                 function (aEvent) {
+                     command.copyRegion(aEvent);
+                 },
+                 "Copy selected text");
+
+// -------------------- search -------------------- //
+
+key.setGlobalKey("C-s", function () {
+                     command.iSearchForward();
+                 },
+                 "Incremental search forward");
+key.setGlobalKey("C-r", function () {
+                     command.iSearchBackward();
+                 },
+                 "Incremental search backward");
+
+// -------------------- window --------------------
+key.setGlobalKey(["C-x", "k"],
+                 function () { BrowserCloseTabOrWindow(); },
+                 "Close tab / window");
+key.setGlobalKey(["C-x", "K"],
+                 function () { closeWindow(true); },
+                 "Close the window");
+key.setGlobalKey(["C-x", "n"],
+                 function () { OpenBrowserWindow(); },
+                 "Open new window");
+key.setGlobalKey(["C-x", "C-c"],
+                 function () { goQuitApplication(); },
+                 "Exit Firefox");
+key.setGlobalKey(["C-x", "o"],
+                 function (aEvent, aArg) {
+                     command.focusOtherFrame(aArg);
+                 },
+                 "Select next frame", true);
+
+// -------------------- tab --------------------
+key.setGlobalKey(["C-c", "C-t", "l"],
+                 function () { gBrowser.mTabContainer.advanceSelectedTab(1, true); },
+                 "Select next tab");
+key.setGlobalKey(["C-c", "C-t", "h"],
+                 function () { gBrowser.mTabContainer.advanceSelectedTab(-1, true); },
+                 "Select previous tab");
+key.setGlobalKey(["C-c", "C-t", "u"],
+                 function () { undoCloseTab(); },
+                 "Undo closed tab");
+
+// -------------------- console --------------------
+key.setGlobalKey(["C-c", "C-c", "C-v"],
+                 function () { toJavaScriptConsole(); },
+                 "Display JavaScript console");
+key.setGlobalKey(["C-c", "C-c", "C-c"],
+                 function () {
+                     command.clearConsole();
+                 },
+                 "Clear Javascript console");
+key.setGlobalKey(["C-c", "i"],
+                 function () { BrowserPageInfo(); },
+                 "Display page information");
+
+// -------------------- file --------------------
+key.setGlobalKey(["C-x", "C-w"],
+                 function () { saveDocument(window.content.document); },
+                 "Save current page to the file");
+key.setGlobalKey(["C-x", "C-f"],
+                 function () { BrowserOpenFileWindow(); },
+                 "Open the local file");
+
+// -------------------- frame -------------------- //
+key.setGlobalKey(["C-x", "1"],
+                 function (aEvent) { window.loadURI(aEvent.target.ownerDocument.location.href); },
+                 "Show current frame only");
+
+// ==================== set view mode keys ==================== //
+
+// -------------------- scroll --------------------
+
+key.setViewKey("C-n", function (aEvent) {
+                   key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_DOWN, true);
+               },
+               "Scroll line down");
+key.setViewKey("C-p", function (aEvent) {
+                   key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_UP, true);
+               },
+               "Scroll line up");
+key.setViewKey("C-f", function (aEvent) {
+                   key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_RIGHT, true);
+               },
+               "Scroll right");
+key.setViewKey("C-b", function (aEvent) {
+                   key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_LEFT, true);
+               },
+               "Scroll left");
+
+key.setViewKey("j", function () { goDoCommand('cmd_scrollLineDown'); },
+               "Scroll line down");
+key.setViewKey("k", function () { goDoCommand('cmd_scrollLineUp'); },
+               "Scroll line up");
+
+key.setViewKey([[">"],
+                ["."]],
+               function () { goDoCommand('cmd_scrollRight'); },
+               "Scroll right");
+key.setViewKey([["<"],
+                [","]], function () { goDoCommand('cmd_scrollLeft'); },
+               "Scroll left");
+
+key.setViewKey([["b"],
+                ["M-v"]],
+               function () { goDoCommand('cmd_scrollPageUp'); },
+               "Scroll page up");
+key.setViewKey("C-v",
+               function () { goDoCommand('cmd_scrollPageDown'); },
+               "Scroll page down");
+
+key.setViewKey([["g"],
+                ["M-<"]],
+               function () { goDoCommand('cmd_scrollTop'); },
+               "Scroll to the top of the page");
+key.setViewKey([["G"],
+                ["M->"]],
+               function () { goDoCommand('cmd_scrollBottom'); },
+               "Scroll to the bottom of the page");
+
+// -------------------- navigation --------------------
+key.setViewKey("R", function (aEvent) { BrowserReload(); },
+               "Reload the page");
+key.setViewKey("B", function (aEvent) { BrowserBack(); },
+               "Back");
+key.setViewKey("F", function (aEvent) { BrowserForward(); },
+               "Forward");
+
+// -------------------- tab --------------------
+key.setViewKey("l", function () { gBrowser.mTabContainer.advanceSelectedTab(1, true); },
+               "Select the next tab");
+key.setViewKey("h", function () { gBrowser.mTabContainer.advanceSelectedTab(-1, true); },
+               "Select the previous tab");
+
+// -------------------- text --------------------
+key.setViewKey(["C-x", "h"],
+               function () { goDoCommand('cmd_selectAll'); },
+               "Select all");
+
+// -------------------- walk through --------------------
+
+key.setViewKey("M-n", function () {
+                   command.walkInputElement(command.elementsRetrieverButton, true, true);
+               }, "Focus to the next button");
+
+key.setViewKey("M-p", function () {
+                   command.walkInputElement(command.elementsRetrieverButton, false, true);
+               }, "Focus to the previous button");
+
+key.setViewKey("f", function () {
+                   command.focusElement(command.elementsRetrieverTextarea, 0);
+               },
+               "Focus to the first textarea", true);
+
+// ==================== set edit mode key ==================== //
+
+key.setEditKey([["C-SPC"],
+                ["C-@"]],
+               function (aEvent) { command.setMark(aEvent); },
+               "Set the mark");
+
+key.setEditKey("C-o",
+               function (aEvent) { command.openLine(aEvent); },
+               "Open line");
+
+// -------------------- undo --------------------
+
+key.setEditKey([["C-x", "u"],
+                ["C-_"]],
+               function () {
+                   display.echoStatusBar("Undo!", 2000);
+                   goDoCommand('cmd_undo');
+               },
+               "Undo");
+key.setEditKey(["C-\\"],
+               function () {
+                   display.echoStatusBar("Redo!", 2000);
+                   goDoCommand('cmd_redo');
+               },
+               "Redo");
+
+// -------------------- cursor navigation --------------------
+
+// -------------------- intra-line --------------------
+
+key.setEditKey("C-a",
+               function (aEvent) { command.beginLine(aEvent); },
+               "Beginning of the line");
+key.setEditKey("C-e",
+               function (aEvent) { command.endLine(aEvent); },
+               "End of the line");
+
+key.setEditKey("C-f",
+               function (aEvent) { command.nextChar(aEvent); },
+               "Forward char");
+key.setEditKey("C-b",
+               function (aEvent) { command.previousChar(aEvent); },
+               "Backward char");
+
+key.setEditKey("M-f",
+               function (aEvent) { command.nextWord(aEvent); },
+               "Next word");
+key.setEditKey("M-b",
+               function (aEvent) { command.previousWord(aEvent); },
+               "Previous word");
+
+// -------------------- by line --------------------
+
+key.setEditKey("C-n",
+               function (aEvent) { command.nextLine(aEvent); },
+               "Next line");
+key.setEditKey("C-p",
+               function (aEvent) { command.previousLine(aEvent); },
+               "Previous line");
+
+// -------------------- by page --------------------
+
+key.setEditKey("C-v",
+               function (aEvent) { command.pageDown(aEvent); },
+               "Page down");
+key.setEditKey("M-v",
+               function (aEvent) { command.pageUp(aEvent); },
+               "Page up");
+
+// -------------------- absolute --------------------
+
+key.setEditKey("M-<",
+               function (aEvent) { command.moveTop(aEvent); },
+               "Beginning of the text area");
+key.setEditKey("M->",
+               function (aEvent) { command.moveBottom(aEvent); },
+               "End of the text area");
+
+// -------------------- deletion --------------------
+
+key.setEditKey("C-d",
+               function () {
+                   goDoCommand("cmd_deleteCharForward");
+               },
+               "Delete forward char");
+key.setEditKey("C-h",
+               function () {
+                   goDoCommand("cmd_deleteCharBackward");
+               },
+               "Delete backward char");
+key.setEditKey("M-d",
+               function () {
+                   goDoCommand('cmd_deleteWordForward');
+               },
+               "Delete forward word");
+key.setEditKey([["C-<backspace>"],
+                ["M-<delete>"]],
+               function () {
+                   goDoCommand('cmd_deleteWordBackward');
+               },
+               "Delete backward word");
+
+// -------------------- transformation -------------------- //
+
+key.setEditKey("M-u", function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, function (aString) { return aString.toUpperCase(); });
+               },
+               "Convert following word to upper case");
+
+key.setEditKey("M-l", function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, function (aString) { return aString.toLowerCase(); });
+               },
+               "Convert following word to lower case");
+
+key.setEditKey("M-c", function (aEvent) {
+                   command.processForwardWord(aEvent.originalTarget, command.capitalizeWord);
+               },
+               "Capitalize the following word");
+
+// -------------------- cut / paste --------------------
+
+key.setEditKey("C-k",
+               function (aEvent) {
+                   command.killLine(aEvent);
+               },
+               "Kill the rest of the line");
+key.setEditKey("C-y", command.yank, "Paste (Yank)");
+key.setEditKey("M-y", command.yankPop, "Paste pop (Yank pop)");
+key.setEditKey("C-M-y", function (aEvent) {
+                   if (!command.kill.ring.length)
+                       return;
+
+                   var clipboardText = command.getClipboardText();
+                   if (clipboardText != command.kill.ring[0]) {
+                       command.pushKillRing(clipboardText);
+                   }
+
+                   prompt.read("Text to paste:",
+                               function (aReadStr) {
+                                   if (aReadStr) {
+                                       key.insertText(aReadStr);
+                                   }
+                               }, null, command.kill.ring,
+                               command.kill.ring[0], 0, "clipboard");
+               }, "Show kill-ring and select text to paste");
+key.setEditKey("C-w",
+               function (aEvent) {
+                   goDoCommand('cmd_copy');
+                   goDoCommand("cmd_delete");
+                   command.resetMark(aEvent);
+               },
+               "Cut current region");
+
+// -------------------- rectangle -------------------- //
+
+key.setEditKey(["C-x", "r", "d"],
+               function (aEvent, aArg) {
+                   command.replaceRectangle(aEvent.originalTarget, "", false, !aArg);
+               }, "Delete text in the region-rectangle", true);
+
+key.setEditKey(["C-x", "r", "t"],
+               function (aEvent) {
+                   prompt.read("String rectangle: ",
+                               function (aStr, aInput) {
+                                   command.replaceRectangle(aInput, aStr);
+                               },
+                               aEvent.originalTarget);
+               }, "Replace text in the region-rectangle with user inputted string", true);
+
+key.setEditKey(["C-x", "r", "o"],
+               function (aEvent) {
+                   command.openRectangle(aEvent.originalTarget);
+               }, "Blank out the region-rectangle, shifting text right", true);
+
+key.setEditKey(["C-x", "r", "k"],
+               function (aEvent, aArg) {
+                   command.kill.buffer = command.killRectangle(aEvent.originalTarget, !aArg);
+               }, "Delete the region-rectangle and save it as the last killed one", true);
+
+key.setEditKey(["C-x", "r", "y"],
+               function (aEvent) {
+                   command.yankRectangle(aEvent.originalTarget, command.kill.buffer);
+               }, "Yank the last killed rectangle with upper left corner at point", true);
+
+// -------------------- selection -------------------- //
+
+key.setEditKey(["C-x", "h"],
+                 function (aEvent) {
+                     command.selectAll(aEvent);
+                 },
+                 "Select whole text");
+
+// -------------------- walk through elements -------------------- //
+
+key.setEditKey("M-n", function () {
+                   command.walkInputElement(command.elementsRetrieverTextarea, true, true);
+               }, "Focus to the next text area");
+
+key.setEditKey("M-p", function () {
+                   command.walkInputElement(command.elementsRetrieverTextarea, false, true);
+               }, "Focus to the previous text area");
+
+// ==================== caret mode (press F7 to enter) ==================== //
+
+// copy view mode keymap to caret mode keymap
+key.copyKeyMap(key.modes.VIEW, key.modes.CARET);
+
+key.setCaretKey([["C-SPC"],
+                 ["C-@"]],
+                function (aEvent) { command.setMark(aEvent); },
+                "Set mark");
+
+// -------------------- caret move -------------------- //
+
+key.setCaretKey([["C-a"],
+                 ["^"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectBeginLine') : goDoCommand('cmd_beginLine'); },
+                "Move caret to the beginning of the line");
+key.setCaretKey([["C-e"],
+                 ["$"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectEndLine') : goDoCommand('cmd_endLine'); },
+                "Move caret to the end of the line");
+
+key.setCaretKey([["C-f"],
+                 ["l"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectCharNext') : goDoCommand('cmd_scrollRight'); },
+                "Move caret to the right");
+key.setCaretKey([["C-b"],
+                 ["h"],
+                 ["C-h"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectCharPrevious') : goDoCommand('cmd_scrollLeft'); },
+                "Move caret to the left");
+
+key.setCaretKey([["M-f"],
+                 ["w"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectWordNext') : goDoCommand('cmd_wordNext'); },
+               "Move caret to the right by word");
+key.setCaretKey([["M-b"],
+                 ["W"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectWordPrevious') : goDoCommand('cmd_wordPrevious'); },
+                "Move caret to the left by word");
+
+key.setCaretKey([["C-n"],
+                ["j"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectLineNext') : goDoCommand('cmd_scrollLineDown'); },
+               "Move caret to the next line");
+key.setCaretKey([["C-p"],
+                ["k"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectLinePrevious') : goDoCommand('cmd_scrollLineUp'); },
+               "Move caret to the previous line");
+
+key.setCaretKey([["C-v"],
+                ["SPC"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectPageNext') : goDoCommand('cmd_movePageDown'); },
+               "Move caret down by page");
+key.setCaretKey([["M-v"],
+                ["b"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectPagePrevious') : goDoCommand('cmd_movePageUp'); },
+               "Move caret up by page");
+
+key.setCaretKey([["g"],
+                ["M-<"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectTop') : goDoCommand('cmd_scrollTop'); },
+               "Move caret to the top of the page");
+key.setCaretKey([["G"],
+                ["M->"]],
+                function (aEvent) { aEvent.target.ksMarked ? goDoCommand('cmd_selectBottom') : goDoCommand('cmd_scrollBottom'); },
+               "Move caret to the bottom of the page");
+
+// -------------------- scroll -------------------- //
+
+key.setCaretKey("J", function () {
+                    util.getSelectionController().scrollLine(true);
+                }, "Scroll line down");
+
+key.setCaretKey("K", function () {
+                    util.getSelectionController().scrollLine(false);
+                }, "Scroll line up");
+
+key.setCaretKey(",", function () {
+                    util.getSelectionController().scrollHorizontal(true);
+                }, "Scroll left");
+
+key.setCaretKey(".", function () {
+                    util.getSelectionController().scrollHorizontal(false);
+                }, "Scroll right");
+
+key.setCaretKey("z", function (aEvent) {
+                    command.recenter(aEvent);
+                }, "Scroll to the cursor position");
+
+// -------------------- tab navigation -------------------- //
+
+key.setCaretKey("L", function () {
+                    gBrowser.mTabContainer.advanceSelectedTab(1, true);
+                }, "Select next tab");
+
+key.setCaretKey("H", function () {
+                    gBrowser.mTabContainer.advanceSelectedTab(-1, true);
+                }, "Select previous tab");
+

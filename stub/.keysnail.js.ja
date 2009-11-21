@@ -1,0 +1,35 @@
+// ==================== KeySnail configuration file ==================== //
+####REPLACE_WITH_DOC####
+// この領域は, GUI により初期化ファイルを生成した際にも引き継がれます
+// 特殊キー, キーバインド定義, フック, ブラックリスト以外のコードは, この中に書くようにして下さい
+//{{%PRESERVE%
+// prompt.rows                = 12;
+// prompt.useMigemo           = false;
+// prompt.migemoMinWordLength = 2;
+// prompt.displayDelayTime    = 300;
+// command.kill.killRingMax   = 15;
+// command.kill.textLengthMax = 8192;
+//}}%PRESERVE%
+
+// ==================== special keys ==================== //
+####REPLACE_WITH_SPECIAL_KEYS####
+
+// ==================== set hooks ==================== //
+hook.setHook("KeyBoardQuit",
+            function (aEvent) {
+                if (key.currentKeySequence.length)
+                    return;
+
+                // 検索バーが開いていたら閉じる
+                command.closeFindBar();
+                if (util.isCaretEnabled()) {
+                    // 編集エリア / キャレットブラウジングモードならマークをリセット
+                    command.resetMark(aEvent);
+                } else {
+                    // ビューモードなら選択を解除
+                    goDoCommand('cmd_selectNone');
+                }
+                // 汎用的なキャンセルイベントを生成
+                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
+            });
+

@@ -1,0 +1,35 @@
+// ==================== KeySnail configuration file ==================== //
+####REPLACE_WITH_DOC####
+// You can preserve your code in this area when generating the init file using GUI.
+// Put all your code except special key, set*key, hook, blacklist.
+//{{%PRESERVE%
+// prompt.rows                = 12;
+// prompt.useMigemo           = false;
+// prompt.migemoMinWordLength = 2;
+// prompt.displayDelayTime    = 300;
+// command.kill.killRingMax   = 15;
+// command.kill.textLengthMax = 8192;
+//}}%PRESERVE%
+
+// ==================== special keys ==================== //
+####REPLACE_WITH_SPECIAL_KEYS####
+
+// ==================== set hooks ==================== //
+hook.setHook("KeyBoardQuit",
+            function (aEvent) {
+                if (key.currentKeySequence.length)
+                    return;
+
+                // Close the find bar if opened
+                command.closeFindBar();
+                if (util.isCaretEnabled()) {
+                    // in edit area or caret browsing mode, reset the mark
+                    command.resetMark(aEvent);
+                } else {
+                    // in view mode, deselect all
+                    goDoCommand('cmd_selectNone');
+                }
+                // generate general cancell event
+                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
+            });
+
