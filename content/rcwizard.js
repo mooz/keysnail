@@ -78,7 +78,6 @@ var rcWizard = {
             }
             catch (x)
             {
-                window.alert(x);
                 delete context[leaf];
             }
         }
@@ -131,8 +130,6 @@ var rcWizard = {
         var ksSchemeRoot = installedLocation.location;
         ksSchemeRoot.append(ID);
         ksSchemeRoot.append("schemes");
-
-        window.alert(ksSchemeRoot.path);
 
         return this.modules.util.readDirectory(ksSchemeRoot, true);
     },
