@@ -4,13 +4,13 @@ var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
-    <description lang="ja">キーボードでリンクをごにょごにょ</description>
-    <version>1.2.3</version>
+    <description lang="ja">キーボードでリンクを開く</description>
+    <version>1.2.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>MPL</license>
-    <minVersion>1.0.1</minVersion>
+    <minVersion>1.1.4</minVersion>
     <include>main</include>
     <provides>
         <ext>hok-start-foreground-mode</ext>
@@ -321,6 +321,10 @@ http://github.com/myuhe
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.2.4 (2009 11/19) ====
+//
+// * Made hok export entire context of itself, using __ksSelf__.
 // 
 // ==== 1.2.3 (2009 11/19) ====
 //
@@ -642,9 +646,7 @@ var hok = function () {
     }
 
     /**
-     * Gets the actual offset of an imagemap area.
-     *
-     * Only called by generate().
+     * Gets the actual offset of an imagemap area. (from liberator)
      *
      * @param {Object} elem  The <area> element.
      * @param {number} leftpos  The left offset of the image.
@@ -712,12 +714,6 @@ var hok = function () {
 
         return [leftpos, toppos];
     }
-
-    // function getBodyOffsets(doc)
-    // {
-    //     let bodyRect = (doc.body || doc.documentElement).getBoundingClientRect();
-    //     return [-bodyRect.left, -bodyRect.top];
-    // }
 
     function getBodyOffsets(body, html)
     {
@@ -815,6 +811,8 @@ var hok = function () {
                 continue;
             }
 
+            // ========================================================================== //
+
             hint = createText(hintCount);
             span = hintSpan.cloneNode(false);
             span.appendChild(doc.createTextNode(hint));
@@ -822,7 +820,7 @@ var hok = function () {
             // Set hint position {{ ===================================================== //
 
             leftpos = Math.max((rect.left + scrollX), scrollX);
-            toppos =  Math.max((rect.top + scrollY), scrollY);
+            toppos  = Math.max((rect.top + scrollY), scrollY);
 
             if (elem instanceof HTMLAreaElement)
                 [leftpos, toppos] = getAreaOffset(elem, leftpos, toppos);
@@ -849,9 +847,6 @@ var hok = function () {
         {
             body.appendChild(fragment);
         }
-
-        // if (doc.body)
-        //     doc.body.appendChild(fragment);
 
         Array.forEach(win.frames, drawHints);
     };
@@ -998,6 +993,9 @@ var hok = function () {
         var role = keyMap[keyStr];
 
         switch (role) {
+        case 'Delete':
+            destruction(true);
+            return;
         case 'Backspace':
             if (!inputKey)
             {
@@ -1010,6 +1008,9 @@ var hok = function () {
             // reset but not exit
             blurHint();
             resetHintsColor();
+
+            if (inputKey.length != 0)
+                updateHeaderMatchHints();
             return;
         case 'Enter':
             if (lastMatchHint)
@@ -1046,9 +1047,6 @@ var hok = function () {
             lastMatchHint = null;
             inputKey      = "";
         }
-
-        if (useStatusBarFeedBack)
-            display.echoStatusBar("hint input : " + inputKey);
     }
 
     function setLocalQuery() {
@@ -1110,12 +1108,10 @@ var hok = function () {
             drawHints();
             // var endDate = new Date();
 
-            // window.alert((endDate - fromDate) + " msec");
+            // util.message((endDate - fromDate) + " msec");
 
             if (hintCount > 1)
-            {
                 document.addEventListener('keypress', onKeyPress, true);
-            }
             else
             {
                 // remove hints, recover keysnail's keyhandler, ...
@@ -1124,21 +1120,21 @@ var hok = function () {
                 if (hintCount == 1)
                 {
                     // only one hint found, immediatly fire
-                    try {
+                    try
+                    {
                         // TODO: Is there a good way to do this?
                         for each (let hintElem in hintElements)
                         {
                             if (supressUniqueFire)
-                            {
                                 hintElem.element.focus();
-                            }
                             else
-                            {
                                 fire(hintElem.element);
-                            }
+
                             break;
                         }
-                    } catch (x) {
+                    }
+                    catch (x)
+                    {
                         util.message(x);
                     }
                 }
@@ -1177,8 +1173,7 @@ var hok = function () {
 }();
 
 // export
-
-plugins.hok = hok;
+plugins.hok = __ksSelf__;
 
 // }} ======================================================================= //
 
@@ -1196,21 +1191,21 @@ var query = {
 // ['Key', 'Description', function (elem) { /* process hint elem */ }, supressUniqueFire, continuousMode, 'Query query']
 var actions = [
     [';', M({ja: "要素へフォーカス", en: "Focus hint"}), function (elem) elem.focus()],
-    ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) saveLink(elem, true)],
-    ['a', M({ja: "名前をつけてリンク先を保存", en: "Save hint with prompt"}), function (elem) saveLink(elem, false)],
+    ['s', M({ja: "リンク先を保存", en: "Save hint"}), function (elem) plugins.hok.saveLink(elem, true)],
+    ['a', M({ja: "名前をつけてリンク先を保存", en: "Save hint with prompt"}), function (elem) plugins.hok.saveLink(elem, false)],
     ['f', M({ja: "フレームへフォーカス", en: "Focus frame"}), function (elem) elem.ownerDocument.defaultView.focus(), false, false, query.frames],
-    ['o', M({ja: "リンクを開く", en: "Follow hint"}), function (elem) followLink(elem, CURRENT_TAB)],
-    ['t', M({ja: "新しいタブでリンクを開く", en: "Follow hint in a new tab"}), function (elem) followLink(elem, NEW_TAB)],
-    ['b', M({ja: "背面のタブでリンクを開く", en: "Follow hint in a background tab"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB)],
-    ['w', M({ja: "新しいウィンドウでリンクを開く", en: "Follow hint in a new window"}), function (elem) followLink(elem, NEW_WINDOW)],
-    ['F', M({ja: "連続してリンクを開く", en: "Open multiple hints in tabs"}), function (elem) followLink(elem, NEW_BACKGROUND_TAB), false, true],
-    ['v', M({ja: "リンク先のソースコードを表示", en: "View hint source"}), function (elem) viewSource(elem.href, false)],
-    ['V', M({ja: "リンク先のソースコードを外部エディタで表示", en: "View hint source in external editor"}), function (elem) viewSource(elem.href, true)],
+    ['o', M({ja: "リンクを開く", en: "Follow hint"}), function (elem) plugins.hok.followLink(elem, CURRENT_TAB)],
+    ['t', M({ja: "新しいタブでリンクを開く", en: "Follow hint in a new tab"}), function (elem) plugins.hok.followLink(elem, NEW_TAB)],
+    ['b', M({ja: "背面のタブでリンクを開く", en: "Follow hint in a background tab"}), function (elem) plugins.hok.followLink(elem, NEW_BACKGROUND_TAB)],
+    ['w', M({ja: "新しいウィンドウでリンクを開く", en: "Follow hint in a new window"}), function (elem) plugins.hok.followLink(elem, NEW_WINDOW)],
+    ['F', M({ja: "連続してリンクを開く", en: "Open multiple hints in tabs"}), function (elem) plugins.hok.followLink(elem, NEW_BACKGROUND_TAB), false, true],
+    ['v', M({ja: "リンク先のソースコードを表示", en: "View hint source"}), function (elem) plugins.hok.viewSource(elem.href, false)],
+    ['V', M({ja: "リンク先のソースコードを外部エディタで表示", en: "View hint source in external editor"}), function (elem) plugins.hok.viewSource(elem.href, true)],
     ['y', M({ja: "リンクの URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
     ['Y', M({ja: "要素の内容をコピー", en: "Yank hint description"}), function (elem) command.setClipboardText(elem.textContent || "")],
-    ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) openContextMenu(elem)],
-    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) openURI(elem.src), false, false, query.images],
-    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) openURI(elem.src, NEW_TAB), false, false, query.images]
+    ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) plugins.hok.openContextMenu(elem)],
+    ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) plugins.hok.openURI(elem.src), false, false, query.images],
+    ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) plugins.hok.openURI(elem.src, NEW_TAB), false, false, query.images]
 ];
 
 if (getOption("actions"))

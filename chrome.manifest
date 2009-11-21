@@ -7,5 +7,6 @@ locale	keysnail	en-US	locale/en-US/
 locale	keysnail	ja	locale/ja/
 
 resource	keysnail-share	share/
+resource	keysnail-scheme	schemes/
 
 overlay	chrome://browser/content/browser.xul	chrome://keysnail/content/browser.xul

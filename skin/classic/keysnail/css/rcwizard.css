@@ -5,3 +5,17 @@ textbox.keysnail-specialkey-textbox {
 button.keysnail-specialkey-button {
     width: 4em;
 }
+
+listbox#keysnail-rcwizard-selectscheme listitem {
+    padding: 5px;
+    border-bottom: 1px #BBB dotted;
+}
+
+listbox#keysnail-rcwizard-selectscheme listitem:last-child {
+    border-bottom: none;
+}
+
+description.with-padding {
+    padding: 0.7em;
+    margin-bottom: 1em;
+}

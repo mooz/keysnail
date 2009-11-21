@@ -15,7 +15,8 @@
 
 <!-- PAGE a-1 -->
 
-<!ENTITY keySnail.rcWizard.places "Place">
+<!ENTITY keySnail.rcWizard.places "Place / File name">
+<!ENTITY keySnail.rcWizard.places.description "Select the init file name and destination.">
 <!ENTITY keySnail.rcWizard.createRcFileDescription "Select the initialization file name and destination.">
 <!ENTITY keySnail.rcWizard.rcFileDestination "Destination: ">
 <!ENTITY keySnail.rcWizard.filenameDotDiscription "Dot file genelally used in UNIX-like operating system.">
@@ -23,49 +24,11 @@
 
 <!-- PAGE a-2 -->
 
-<!ENTITY keySnail.rcWizard.options "Option">
-<!ENTITY keySnail.rcWizard.selectSchemeDescription1 "The set of keybindings is called 'key scheme'">
+<!ENTITY keySnail.rcWizard.scheme "Key bindings">
+<!ENTITY keySnail.rcWizard.scheme.description "Select default key bindings. The settings will be stored to the init file.<html:br/>You can change key bindings after this wizard from preference dialog.">
 
 <!ENTITY keySnail.rcWizard.label.scheme "Scheme">
-<!ENTITY keySnail.rcWizard.label.locale "Language">
-
-<!ENTITY keySnail.rcWizard.scheme.emacs "Emacs / w3m like keybindings">
-<!ENTITY keySnail.rcWizard.scheme.empty "Empty scheme">
-
-<!ENTITY keySnail.rcWizard.selectLocaleDescription "Select language of the init file. (affects description of the command and documantation)">
-<!ENTITY keySnail.rcWizard.locale.en "English">
-<!ENTITY keySnail.rcWizard.locale.ja "Japanese">
-
-<!ENTITY keySnail.rcWizard.selectScheme.insertDocument "Insert document to init file">
-
-<!-- PAGE a-3 -->
-
-<!ENTITY keySnail.rcWizard.settingRcFile "Customize special keys">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription1 "If you want to change some keys listed below, click textbox or button on right and press the new key. Those changes will be stored into the init file.">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription2 "C- means the Ctrl and Command key. M- means the Alt and Meta key.">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription3 "For example, C-g means pressing Ctrl + g at the same time and C-M-r means Ctrl + Alt + r.">
-
-<!ENTITY keySnail.rcWizard.key.quit "Quit key">
-<!ENTITY keySnail.rcWizard.key.help "Help key">
-<!ENTITY keySnail.rcWizard.key.escape "Escape key">
-<!ENTITY keySnail.rcWizard.key.macroStart "Macro Start key">
-<!ENTITY keySnail.rcWizard.key.macroEnd "Macro End / Play key">
-<!ENTITY keySnail.rcWizard.key.suspend "Suspension switch key">
-
-<!ENTITY keySnail.rcWizard.key.universalArgument "Universal argument key">
-<!ENTITY keySnail.rcWizard.key.negativeArgument1 "Negative argument key 1">
-<!ENTITY keySnail.rcWizard.key.negativeArgument2 "Negative argument key 2">
-<!ENTITY keySnail.rcWizard.key.negativeArgument3 "Negative argument key 3">
-
-<!ENTITY keySnail.rcWizard.key.quit.description "Cancel current key input">
-<!ENTITY keySnail.rcWizard.key.help.description "With some prefix key, display 'beginning with ...' help">
-<!ENTITY keySnail.rcWizard.key.escape.description "KeySnail will ignore the next key and pass it to the Firefox directly">
-<!ENTITY keySnail.rcWizard.key.macroStart.description "Start the key macro recording">
-<!ENTITY keySnail.rcWizard.key.macroEnd.description "Stop the key macro recording or play recorded one if exists">
-<!ENTITY keySnail.rcWizard.key.suspend.description "Switch suspension state of the KeySnail">
-
-<!ENTITY keySnail.rcWizard.key.universalArgument.description "To begin input the prefix argument">
-<!ENTITY keySnail.rcWizard.key.negativeArgument.description "To begin input the negative prefix argument">
+<!ENTITY keySnail.rcWizard.label.description "Description">
 
 <!-- PAGE b-1 -->
 

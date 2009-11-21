@@ -15,38 +15,24 @@ var rcWizard = {
     rcFilePath: null,
     rcFileObject: null,
 
-    schemeList: [
-        "emacs",
-        null
-    ],
-
-    localeList: [
-        "en",
-        "ja"
-    ],
+    schemeContext: null,
 
     onLoad: function () {
-        // to access the utility
-        this.modules = window.arguments[0].inn.modules;
-
-        this.prefDirectory = this.modules.userscript.prefDirectory;
+        this.prefDirectory        = this.modules.userscript.prefDirectory;
         this.defaultInitFileNames = this.modules.userscript.defaultInitFileNames;
-        this.directoryDelimiter = this.modules.userscript.directoryDelimiter;
+        this.directoryDelimiter   = this.modules.userscript.directoryDelimiter;
 
-        this.rcFilePath = this.prefDirectory;
+        this.rcFilePath   = this.prefDirectory;
         this.rcFileObject = this.modules.util.openFile(this.prefDirectory);
 
         window.document.documentElement.setAttribute("windowtype", window.name);
     },
 
     selectMethod: function () {
-        var menuList
-            = document.getElementById("keysnail-rcwizard-selectmethod");
-        var startPage
-            = document.getElementById("keysnail-rcwizard-startpage");
+        var menuList  = document.getElementById("keysnail-rcwizard-selectmethod");
+        var startPage = document.getElementById("keysnail-rcwizard-startpage");
 
-        startPage.next = ["create-rcfile", "select-rcfile"]
-        [menuList.selectedIndex];
+        startPage.next = ["create-rcfile", "select-rcfile"][menuList.selectedIndex];
 
         return true;
     },
@@ -54,28 +40,56 @@ var rcWizard = {
     updatePageCreate: function () {
         var fileField = document.getElementById("keysnail-userscript-destination");
 
-        // Note: Do *NOT* change these two lines order
-        fileField.file = this.rcFileObject;
+        // Note: DO *NOT* change the order of these two lines.
+        fileField.file  = this.rcFileObject;
         fileField.label = this.rcFilePath;
     },
 
     updatePageScheme: function () {
-        var selectLocale = document.getElementById("keysnail-rcwizard-selectlocale");
+        var list = document.getElementById("keysnail-rcwizard-scheme-list");
 
-        var userLocale = this.modules.util.getUnicharPref("general.useragent.locale");
+        if (list.ksInitialized === true)
+            return;
 
-        userLocale = {
-            // ja
-            "ja"        : "ja",
-            "ja-JP"     : "ja",
-            "ja-JP-mac" : "ja",
-            "ja_JP"     : "ja",
-            "JP"        : "ja",
-            // en
-            "en-US"     : "en"
-        }[userLocale] || "en";
+        var defaultIconURL = "chrome://keysnail/skin/icon/empty.png";
+        var context        = this.schemeContext = {};
 
-        selectLocale.selectedIndex = this.localeList.indexOf(userLocale);
+        for each (var leaf in this.getSchemeFiles().map(function (aFile) aFile.leafName))
+        {
+            try
+            {
+                if (!leaf.match(".+\\.js$"))
+                    continue;
+
+                context[leaf] = {};
+                var path = "resource://keysnail-scheme/" + leaf;
+                Components.utils.import(path, context[leaf]);
+                var scheme = context[leaf].SCHEME;
+
+                var listitem = document.createElement("listitem");
+                listitem.setAttribute("class", "listitem-iconic");
+                listitem.setAttribute("style", "padding: 5px;border-bottom: 1px #BBB dotted;");
+                listitem.setAttribute("image", scheme.icon || defaultIconURL);
+                listitem.setAttribute("label", this.getString(scheme.name));
+                listitem.setAttribute("value", leaf);
+
+                list.appendChild(listitem);
+            }
+            catch (x)
+            {
+                delete context[leaf];
+            }
+        }
+
+        var description = document.getElementById("keysnail-rcwizard-scheme-description");
+
+        if (list.firstChild)
+        {
+            list.selectItem(list.firstChild);
+            this.schemeListOnSelect();
+        }
+
+        list.ksInitialized = true;
     },
 
     updatePageSelect: function () {
@@ -85,19 +99,43 @@ var rcWizard = {
         fileField.label = this.rcFilePath;
     },
 
-    // ==================== util ==================== //
+    // Key Scheme handling {{ =================================================== //
 
-    pathToLocalFile: function (aPath) {
-        var file = Components.classes["@mozilla.org/file/local;1"]
-            .createInstance();
-        var localFile = file
-            .QueryInterface(Components.interfaces.nsILocalFile);
-        if (!localFile) return false;
-
-        localFile.initWithPath(aPath);
-
-        return localFile;
+    getString: function (aLocaleString) {
+        if (typeof aLocaleString === "string")
+            return this.modules.L(aLocaleString);
+        else
+            return this.modules.M(aLocaleString);
     },
+
+    schemeListOnSelect: function (event) {
+        var list   = document.getElementById("keysnail-rcwizard-scheme-list");
+        var scheme = this.schemeContext[list.selectedItem.getAttribute("value")].SCHEME;
+
+        var description = document.getElementById("keysnail-rcwizard-scheme-description");
+        description.value = this.getString(scheme.description);
+    },
+
+    /**
+     * returns all available scheme files
+     * @returns {[nsILocalFile]} scheme files
+     */
+    getSchemeFiles: function () {
+        const ID = "keysnail@mooz.github.com";
+        var installedLocation = Components.classes["@mozilla.org/extensions/manager;1"]
+            .getService(Components.interfaces.nsIExtensionManager)
+            .getInstallLocation(ID);
+
+        var ksSchemeRoot = installedLocation.location;
+        ksSchemeRoot.append(ID);
+        ksSchemeRoot.append("schemes");
+
+        return this.modules.util.readDirectory(ksSchemeRoot, true);
+    },
+
+    // }} ======================================================================= //
+
+    // Utils {{ ================================================================= //
 
     changePathClicked: function (aUpdateFunction) {
         var nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -109,15 +147,13 @@ var rcWizard = {
         fp.displayDirectory = this.modules.util.openFile(this.prefDirectory);
 
         var response = fp.show();
-        if (response == nsIFilePicker.returnOK) {
+        if (response == nsIFilePicker.returnOK)
+        {
             if (aUpdateFunction == this.updatePageSelect &&
-                !this.modules.util.isDirHasFiles(fp.file.path,
-                                                 this.directoryDelimiter,
-                                                 this.defaultInitFileNames)) {
+                !this.modules.util.isDirHasFiles(fp.file.path, this.directoryDelimiter, this.defaultInitFileNames))
+            {
                 // directory has no rc file.
-                this.modules.util.alert("KeySnail",
-                                        this.modules.util.getLocaleString("noUserScriptFound",
-                                                                          [fp.file.path]));
+                this.modules.util.alert("KeySnail", this.modules.util.getLocaleString("noUserScriptFound", [fp.file.path]));
                 return;
             }
 
@@ -125,7 +161,7 @@ var rcWizard = {
             this.rcFilePath = fp.file.path;
             // aUpdateFunction() does not works well
             // because the 'this' value becomes 'button' widget
-            aUpdateFunction.apply(rcWizard);
+            aUpdateFunction.apply(this);
         }
     },
 
@@ -136,12 +172,13 @@ var rcWizard = {
         }
     },
 
-    // ==================== termination ==================== //
+    // }} ======================================================================= //
+
+    // Termination {{ =========================================================== //
 
     onFinish: function () {
-        if (!this.rcFilePath || !this.rcFileObject) {
+        if (!this.rcFilePath || !this.rcFileObject)
             return false;
-        }
 
         var selectedMethod = document.getElementById("keysnail-rcwizard-startpage").next;
 
@@ -154,21 +191,15 @@ var rcWizard = {
         window.arguments[0].out.configFileNameIndex
             = document.getElementById("keysnail-userscript-filename-candidates").selectedIndex;
 
-        if (selectedMethod == 'create-rcfile') {
-            // ================ special keys ================ //
-            window.arguments[0].out.keys = {};
-            this.setSpecialKeys(window.arguments[0].out.keys);
-            // ================ scheme ================ //
-            var selectedScheme = this.schemeList
-            [document.getElementById("keysnail-rcwizard-selectscheme").selectedIndex];
-            window.arguments[0].out.selectedScheme = selectedScheme;
-            // ================ locale ================ //
-            var selectedLocale = this.localeList
-            [document.getElementById("keysnail-rcwizard-selectlocale").selectedIndex];
-            window.arguments[0].out.selectedLocale = selectedLocale;
-            // ================ document ================ //
-            window.arguments[0].out.insertDocument =
-                document.getElementById("keysnail-rcwizard-selectscheme-insert-document").checked;
+        if (selectedMethod == 'create-rcfile')
+        {
+            // Set information for creating new one {{ ================================== //
+
+            var list   = document.getElementById("keysnail-rcwizard-scheme-list");
+            var scheme = this.schemeContext[list.selectedItem.getAttribute("value")].SCHEME;
+            window.arguments[0].out.scheme = scheme;
+
+            // }} ======================================================================= //
         }
 
         return true;
@@ -180,6 +211,8 @@ var rcWizard = {
 
         return true;
     }
+
+    // }} ======================================================================= //
 };
 
 (function () {

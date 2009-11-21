@@ -70,6 +70,7 @@
                             <menuitem label="C-[0-9]" value="C"/>
                             <menuitem label="M-[0-9]" value="M"/>
                             <menuitem label="C-M-[0-9]" value="C-M"/>
+                            <menuitem label="[0-9]" value="Digit"/>
                         </menupopup>
                     </menulist>
                 </hbox>

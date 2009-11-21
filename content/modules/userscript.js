@@ -690,8 +690,8 @@ KeySnail.UserScript = {
         var context;
 
         // create context
-        KeySnail.modules.plugins.context[filePath] = {__proto__ : KeySnail.modules};
-        context = KeySnail.modules.plugins.context[filePath];
+        this.modules.plugins.context[filePath] = {__proto__ : KeySnail.modules};
+        context = this.modules.plugins.context[filePath];
         context.__ksFileName__ = aFile.leafName;
 
         if (this.isDisabledPlugin(aFile.path)) {
@@ -715,12 +715,14 @@ KeySnail.UserScript = {
             return;
         }
 
+        // add self reference
+        context.__ksSelf__   = context;
+
         this.modules.key.inExternalFile = true;
 
         try {
             this.loadSubScript(filePath, context);
-            context.__ksLoaded__   = true;
-            // this.message("keysnail :: plugin " + aFile.leafName + " loaded");
+            context.__ksLoaded__ = true;
         } catch (e) {
             context.__ksLoaded__ = false;
             // delete KeySnail.modules.plugins.context[filePath];
@@ -733,7 +735,7 @@ KeySnail.UserScript = {
     },
 
     /**
-     * 
+     * Load plugins which file name is beggining with _
      */
     loadSpecialPlugins: function () {
         var aPath = this.pluginDir;
@@ -756,7 +758,7 @@ KeySnail.UserScript = {
     },
 
     /**
-     * 
+     * Load all plugins in the plugin directory
      */
     loadPlugins: function () {
         var aPath = this.pluginDir;
@@ -963,13 +965,13 @@ KeySnail.UserScript = {
     beginRcFileWizard: function () {
         var loadStatus = -1;
 
-        if (this.openDialog()) {
-            loadStatus = this.loadUserScript(this.initFileLoader,
-                                             this.userPath,
-                                             this.defaultInitFileNames);
+        if (this.openRcFileWizard())
+        {
+            loadStatus = this.loadUserScript(this.initFileLoader, this.userPath, this.defaultInitFileNames);
         }
 
-        if (loadStatus == 0) {
+        if (loadStatus == 0)
+        {
             this.initFileLoaded = true;
             this.modules.key.run();
             this.modules.key.updateMenu();
@@ -982,7 +984,7 @@ KeySnail.UserScript = {
     /**
      * @returns {boolean}
      */
-    openDialog: function () {
+    openRcFileWizard: function () {
         var params = {
             inn: {
                 modules: this.modules
@@ -996,104 +998,238 @@ KeySnail.UserScript = {
             return "left=" + x + ",top=" + y;
         }
 
-        // width="600px"
-        // height="600px"
-        // chrome,dialog,modal,centerscreen,dependent
         window.openDialog("chrome://keysnail/content/rcwizard.xul",
                           "keysnail:initFileWizard",
-                          "chrome=yes,titlebar=yes,dialog=yes,modal=yes,resizable=yes,scrollbars=yes," + myCenterScreen(600, 600),
+                          "chrome=yes,titlebar=yes,dialog=yes,modal=yes,resizable=yes,scrollbars=yes," + myCenterScreen(650, 600),
                           params);
 
-        if (!params.out) {
+        if (!params.out)
             return false;
-        }
 
         var rcFilePlace = params.out.rcFilePath;
 
-        switch (params.out.selectedMethod) {
-        case "select-rcfile":
-            // params.out.rcFilePath means the directory
-            // where userscript located.
-            // there are nothing to do in this method.
-            break;
-        case "create-rcfile":
-            // params.out.destinationPath means the destination directory
-            // where default-userscript copied.
-            // now copy default configuration file to there.
+        if (params.out.selectedMethod === "create-rcfile")
+        {
+            if (!params.out.scheme)
+                return false;
+
+            var scheme = params.out.scheme;
+
+            var code = this.createInitFileFromScheme(scheme);
             var configFileName = this.defaultInitFileNames[params.out.configFileNameIndex];
 
-            // var tank = {};
-            // try {
-            //     Components.utils.import("resource://keysnail-share/functions.js", tank);
-            // } catch (x) {
-            // }
-
-            var defaultInitFileBase = "chrome://keysnail/content/resources/.keysnail.js.";
-            var scheme = (params.out.selectedScheme == null) ? "" : params.out.selectedScheme + ".";
-            var userLocale = params.out.selectedLocale || "en";
-
-            var defaultInitFile = this.modules.util.readTextFileFromPackage(defaultInitFileBase + scheme + userLocale);
-
-            if (!defaultInitFile) {
-                defaultInitFile = this.modules.util.readTextFileFromPackage(defaultInitFileBase + scheme + "en");
+            try
+            {
+                this.modules.util.writeTextFile(code, rcFilePlace + this.directoryDelimiter + configFileName);
             }
-
-            if (!defaultInitFile) {
-                this.modules.display.notify(this.modules.util
-                                            .getLocaleString("failedToOpenDefaultInitFile"));
+            catch (e)
+            {
+                this.modules.display.notify(this.modules.util.getLocaleString("failedToWriteText"));
                 return false;
             }
 
-            // ================ insert document ================ //
-            var documentString = "";
-            if (params.out.insertDocument) {
-                var doc = "doc.";
-                documentString = this.modules.util.readTextFileFromPackage(defaultInitFileBase + doc + userLocale);
-                if (!documentString) {
-                    documentString = this.modules.util.readTextFileFromPackage(defaultInitFileBase + doc + "en");
+            // Apply preference settings {{ ============================================= //
+
+            if (scheme && typeof scheme.prefs === "object")
+            {
+                var prefBase = "extensions.keysnail.";
+                var prefs = {};
+
+                for (var prefLeaf in scheme.prefs)
+                {
+                    prefs[prefBase + prefLeaf] = scheme.prefs[prefLeaf];
                 }
-            }
-            defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_DOC####', documentString);
 
-            // ================ insert special key settings ================ //
-            var keys = params.out.keys;
-            var specialKeySettings = [];
-            var maxLen = Math.max.apply(null, [str.length for each (str in
-                                                                    (function (obj) {
-                                                                         for (var key in obj) yield key;
-                                                                     })(keys))]);
-            for (var key in keys) {
-                var padding = Math.max(maxLen - key.length, 0) + 2;
-                specialKeySettings.push('key.' + key +
-                                        new Array(padding).join(" ") +
-                                        '= "' + keys[key] + '";');
-            }
-            defaultInitFile = defaultInitFile.replace('####REPLACE_WITH_SPECIAL_KEYS####',
-                                                      specialKeySettings.join('\n'));
-
-            // ================ write content ================ //
-            try {
-                this.modules.util.writeTextFile(defaultInitFile,
-                                                rcFilePlace + this.directoryDelimiter + configFileName);
-            } catch (e) {
-                this.modules.display.notify(this.modules.util
-                                            .getLocaleString("failedToWriteText"));
-                return false;
+                this.modules.util.setPrefs(prefs);
             }
 
-            // ================ add misc setting ================ //
-            var prefixArgumentKey = "extensions.keysnail.keyhandler.use_prefix_argument";
-            if (params.out.selectedScheme == "emacs") {
-                nsPreferences.setBoolPref(prefixArgumentKey, true);
-            }
-
-            break;
+            // }} ======================================================================= //
         }
 
         nsPreferences.setUnicharPref("extensions.keysnail.userscript.location", rcFilePlace);
         this.userPath = rcFilePlace;
 
         return true;
+    },
+
+    createInitFileFromScheme: function (aScheme) {
+        var contentHolder = [this.modules.util.createSeparator("KeySnail Init File")];
+
+        // Preserved code {{ ======================================================== //
+
+        contentHolder.push("");
+        contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription1"));
+        contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription2"));
+
+        contentHolder.push(this.modules.util.createSeparator());
+        contentHolder.push(this.preserve.beginSign);
+        if (aScheme.preserved)
+            contentHolder.push(aScheme.preserved);
+        else
+            contentHolder.push("// " + this.modules.util.getLocaleString("putYourCodesHere"));
+        contentHolder.push(this.preserve.endSign);
+        contentHolder.push(this.modules.util.createSeparator());
+
+        // }} ======================================================================= //
+
+        // Special keys {{ ========================================================== //
+
+        contentHolder.push("");
+        contentHolder.push(this.modules.util.createSeparator("Special key settings"));
+        contentHolder.push("");
+        this.generateSpecialKeySettingsFromScheme(aScheme, contentHolder);
+        contentHolder.push("");
+
+        // }} ======================================================================= //
+
+        // Hooks {{ ================================================================= //
+
+        contentHolder.push(this.modules.util.createSeparator("Hooks"));
+        this.generateHookSettingsFromScheme(aScheme, contentHolder);
+        contentHolder.push("");
+
+        // }} ======================================================================= //
+
+        // Key bindings {{ ========================================================== //
+
+        contentHolder.push(this.modules.util.createSeparator("Key bindings"));
+        contentHolder.push("");
+        this.generateKeyBindingsFromScheme(aScheme, contentHolder);
+        contentHolder.push("");
+
+        // }} ======================================================================= //
+
+        var output = this.modules.util.convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
+
+        return output;
+    },
+
+    generateSpecialKeySettingsFromScheme: function (aScheme, aContentHolder) {
+        var settings = aScheme.specialKeys || {};
+        var keys = [
+            'quit'              ,
+            'help'              ,
+            'escape'            ,
+            'macroStart'        ,
+            'macroEnd'          ,
+            'suspend'           ,
+            'universalArgument' ,
+            'negativeArgument1' ,
+            'negativeArgument2' ,
+            'negativeArgument3'
+        ];
+
+        var maxLen = Math.max.apply(null, [str.length for each (str in keys)]);
+
+        for each (var key in keys)
+        {
+            var setting = settings[key] || "undefined";
+            var padding = Math.max(maxLen - key.length, 0) + 2;
+
+            aContentHolder.push('key.' + key + new Array(padding).join(" ") + '= "' + setting + '";');
+        }
+    },
+
+    generateHookSettingsFromScheme: function (aScheme, aContentHolder) {
+        if (!aScheme.hooks.length)
+        {
+            return;
+        }
+
+        for each (var setting in aScheme.hooks)
+        {
+            [name, body] = setting;
+            if (!name || !body)
+                continue;
+
+            aContentHolder.push("");
+
+            aContentHolder.push("hook.addToHook(" + this.modules.util.toStringForm(name) + ", "
+                                + body.toString() + ");");
+        }
+    },
+
+    generateKeyBindingsFromScheme: function (aScheme, aContentHolder) {
+        if (!aScheme.keybindings)
+            return;
+
+        var builtin = {};
+
+        try {
+            Components.utils.import("resource://keysnail-share/functions.js", builtin);
+            builtin = builtin.ksBuiltin;
+        } catch (x) {
+            return;
+        }
+
+        var modes = {
+            global : "Global",
+            view   : "View",
+            edit   : "Edit",
+            caret  : "Caret"
+        };
+
+        var self = this;
+
+        function getFunction(aCommand) {
+            if (typeof aCommand === "string")
+            {
+                for each (var commands in builtin)
+                {
+                    if (commands[aCommand])
+                        return commands[aCommand][0].toString();
+                }
+            }
+            else
+            {
+                return aCommand[0].toString();
+            }
+
+            return null;
+        }
+
+        var bundleSvc    = Components.classes["@mozilla.org/intl/stringbundle;1"]
+            .getService(Components.interfaces.nsIStringBundleService);
+        const kBundleURI = "chrome://keysnail/locale/functions.properties";
+        var stringBundle = bundleSvc.createBundle(kBundleURI);
+
+        function getBuiltinDescription(aStringKey) {
+            try {
+                return stringBundle.GetStringFromName(aStringKey);
+            } catch (x) {
+                return aStringKey;
+            }
+        }
+
+        function getDescription(aCommand) {
+            if (typeof aCommand === "string")
+                return getBuiltinDescription(aCommand);
+            else
+                return aCommand[1];
+        }
+
+        for (var mode in aScheme.keybindings)
+        {
+            if (!modes[mode])
+                continue;
+
+            var settings = aScheme.keybindings[mode];
+
+            for each (var setting in settings)
+            {
+                [keys, command, ksNoRepeat] = setting;
+
+                var keyStr = (typeof keys === "string") ?
+                    this.modules.util.toStringForm(keys) :
+                    keys.toSource().replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+
+                var func = getFunction(command);
+                var desc = this.modules.util.toStringForm(getDescription(command));
+
+                aContentHolder.push("key.set" + modes[mode] + "Key(" + keyStr +
+                                    ", " + func + ", " + desc + ", " + !!ksNoRepeat + ");\n");
+            }
+        }
     },
 
     message: KeySnail.message

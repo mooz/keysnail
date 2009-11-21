@@ -2,10 +2,7 @@
 
 <!-- PAGE 1 -->
 
-<!ENTITY keySnail.rcWizard.selectMethodDescription "初期化ファイルを新しく作成します。既存のファイルを使用したい場合は「初期化ファイルの場所を選ぶ」を選択して下さい。">
-
-<!ENTITY keySnail.rcWizard.selectMethodDescription1 "利用可能な初期化ファイルが既定の場所に見つかりませんでした。">
-<!ENTITY keySnail.rcWizard.selectMethodDescription2 "新しく作成するか、既に存在するファイルを指定するかを選んでください。">
+<!ENTITY keySnail.rcWizard.selectMethodDescription "初期化ファイルを新しく作成します。既存のファイルを使用したい場合は 「初期化ファイルの場所を選ぶ」 を選択して下さい。">
 
 <!-- menuitem -->
 
@@ -14,57 +11,19 @@
 
 <!-- PAGE a-1 -->
 
-<!ENTITY keySnail.rcWizard.places "場所">
-<!ENTITY keySnail.rcWizard.createRcFileDescription "初期化ファイルの設定">
-<!ENTITY keySnail.rcWizard. "初期化ファイルの設定">
+<!ENTITY keySnail.rcWizard.places "作成先 / ファイル名">
+<!ENTITY keySnail.rcWizard.places.description "設定ファイルの名前と作成先を指定してください。">
+<!ENTITY keySnail.rcWizard.createRcFileDescription "初期化ファイルの設定を行います。">
 
 <!ENTITY keySnail.rcWizard.rcFileDestination "作成先: ">
 <!ENTITY keySnail.rcWizard.filenameDotDiscription "UNIX 等で一般的なドットファイルです">
 <!ENTITY keySnail.rcWizard.filenameUBDiscription "ドットの代わりにアンダーバーを使ったタイプのものです">
 
-<!ENTITY keySnail.rcWizard.options "オプション">
-<!ENTITY keySnail.rcWizard.selectSchemeDescription1 "あらかじめ用意されたキーバインド一式をキースキームと呼びます。">
+<!ENTITY keySnail.rcWizard.scheme "キーバインド">
+<!ENTITY keySnail.rcWizard.scheme.description "使用するデフォルトのキーバインドを選択してください。指定されたキーバインド一式が設定ファイルへと書き込まれます。<html:br/>キーバインドはウィザード終了後に設定ダイアログから変更することが可能です。">
 
 <!ENTITY keySnail.rcWizard.label.scheme "スキーム">
-<!ENTITY keySnail.rcWizard.label.locale "言語">
-
-<!ENTITY keySnail.rcWizard.scheme.emacs "Emacs / w3m のキーバインドをエミュレート">
-<!ENTITY keySnail.rcWizard.scheme.empty "無し">
-
-<!ENTITY keySnail.rcWizard.selectLocaleDescription "初期化ファイルの言語を選んでください (コマンド説明やドキュメントに影響します)">
-<!ENTITY keySnail.rcWizard.locale.en "英語">
-<!ENTITY keySnail.rcWizard.locale.ja "日本語">
-
-<!ENTITY keySnail.rcWizard.selectScheme.insertDocument "ドキュメントを初期化ファイル内に挿入する">
-
-<!-- PAGE a-3 -->
-
-<!ENTITY keySnail.rcWizard.settingRcFile "特殊キーの設定を行います">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription1 "変更したいキーがあればテキストボックスかその右のボタンをクリックし、新たなキーを入力して下さい。その設定が初期化ファイルに書き込まれます。">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription2 "C- は「Ctrl や Command」と、 M- は「Alt や Meta」と同時にキーを入力することを意味します。">
-<!ENTITY keySnail.rcWizard.settingRcFileDescription3 "すなわち C-g は Ctrl + g を、 C-M-r は Ctrl + Alt + r を同時に押す、といった具合になります。">
-
-<!ENTITY keySnail.rcWizard.key.quit "Quit key">
-<!ENTITY keySnail.rcWizard.key.help "Help key">
-<!ENTITY keySnail.rcWizard.key.escape "Escape key">
-<!ENTITY keySnail.rcWizard.key.macroStart "Macro Start key">
-<!ENTITY keySnail.rcWizard.key.macroEnd "Macro End / Play key">
-<!ENTITY keySnail.rcWizard.key.suspend "Suspension switch key">
-
-<!ENTITY keySnail.rcWizard.key.universalArgument "Universal argument key">
-<!ENTITY keySnail.rcWizard.key.negativeArgument1 "Negative argument key 1">
-<!ENTITY keySnail.rcWizard.key.negativeArgument2 "Negative argument key 2">
-<!ENTITY keySnail.rcWizard.key.negativeArgument3 "Negative argument key 3">
-
-<!ENTITY keySnail.rcWizard.key.quit.description "キー入力のキャンセル等に用いられます">
-<!ENTITY keySnail.rcWizard.key.help.description "キーバインドの一覧表示等に用いられます">
-<!ENTITY keySnail.rcWizard.key.escape.description "このキーの後に続けて入力されたキーは Firefox に直接送られます">
-<!ENTITY keySnail.rcWizard.key.macroStart.description "キーマクロの定義を開始します">
-<!ENTITY keySnail.rcWizard.key.macroEnd.description "キーマクロの定義を終了 ＆ 記録されたキーマクロの再生を行います">
-<!ENTITY keySnail.rcWizard.key.suspend.description "一時停止状態を切り替えるキーです">
-
-<!ENTITY keySnail.rcWizard.key.universalArgument.description "前置引数の入力を開始します">
-<!ENTITY keySnail.rcWizard.key.negativeArgument.description "負の前置引数の入力を開始します">
+<!ENTITY keySnail.rcWizard.label.description "説明">
 
 <!-- PAGE b-1 -->
 

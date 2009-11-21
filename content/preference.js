@@ -53,6 +53,9 @@ var ksPreference = {
         case "C-M":
             this.digitArgumentList.selectedIndex = 3;
             break;
+        case "Digit":
+            this.digitArgumentList.selectedIndex = 4;
+            break;
         default:
             this.digitArgumentList.selectedIndex = 0;
             break;
@@ -660,30 +663,6 @@ var ksPreference = {
 
     // ============================== Generate init file ============================== //
 
-    createSeparator: function createSeparator(label) {
-        var separator = [];
-        const SEPARATOR_LENGTH = 74;
-
-        separator.push("// ");
-
-        if (label)
-        {
-            var hunkLen = Math.round((SEPARATOR_LENGTH - label.length) / 2) - 1;
-
-            separator.push(new Array(hunkLen).join("="));
-            separator.push(" " + label + " ");
-            separator.push(new Array(hunkLen + (label.length % 2 == 0 ? 1 : 0)).join("="));
-        }
-        else
-        {
-            separator.push(new Array(SEPARATOR_LENGTH).join("="));
-        }
-
-        separator.push(" //");
-
-        return separator.join("");
-    },
-
     formatDescription: function (desc) {
         desc = desc.replace(/\(.*\)/g, "");
         desc = desc.replace(/\//g, "");
@@ -754,7 +733,7 @@ var ksPreference = {
                 continue;
 
             if (row[KS_MODE] != mode) {
-                contentHolder.push(this.createSeparator());
+                contentHolder.push(this.modules.util.createSeparator());
                 mode = row[KS_MODE];
             }
 
@@ -782,7 +761,7 @@ var ksPreference = {
     },
 
     generateInitFile: function () {
-        var contentHolder = [this.createSeparator("KeySnail Init File")];
+        var contentHolder = [this.modules.util.createSeparator("KeySnail Init File")];
 
         // 0. Preserved code
         var preserve = this.modules.userscript.preserve;
@@ -791,24 +770,24 @@ var ksPreference = {
         contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription1"));
         contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription2"));
 
-        contentHolder.push(this.createSeparator());
+        contentHolder.push(this.modules.util.createSeparator());
         contentHolder.push(preserve.beginSign);
         if (this.preservedEditBox.value) {
             contentHolder.push(this.preservedEditBox.value);
             this.modules.userscript.preserve.code = this.preservedEditBox.value;
         }
         contentHolder.push(preserve.endSign);
-        contentHolder.push(this.createSeparator());
+        contentHolder.push(this.modules.util.createSeparator());
 
         // 1. Special keys
         contentHolder.push("");
-        contentHolder.push(this.createSeparator("Special key settings"));
+        contentHolder.push(this.modules.util.createSeparator("Special key settings"));
         this.generateSpecialKeySettings(contentHolder);
         contentHolder.push("");
 
         // 2. Hooks
 
-        contentHolder.push(this.createSeparator("Hooks"));
+        contentHolder.push(this.modules.util.createSeparator("Hooks"));
         this.generateHookSettings(contentHolder);
         contentHolder.push("");
 
@@ -818,7 +797,7 @@ var ksPreference = {
 
         // 4. KeyBindings
 
-        contentHolder.push(this.createSeparator("Key bindings"));
+        contentHolder.push(this.modules.util.createSeparator("Key bindings"));
         contentHolder.push("");
 
         var crushingIndexList = this.generateKeyBindSettings(contentHolder);
@@ -849,14 +828,7 @@ var ksPreference = {
         return output;
     },
 
-    /**
-     * String => 'String'
-     * @param {string} aStr
-     * @returns {string}
-     */
-    toStringForm: function (aStr) {
-        return (typeof aStr == "string") ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "";
-    },
+
 
     generateSpecialKeySettings: function (aContentHolder) {
         aContentHolder.push("");
@@ -882,7 +854,7 @@ var ksPreference = {
             this.modules.hook.hookList[hookName].forEach(
                 function (func, i) {
                     if (func.ksDefinedInExternalFile) {
-                        Application.console.log("Function set to hook in external file found. Ignore.\n" + func);
+                        // Application.console.log("Function set to hook in external file found. Ignore.\n" + func);
                         return;
                     }
 
@@ -896,7 +868,7 @@ var ksPreference = {
 
                     var method = (i == 0) ? "set" : "addTo";
                     aContentHolder.push("hook." + method + "Hook(" +
-                                        this.toStringForm(hookName) + ", " +
+                                        this.modules.util.toStringForm(hookName) + ", " +
                                         funcStr + ");");
                 }, this);
         }
@@ -904,7 +876,7 @@ var ksPreference = {
 
     generateBlackListSettings: function (aContentHolder) {
         if (this.blackList.length) {
-            aContentHolder.push(this.createSeparator("Black list"));
+            aContentHolder.push(this.modules.util.createSeparator("Black list"));
             aContentHolder.push("");
             aContentHolder.push(ksPreference.beautifyCode(['hook.addToHook("LocationChange",',
                                              'function (aNsURI) {',
@@ -915,7 +887,7 @@ var ksPreference = {
             aContentHolder.push("key.blackList = [");
             for (var i = 0; i < this.blackList.length; ++i) {
                 var commma = (i == this.blackList.length - 1) ? "" : ",";
-                aContentHolder.push("    " + this.toStringForm(this.blackList[i]) + commma);
+                aContentHolder.push("    " + this.modules.util.toStringForm(this.blackList[i]) + commma);
             }
             aContentHolder.push("];");
             aContentHolder.push("");
@@ -965,7 +937,7 @@ var ksPreference = {
                 var multiKeySetting = [];
                 sameCommandKeys.forEach(function (aKey) {
                                             var sequence = aKey.split(" ");
-                                            multiKeySetting.push('[' + sequence.map(this.toStringForm).join(", ") + ']');
+                                            multiKeySetting.push('[' + sequence.map(this.modules.util.toStringForm).join(", ") + ']');
                                         }, this);
                 keySetting = "[" + multiKeySetting.join(", ") + "]";
             } else {
@@ -973,9 +945,9 @@ var ksPreference = {
                 if (row[KS_KEY_STRING].length) {
                     sequence = row[KS_KEY_STRING].split(" ");
                     if (sequence.length > 1) {
-                        keySetting = '[' + sequence.map(this.toStringForm).join(", ") + ']';
+                        keySetting = '[' + sequence.map(this.modules.util.toStringForm).join(", ") + ']';
                     } else {
-                        keySetting = this.toStringForm(row[KS_KEY_STRING]);
+                        keySetting = this.modules.util.toStringForm(row[KS_KEY_STRING]);
                     }
                 } else {
                     keySetting = "''";
@@ -987,7 +959,7 @@ var ksPreference = {
             var src = "key.set" + ksKeybindTreeView.modes[row[KS_MODE]] + "Key(" +
                 keySetting +
                 ", " + (useBeautifier ? this.beautifyCode(row[KS_FUNCTION]) : row[KS_FUNCTION]) +
-                (row[KS_DESC] ? ", " + this.toStringForm(row[KS_DESC]) : "") +
+                (row[KS_DESC] ? ", " + this.modules.util.toStringForm(row[KS_DESC]) : "") +
                 ksNoRepeatString + ");\n";
 
             // push all prefix key

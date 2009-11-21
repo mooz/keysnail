@@ -754,6 +754,9 @@ KeySnail.Key = {
         case "C-M":
             modifier = this.isControlKey(aEvent) && this.isMetaKey(aEvent);
             break;
+        case "Digit":
+            modifier = !this.modules.util.isWritable(aEvent);
+            break;
         default:
             break;
         }
@@ -1209,7 +1212,8 @@ KeySnail.Key = {
             coef = -1;
             break;
         default:
-            while (typeof(aKeySequence[i]) == "string" &&
+            while (typeof aKeySequence[i] === "string" &&
+                   this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type") !== "Digit" &&
                    this.isDigitArgumentKey(this.stringToKeyEvent(aKeySequence[i])))
             {
                 i++;

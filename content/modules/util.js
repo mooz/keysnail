@@ -13,9 +13,12 @@ KeySnail.Util = {
 
     init: function () {
         this.sandboxForSafeEval = new Components.utils.Sandbox("about:blank");
+    },
 
-        this.userLocale = this.getUnicharPref("general.useragent.locale");
-        this.userLocale = {
+    get userLocale() {
+        var locale = this.getUnicharPref("general.useragent.locale");
+
+        return {
             // ja
             "ja"        : "ja",
             "ja-JP"     : "ja",
@@ -24,10 +27,10 @@ KeySnail.Util = {
             "JP"        : "ja",
             // en
             "en-US"     : "en"
-        }[this.userLocale] || "en";
+        }[locale] || "en";
     },
 
-    get focusedElement () {
+    get focusedElement() {
         return document.commandDispatcher.focusedElement;
     },
 
@@ -417,21 +420,24 @@ KeySnail.Util = {
      * @returns {string} localized key on success and string key on failure
      */
     getLocaleString: function (aStringKey, aReplacements) {
-        if (!this._stringBundle) {
+        if (!this._stringBundle)
+        {
             const kBundleURI = "chrome://keysnail/locale/keysnail.properties";
             var bundleSvc = Components.classes["@mozilla.org/intl/stringbundle;1"]
                 .getService(Components.interfaces.nsIStringBundleService);
             this._stringBundle = bundleSvc.createBundle(kBundleURI);
         }
-        try {
+
+        try
+        {
             if (!aReplacements)
                 return this._stringBundle.GetStringFromName(aStringKey);
             else
                 return this._stringBundle
                 .formatStringFromName(aStringKey, aReplacements, aReplacements.length);
         }
-        catch (ex) {
-            this.message(ex);
+        catch (ex)
+        {
             return aStringKey;
         }
     },
@@ -475,11 +481,13 @@ KeySnail.Util = {
         if (typeof aDirectory == "string")
             aDirectory = this.openFile(aDirectory);
 
-        if (aDirectory.isDirectory()) {
+        if (aDirectory.isDirectory())
+        {
             var entries = aDirectory.directoryEntries;
             var array = [];
 
-            while (entries.hasMoreElements()) {
+            while (entries.hasMoreElements())
+            {
                 var entry = entries.getNext();
                 array.push(entry.QueryInterface(Components.interfaces.nsIFile));
             }
@@ -488,7 +496,9 @@ KeySnail.Util = {
                 array.sort(function (a, b) b.isDirectory() - a.isDirectory() ||  String.localeCompare(a.path, b.path));
 
             return array;
-        } else {
+        }
+        else
+        {
             return [];
         }
     },
@@ -693,10 +703,10 @@ KeySnail.Util = {
     },
 
     /**
-     * Eval in sandbox 
+     * Eval in sandbox
      * @param {} aContent
      * @param {} aURI
-     * @returns {} 
+     * @returns {}
      */
     evalInSandbox: function (aContent, aURI) {
         var sandbox = new Components.utils.Sandbox(aURI || content.document.location.href);
@@ -794,6 +804,43 @@ KeySnail.Util = {
         }
 
         return aNodes[0].text();
+    },
+
+    // }} ======================================================================= //
+
+    // String {{ ================================================================ //
+
+    createSeparator: function (label) {
+        var separator = [];
+        const SEPARATOR_LENGTH = 74;
+
+        separator.push("// ");
+
+        if (label)
+        {
+            var hunkLen = Math.round((SEPARATOR_LENGTH - label.length) / 2) - 1;
+
+            separator.push(new Array(hunkLen).join("="));
+            separator.push(" " + label + " ");
+            separator.push(new Array(hunkLen + (label.length % 2 == 0 ? 1 : 0)).join("="));
+        }
+        else
+        {
+            separator.push(new Array(SEPARATOR_LENGTH).join("="));
+        }
+
+        separator.push(" //");
+
+        return separator.join("");
+    },
+
+    /**
+     * String => 'String'
+     * @param {string} aStr
+     * @returns {string}
+     */
+    toStringForm: function (aStr) {
+        return (typeof aStr == "string") ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "";
     },
 
     // }} ======================================================================= //

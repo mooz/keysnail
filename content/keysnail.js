@@ -8,22 +8,26 @@
 var KeySnail = {
     modules: {},
 
-    get windowType () {
+    get windowType() {
         if (this._windowType)
             return this._windowType;
 
         return this._windowType = window.document.documentElement.getAttribute("windowtype");
     },
 
-    get version () {
+    get version() {
         return this.extInfo.version;
+    },
+
+    get id() {
+        return "keysnail@mooz.github.com";
     },
 
     init: function () {
         var extmanager = Components.classes["@mozilla.org/extensions/manager;1"]
             .createInstance(Components.interfaces.nsIExtensionManager);
 
-        this.extInfo = extmanager.getItemForID("keysnail@mooz.github.com");
+        this.extInfo = extmanager.getItemForID(this.id);
 
         // Arrange modules {{ ======================================================= //
 
@@ -96,7 +100,8 @@ var KeySnail = {
     registerModule: function (aModuleName) {
         // KeySnail.Key => modules.key
         // KeySnail.HTML => modules.html
-        this.modules.__defineGetter__(aModuleName.toLowerCase(), function () KeySnail[aModuleName]);
+        this.modules[aModuleName.toLowerCase()] = this[aModuleName];
+        // this.modules.__defineGetter__(aModuleName.toLowerCase(), function () KeySnail[aModuleName]);
     },
 
     /**

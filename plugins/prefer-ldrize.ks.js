@@ -271,32 +271,39 @@ var preferLDRize =
          }
 
          function setup() {
-             // check for site local status
-             if (typeof content.document.__preferLDRizeStatus__ === "undefined")
+             if (!content || !content.document)
              {
-                 // check for the black list
-                 if (plugins.options["prefer_ldrize.black_list"] &&
-                     // check if current url does not match any pattrens in black list
-                     plugins.options["prefer_ldrize.black_list"].some(
-                         function (aPattern) {
-                             return (typeof content.location.href == "string" &&
-                                     content.location.href.match(aPattern));
-                         }))
+                 self.status = false;
+             }
+             // check for site local status
+             else
+             {
+                 if (typeof content.document.__preferLDRizeStatus__ === "undefined")
                  {
-                     // matched black list
-                     self.status = false;
+                     // check for the black list
+                     if (plugins.options["prefer_ldrize.black_list"] &&
+                         // check if current url does not match any pattrens in black list
+                         plugins.options["prefer_ldrize.black_list"].some(
+                             function (aPattern) {
+                                 return (typeof content.location.href == "string" &&
+                                         content.location.href.match(aPattern));
+                             }))
+                     {
+                         // matched black list
+                         self.status = false;
 
+                     }
+                     else
+                     {
+                         self.status = true;
+                     }
+
+                     content.document.__preferLDRizeStatus__ = self.status;
                  }
                  else
                  {
-                     self.status = true;
+                     self.status = content.document.__preferLDRizeStatus__;
                  }
-
-                 content.document.__preferLDRizeStatus__ = self.status;
-             }
-             else
-             {
-                 self.status = content.document.__preferLDRizeStatus__;
              }
 
              setKeymap(ldrizeEnabled());

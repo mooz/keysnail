@@ -63,8 +63,8 @@ KeySnail.Prompt = function () {
         ignoreDuplication   : true,
         useMigemo           : false,
         migemoMinWordLength : 2,
-        listboxMaxRows      : 12,
-        displayDelayTime    : 300,
+        listboxMaxRows      : 15,
+        displayDelayTime    : 200,
         actionsListStyle    : ["text-decoration: underline;"]
     };
 
