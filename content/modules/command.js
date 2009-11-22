@@ -96,12 +96,14 @@ KeySnail.Command = {
                 }
             }, this);
 
-        return this.commandList;
+        return commandList;
     },
 
     interpreter: function () {
         var savedSubstrMatch = this.modules.prompt.substrMatch;
-        with (this.modules) {
+
+        with (this.modules)
+        {
             prompt.substrMatch = false;
             prompt.read("Eval:",
                         function (aStr) {
@@ -112,11 +114,11 @@ KeySnail.Command = {
                             catch (x)
                             {
                                 display.echoStatusBar(x);
-                                this.message(x);
+                                util.message(x);
                             }
+
                             prompt.substrMatch = savedSubstrMatch;
-                        }, null, this.createCommandList(),
-                        null, 0, "command");
+                        }, null, this.createCommandList(), null, 0, "command");
         }
     },
 

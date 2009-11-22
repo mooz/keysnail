@@ -1352,7 +1352,7 @@ KeySnail.Prompt = function () {
             listbox   = document.getElementById("keysnail-completion-list");
 
             // this holds all history and
-            historyHolder = new Object;
+            historyHolder            = {};
             historyHolder["default"] = [];
 
             // set up flags
@@ -1370,6 +1370,7 @@ KeySnail.Prompt = function () {
             self.setActionKey("selector", "ESC"    , "prompt-cancel");
             self.setActionKey("selector", "RET"    , "prompt-decide");
             self.setActionKey("selector", "C-RET"  , "prompt-continuous-decide");
+            self.setActionKey("selector", "M-RET"  , "prompt-continuous-decide-and-next");
             self.setActionKey("selector", "<down>" , "prompt-next-line");
             self.setActionKey("selector", "<tab>"  , "prompt-next-line");
             self.setActionKey("selector", "<up>"   , "prompt-previous-line");
@@ -1382,8 +1383,6 @@ KeySnail.Prompt = function () {
         },
 
         setActionKey: function(aType, aKey, aAction) {
-            // self.message(aType + " :: " + aKey);
-            // modules.util.listProperty(actionKeys);
             actionKeys[aType][aKey] = aAction;
         },
 
@@ -1417,8 +1416,10 @@ KeySnail.Prompt = function () {
 
         set actionListStyle(aStyle) {
             var style;
-            switch (typeof(aStyle)) {
-                case "object":
+
+            switch (typeof aStyle)
+            {
+            case "object":
                 if (typeof(aStyle[0]) == "string")
                     style = [aStyle[0]];
                 break;
@@ -1449,7 +1450,8 @@ KeySnail.Prompt = function () {
             if (!promptbox)
                 return;
 
-            if (currentCallback) {
+            if (currentCallback)
+            {
                 modules.display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
@@ -1505,7 +1507,8 @@ KeySnail.Prompt = function () {
             if (!promptbox)
                 return;
 
-            if (currentCallback) {
+            if (currentCallback)
+            {
                 modules.display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
