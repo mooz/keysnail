@@ -57,6 +57,7 @@ SCHEME.keybindings["global"] = [
     // KeySnail
     ["C-M-r", "reload_the_initialization_file", true],
     ["M-x", "ext_select", true],
+    ["M-:", "command_interpreter", true],
     [[SCHEME.specialKeys.help, "b"], "list_all_keybindings"],
     // Misc
     ["C-m", "generate_the_return_key_code"],

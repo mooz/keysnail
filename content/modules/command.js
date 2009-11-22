@@ -31,14 +31,18 @@ KeySnail.Command = {
         }
 
         // for window which does not have goDoCommand()
-        if (typeof(goDoCommand) == 'undefined') {
-            document.defaultView.goDoCommand = function (aCommand) {
-                try {
+        if (typeof(goDoCommand) == 'undefined')
+        {
+            document.defaultView.goDoCommand = function (aCommand)
+            {
+                try
+                {
                     var controller =
                         top.document.commandDispatcher.getControllerForCommand(aCommand);
                     if (controller && controller.isCommandEnabled(aCommand))
                         controller.doCommand(aCommand);
-                } catch(e) {
+                } catch(e)
+                {
                     this.message("An error " + e + " occurred executing the " + aCommand + " command\n");
                 }
             };
@@ -47,39 +51,69 @@ KeySnail.Command = {
 
     // ==================== Command interpreter ====================
 
+    getArgList: function (aFunc) {
+        return aFunc.toString().split('\n')[0].match(/\(.*\)/);
+    },
+
+    createMethodsList: function (aObjectName) {
+        var commandList = [];
+        var global = document.defaultView;
+
+        try {
+            for (var property in global[aObjectName])
+            {
+                var cand = global[aModuleName][property];
+
+                if (typeof(cand) == 'function')
+                {
+                    var arg = this.getArgList(cand);
+                    commandList.push(aModuleName + "." + property + arg + ";");
+                }
+            }
+        } catch (x) {}
+
+        return commandList;
+    },
+
     createCommandList: function () {
-        if (this.commandList) {
+        if (this.commandList)
             return this.commandList;
-        }
 
-        var moduleList = [str for each (str in
-                                        (function (o) {
-                                             for (var k in o) yield k;
-                                         })(KeySnail.modules))];
-
+        var moduleList  = [module for (module in KeySnail.modules)];
         var commandList = [];
 
         moduleList.forEach(
             function (aModuleName) {
-                for (var property in this.modules[aModuleName]) {
+                for (var property in this.modules[aModuleName])
+                {
                     var cand = this.modules[aModuleName][property];
-                    if (typeof(cand) == 'function') {
-                        var arg = cand.toString().split('\n')[0].match(/\(.*\)/);
+
+                    if (typeof(cand) == 'function')
+                    {
+                        var arg = this.getArgList(cand);
                         commandList.push(aModuleName + "." + property + arg + ";");
                     }
                 }
             }, this);
 
-        return commandList;
+        return this.commandList;
     },
 
     interpreter: function () {
         var savedSubstrMatch = this.modules.prompt.substrMatch;
         with (this.modules) {
             prompt.substrMatch = false;
-            prompt.read("Command:",
+            prompt.read("Eval:",
                         function (aStr) {
-                            Function("with (KeySnail.modules) { " + aStr + " }")();
+                            try
+                            {
+                                Function("with (KeySnail.modules) { " + aStr + "; }")();
+                            }
+                            catch (x)
+                            {
+                                display.echoStatusBar(x);
+                                this.message(x);
+                            }
                             prompt.substrMatch = savedSubstrMatch;
                         }, null, this.createCommandList(),
                         null, 0, "command");
@@ -128,17 +162,18 @@ KeySnail.Command = {
             || gBrowser.contentWindow.document;
         var xPathResults = aElementsRetriever(doc);
 
-        if (xPathResults.snapshotLength == 0) {
+        if (xPathResults.snapshotLength == 0)
             return;
-        }
 
-        if (aNum >= xPathResults.snapshotLength) {
+        if (aNum >= xPathResults.snapshotLength)
+        {
             aNum = xPathResults.snapshotLength - 1;
         }
 
         var item = xPathResults.snapshotItem(aNum);
         while (this.isSkippable(item, doc) &&
-               aNum < xPathResults.snapshotLength) {
+               aNum < xPathResults.snapshotLength)
+        {
             item = xPathResults.snapshotItem(++aNum);
         }
 
@@ -159,31 +194,30 @@ KeySnail.Command = {
 
         var elemCount = xPathResults.snapshotLength;
 
-        if (!elemCount || !focused) {
+        if (!elemCount || !focused)
             return;
-        }
 
-        for (var i = 0; i < elemCount; ++i) {
-            if (focused == xPathResults.snapshotItem(i)) {
+        for (var i = 0; i < elemCount; ++i)
+        {
+            if (focused == xPathResults.snapshotItem(i))
                 break;
-            }
         }
 
-        if (i == elemCount) {
+        if (i == elemCount)
+        {
             // no element focused
             return;
         }
 
         var next = this.getNextIndex(i, elemCount, aForward, aCycle);
-        if (next < 0) {
+        if (next < 0)
             return;
-        }
 
-        while (this.isSkippable(xPathResults.snapshotItem(next), doc)) {
+        while (this.isSkippable(xPathResults.snapshotItem(next), doc))
+        {
             next = this.getNextIndex(next, elemCount, aForward, aCycle);
-            if (next < 0) {
+            if (next < 0)
                 return;
-            }
         }
 
         var elem = xPathResults.snapshotItem(next);
@@ -194,15 +228,15 @@ KeySnail.Command = {
     getNextIndex: function (aCurrent, aMax, aForward, aCycle) {
         var next = aForward ? aCurrent + 1 : aCurrent - 1;
 
-        if (next < 0 || next >= aMax) {
+        if (next < 0 || next >= aMax)
+        {
             if (!aCycle)
                 return -1;
 
-            if (next < 0) {
+            if (next < 0)
                 next = aMax - 1;
-            } else {
+            else
                 next = 0;
-            }
         }
 
         return next;
@@ -217,10 +251,12 @@ KeySnail.Command = {
             .getService(Ci.nsIWindowMediator);
         var enumerator = windowMediator.getEnumerator(null);
 
-        while (enumerator.hasMoreElements()) {
+        while (enumerator.hasMoreElements())
+        {
             var win = enumerator.getNext();
             var clear = win.document.getElementById("Console:clear");
-            if (clear) {
+            if (clear)
+            {
                 clear.doCommand();
                 break;
             }
@@ -230,16 +266,18 @@ KeySnail.Command = {
     // ==================== incremental search ==================== //
 
     closeFindBar: function () {
-        if (this.gFindBar && !this.gFindBar.hidden) {
+        if (this.gFindBar && !this.gFindBar.hidden)
             this.gFindBar.close();
-        }
     },
 
     iSearchForward: function () {
         // this.findCommand(false);
-        if (this.gFindBar.hidden) {
+        if (this.gFindBar.hidden)
+        {
             this.gFindBar.onFindCommand();
-        } else {
+        }
+        else
+        {
             this.gFindBar.onFindAgainCommand(false);
             this.gFindBar._findField.focus();
             // goDoCommand("cmd_selectAll");
@@ -248,9 +286,12 @@ KeySnail.Command = {
 
     iSearchBackward: function () {
         // this.findCommand(true);
-        if (this.gFindBar.hidden) {
+        if (this.gFindBar.hidden)
+        {
             this.gFindBar.onFindCommand();
-        } else {
+        }
+        else
+        {
             this.gFindBar.onFindAgainCommand(true);
             this.gFindBar._findField.focus();
             // goDoCommand("cmd_selectAll");
@@ -260,13 +301,17 @@ KeySnail.Command = {
     findCommand: function (aDirection) {
         var isFocused = this.modules.util.focusedElement == this.gFindBar._findField.inputField;
 
-        if (this.gFindBar.hidden) {
+        if (this.gFindBar.hidden)
+        {
             this.gFindBar.open();
-        } else if (isFocused) {
+        }
+        else if (isFocused)
+        {
             this.gFindBar.onFindAgainCommand(aDirection);
         }
 
         this.gFindBar._findField.inputField.focus();
+
         if (isFocused)
             goDoCommand("cmd_selectNone");
         else
@@ -275,7 +320,8 @@ KeySnail.Command = {
 
     focusToById: function (aId) {
         var elem = document.getElementById(aId);
-        if (elem) {
+        if (elem)
+        {
             elem.select();
             elem.focus();
         }
@@ -287,8 +333,10 @@ KeySnail.Command = {
 
         var urlList = [];
 
-        for (var i = 0; i < items.length; ++i) {
-            if (items[i].node.uri.match(/^(https?|ftp):/)) {
+        for (var i = 0; i < items.length; ++i)
+        {
+            if (items[i].node.uri.match(/^(https?|ftp):/))
+            {
                 urlList.push([this.modules.util.getFaviconPath(items[i].node.uri),
                               items[i].label,
                               items[i].node.uri,
@@ -296,7 +344,8 @@ KeySnail.Command = {
             }
         }
 
-        with (this.modules) {
+        with (this.modules)
+        {
             prompt.selector({message: "Pattern: ",
                              collection: urlList,
                              // [icon, title, url, id]
@@ -338,22 +387,22 @@ KeySnail.Command = {
     },
 
     inputHandleKey: function (aEvent, aCommand, aSelectedCommand, aDOMKey) {
-        if (aEvent.originalTarget.localName.toUpperCase() == 'TEXTAREA') {
-            // ########################################
-            if (this.marked(aEvent)) {
+        if (aEvent.originalTarget.localName.toUpperCase() == 'TEXTAREA')
+        {
+            if (this.marked(aEvent))
                 goDoCommand(aSelectedCommand);
-            } else {
+            else
                 goDoCommand(aCommand);
-            }
-        } else if (this.modules.util.isMenu()) {
-            // ########################################
+        }
+        else if (this.modules.util.isMenu())
+        {
             this.autoCompleteHandleKey(aDOMKey);
-        } else {
-            // ########################################
-            this.modules.key
-                .generateKey(aEvent.originalTarget, aDOMKey, true, 'keydown');
-            this.modules.key
-                .generateKey(aEvent.originalTarget, aDOMKey, true, 'keypress');
+        }
+        else
+        {
+            this.modules.key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keydown');
+            this.modules.key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keypress');
+            this.modules.key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keyup');
         }
     },
 
@@ -363,7 +412,8 @@ KeySnail.Command = {
         var frame = document.commandDispatcher.focusedWindow
             || gBrowser.contentWindow;
 
-        if (aEvent.originalTarget.localName.toUpperCase() == 'TEXTAREA') {
+        if (aEvent.originalTarget.localName.toUpperCase() == 'TEXTAREA')
+        {
             var textarea = aEvent.originalTarget;
             var box = textarea.ownerDocument.getBoxObjectFor(textarea);
             var style = frame.document.defaultView.getComputedStyle(textarea, null);
@@ -371,9 +421,12 @@ KeySnail.Command = {
             // get cursor line number in the textarea (zero origin)
             var lines = textarea.value.split('\n');
             var selStart = textarea.selectionStart;
-            for (var i = 0, count = 0; i < lines.length; ++i) {
+            for (var i = 0, count = 0; i < lines.length; ++i)
+            {
                 count += (lines[i].length + 1);
-                if (count > selStart) {
+
+                if (count > selStart)
+                {
                     var cursorLineNum = i;
                     break;
                 }
@@ -390,7 +443,9 @@ KeySnail.Command = {
             var destY = box.y + lineHeight * cursorLineNum - textarea.scrollTop;
 
             frame.scrollTo(destX - frame.innerWidth / 2, destY - frame.innerHeight / 2);
-        } else {
+        }
+        else
+        {
             // original code from XUL/Migemo
             var selection = frame.getSelection();
             var range = frame.document.createRange();
@@ -435,17 +490,21 @@ KeySnail.Command = {
         var count = 0, prevCount;
         var startLineNum, endLineNum; // line number
         var startHeadCount = 0, endHeadCount = 0;
-        for (var i = 0; i < aLines.length; ++i) {
+
+        for (var i = 0; i < aLines.length; ++i)
+        {
             prevCount = count;
             // includes last '\n' (+ 1)
             count += (aLines[i].length + 1);
 
             if (typeof(startLineNum) == 'undefined' &&
-                count > aSelStart) {
+                count > aSelStart)
+            {
                 startLineNum = i;
                 startHeadCount = aSelStart - prevCount;
             }
-            if (count > aSelEnd) {
+            if (count > aSelEnd)
+            {
                 endLineNum = i;
                 endHeadCount = aSelEnd - prevCount;
                 break;
@@ -475,7 +534,8 @@ KeySnail.Command = {
     },
 
     yankRectangle: function (aInput, aRectangle) {
-        if (!aRectangle) {
+        if (!aRectangle)
+        {
             this.modules.display.echoStatusBar("Kill ring is empty", 3000);
             return;
         }
@@ -495,26 +555,33 @@ KeySnail.Command = {
         // ================ process {{ ================ //
         // now we process chars
         var output = "";
-        for (i = 0; i < startLineNum; ++i) {
+        for (i = 0; i < startLineNum; ++i)
+        {
             output += lines[i] + "\n";
         }
 
         var padHead, padTail;
-        for (var j = 0; j < aRectangle.length; ++j, ++i) {
-            if (i < lines.length) {
+        for (var j = 0; j < aRectangle.length; ++j, ++i)
+        {
+            if (i < lines.length)
+            {
                 padHead = lines[i].slice(0, startHeadCount);
                 padTail = lines[i].slice(startHeadCount, lines[i].length);
-            } else {
+            }
+            else
+            {
                 padHead = padTail = "";
             }
-            if (padHead.length < startHeadCount) {
+
+            if (padHead.length < startHeadCount)
                 padHead += new Array(startHeadCount - padHead.length + 1).join(" ");
-            }
+
             output += padHead + aRectangle[j] + padTail + "\n";
         }
 
         // copy rest line
-        for (; i < lines.length; ++i) {
+        for (; i < lines.length; ++i)
+        {
             output += lines[i] + "\n";
         }
         // ================ }} process ================ //
@@ -604,29 +671,30 @@ KeySnail.Command = {
         [from, to] = (startHeadCount < endHeadCount) ?
             [startHeadCount, endHeadCount] : [endHeadCount, startHeadCount];
 
-        if (aIsInsert) {
+        if (aIsInsert)
             to = from;
-        }
 
         // ================ process {{ ================ //
         // now we process chars
         var output = "";
-        for (i = 0; i < startLineNum; ++i) {
+        for (i = 0; i < startLineNum; ++i)
+        {
             output += lines[i] + "\n";
         }
 
         var padHead, padTail;
         // replace
-        for (i = startLineNum; i <= endLineNum; ++i) {
+        for (i = startLineNum; i <= endLineNum; ++i)
+        {
             // kill
-            if (aIsKill) {
+            if (aIsKill)
                 killedLines.push(lines[i].slice(from, to));
-            }
+
             // replace / delete
             padHead = lines[i].slice(0, from);
-            if (padHead.length < from && !aNoExSpace) {
+            if (padHead.length < from && !aNoExSpace)
                 padHead += new Array(from - padHead.length + 1).join(" ");
-            }
+
             padTail = lines[i].slice(to, lines[i].length);
             output += padHead + aReplacement + padTail + "\n";
         }
@@ -635,7 +703,8 @@ KeySnail.Command = {
         var rectEndPos = output.length - (padTail.length + 1);
 
         // copy rest line
-        for (; i < lines.length; ++i) {
+        for (; i < lines.length; ++i)
+        {
             output += lines[i] + "\n";
         }
         // ================ }} process ================ //
@@ -645,31 +714,36 @@ KeySnail.Command = {
 
         // set caret position
         var caretPos = 0;
-        if (typeof(aInput.ksMarked) == "number") {
+        if (typeof(aInput.ksMarked) == "number")
+        {
             var replaceeLen = to - from;
             var gap = aReplacement.length - replaceeLen;
 
-            if (aIsInsert) {
+            if (aIsInsert)
+            {
                 // just put caret to the original selection start (as in Emacs)
                 caretPos = selStart;
-            } else {
+            }
+            else
+            {
                 // we need to put caret on [*] position
-                if (aInput.ksMarked == selEnd) {
+                if (aInput.ksMarked == selEnd)
+                {
                     // [*] selStart <------------- mark (selEnd)
                     // this.modules.display.prettyPrint("[*] selStart <------------- mark (selEnd)");
-                    if (startHeadCount < endHeadCount) {
+                    if (startHeadCount < endHeadCount)
                         caretPos = selStart;
-                    } else {
+                    else
                         caretPos = selStart + gap;
-                    }
-                } else {
+                }
+                else
+                {
                     // mark (selStart) -------------> selEnd [*]
                     // this.modules.display.prettyPrint("mark (selStart) -------------> selEnd [*]");
-                    if (startHeadCount < endHeadCount) {
+                    if (startHeadCount < endHeadCount)
                         caretPos = rectEndPos;
-                    } else {
+                    else
                         caretPos = rectEndPos - aReplacement.length;
-                    }
                 }
             }
         }
@@ -705,9 +779,8 @@ KeySnail.Command = {
             return;
 
         var clipid = Components.interfaces.nsIClipboard;
-        var clip = Components.classes['@mozilla.org/widget/clipboard;1'].getService(clipid);
+        var clip   = Components.classes['@mozilla.org/widget/clipboard;1'].getService(clipid);
         if (!clip)
-
             return;
 
         ss.data = aText;
@@ -724,21 +797,25 @@ KeySnail.Command = {
     getClipboardText: function () {
         var clip = Components.classes["@mozilla.org/widget/clipboard;1"]
             .getService(Components.interfaces.nsIClipboard);
+        if (!clip)
+            return null;
 
         var trans = Components.classes["@mozilla.org/widget/transferable;1"]
             .createInstance(Components.interfaces.nsITransferable);
+        if (!trans)
+            return null;
         trans.addDataFlavor("text/unicode");
 
         clip.getData(trans, clip.kGlobalClipboard);
 
-        var str       = new Object();
-        var strLength = new Object();
+        var str       = {};
+        var strLength = {};
 
         trans.getTransferData("text/unicode", str, strLength);
+        if (str)
+            str = str.value.QueryInterface(Components.interfaces.nsISupportsString);
 
-        str = str.value.QueryInterface(Components.interfaces.nsISupportsString);
-
-        return str.data.substring(0, strLength.value / 2);
+        return str ? str.data.substring(0, strLength.value / 2) : null;
     },
 
     pushKillRing: function (aText) {
@@ -781,30 +858,55 @@ KeySnail.Command = {
         goDoCommand('cmd_copy');
     },
 
+    /**
+     * original code from Firemacs
+     * http://www.mew.org/~kazu/proj/firemacs/
+     * @param {String} text
+     * @returns
+     */
+    insertText: function (text) {
+        var command = 'cmd_insertText';
+        var controller = document.commandDispatcher.getControllerForCommand(command);
+
+        if (controller && controller.isCommandEnabled(command))
+        {
+            controller = controller.QueryInterface(Components.interfaces.nsICommandController);
+            var params = Components.classes['@mozilla.org/embedcomp/command-params;1'];
+            params = params.createInstance(Components.interfaces.nsICommandParams);
+            params.setStringValue('state_data', text);
+            controller.doCommandWithParams(command, params);
+        }
+    },
+
     insertKillRingText: function (aInput, aIndex, aSelect) {
         var oldScrollTop = aInput.scrollTop;
         var oldScrollLeft = aInput.scrollLeft;
 
-        if (aIndex < 0) {
+        if (aIndex < 0)
+        {
             // reset to the original text
             aInput.value = this.kill.originalText;
             aInput.selectionStart = aInput.selectionEnd = this.kill.originalSelStart;
-        } else {
+        }
+        else
+        {
             // normal insersion
-
             aInput.value = this.kill.originalText.slice(0, this.kill.originalSelStart)
                 + this.kill.ring[aIndex]
                 + this.kill.originalText.slice(this.kill.originalSelEnd, this.kill.originalText.length);
-            if (aSelect) {
+            if (aSelect)
+            {
                 aInput.selectionStart = this.kill.originalSelStart;
                 aInput.selectionEnd = aInput.selectionStart + this.kill.ring[aIndex].length;
-            } else {
+            }
+            else
+            {
                 aInput.selectionStart = this.kill.originalSelStart + this.kill.ring[aIndex].length;
                 aInput.selectionEnd = aInput.selectionStart;
             }
         }
 
-        aInput.scrollTop = oldScrollTop;
+        aInput.scrollTop  = oldScrollTop;
         aInput.scrollLeft = oldScrollLeft;
     },
 
@@ -813,38 +915,45 @@ KeySnail.Command = {
      * @param {KeyBoardEvent} aEvent
      */
     yank: function (aEvent, aArg) {
-        var i = aArg || 0;
+        var i     = aArg || 0;
         var input = aEvent.originalTarget;
 
         // yank() and yankPop() is directly passed to the key.set*Key()
         // so 'this' value becomes KeySnail
-        with (this.modules.command) {
-            try {
-                var clipboardText = getClipboardText();
-            } catch (x) {
+        with (this.modules.command)
+        {
+            var clipboardText = getClipboardText();
+
+            if (clipboardText === null)
+            {
                 goDoCommand('cmd_paste');
                 return;
             }
 
-            if (!clipboardText && !kill.ring.length) {
+            if (!clipboardText && !kill.ring.length)
+            {
                 modules.display.echoStatusBar("Kill ring empty", 2000);
                 return;
             }
 
             // copied outside the Firefox
-            if (kill.ring.length == 0 || clipboardText != kill.ring[0]) {
-                if (clipboardText.length > kill.textLengthMax) {
-                    goDoCommand('cmd_paste');
+            if (kill.ring.length == 0 || clipboardText != kill.ring[0])
+            {
+                if (kill.textLengthMax >= 0 && clipboardText.length > kill.textLengthMax)
+                {
+                    insertText(clipboardText);
                     return;
                 }
+
                 pushKillRing(clipboardText);
             }
 
-            i = Math.min(i, kill.ring.length - 1);
-            kill.originalText = input.value;
+            kill.originalText     = input.value;
             kill.originalSelStart = input.selectionStart;
-            kill.originalSelEnd = input.selectionEnd;
+            kill.originalSelEnd   = input.selectionEnd;
+            i = Math.min(i, kill.ring.length - 1);
             kill.index = i;
+
             insertKillRingText(input, i);
         }
     },
@@ -858,22 +967,26 @@ KeySnail.Command = {
         var lastFunc = this.modules.key.lastFunc;
 
         if ((lastFunc != this.modules.command.yank && lastFunc != this.modules.command.yankPop)
-            || (lastFunc == this.modules.command.yankPop && this.modules.command.kill.popFailed)) {
+            || (lastFunc == this.modules.command.yankPop && this.modules.command.kill.popFailed))
+        {
             this.modules.display.echoStatusBar("Previous command was not a yank", 2000);
             this.modules.command.kill.popFailed = true;
             return;
         }
         this.modules.command.kill.popFailed = false;
 
-        with (this.modules.command) {
-            if (!kill.ring.length) {
+        with (this.modules.command)
+        {
+            if (!kill.ring.length)
+            {
                 modules.display.echoStatusBar("Kill ring is empty", 2000);
                 originalText = null;
                 return;
             }
 
             kill.index++;
-            if (kill.index >= kill.ring.length) {
+            if (kill.index >= kill.ring.length)
+            {
                 kill.index = 0;
             }
 
@@ -883,9 +996,8 @@ KeySnail.Command = {
     },
 
     killLine: function (aEvent) {
-        if (this.marked(aEvent)) {
+        if (this.marked(aEvent))
             this.resetMark(aEvent);
-        }
 
         goDoCommand('cmd_selectEndLine');
         this.copySelectedText(aEvent.originalTarget);
@@ -947,51 +1059,45 @@ KeySnail.Command = {
     // ==================== Intra line ==================== //
 
     previousChar: function (aEvent) {
-        if (this.marked(aEvent)) {
+        if (this.marked(aEvent))
             goDoCommand('cmd_selectCharPrevious');
-        } else {
+        else
             goDoCommand('cmd_charPrevious');
-        }
     },
 
     nextChar: function (aEvent) {
-        if (this.marked(aEvent)) {
+        if (this.marked(aEvent))
             goDoCommand('cmd_selectCharNext');
-        } else {
+        else
             goDoCommand('cmd_charNext');
-        }
     },
 
     previousWord: function (aEvent) {
-        if (this.marked(aEvent)) {
+        if (this.marked(aEvent))
             goDoCommand('cmd_selectWordPrevious');
-        } else {
+        else
             goDoCommand('cmd_wordPrevious');
-        }
     },
 
     nextWord: function (aEvent) {
-        if (this.marked(aEvent)) {
+        if (this.marked(aEvent))
             goDoCommand('cmd_selectWordNext');
-        } else {
+        else
             goDoCommand('cmd_wordNext');
-        }
     },
 
     beginLine: function (aEvent) {
-        if (this.marked(aEvent)) {
+        if (this.marked(aEvent))
             goDoCommand('cmd_selectBeginLine');
-        } else {
+        else
             goDoCommand('cmd_beginLine');
-        }
     },
 
     endLine: function (aEvent) {
-        if (this.marked(aEvent)) {
+        if (this.marked(aEvent))
             goDoCommand('cmd_selectEndLine');
-        } else {
+        else
             goDoCommand('cmd_endLine');
-        }
     },
 
     // ==================== Transformation ==================== //
@@ -1011,18 +1117,12 @@ KeySnail.Command = {
     // },
 
     processForwardWord: function (aInput, aFilter) {
-        // for (var property in aInput) {
-        //     if (property.match("^scroll")) {
-        //         this.message(property + " = " + aInput[property]);
-        //     }
-        // }
-
-        var oldScrollTop = aInput.scrollTop;
+        var oldScrollTop  = aInput.scrollTop;
         var oldScrollLeft = aInput.scrollLeft;
 
-        var begin = aInput.selectionStart;
-        var end   = aInput.selectionEnd;
-        var text  = aInput.value;
+        var begin   = aInput.selectionStart;
+        var end     = aInput.selectionEnd;
+        var text    = aInput.value;
         var subword = text.slice(end).match(/[^a-zA-Z]*[a-zA-Z]+|[^a-zA-Z]+/);
 
         if (!!subword) {
@@ -1067,17 +1167,19 @@ KeySnail.Command = {
     // predicative
     marked: function (aEvent) {
         var orig = aEvent.originalTarget;
-        return (typeof(orig.ksMarked) == 'number' ||
-                typeof(orig.ksMarked) == 'boolean');
+
+        return (typeof orig.ksMarked === 'number' ||
+                typeof orig.ksMarked === 'boolean');
     },
 
     setMark: function (aEvent) {
         var orig = aEvent.originalTarget;
-        if (typeof(orig.selectionStart) == 'number') {
+
+        if (typeof(orig.selectionStart) == 'number')
             orig.ksMarked = orig.selectionStart;
-        } else {
+        else
             orig.ksMarked = true;
-        }
+
         this.modules.display.echoStatusBar('Mark set', 2000);
     },
 
@@ -1085,30 +1187,38 @@ KeySnail.Command = {
         var orig = aEvent.originalTarget;
         var mark = orig.ksMarked;
 
-        if (mark == undefined) {
+        if (mark == undefined)
+        {
             try {
                 goDoCommand('cmd_selectNone');
-            } catch (x) {
+            } catch (x) {}
 
-            }
             return;
         }
 
         orig.ksMarked = null;
 
-        try {
-            if (typeof(orig.selectionStart) == 'number' && orig.selectionStart >= 0) {
-                if (mark && (orig.selectionStart < mark)) {
+        try
+        {
+            if (typeof(orig.selectionStart) == 'number' && orig.selectionStart >= 0)
+            {
+                if (mark && (orig.selectionStart < mark))
+                {
                     // [cursor] <=========== [mark]
                     orig.selectionEnd = orig.selectionStart;
-                } else {
+                }
+                else
+                {
                     // [mark] ===========> [cursor]
                     orig.selectionStart = orig.selectionEnd;
                 }
-            } else {
+            }
+            else
+            {
                 goDoCommand('cmd_selectNone');
             }
-        } catch (e) {
+        } catch (e)
+        {
             // on find bar
             // [nsIDOMNSHTMLInputElement.selectionStart]"
             //  nsresult: "0x80004005 (NS_ERROR_FAILURE)"

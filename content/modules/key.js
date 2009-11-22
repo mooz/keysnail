@@ -681,7 +681,7 @@ KeySnail.Key = {
                         // displayable and writable
                         this.modules.util.stopEventPropagation(aEvent);
                         // insert repeated string
-                        this.insertText(new Array(this.prefixArgument + 1).join(String.fromCharCode(aEvent.charCode)));
+                        this.modules.command.insertText(new Array(this.prefixArgument + 1).join(String.fromCharCode(aEvent.charCode)));
                     }
                 }
                 this.backToNeutral("");
@@ -1305,25 +1305,6 @@ KeySnail.Key = {
             newEvent.ksNoHandle = true;
         }
         aTarget.dispatchEvent(newEvent);
-    },
-
-    /**
-     * original code from Firemacs
-     * http://www.mew.org/~kazu/proj/firemacs/
-     * @param {String} text
-     * @returns
-     */
-    insertText: function (text) {
-        var command = 'cmd_insertText';
-        var controller = document.commandDispatcher.getControllerForCommand(command);
-        if (controller && controller.isCommandEnabled(command))
-        {
-            controller = controller.QueryInterface(Components.interfaces.nsICommandController);
-            var params = Components.classes['@mozilla.org/embedcomp/command-params;1'];
-            params = params.createInstance(Components.interfaces.nsICommandParams);
-            params.setStringValue('state_data', text);
-            controller.doCommandWithParams(command, params);
-        }
     },
 
     // Key binding list, help {{ ================================================ //
