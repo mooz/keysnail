@@ -1307,6 +1307,14 @@ KeySnail.Key = {
         aTarget.dispatchEvent(newEvent);
     },
 
+    /**
+     * To keep compatibility, define this method as member of key module.
+     * @param {} aText
+     */
+    insertText: function (aText) {
+        this.modules.command.insertText(aText);
+    },
+
     // Key binding list, help {{ ================================================ //
 
     /**
