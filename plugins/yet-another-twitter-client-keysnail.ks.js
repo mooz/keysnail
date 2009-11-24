@@ -5,13 +5,13 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.5</version>
+    <version>1.3.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>0.9.6</minVersion>
+    <minVersion>1.0.5</minVersion>
     <include>main</include>
     <provides>
         <ext>twitter-client-display-timeline</ext>
@@ -204,6 +204,10 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.3.6 (2009 11/24) ====
+// 
+// * Added description for official RT
+// 
 // ==== 1.3.5 (2009 11/24) ====
 //
 // * Supported official RT.
@@ -292,22 +296,22 @@ var twitterClient =
               {
                   if (status)
                       tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
-              }, M({ja: "このつぶやきをコメント付き ", en: ""}) + "RT : Retweet with comment"],
+              }, M({ja: "このつぶやきを => コメント付き ", en: ""}) + "RT : Retweet with comment"],
              [function (status)
               {
                   if (status)
                       retweet(status.id);
-              }, M({ja: "このつぶやきを公式 ", en: ""}) + "RT : Official Retweet"],
+              }, M({ja: "このつぶやきを => 公式 ", en: ""}) + "RT : Official Retweet"],
              [function (status)
               {
                   if (status)
                       deleteStatus(status.id);
-              }, M({ja: "このつぶやきを削除 : ", en: ""}) + "Delete this status"],
+              }, M({ja: "このつぶやきを => 削除 : ", en: ""}) + "Delete this status"],
              [function (status)
               {
                   if (status)
                       addFavorite(status.id);
-              }, M({ja: "このつぶやきをふぁぼる : ", en: ""}) + "Add this status to favorites"],
+              }, M({ja: "このつぶやきを => ふぁぼる : ", en: ""}) + "Add this status to favorites"],
              [function (status)
               {
                   if (status)
@@ -315,15 +319,15 @@ var twitterClient =
                       gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
                                           + "/status/" + status.id, null, null, null, false);
                   }
-              }, M({ja: "このつぶやきを Twitter で見る : ", en: ""}) + "Show status in web page"],
+              }, M({ja: "このつぶやきを => Twitter で見る : ", en: ""}) + "Show status in web page"],
              [function (status)
               {
                   command.setClipboardText(html.unEscapeTag(status.text));
-              }, M({ja: "このつぶやきをクリップボードにコピー : ", en: ""}) + "Copy selected message"],
+              }, M({ja: "このつぶやきを => クリップボードにコピー : ", en: ""}) + "Copy selected message"],
              [function (status)
               {
                   display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 300});
-              }, M({ja: "このつぶやきを全文表示 : ", en: ""}) + "Display entire message"],
+              }, M({ja: "このつぶやきを => 全文表示 : ", en: ""}) + "Display entire message"],
              [function (status)
               {
                   if (status)
@@ -996,7 +1000,7 @@ var twitterClient =
                              // misc error
                              alertsService.showAlertNotification(null,
                                                                  M({ja: "ごめんなさい", en: "I'm sorry..."}),
-                                                                 M({ja: "RT に失敗しました",
+                                                                 M({ja: "RT に失敗しました [Twitter のサイトへ行き、アカウントの言語環境を英語に変更した上でもう一度お試し下さい]",
                                                                     en: "Failed to ReTweet"}) + " (" + xhr.status + ")",
                                                                  false, "", null);
                          }
@@ -1196,7 +1200,7 @@ var twitterClient =
                  }
              );
 
-             var helpMessage = M({ja: ' : そのまま Enter でつぶやき画面へ。 Ctrl + i でアクションを選択！',
+             var helpMessage = M({ja: ' : そのまま Enter でつぶやき画面へ。 Ctrl + i でアクションを選択。 Ctrl + Enter でクライアントを閉じずに連続アクション。',
                                   en: " : Press Enter to tweet. Ctrl + i (or your defined one) to select the action!"});
 
              if (!aMessage)
@@ -1335,6 +1339,8 @@ var twitterClient =
          return self;
      })();
 
+// Add exts {{ ============================================================== //
+
 ext.add("twitter-client-display-timeline", twitterClient.showTimeline,
         M({ja: 'TL を表示',
            en: "Display your timeline"}));
@@ -1366,6 +1372,8 @@ ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
 ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
         M({ja: '再認証',
            en: "Reauthorize"}));
+
+// }} ======================================================================= //
 
 if (my.twitterStatusesCacheUpdater)
     clearTimeout(my.twitterStatusesCacheUpdater);
