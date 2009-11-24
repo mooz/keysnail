@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.1.7</version>
+    <version>1.1.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -51,6 +51,11 @@ key.setGlobalKey(["C-x", ";"], function (ev, arg) {
 // }}}
 
 // ChangeLog : {{{
+// 
+// ==== 1.1.8 (2009 11/23) ====
+//
+// * Added action "Open URL in the comment".
+// 
 // ==== 1.1.7 (2009 11/15) ====
 //
 // * Added some useful actions.
@@ -148,7 +153,23 @@ function showCommentOfPage(aPageURL, aArg) {
                                  display.prettyPrint(collection[aIndex][HB_COMMENT], {timeout: 6000, fade: 300});
                              }
                          }, M({ja: 'コメントを全文表示',
-                               en: "Display entire comment"})]
+                               en: "Display entire comment"})],
+                        [function (aIndex) {
+                             var matched;
+                             var comment = collection[aIndex][HB_COMMENT];
+
+                             while ((matched = comment.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?#_*.:/=&\\-]+)")))
+                             {
+                                 var prefix = (matched[1] == "ftp") ? "ftp" : "http";
+                                 if (matched[1][matched[1].length - 1] == 's')
+                                     prefix += "s";
+
+                                 gBrowser.loadOneTab(prefix + matched[2], null, null, null, false);
+
+                                 comment.text = comment.text.slice(comment.text.indexOf(matched[2]) + matched[2].length);
+                             }
+                         }, M({ja: 'コメント中の URL を開く',
+                               en: 'Open URL in the comment'})]
                     ]
                 }
             );

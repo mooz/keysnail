@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.3</version>
+    <version>1.3.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -204,18 +204,26 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.3.5 (2009 11/24) ====
+//
+// * Supported official RT.
+//
+// ==== 1.3.4 (2009 11/23) ====
+//
+// * Supported multiple URL in the message.
+//
 // ==== 1.3.3 (2009 11/16) ====
-// 
-// * Made all messages to be unescaped
-// 
+//
+// * Made all messages to be unescaped.
+//
 // ==== 1.3.2 (2009 11/13) ====
-// 
+//
 // * Added character count to the tweet phase.
-// 
+//
 // ==== 1.3.1 (2009 11/03) ====
 //
-// * Fixed the crucial bug in the combineJSONCache
-// 
+// * Fixed the crucial bug in the combineJSONCache.
+//
 // ==== 1.3.0 (2009 11/03) ====
 //
 // * Refactored!
@@ -270,71 +278,92 @@ var twitterClient =
          var immediatelyAddedStatuses = [];
 
          var twitterActions = [
-             [function (status) {
+             [function (status)
+              {
                   if (status)
                       tweet();
               }, M({ja: "つぶやく : ", en: ""}) + "Tweet"],
-             [function (status) {
-                  if (status) {
+             [function (status)
+              {
+                  if (status)
                       tweet("@" + status.screen_name + " ", status.id);
-                  }
               }, M({ja: "このつぶやきに返信 : ", en: ""}) + "Send reply message"],
-             [function (status) {
-                  if (status) {
+             [function (status)
+              {
+                  if (status)
                       tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
-                  }
-              }, M({ja: "このつぶやきを ", en: ""}) + "RT : Retweet"],
-             [function (status) {
-                  if (status) {
+              }, M({ja: "このつぶやきをコメント付き ", en: ""}) + "RT : Retweet with comment"],
+             [function (status)
+              {
+                  if (status)
+                      retweet(status.id);
+              }, M({ja: "このつぶやきを公式 ", en: ""}) + "RT : Official Retweet"],
+             [function (status)
+              {
+                  if (status)
                       deleteStatus(status.id);
-                  }
               }, M({ja: "このつぶやきを削除 : ", en: ""}) + "Delete this status"],
-             [function (status) {
-                  if (status) {
+             [function (status)
+              {
+                  if (status)
                       addFavorite(status.id);
-                  }
               }, M({ja: "このつぶやきをふぁぼる : ", en: ""}) + "Add this status to favorites"],
-             [function (status) {
-                  if (status) {
+             [function (status)
+              {
+                  if (status)
+                  {
                       gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
                                           + "/status/" + status.id, null, null, null, false);
                   }
               }, M({ja: "このつぶやきを Twitter で見る : ", en: ""}) + "Show status in web page"],
-             [function (status) {
+             [function (status)
+              {
                   command.setClipboardText(html.unEscapeTag(status.text));
               }, M({ja: "このつぶやきをクリップボードにコピー : ", en: ""}) + "Copy selected message"],
-             [function (status) {
+             [function (status)
+              {
                   display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 300});
               }, M({ja: "このつぶやきを全文表示 : ", en: ""}) + "Display entire message"],
-             [function (status) {
-                  if (status) {
+             [function (status)
+              {
+                  if (status)
                       showTargetStatus(status.screen_name);
-                  }
               }, M({ja: "このユーザのつぶやきを一覧表示 : ", en: ""}) + "Show Target status"],
-             [function (status) {
-                  if (status) {
+             [function (status)
+              {
+                  if (status)
                       showFavorites(status.user_id);
-                  }
               }, M({ja: "このユーザのふぁぼり一覧を表示 : ", en: ""}) + "Show this users favorites"],
-             [function (status) {
-                  if (status) {
+             [function (status)
+              {
+                  if (status)
                       showMentions();
-                  }
               }, M({ja: "自分の @ を一覧表示 : ", en: ""}) + "Show mentions"],
-             [function (status) {
-                  if (status) {
+             [function (status)
+              {
+                  if (status)
                       self.tweetWithTitleAndURL();
-                  }
               }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL"],
-             [function (status) {
+             [function (status)
+              {
                   if (status)
                       search();
               }, M({ja: "単語を検索 : ", en: ""}) + "Search keyword"],
-             [function (status) {
-                  if (status) {
-                      var matched = status.text.match("(https?|ftp)(://[a-zA-Z0-9/?#_.\\-]+)");
-                      if (matched) {
-                          gBrowser.loadOneTab(matched[1] + matched[2], null, null, null, false);
+             [function (status)
+              {
+                  if (status)
+                  {
+                      var matched;
+
+                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?#_*.:/=&\\-]+)")))
+                      {
+                          var prefix = (matched[1] == "ftp") ? "ftp" : "http";
+                          if (matched[1][matched[1].length - 1] == 's')
+                              prefix += "s";
+
+                          gBrowser.loadOneTab(prefix + matched[2], null, null, null, false);
+
+                          status.text = status.text.slice(status.text.indexOf(matched[2]) + matched[2].length);
                       }
                   }
               }, M({ja: "メッセージ中の URL を開く : ", en: ""}) + "Visit URL in the message"]
@@ -700,7 +729,7 @@ var twitterClient =
              OAuth.SignatureMethod.sign(message, accessor);
 
              var oAuthArgs  = OAuth.getParameterMap(message.parameters);
-             var authHeader = OAuth.getAuthorizationHeader("http://twitter.com/", oAuthArgs);
+             var authHeader = OAuth.getAuthorizationHeader(aOptions.host || "http://twitter.com/", oAuthArgs);
 
              xhr.mozBackgroundRequest = true;
              xhr.open(message.method, message.action, true);
@@ -822,7 +851,7 @@ var twitterClient =
          function showMentions() {
              oauthASyncRequest(
                  {
-                     action: "https://twitter.com/statuses/mentions.json",
+                     action: "http://twitter.com/statuses/mentions.json",
                      method: "GET"
                  },
                  function (aEvent, xhr) {
@@ -942,6 +971,52 @@ var twitterClient =
              prompt.read("search:", doSearch, null, null, null, 0, "twitter_search");
          }
 
+         function retweet(aID) {
+             var parameters = [["source", "KeySnail"]];
+             var aQuery     = "source=KeySnail";
+
+             oauthASyncRequest(
+                 {
+                     action     : "http://api.twitter.com/1/statuses/retweet/" + aID + ".json",
+                     method     : "POST",
+                     parameters : parameters,
+                     send       : aQuery,
+                     host       : "http://api.twitter.com/"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4)
+                     {
+                         if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
+                         {
+                             // token expired
+                             reAuthorize();
+                         }
+                         else if (xhr.status != 200)
+                         {
+                             // misc error
+                             alertsService.showAlertNotification(null,
+                                                                 M({ja: "ごめんなさい", en: "I'm sorry..."}),
+                                                                 M({ja: "RT に失敗しました",
+                                                                    en: "Failed to ReTweet"}) + " (" + xhr.status + ")",
+                                                                 false, "", null);
+                         }
+                         else
+                         {
+                             // succeeded
+                             var status    = util.safeEval("(" + xhr.responseText + ")");
+                             var icon_url  = status.user.profile_image_url;
+                             var user_name = status.user.name;
+                             var message   = html.unEscapeTag(status.text);
+
+                             alertsService.showAlertNotification(icon_url,
+                                                                 M({ja: "RT しました", en: "ReTweeted"}),
+                                                                 message, false, "", null);
+                         }
+                     }
+                 }
+             );
+         }
+
          function tweet(aInitialInput, aReplyID) {
              var statusbar = document.getElementById('statusbar-display');
              var limit = 140;
@@ -968,16 +1043,16 @@ var twitterClient =
                      callback: function (aTweet) {
                          statusbar.label = "";
 
-                         if (aTweet == null) {
+                         if (aTweet == null)
                              return;
-                         }
 
                          var parameters = [["source", "KeySnail"], ["status" , aTweet]];
                          if (aReplyID)
                              parameters.push(["in_reply_to_status_id", aReplyID.toString()]);;
 
                          var aQuery = "source=KeySnail&status=" + encodeURIComponent(aTweet);
-                         if (aReplyID) aQuery += "&in_reply_to_status_id=" + aReplyID;
+                         if (aReplyID)
+                             aQuery += "&in_reply_to_status_id=" + aReplyID;
 
                          oauthASyncRequest(
                              {
@@ -987,7 +1062,8 @@ var twitterClient =
                                  parameters : parameters
                              },
                              function (aEvent, xhr) {
-                                 if (xhr.readyState == 4) {
+                                 if (xhr.readyState == 4)
+                                 {
                                      if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
                                      {
                                          // token expired
@@ -998,7 +1074,8 @@ var twitterClient =
                                          // misc error
                                          alertsService.showAlertNotification(null,
                                                                              M({ja: "ごめんなさい", en: "I'm sorry..."}),
-                                                                             M({ja: "つぶやけませんでした", en: "Failed to tweet"}),
+                                                                             M({ja: "つぶやけませんでした",
+                                                                                en: "Failed to tweet"}) + " (" + xhr.status + ")",
                                                                              false, "", null);
                                      }
                                      else
@@ -1027,7 +1104,7 @@ var twitterClient =
          function deleteStatus(aStatusID) {
              oauthASyncRequest(
                  {
-                     action : "https://twitter.com/statuses/destroy/" + aStatusID + ".json",
+                     action : "http://twitter.com/statuses/destroy/" + aStatusID + ".json",
                      method : "DELETE"
                  },
                  function (aEvent, xhr) {
@@ -1081,7 +1158,7 @@ var twitterClient =
          function showTargetStatus(target) {
              oauthASyncRequest(
                  {
-                     action : "https://twitter.com/statuses/user_timeline/" + target + ".json?count=" + timelineCountEveryUpdates,
+                     action : "http://twitter.com/statuses/user_timeline/" + target + ".json?count=" + timelineCountEveryUpdates,
                      method : "GET"
                  },
                  function (aEvent, xhr) {
@@ -1177,7 +1254,7 @@ var twitterClient =
 
                  oauthASyncRequest(
                      {
-                         action : "https://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
+                         action : "http://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
                          method : "GET"
                      },
                      function (aEvent, xhr) {
