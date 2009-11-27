@@ -727,15 +727,6 @@ KeySnail.Key = {
     },
 
     /**
-     * Return true if In keymap
-     * @param {} aEvent
-     * @returnss
-     */
-    isInKeyMap: function (aEvent) {
-        aEvent.keyCode;
-    },
-
-    /**
      * Check whether key event (and string expression) is the digit argument key
      * @param {KeyBoardEvent} aEvent key event
      * @returnss {boolean} true when the <aEvent> is regarded as the digit argument

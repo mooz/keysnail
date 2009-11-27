@@ -1,19 +1,19 @@
-<!ENTITY keySnail.rcWizard.title "KeySnail :: 初期化ファイルの作成 / 選択ウィザード">
+<!ENTITY keySnail.rcWizard.title "KeySnail :: 設定ファイルの作成 / 選択ウィザード">
 
 <!-- PAGE 1 -->
 
-<!ENTITY keySnail.rcWizard.selectMethodDescription "初期化ファイルを新しく作成します。既存のファイルを使用したい場合は 「初期化ファイルの場所を選ぶ」 を選択して下さい。">
+<!ENTITY keySnail.rcWizard.selectMethodDescription "設定ファイルを新しく作成します。既存のファイルを使用したい場合は 「設定ファイルの場所を選ぶ」 を選択して下さい。">
 
 <!-- menuitem -->
 
-<!ENTITY keySnail.rcWizard.createRcFile "初期化ファイルを新しく作成する">
-<!ENTITY keySnail.rcWizard.selectRcFile "初期化ファイルの場所を選ぶ">
+<!ENTITY keySnail.rcWizard.createRcFile "設定ファイルを新しく作成する">
+<!ENTITY keySnail.rcWizard.selectRcFile "設定ファイルの場所を選ぶ">
 
 <!-- PAGE a-1 -->
 
 <!ENTITY keySnail.rcWizard.places "作成先 / ファイル名">
 <!ENTITY keySnail.rcWizard.places.description "設定ファイルの名前と作成先を指定してください。">
-<!ENTITY keySnail.rcWizard.createRcFileDescription "初期化ファイルの設定を行います。">
+<!ENTITY keySnail.rcWizard.createRcFileDescription "設定ファイルを作成します。">
 
 <!ENTITY keySnail.rcWizard.rcFileDestination "作成先: ">
 <!ENTITY keySnail.rcWizard.filenameDotDiscription "UNIX 等で一般的なドットファイルです">
@@ -27,7 +27,7 @@
 
 <!-- PAGE b-1 -->
 
-<!ENTITY keySnail.rcWizard.selectRcFileDescription "初期化ファイルの場所を選んでください">
+<!ENTITY keySnail.rcWizard.selectRcFileDescription "設定ファイルの場所を選んでください">
 <!ENTITY keySnail.rcWizard.rcFilePlace "読み込み元: ">
 
 <!-- common -->

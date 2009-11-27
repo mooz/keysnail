@@ -419,25 +419,25 @@ var preferLDRize =
          gmService.evalInSandbox = function (code, codebase, sandbox) {
              savedEvalInSandbox.apply(gmService, arguments);
 
-             if (sandbox.window.Minibuffer != undefined && sandbox.window.LDRize != undefined)
+             try
              {
-                 sandbox.window.addEventListener("focus", function () {
-                                                     setup();
-                                                 }, false);
-                 sandbox.window.addEventListener("blur", function () {
-                                                     setKeymap(false);
-                                                     setStatusbarIcon();
-                                                 }, false);
-
-                 try
+                 
+                 if (sandbox.window.Minibuffer != undefined && sandbox.window.LDRize != undefined)
                  {
+                     sandbox.window.addEventListener("focus", function () {
+                                                         setup();
+                                                     }, false);
+                     sandbox.window.addEventListener("blur", function () {
+                                                         setKeymap(false);
+                                                         setStatusbarIcon();
+                                                     }, false);
+
                      if (window.content.wrappedJSObject == sandbox.unsafeWindow)
                          setup();
                  }
-                 catch (x)
-                 {
-                     util.message(x);
-                 }
+             }
+             catch (x)
+             {
              }
          };
 

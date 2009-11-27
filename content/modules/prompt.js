@@ -488,7 +488,7 @@ KeySnail.Prompt = function () {
                 textbox : textbox,
                 event   : aEvent,
                 context : selectorContext[SELECTOR_STATE_CANDIDATES],
-                finish  : finish
+                finish  : self.finish
             };
 
             userOnChange(arg);
@@ -518,30 +518,30 @@ KeySnail.Prompt = function () {
             }
 
             if (num < 0 || num >= actions.wholeList.length) {
-                finish(true);
+                self.finish(true);
             } else {
-                finish();
+                self.finish();
             }
         }
 
         switch (keymap[key]) {
         case "prompt-cancel":
-            finish(true);
+            self.finish(true);
             break;
         case "prompt-decide":
-            finish();
+            self.finish();
             break;
         case "prompt-continuous-decide":
-            finish(false, true);
+            self.finish(false, true);
             break;
         case "prompt-continuous-decide-and-next":
-            finish(false, true);
+            self.finish(false, true);
         case "prompt-next-line":
         case "prompt-next-completion":
             selectNextCompletion(1, true);
             break;
         case "prompt-continuous-decide-and-previous":
-            finish(false, true);
+            self.finish(false, true);
         case "prompt-previous-line":
         case "prompt-previous-completion":
             selectNextCompletion(-1, true);
@@ -611,6 +611,10 @@ KeySnail.Prompt = function () {
 
                 textbox.focus();
             }, 0);
+    }
+
+    function handleMouseScrollSelector(aEvent) {
+        selectNextCompletion(aEvent.detail < 0 ? -1 : 1, true);
     }
 
     function saveSelectorContext(aTo) {
@@ -687,10 +691,33 @@ KeySnail.Prompt = function () {
         }
     }
 
+    function setSelectorContextMenu(aActions) {
+        var context = selectorContext[SELECTOR_STATE_ACTION];
+
+        var contextMenu = document.getElementById("keysnail-prompt-menu");
+        removeAllChilds(contextMenu);
+
+        var descriptions;
+
+        if (typeof aActions === "function")
+            descriptions = ["Default callback"];
+        else
+            descriptions = [row[1] for each (row in aActions)];
+
+        for (var i = 0; i < descriptions.length; ++i)
+        {
+            var item = document.createElement("menuitem");
+            item.setAttribute("label", descriptions[i]);
+            item.setAttribute("oncommand", "KeySnail.modules.prompt.doNthAction(" + i + ");");
+            contextMenu.appendChild(item);
+        }
+    }
+
     function setSelectorActions(aActions) {
         var context = selectorContext[SELECTOR_STATE_ACTION];
 
-        if (typeof(aActions) === "function") {
+        if (typeof(aActions) === "function")
+        {
             // set callback
             context.wholeList = [[aActions, "1. Default callback"]];
             context.wholeListIndex = 0;
@@ -914,12 +941,13 @@ KeySnail.Prompt = function () {
 
         oldSelectionStart = textbox.selectionStart;
 
-        if (typeof userOnChange == "function") {
+        if (typeof userOnChange == "function")
+        {
             let arg = {
                 key     : modules.key.keyEventToString(aEvent),
                 textbox : textbox,
                 event   : aEvent,
-                finish  : finish
+                finish  : self.finish
             };
 
             userOnChange(arg);
@@ -934,10 +962,10 @@ KeySnail.Prompt = function () {
 
         switch (keymap[key]) {
         case "prompt-cancel":
-            finish(true);
+            self.finish(true);
             break;
         case "prompt-decide":
-            finish();
+            self.finish();
             break;
         case "prompt-next-line":
             if (completion.state) {
@@ -1220,121 +1248,6 @@ KeySnail.Prompt = function () {
         return true;
     }
 
-    /**
-     * Finish inputting and current the prompt and If user can
-     * @param {boolean} aCanceled true, if user canceled the prompt
-     * @param {boolean} aAgain when this value is true, prompt will not be closed
-     * and user can select other action
-     */
-    function finish(aCanceled, aAgain) {
-        // ==================== temporary preservation ==================== //
-
-        var savedCallback;
-        var savedUserArg  = currentUserArg;
-
-        // apply current status to saved context
-        if (type === TYPE_SELECTOR) {
-            saveSelectorContext(selectorContext[selectorStatus]);
-        }
-
-        if (type == TYPE_SELECTOR && wholeListIndex >= 0) {
-            var actions     = selectorContext[SELECTOR_STATE_ACTION];
-            var actionIndex = actions.wholeListIndex;
-
-            savedCallback = actions.wholeList[actionIndex][0];
-        } else {
-            savedCallback = currentCallback;
-        }
-
-        var callbackArg;
-
-        switch (type) {
-        case TYPE_SELECTOR:
-            var candidates = selectorContext[SELECTOR_STATE_CANDIDATES];
-            callbackArg = [aCanceled ? -1 : candidates.wholeListIndex, candidates.wholeList];
-            if (selectorFilter) {
-                callbackArg = selectorFilter.apply(KeySnail, callbackArg);
-            }
-            break;
-        case TYPE_READ:
-            callbackArg = [aCanceled ? null : textbox.value, savedUserArg];
-            break;
-        }
-
-        // continuous
-        if (aAgain) {
-            savedFocusedElement.focus();
-            executeCallback(savedCallback, callbackArg);
-            textbox.focus();
-
-            return;
-        }
-
-        // ==================== reset states ==================== //
-
-        /**
-         * We need to call focus() here
-         * because the callback sometimes change the current selected tab
-         * e.g. opening the URL in a new tab,
-         * and the window.focus() does not work that time.
-         */
-        if (savedFocusedElement) {
-            savedFocusedElement.focus();
-            savedFocusedElement = null;
-        }
-
-        clearTimeout(delayedCommandTimeout);
-        eventListenerRemover();
-
-        // -------------------- common -------------------- //
-
-        currentCallback    = null;
-        currentUserArg     = null;
-
-        userOnChange  = null;
-        userOnFinish  = null;
-
-        // -------------------- prompt.selector (and prompt.reader) -------------------- //
-
-        delayedCommandTimeout = null;
-        selectorFilter        = null;
-        wholeListIndex        = -1;
-        listHeader            = null;
-        listStyle             = null;
-        listWidth             = null;
-        flags                 = null;
-        currentList           = null;
-        currentIndexList      = null;
-
-        // -------------------- prompt.read -------------------- //
-
-        currentHead        = null;
-        inNormalCompletion = false;
-        compIndex          = 0;
-        compIndexList      = null;
-
-        resetState(history);
-        resetState(completion);
-
-        // -------------------- DOM objects -------------------- //
-
-        promptbox.hidden   = true;
-        listbox.hidden     = true;
-
-        removeAllChilds(listbox);
-
-        textbox.value      = "";
-        label.value        = "";
-
-        // ==================== execute callback ==================== //
-
-        aCanceled = !executeCallback(savedCallback, callbackArg, aCanceled);
-
-        // if canceled or error occurred in callback, reset statusbar
-        if (aCanceled)
-            modules.display.echoStatusBar("");
-    }
-
     // ================ public ================ //
 
     var self = {
@@ -1429,6 +1342,131 @@ KeySnail.Prompt = function () {
 
             if (style)
                 options.actionsListStyle = style;
+        },
+
+        doNthAction: function (aNumber) {
+            var action = selectorContext[SELECTOR_STATE_ACTION];
+            action.wholeListIndex = aNumber;
+            self.finish();
+        },
+
+        /**
+         * Finish inputting and current the prompt and If user can
+         * @param {boolean} aCanceled true, if user canceled the prompt
+         * @param {boolean} aAgain when this value is true, prompt will not be closed
+         * and user can select other action
+         */
+        finish: function (aCanceled, aAgain) {
+            // ==================== temporary preservation ==================== //
+
+            var savedCallback;
+            var savedUserArg  = currentUserArg;
+
+            // apply current status to saved context
+            if (type === TYPE_SELECTOR)
+                saveSelectorContext(selectorContext[selectorStatus]);
+
+            if (type == TYPE_SELECTOR && wholeListIndex >= 0)
+            {
+                var actions     = selectorContext[SELECTOR_STATE_ACTION];
+                var actionIndex = actions.wholeListIndex;
+
+                savedCallback = actions.wholeList[actionIndex][0];
+            }
+            else
+            {
+                savedCallback = currentCallback;
+            }
+
+            var callbackArg;
+
+            switch (type)
+            {
+            case TYPE_SELECTOR:
+                var candidates = selectorContext[SELECTOR_STATE_CANDIDATES];
+                callbackArg = [aCanceled ? -1 : candidates.wholeListIndex, candidates.wholeList];
+                if (selectorFilter)
+                    callbackArg = selectorFilter.apply(KeySnail, callbackArg);
+                break;
+            case TYPE_READ:
+                callbackArg = [aCanceled ? null : textbox.value, savedUserArg];
+                break;
+            }
+
+            // continuous
+            if (aAgain)
+            {
+                savedFocusedElement.focus();
+                executeCallback(savedCallback, callbackArg);
+                textbox.focus();
+
+                return;
+            }
+
+            // ==================== reset states ==================== //
+
+            /**
+             * We need to call focus() here
+             * because the callback sometimes change the current selected tab
+             * e.g. opening the URL in a new tab,
+             * and the window.focus() does not work that time.
+             */
+            if (savedFocusedElement)
+            {
+                savedFocusedElement.focus();
+                savedFocusedElement = null;
+            }
+
+            clearTimeout(delayedCommandTimeout);
+            eventListenerRemover();
+
+            // -------------------- common -------------------- //
+
+            currentCallback    = null;
+            currentUserArg     = null;
+
+            userOnChange  = null;
+            userOnFinish  = null;
+
+            // -------------------- prompt.selector (and prompt.reader) -------------------- //
+
+            delayedCommandTimeout = null;
+            selectorFilter        = null;
+            wholeListIndex        = -1;
+            listHeader            = null;
+            listStyle             = null;
+            listWidth             = null;
+            flags                 = null;
+            currentList           = null;
+            currentIndexList      = null;
+
+            // -------------------- prompt.read -------------------- //
+
+            currentHead        = null;
+            inNormalCompletion = false;
+            compIndex          = 0;
+            compIndexList      = null;
+
+            resetState(history);
+            resetState(completion);
+
+            // -------------------- DOM objects -------------------- //
+
+            promptbox.hidden   = true;
+            listbox.hidden     = true;
+
+            removeAllChilds(listbox);
+
+            textbox.value      = "";
+            label.value        = "";
+
+            // ==================== execute callback ==================== //
+
+            aCanceled = !executeCallback(savedCallback, callbackArg, aCanceled);
+
+            // if canceled or error occurred in callback, reset statusbar
+            if (aCanceled)
+                modules.display.echoStatusBar("");
         },
 
         /**
@@ -1577,7 +1615,8 @@ KeySnail.Prompt = function () {
             if (!promptbox)
                 return;
 
-            if (currentCallback) {
+            if (currentCallback)
+            {
                 modules.display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
@@ -1617,14 +1656,20 @@ KeySnail.Prompt = function () {
             textbox.addEventListener('keypress', handleKeyPressSelector, false);
             textbox.addEventListener('keyup', handleKeyUpSelector, false);
             listbox.addEventListener('mousedown', handleMouseDownSelector, true);
+            listbox.addEventListener('DOMMouseScroll', handleMouseScrollSelector, true);
             listbox.addEventListener('click', modules.util.stopEventPropagation, true);
-            listbox.addEventListener('dblclick', finish, true);
+            function dblClickHandler() {
+                self.finish();
+            }
+            listbox.addEventListener('dblclick', dblClickHandler, true);
+
             eventListenerRemover = function () {
                 textbox.removeEventListener('keypress', handleKeyPressSelector, false);
                 textbox.removeEventListener('keyup', handleKeyUpSelector, false);
                 listbox.removeEventListener('mousedown', handleMouseDownSelector, true);
+                listbox.removeEventListener('DOMMouseScroll', handleMouseScrollSelector, true);
                 listbox.removeEventListener('click', modules.util.stopEventPropagation, true);
-                listbox.removeEventListener('dblclick', finish, true);
+                listbox.removeEventListener('dblclick', dblClickHandler, true);
             };
 
             oldTextLength = 0;
@@ -1637,9 +1682,8 @@ KeySnail.Prompt = function () {
             selectorContext[SELECTOR_STATE_ACTION].listStyle  = options.actionsListStyle;
             selectorContext[SELECTOR_STATE_ACTION].flags      = [modules.IGNORE | modules.HIDDEN, 0];
 
-            // modules.display.echoStatusBar(modules.util.getLocaleString("dynamicReadKeyDescription"));
-
             setSelectorActions(aContext.actions || aContext.callback);
+            setSelectorContextMenu(aContext.actions || aContext.callback);
 
             createCompletionList();
         },

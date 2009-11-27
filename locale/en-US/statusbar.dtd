@@ -10,3 +10,5 @@
 <!ENTITY keySnail.statusbar.openPluginManager "Open plugin manager">
 
 <!ENTITY keySnail.statusbar.isEnabled "Enable">
+
+<!ENTITY keySnail.statusbar.closePrompt "Close the prompt">

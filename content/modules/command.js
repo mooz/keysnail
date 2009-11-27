@@ -764,7 +764,6 @@ KeySnail.Command = {
 
     // ==================== Copy / Cut ==================== //
 
-
     /**
      * store <aText> to the system clipboard
      * @param {} aText

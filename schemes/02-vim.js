@@ -57,9 +57,10 @@ SCHEME.keybindings["view"] = [
     ["h", "scroll_left"],
     ["l", "scroll_right"],
     ["C-u", "scroll_page_up"],
+    ["C-b", "scroll_page_up"],
     ["C-d", "scroll_page_down"],
     [["g", "g"], "scroll_to_the_top_of_the_page", true],
-    [[["M->"], ["G"]], "scroll_to_the_bottom_of_the_page", true]
+    ["G", "scroll_to_the_bottom_of_the_page", true]
 ];
 
 SCHEME.keybindings["caret"] = [
@@ -112,4 +113,3 @@ SCHEME.keybindings["edit"] = [
 ];
 
 // }} ======================================================================= //
-

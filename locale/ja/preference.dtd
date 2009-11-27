@@ -7,7 +7,7 @@
 
 <!-- User Script -->
 <!ENTITY keySnail.preference.userscript "設定">
-<!ENTITY keySnail.preference.userscript.settings "初期化ファイル">
+<!ENTITY keySnail.preference.userscript.settings "設定ファイル">
 <!ENTITY keySnail.preference.userscript.location "読み込み元: ">
 <!ENTITY keySnail.preference.userscript.editor "編集に用いるエディタ: ">
 
@@ -97,12 +97,12 @@
 
 <!ENTITY keySnail.preference.key.blacklist.description "KeySnail を一時的に無効にしたいページの URL か正規表現を指定して下さい。">
 
-<!ENTITY keySnail.preference.key.preserved.description1 "以下のテキストボックス内に記述されたコードは、初期化ファイルを再生成する際にも引き継がれます。">
+<!ENTITY keySnail.preference.key.preserved.description1 "以下のテキストボックス内に記述されたコードは、設定ファイルを再生成する際にも引き継がれます。">
 <!ENTITY keySnail.preference.key.preserved.description2 "特殊キー、キーバインド定義、フック、ブラックリスト以外のコードはこの中に書くようにして下さい。">
 
 <!-- create -->
-<!ENTITY keySnail.preference.key.indent_all_function "初期化ファイル再生成時にソースコードを整形する">
-<!ENTITY keySnail.preference.key.create "変更の反映 (初期化ファイルを上書きします)">
+<!ENTITY keySnail.preference.key.indent_all_function "設定ファイル再生成時にソースコードを整形する">
+<!ENTITY keySnail.preference.key.create "変更の反映 (設定ファイルを上書きします)">
 
 <!-- # ABOUT # -->
 <!ENTITY keySnail.preference.about "情報">

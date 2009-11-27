@@ -17,3 +17,16 @@ listbox#keysnail-completion-list * image.listcell-icon {
     width: 16px;
     height: 16px;
 }
+
+#keysnail-prompt #keysnail-prompt-close-button {
+    list-style-image: url('chrome://global/skin/icons/close.png');
+    -moz-image-region: rect(0px, 14px, 14px, 0px);
+}
+
+#keysnail-prompt #keysnail-prompt-close-button:hover {
+    -moz-image-region: rect(0px, 28px, 14px, 14px);
+}
+
+#keysnail-prompt #keysnail-prompt-close-button:hover:active {
+    -moz-image-region: rect(0px, 42px, 14px, 28px);
+}

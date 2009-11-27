@@ -117,18 +117,21 @@
 
     <!-- prompt -->
     <vbox id="browser-bottombox">
+        <menupopup id="keysnail-prompt-menu" />
         <listbox id="keysnail-completion-list"
                  hidden="true"
-                 insertafter="status-bar">
+                 insertafter="status-bar"
+                 context="keysnail-prompt-menu">
         </listbox>
-        <hbox id="keysnail-prompt" insertafter="keysnail-completion-list" hidden="true"
+        <hbox id="keysnail-prompt"
+              insertafter="keysnail-completion-list" hidden="true"
               align="center">
-            <label class="keysnail-prompt-label"
-                   id="keysnail-prompt-label"
-                   ></label>
-            <textbox id="keysnail-prompt-textbox" flex="1"
-                     >
-            </textbox>
+            <label class="keysnail-prompt-label" id="keysnail-prompt-label" />
+            <textbox id="keysnail-prompt-textbox" flex="1" />
+            <toolbarbutton id="keysnail-prompt-close-button"
+                           tooltiptext="&keySnail.statusbar.closePrompt;"
+                           oncommand="KeySnail.modules.prompt.finish(true);" />
         </hbox>
     </vbox>
+
 </overlay>

@@ -1,12 +1,14 @@
 <!ENTITY keySnail.statusbar.listKeyBindings "キーバインド一覧を表示">
-<!ENTITY keySnail.statusbar.reloadUserScript "初期化ファイルを再読み込み">
+<!ENTITY keySnail.statusbar.reloadUserScript "設定ファイルを再読み込み">
 
 <!ENTITY keySnail.statusbar.openPreference "設定ダイアログを開く">
 
-<!ENTITY keySnail.statusbar.initFile "初期化ファイル">
-<!ENTITY keySnail.statusbar.wizard "初期化ファイルを作成 / 選択">
-<!ENTITY keySnail.statusbar.editInitFile "初期化ファイルを編集">
+<!ENTITY keySnail.statusbar.initFile "設定ファイル">
+<!ENTITY keySnail.statusbar.wizard "設定ファイルを作成 / 選択">
+<!ENTITY keySnail.statusbar.editInitFile "設定ファイルを編集">
 
 <!ENTITY keySnail.statusbar.openPluginManager "プラグインマネージャを開く">
 
 <!ENTITY keySnail.statusbar.isEnabled "有効">
+
+<!ENTITY keySnail.statusbar.closePrompt "プロンプトを閉じます">
