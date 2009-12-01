@@ -72,6 +72,7 @@ var rcWizard = {
                 listitem.setAttribute("image", scheme.icon || defaultIconURL);
                 listitem.setAttribute("label", this.getString(scheme.name));
                 listitem.setAttribute("value", leaf);
+                listitem.setAttribute("tooltiptext", this.getString(scheme.description));
 
                 list.appendChild(listitem);
             }

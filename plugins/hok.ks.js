@@ -1213,6 +1213,25 @@ if (getOption("actions"))
     getOption("actions").forEach(function (aRow) actions.push(aRow));
 }
 
+function doAction(aStr) {
+    for (var i = 0; i < actions.length; ++i)
+    {
+        if (actions[i][0] === aStr)
+        {
+            var func = actions[i][2];
+            var desc = actions[i][1];
+
+            hok.start(func,
+                      {
+                          supressUniqueFire : actions[i].length > 3 ? actions[i][3] : false,
+                          continuous        : actions[i].length > 4 ? actions[i][4] : false,
+                          query             : actions[i].length > 5 ? actions[i][5] : null
+                      });
+            return;
+        }
+    }
+}
+
 // }} ======================================================================= //
 
 // Exts {{ ================================================================== //
@@ -1262,22 +1281,7 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                             return;
                         }
 
-                        for (var i = 0; i < actions.length; ++i)
-                        {
-                            if (actions[i][0] == aStr[0])
-                            {
-                                var func = actions[i][2];
-                                var desc = actions[i][1];
-
-                                hok.start(func,
-                                          {
-                                              supressUniqueFire : actions[i].length > 3 ? actions[i][3] : false,
-                                              continuous        : actions[i].length > 4 ? actions[i][4] : false,
-                                              query             : actions[i].length > 5 ? actions[i][5] : null
-                                          });
-                                return;
-                            }
-                        }
+                        doAction(aStr);
 
                         recoverFocus();
                     }

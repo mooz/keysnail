@@ -37,6 +37,7 @@ var KeySnail = {
                              "HTML",
                              "Hook",
                              "Macro",
+                             "Style",
                              "Key",
                              "Prompt",
                              "Ext",

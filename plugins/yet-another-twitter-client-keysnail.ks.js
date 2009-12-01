@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.6</version>
+    <version>1.3.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -203,6 +203,10 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+//
+// ==== 1.3.7 (2009 11/28) ====
+// 
+// * Fixed the bug user can't cancel the action "search".
 // 
 // ==== 1.3.6 (2009 11/24) ====
 // 
@@ -257,7 +261,7 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 var optionsDefaultValue = {
     "update_interval"              : 60 * 1000, // 1 minute
     "use_popup_notification"       : true,
-    "main_column_width"            : [11, 68, 21],
+    "main_column_width"            : [11, 70, 19],
     "timeline_count_beginning"     : 80,
     "timeline_count_every_updates" : 20,
     "unread_status_count_style"    : "color:#383838;font-weight:bold;",
@@ -501,7 +505,7 @@ var twitterClient =
              if ((blockUser &&
                   blockUser.some(function (username) username == status.user.screen_name))
                  || status.user.screen_name == myScreenName) {
-                 util.message("ignored :: " + html.unEscapeTag(status.text) + " from " + status.user.screen_name);
+                 util.message("ignored :: " + html.unEscapeTag(status.text) + " " + status.user.screen_name);
 
                  if (unPopUppedStatuses && unPopUppedStatuses.length) {
                      showOldestUnPopUppedStatus();
@@ -924,6 +928,9 @@ var twitterClient =
 
          function search() {
              function doSearch(aWord) {
+                 if (!aWord)
+                     return;
+
                  oauthASyncRequest(
                      {
                          action: "http://search.twitter.com/search.json?q=" + encodeURIComponent(aWord) + "&rpp=100",
@@ -1194,7 +1201,7 @@ var twitterClient =
 
                      return [status.user.profile_image_url, status.user.name, html.unEscapeTag(status.text),
                              getElapsedTimeString(current - created) +
-                             " from " + (matched ? matched[1] : "Web") +
+                             " " + (matched ? matched[1] : "Web") +
                              (status.in_reply_to_screen_name ?
                               " to " + status.in_reply_to_screen_name : "")];
                  }

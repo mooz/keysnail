@@ -120,8 +120,7 @@
         <menupopup id="keysnail-prompt-menu" />
         <listbox id="keysnail-completion-list"
                  hidden="true"
-                 insertafter="status-bar"
-                 context="keysnail-prompt-menu">
+                 insertafter="status-bar">
         </listbox>
         <hbox id="keysnail-prompt"
               insertafter="keysnail-completion-list" hidden="true"

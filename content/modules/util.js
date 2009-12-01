@@ -34,8 +34,6 @@ KeySnail.Util = {
         return document.commandDispatcher.focusedElement;
     },
 
-    // ==================== Utils  ==================== //
-
     // File IO {{ =============================================================== //
 
     /**
@@ -274,7 +272,7 @@ KeySnail.Util = {
     },
 
     /**
-     * check if cursor is in the autocomplete menu or not
+     * check if cursor is in the autocomplete menu
      * original code from Firemacs
      * http://www.mew.org/~kazu/proj/firemacs/
      * @returns {boolean} true if cursor is in the autocomplete menu
@@ -298,11 +296,15 @@ KeySnail.Util = {
     },
 
     /**
-     * check if the caret is visible or not
+     * check if the caret is visible
      * @returns {boolean} true if caret is visible
      */
     isCaretEnabled: function () {
-        return this.getSelectionController().getCaretEnabled();
+        try {
+            return this.getSelectionController().getCaretEnabled();
+        } catch (x) {
+            return false;
+        }
     },
 
     /**

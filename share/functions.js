@@ -412,20 +412,20 @@ var ksBuiltin = {
             "command.yankPop", false],
 
         show_kill_ring_and_select_text_to_paste: [
-            function(aEvent) {
-                if (!command.kill.ring.length) {
+            function (aEvent) {
+                if (!command.kill.ring.length)
                     return;
-                }
-                var clipboardText = command.getClipboardText();
-                if (clipboardText != command.kill.ring[0]) {
-                    command.pushKillRing(clipboardText);
-                }
-                prompt.read("Text to paste:", function(aReadStr) {
-                                if (aReadStr) {
-                                    key.insertText(aReadStr);
-                                }
-                            },
-                            null, command.kill.ring, command.kill.ring[0], 0, "clipboard");
+
+                let (ct = command.getClipboardText())
+                    (!command.kill.ring.length || ct != command.kill.ring[0]) && command.pushKillRing(ct);
+
+                prompt.selector(
+                    {
+                        message: "Paste:",
+                        collection: command.kill.ring,
+                        callback: function (i) { if (i >= 0) key.insertText(command.kill.ring[i]); }
+                    }
+                );
             }, false],
 
         select_whole_text: [

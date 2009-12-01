@@ -175,27 +175,34 @@ KeySnail.Prompt = function () {
 
     // ============================== common DOM manipulation ============================== //
 
-    function setColumns(aColumn) {
-        // var hasIcon = false;
+    function setLabel(aItem, aLabel) {
+        aItem.setAttribute("label", aLabel);
+    }
 
-        if (flags) {
-            flags.forEach(
-                function (flag) {
-                    // hasIcon |= (flag & modules.ICON);
-                    if (flag & (modules.HIDDEN | modules.ICON))
-                        aColumn--;
-                });
+    function setTooltip(aRow, aTooltip) {
+        aRow.setAttribute("tooltiptext", aTooltip);
+    }
+
+    function setColumns(aColumn) {
+        if (flags)
+        {
+            for each (var flag in flags)
+            {
+                if (flag & (modules.HIDDEN | modules.ICON))
+                    aColumn--;
+            }
         }
 
         removeAllChilds(listbox);
 
-        // if (aColumn > 1 || hasIcon) {
         var item;
         var head = document.createElement("listhead");
         var cols = document.createElement("listcols");
 
-        for (var i = 0; i < aColumn; ++i) {
-            if (listHeader) {
+        for (var i = 0; i < aColumn; ++i)
+        {
+            if (listHeader)
+            {
                 item = document.createElement("listheader");
                 item.flex = listWidth ? listWidth[i] : 1;
                 item.setAttribute("label", listHeader[i]);
@@ -205,19 +212,18 @@ KeySnail.Prompt = function () {
             item = document.createElement("listcol");
             item.flex = listWidth ? listWidth[i] : 1;
 
-            if (listWidth) {
+            if (listWidth)
                 item.setAttribute("width", listWidth[i].toString() + "%");
-            } else {
+            else
                 item.setAttribute("width", (100 / aColumn).toString() + "%");
-            }
 
             cols.appendChild(item);
         }
 
         if (listHeader)
             listbox.appendChild(head);
+
         listbox.appendChild(cols);
-        // }
 
         listboxColumns = aColumn;
     }
@@ -228,13 +234,13 @@ KeySnail.Prompt = function () {
     }
 
     function removeAllChilds(aElement) {
-        while (aElement.hasChildNodes()) {
+        while (aElement.hasChildNodes())
             aElement.removeChild(aElement.firstChild);
-        }
     }
 
     function getNextVisibleRowIndex(aCurrentIndex) {
-        for (var i = aCurrentIndex + 1; i < flags.length; ++i) {
+        for (var i = aCurrentIndex + 1; i < flags.length; ++i)
+        {
             if (!isFlagOn(i, modules.HIDDEN))
                 break;
         }
@@ -246,11 +252,10 @@ KeySnail.Prompt = function () {
         // this function *MUST* return string
         // null, undefined, integer and other object may cause exception
 
-        if (typeof aCells[i] == "function") {
+        if (typeof aCells[i] === "function")
             return aCells[i].call(null, aCells) || "";
-        } else {
+        else
             return aCells[i] || "";
-        }
     }
 
     function createRow(aCells) {
@@ -277,7 +282,8 @@ KeySnail.Prompt = function () {
                 var style = "";
                 if (i < aCells.length)
                 {
-                    cell.setAttribute("label", getCellValue(aCells, i));
+                    setLabel(cell, getCellValue(aCells, i));
+
                     if (listStyle && j < listStyle.length && listStyle[j])
                     {
                         style += listStyle[j];
@@ -293,7 +299,7 @@ KeySnail.Prompt = function () {
         }
         else
         {
-            row.setAttribute("label", getCellValue(aCells, 0));
+            setLabel(row, getCellValue(aCells, 0));
         }
 
         return row;
@@ -316,14 +322,14 @@ KeySnail.Prompt = function () {
                 }
 
                 if (i < aCells.length)
-                    cell.setAttribute("label", getCellValue(aCells, i));
+                    setLabel(cell, getCellValue(aCells, i));
 
                 cell = cell.nextSibling;
             }
         }
         else
         {
-            row.setAttribute("label", getCellValue(aCells, 0));
+            setLabel(cell, getCellValue(aCells, 0));
         }
     }
 
@@ -332,32 +338,26 @@ KeySnail.Prompt = function () {
         var pos;
         var listLen = currentIndexList ? currentIndexList.length : currentList.length;
 
-        if (listLen <= listboxRows) {
+        if (listLen <= listboxRows)
+        {
             // just change the selected index of the listbox
             listbox.currentIndex = listbox.selectedIndex = aIndex;
             return;
         }
 
         if (aIndex <= center)
-        {
             setupList(0, aIndex);
-        }
         else if (aIndex >= listLen - center)
-        {
             setupList(listLen - listboxRows, listboxRows - (listLen - aIndex));
-        }
         else
-        {
             setupList(aIndex - center, center);
-        }
     }
 
     function setupList(aOffset, aPos) {
-        if (currentIndexList) {
+        if (currentIndexList)
             setListBoxFromIndexList(currentList, currentIndexList, aOffset);
-        } else {
+        else
             setListBoxFromStringList(currentList, aOffset);
-        }
 
         // set selection of the listbox
         listbox.currentIndex = listbox.selectedIndex = aPos;
@@ -386,60 +386,70 @@ KeySnail.Prompt = function () {
         var count = Math.min(options.listboxMaxRows, aLength) + aOffset;
         var row;
 
-        if (listbox.hasChildNodes()) {
-            // use listbox already created
-            var childs = listbox.childNodes;
+        if (listbox.hasChildNodes())
+        {
+            // use listbox which has been already created
+            var childs     = listbox.childNodes;
             var isMultiple = isMultipleList(aGeneralList);
 
             var i = aOffset, j = 0;
 
             // skip listcols, listhead, ...
-            while (childs[j].nodeName != "listitem")
+            while (childs[j].nodeName !== "listitem")
                 j++;
 
-            if (isMultiple) {
-                // multiple
-                for (; i < count; ++i, ++j) {
-                    if (j < childs.length) {
-                        row = childs[j];
+            for (; i < count; ++i, ++j)
+            {
+                if (j < childs.length)
+                {
+                    row = childs[j];
+
+                    if (isMultiple)
                         applyRow(row, itemRetriever(i));
-                    } else {
-                        row = createRow(itemRetriever(i));
-                        listbox.appendChild(row);
-                    }
+                    else
+                        setLabel(row, itemRetriever(i));
                 }
-            } else {
-                // single normal
-                for (; i < count; ++i, ++j) {
-                    if (j < childs.length) {
-                        row = childs[j];
-                        row.setAttribute("label", itemRetriever(i));
-                    } else {
+                else
+                {
+                    if (isMultiple)
+                        row = createRow(itemRetriever(i));
+                    else
+                    {
                         row = document.createElement("listitem");
-                        row.setAttribute("label", itemRetriever(i));
-                        listbox.appendChild(row);
+                        setLabel(row, itemRetriever(i));
                     }
+
+                    listbox.appendChild(row);
                 }
             }
 
-            while (j < childs.length) {
+            // remove stubs
+            while (j < childs.length)
                 listbox.removeChild(listbox.lastChild);
-            }
-        } else {
+        }
+        else
+        {
             // set up the new listbox
-            if (isMultipleList(aGeneralList)) {
+            if (isMultipleList(aGeneralList))
+            {
                 // multiple
                 setColumns(itemRetriever(0).length);
-                for (var i = aOffset; i < count; ++i) {
+
+                for (var i = aOffset; i < count; ++i)
+                {
                     row = createRow(itemRetriever(i));
                     listbox.appendChild(row);
                 }
-            } else {
+            }
+            else
+            {
                 // normal
                 setColumns(1);
-                for (var i = aOffset; i < count; ++i) {
+
+                for (var i = aOffset; i < count; ++i)
+                {
                     row = document.createElement("listitem");
-                    row.setAttribute("label", itemRetriever(i));
+                    setLabel(row, itemRetriever(i));
                     listbox.appendChild(row);
                 }
             }
@@ -465,11 +475,10 @@ KeySnail.Prompt = function () {
         if (!currentCallback)
             return;
 
-        if (textbox.value.length != oldTextLength) {
-            if (delayedCommandTimeout) {
-                // self.message(delayedCommandTimeout + " :: clear");
+        if (textbox.value.length != oldTextLength)
+        {
+            if (delayedCommandTimeout)
                 clearTimeout(delayedCommandTimeout);
-            }
 
             // add delay
             delayedCommandTimeout = setTimeout(
@@ -482,16 +491,15 @@ KeySnail.Prompt = function () {
 
         oldTextLength = textbox.value.length;
 
-        if (typeof userOnChange == "function") {
-            let arg = {
+        if (typeof userOnChange == "function")
+        {
+            let (arg = {
                 key     : modules.key.keyEventToString(aEvent),
                 textbox : textbox,
                 event   : aEvent,
                 context : selectorContext[SELECTOR_STATE_CANDIDATES],
                 finish  : self.finish
-            };
-
-            userOnChange(arg);
+            }) userOnChange(arg);
         }
     }
 
@@ -506,25 +514,24 @@ KeySnail.Prompt = function () {
         var keymap = actionKeys["selector"];
 
         var match;
-        if (keymap[key] && (match = keymap[key].match("^prompt-nth-action-(.*)"))) {
+        if (keymap[key] && (match = keymap[key].match("^prompt-nth-action-(.*)")))
+        {
             var actions = selectorContext[SELECTOR_STATE_ACTION];
             var num = parseInt(match[1]) - 1;
 
-            if (selectorStatus == SELECTOR_STATE_CANDIDATES) {
+            if (selectorStatus == SELECTOR_STATE_CANDIDATES)
                 actions.wholeListIndex = num;
-            } else {
-                // in action state
-                wholeListIndex = num;
-            }
+            else
+                wholeListIndex = num; // in action state
 
-            if (num < 0 || num >= actions.wholeList.length) {
+            if (num < 0 || num >= actions.wholeList.length)
                 self.finish(true);
-            } else {
+            else
                 self.finish();
-            }
         }
 
-        switch (keymap[key]) {
+        switch (keymap[key])
+        {
         case "prompt-cancel":
             self.finish(true);
             break;
@@ -564,7 +571,8 @@ KeySnail.Prompt = function () {
         case "prompt-select-action":
             var from, to;
 
-            switch (selectorStatus) {
+            switch (selectorStatus)
+            {
             case SELECTOR_STATE_CANDIDATES:
                 from = SELECTOR_STATE_CANDIDATES;
                 to   = SELECTOR_STATE_ACTION;
@@ -577,13 +585,12 @@ KeySnail.Prompt = function () {
 
             selectorStatus = to;
 
-            if (delayedCommandTimeout) {
+            if (delayedCommandTimeout)
                 clearTimeout(delayedCommandTimeout);
-            }
 
             // save current context
             saveSelectorContext(selectorContext[from]);
-            // go to other status
+            // change current context
             restoreSelectorContext(selectorContext[to]);
 
             updateSelector(selectorContext[to]);
@@ -593,7 +600,8 @@ KeySnail.Prompt = function () {
             break;
         }
 
-        if (stopEventPropagation) {
+        if (stopEventPropagation)
+        {
             aEvent.preventDefault();
             aEvent.stopPropagation();
         }
@@ -601,15 +609,22 @@ KeySnail.Prompt = function () {
 
     function handleMouseDownSelector(aEvent) {
         var before = listbox.selectedIndex;
+
         setTimeout(
             function () {
                 modules.util.stopEventPropagation(aEvent);
-                var after = listbox.selectedIndex;
 
+                var after = listbox.selectedIndex;
                 if ((after - before) != 0)
                     selectNextCompletion(after - before, true);
 
                 textbox.focus();
+
+                if (aEvent.button === 2)
+                {
+                    document.getElementById("keysnail-prompt-menu")
+                        .openPopupAtScreen(aEvent.screenX, aEvent.screenY, true);
+                }
             }, 0);
     }
 
@@ -739,20 +754,23 @@ KeySnail.Prompt = function () {
     function selectNextCompletion(aDirection, aRing) {
         var nextIndex, currentIndex, totalLength;
 
-        if (!currentList || !currentList.length) {
+        if (!currentList || !currentList.length)
+        {
             modules.display.echoStatusBar("No " + completion.name + " found", 1000);
             wholeListIndex = -1;
             return;
         }
 
-        if (!compIndexList && currentRegexp) {
+        if (!compIndexList && currentRegexp)
+        {
             selectorDisplayStatusbarLine(currentRegexp, -1);
             // set index to pass
             wholeListIndex = -1;
             return;
         }
 
-        if (compIndexList) {
+        if (compIndexList)
+        {
             // with regexp
             nextIndex    = getNextIndex(compIndex, aDirection, 0, compIndexList.length, aRing);
             currentIndex = compIndex;
@@ -760,7 +778,9 @@ KeySnail.Prompt = function () {
             // set global value
             compIndex    = nextIndex;
             wholeListIndex = compIndexList[nextIndex];
-        } else {
+        }
+        else
+        {
             // whole list
             nextIndex        = getNextIndex(wholeListIndex, aDirection, 0, wholeList.length, aRing);
             currentIndex     = wholeListIndex;
@@ -774,7 +794,8 @@ KeySnail.Prompt = function () {
     }
 
     function createCompletionList() {
-        if (!wholeList || !wholeList.length) {
+        if (!wholeList || !wholeList.length)
+        {
             modules.display.echoStatusBar("No " + completion.name + " found", 1000);
             wholeListIndex = -1;
             return;
@@ -783,8 +804,9 @@ KeySnail.Prompt = function () {
         var index;
         var start = textbox.selectionStart;
 
-        if (start == 0) {
-            // create list of whole completion
+        if (start == 0)
+        {
+            // create list from entire completion
             compIndex = -1;
             compIndexList = null;
             setListBoxFromStringList(wholeList);
@@ -792,9 +814,11 @@ KeySnail.Prompt = function () {
             listbox.hidden = false;
             wholeListIndex = index = 0;
             currentRegexp = "";
-        } else {
+        }
+        else
+        {
             var listLen = wholeList.length;
-            var regexp = textbox.value;
+            var regexp  = textbox.value;
 
             var substrIndex;
 
@@ -811,85 +835,96 @@ KeySnail.Prompt = function () {
                 var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
 
             var cellForSearch;
-            if (flags) {
+            if (flags)
+            {
                 cellForSearch = [];
-                flags.forEach(
-                    function (flag, i) {
-                        if (!(flag & modules.IGNORE))
-                            cellForSearch.push(i);
-                    });
+
+                for (let i = 0; i < flags.length; ++i)
+                {
+                    if (!(flags[i] & modules.IGNORE))
+                        cellForSearch.push(i);
+                }
             }
 
-            // modules.display.prettyPrint((cellForSearch || "nothing").toString());
-
             var matcher;
-            if (isMultipleList(wholeList)) {
+            if (isMultipleList(wholeList))
+            {
                 // multiple cols
-                if (cellForSearch) {
-                    // user specified the cells to ignore
+                if (cellForSearch)
+                {
+                    // cells specified "IGNORE" by user will be ignored
                     matcher = (useMigemoActual) ?
-                        function () {
+                        function (i) {
                             return cellForSearch.some(
                                 function (j) {
                                     return getCellValue(wholeList[i], j).match(migexp, "i");
                                 });
-                        }
-                    : function () {
-                        return keywords.every(
-                            function (keyword) {
-                                return cellForSearch.some(
-                                    function (j) {
-                                        return getCellValue(wholeList[i], j).match(keyword, "i");
-                                    }
-                                );
-                            }
-                        );
-                    };
-                } else {
-                    matcher = (useMigemoActual) ?
-                        function () {
-                            return wholeList[i].some(
-                                function (item) {
-                                    return (typeof(item) == "function" ? item.call(null, wholeList[i]) : item).match(migexp, "i");
+                        } : function (i) {
+                            return keywords.every(
+                                function (keyword) {
+                                    return cellForSearch.some(
+                                        function (j) {
+                                            return getCellValue(wholeList[i], j).match(keyword, "i");
+                                        }
+                                    );
                                 }
                             );
-                        }
-                    : function () {
-                        return keywords.every(
-                            function (keyword) {
-                                return wholeList[i].some(
-                                    function (item) {
-                                        return (typeof item == "function" ? item.call(null, wholeList[i]) : item).match(keyword, "i");
-                                    }
-                                );
-                            }
-                        );
-                    };
+                        };
                 }
-            } else {
+                else
+                {
+                    // search whole cells
+                    matcher = (useMigemoActual) ?
+                        function (i) {
+                            return wholeList[i].some(
+                                function (item) {
+                                    return (typeof item === "function" ?
+                                            item.call(null, wholeList[i]) : item).match(migexp, "i");
+                                }
+                            );
+                        } : function (i) {
+                            return keywords.every(
+                                function (keyword) {
+                                    return wholeList[i].some(
+                                        function (item) {
+                                            return (typeof item === "function" ?
+                                                    item.call(null, wholeList[i]) : item).match(keyword, "i");
+                                        }
+                                    );
+                                }
+                            );
+                        };
+                }
+            }
+            else
+            {
                 // single col
                 matcher = (useMigemoActual) ?
                     function () { return wholeList[i].match(migexp, "i"); }
-                : function () {
+                :   function () {
                     return keywords.every(
                         function (keyword) { return wholeList[i].match(keyword, "i"); }
                     );
                 };
             }
 
-            for (var i = 0; i < listLen; ++i) {
-                if (matcher()) {
+            for (let i = 0; i < listLen; ++i)
+            {
+                if (matcher(i))
                     compIndexList.push(i);
-                }
             }
 
-            if (compIndexList.length == 0) {
+            if (compIndexList.length == 0)
+            {
                 // no candidates found
                 removeAllChilds(listbox);
-                compIndexList = null;
-                currentRegexp = regexp;
-                selectorDisplayStatusbarLine(regexp, -1);
+
+                compIndexList  = null;
+                currentRegexp  = regexp;
                 wholeListIndex = -1;
+
+                selectorDisplayStatusbarLine(regexp, -1);
+
                 return;
             }
 
@@ -1293,6 +1328,49 @@ KeySnail.Prompt = function () {
             self.setActionKey("selector", "<home>" , "prompt-beginning-of-candidates");
             self.setActionKey("selector", "<end>"  , "prompt-end-of-candidates");
             self.setActionKey("selector", "C-i"    , "prompt-select-action");
+
+            // Setup close button {{ ==================================================== //
+
+            var closeButtonStyle;
+
+            var xulRuntime = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
+            if (xulRuntime.OS === "Darwin")
+            {
+                closeButtonStyle = <><![CDATA[
+                                            #keysnail-prompt #keysnail-prompt-close-button {
+                                                list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
+                                            }
+
+                                            #keysnail-prompt #keysnail-prompt-close-button:hover {
+                                                list-style-image: url("chrome://global/skin/icons/closetab-hover.png") !important;
+                                            }
+
+                                            #keysnail-prompt #keysnail-prompt-close-button:hover:active {
+                                                list-style-image: url("chrome://global/skin/icons/closetab-active.png") !important;
+                                            }
+                                        ]]></>.toString();
+            }
+            else
+            {
+                closeButtonStyle = <><![CDATA[
+                                            #keysnail-prompt #keysnail-prompt-close-button {
+                                                list-style-image: url('chrome://global/skin/icons/close.png');
+                                                -moz-image-region: rect(0px, 14px, 14px, 0px);
+                                            }
+
+                                            #keysnail-prompt #keysnail-prompt-close-button:hover {
+                                                -moz-image-region: rect(0px, 28px, 14px, 14px);
+                                            }
+
+                                            #keysnail-prompt #keysnail-prompt-close-button:hover:active {
+                                                -moz-image-region: rect(0px, 42px, 14px, 28px);
+                                            }
+                                        ]]></>.toString();
+            }
+
+            modules.style.register(closeButtonStyle);
+
+            // }} ======================================================================= //
         },
 
         setActionKey: function(aType, aKey, aAction) {
@@ -1652,24 +1730,31 @@ KeySnail.Prompt = function () {
             // now focus to the input area
             textbox.focus();
 
-            // add event listener
-            textbox.addEventListener('keypress', handleKeyPressSelector, false);
-            textbox.addEventListener('keyup', handleKeyUpSelector, false);
-            listbox.addEventListener('mousedown', handleMouseDownSelector, true);
-            listbox.addEventListener('DOMMouseScroll', handleMouseScrollSelector, true);
-            listbox.addEventListener('click', modules.util.stopEventPropagation, true);
+            function singleClickHandler(aEvent) {
+                modules.util.stopEventPropagation(aEvent);
+            }
+
             function dblClickHandler() {
                 self.finish();
             }
+
+            // add event listener
+            textbox.addEventListener('keypress', handleKeyPressSelector, false);
+            textbox.addEventListener('keyup', handleKeyUpSelector, false);
+
+            listbox.addEventListener('mousedown', handleMouseDownSelector, true);
+            listbox.addEventListener('click', singleClickHandler, true);
             listbox.addEventListener('dblclick', dblClickHandler, true);
+            listbox.addEventListener('DOMMouseScroll', handleMouseScrollSelector, true);
 
             eventListenerRemover = function () {
                 textbox.removeEventListener('keypress', handleKeyPressSelector, false);
                 textbox.removeEventListener('keyup', handleKeyUpSelector, false);
+
                 listbox.removeEventListener('mousedown', handleMouseDownSelector, true);
-                listbox.removeEventListener('DOMMouseScroll', handleMouseScrollSelector, true);
-                listbox.removeEventListener('click', modules.util.stopEventPropagation, true);
+                listbox.removeEventListener('click', singleClickHandler, true);
                 listbox.removeEventListener('dblclick', dblClickHandler, true);
+                listbox.removeEventListener('DOMMouseScroll', handleMouseScrollSelector, true);
             };
 
             oldTextLength = 0;

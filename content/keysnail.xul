@@ -12,6 +12,7 @@
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/html.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/display.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/command.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/style.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/key.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/hook.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/macro.js" />
