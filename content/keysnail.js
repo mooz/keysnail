@@ -180,14 +180,7 @@ var KeySnail = {
     },
 
     message: function (aFormat) {
-        for (var i = 1; i < arguments.length; ++i)
-        {
-            aFormat = aFormat.replace("%s", arguments[i]);
-        }
-
-        Application.console.log(aFormat);
-
-        return aFormat;
+        Application.console.log(this.modules.util.format.apply(null, arguments));
     },
 
     /**

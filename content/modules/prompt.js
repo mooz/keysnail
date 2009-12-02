@@ -953,7 +953,7 @@ KeySnail.Prompt = function () {
     }
 
     function resetReadState() {
-        currentHead = null;
+        currentHead        = null;
         inNormalCompletion = false;
 
         // reset completion list index
@@ -969,8 +969,10 @@ KeySnail.Prompt = function () {
         // Some KeyPress event is grabbed by KeySnail and stopped.
         // So we need to listen the keyup event for resetting the misc values.
 
-        if (textbox.selectionStart != oldSelectionStart &&
-            textbox.selectionStart != textbox.value.length) {
+        if ((textbox.value.indexOf(currentHead) !== 0)
+            || (textbox.selectionStart !== oldSelectionStart &&
+                currentHead !== textbox.value))
+        {
             resetReadState();
         }
 
@@ -978,14 +980,12 @@ KeySnail.Prompt = function () {
 
         if (typeof userOnChange == "function")
         {
-            let arg = {
-                key     : modules.key.keyEventToString(aEvent),
-                textbox : textbox,
-                event   : aEvent,
-                finish  : self.finish
-            };
-
-            userOnChange(arg);
+            let (arg = {
+                     key     : modules.key.keyEventToString(aEvent),
+                     textbox : textbox,
+                     event   : aEvent,
+                     finish  : self.finish
+                 }) userOnChange(arg);
         }
     }
 
@@ -1109,7 +1109,8 @@ KeySnail.Prompt = function () {
      * @param {boolean} aNoSit whether move caret or not
      */
     function fetchItem(aType, aDirection, aExpand, aRing, aSubstrMatch, aNoSit) {
-        if (!aType.list || !aType.list.length) {
+        if (!aType.list || !aType.list.length)
+        {
             modules.display.echoStatusBar("No " + aType.name + " found", 1000);
             return;
         }
@@ -1119,11 +1120,14 @@ KeySnail.Prompt = function () {
         // get cursor position
         var start = textbox.selectionStart;
 
-        if (start == 0 || inNormalCompletion) {
+        if (start === 0 || inNormalCompletion)
+        {
+            currentHead = "";
             // get {current / next / previous} index
             index = getNextIndex(aType.index, aDirection, 0, aType.list.length, aRing);
 
-            if (!inNormalCompletion) {
+            if (!inNormalCompletion)
+            {
                 // at first time
                 setListBoxFromStringList(aType.list);
                 setRows(aType.list.length);
@@ -1133,51 +1137,57 @@ KeySnail.Prompt = function () {
 
             // normal completion (not the substring matching)
             inNormalCompletion = true;
-        } else {
+        }
+        else
+        {
             inNormalCompletion = false;
-
-            // header / substring match
-            var header;
 
             var listLen = aType.list.length;
             var substrIndex;
 
-            if (currentHead != null && compIndexList) {
+            if (currentHead !== null && compIndexList)
+            {
                 // use current completion list
-                var nextCompIndex = getNextIndex(compIndex, aDirection,
-                                                 0, compIndexList.length, aRing);
+                var nextCompIndex = getNextIndex(compIndex, aDirection, 0, compIndexList.length, aRing);
 
                 index = compIndexList[nextCompIndex];
                 compIndex = nextCompIndex;
                 listBoxSelectionIndex = nextCompIndex;
-            } else {
+            }
+            else
+            {
                 // generate new completion list
                 compIndexList = [];
                 compIndex = 0;
 
-                header = textbox.value.slice(0, start);
+                var header = textbox.value.slice(0, start);
 
                 currentHead = header;
 
                 // modules.display.prettyPrint(header);
 
-                for (var i = 0; i < listLen; ++i) {
+                for (var i = 0; i < listLen; ++i)
+                {
                     var foundIndex = getListText(aType.list, i).indexOf(header);
-                    if (foundIndex == 0 || (aSubstrMatch && foundIndex != -1)) {
+                    if (foundIndex === 0 || (aSubstrMatch && foundIndex !== -1))
+                    {
                         compIndexList.push(i);
                     }
                 }
 
-                if (compIndexList.length == 0) {
+                if (compIndexList.length === 0)
+                {
                     compIndexList = null;
                     modules.display.echoStatusBar("No match for [" + currentHead + "]");
                     currentHead = null;
+
                     return;
                 }
 
                 index = compIndexList[0];
 
-                if (aExpand) {
+                if (aExpand)
+                {
                     var newSubstrIndex = getCommonSubstrIndex(aType.list, compIndexList);
                     currentHead = getListText(aType.list, index).slice(0, newSubstrIndex);
 
@@ -1193,12 +1203,17 @@ KeySnail.Prompt = function () {
             }
         }
 
-        if (inNormalCompletion) {
+        if (inNormalCompletion)
+        {
             modules.display.echoStatusBar(aType.name + " (" + (index + 1) +  " / " + aType.list.length + ")");
-        } else {
-            modules.display.echoStatusBar(aType.name + (aSubstrMatch ? " Substring" : " Header") +
-                                          " Match for [" + currentHead + "]" +
-                                          " (" + (compIndex + 1) +  " / " + compIndexList.length + ")");
+        }
+        else
+        {
+            modules.display.echoStatusBar(modules.util.format("%s Match for [%s] (%s / %s)",
+                                                              aType.name + (aSubstrMatch ? " Substring" : " Header"),
+                                                              currentHead,
+                                                              compIndex + 1,
+                                                              compIndexList.length));
         }
 
         // set new text
@@ -1206,11 +1221,20 @@ KeySnail.Prompt = function () {
         textbox.value = getListText(aType.list, index);
         aType.index = index;
 
-        if (aNoSit) {
-            textbox.selectionStart = textbox.selectionEnd =
-                (inNormalCompletion) ?
-                textbox.value.length : currentHead.length;
-        } else {
+        if (aNoSit)
+        {
+            if (inNormalCompletion)
+            {
+                textbox.selectionStart = textbox.selectionEnd = textbox.value.length;
+                oldSelectionStart = textbox.value.length;
+            }
+            else
+            {
+                textbox.selectionStart = textbox.selectionEnd = currentHead.length;
+            }
+        }
+        else
+        {
             textbox.selectionStart = textbox.selectionEnd = start;
         }
 
@@ -1252,7 +1276,8 @@ KeySnail.Prompt = function () {
     // ============================== finish ============================== //
 
     function executeCallback(aCallback, aCallbackArg, aCanceled) {
-        if (typeof(aCallback) === "function") {
+        if (typeof aCallback === "function")
+        {
             // try to execute
             try {
                 aCallback.apply(modules, aCallbackArg);
@@ -1262,19 +1287,24 @@ KeySnail.Prompt = function () {
             }
 
             // add history (prompt.read only)
-            if ((type == TYPE_READ) && aCallbackArg[0].length) {
+            if ((type == TYPE_READ) && aCallbackArg[0] && aCallbackArg[0].length)
+            {
                 var text = aCallbackArg[0];
 
-                if (options.ignoreDuplication) {
+                if (options.ignoreDuplication)
+                {
                     // remove all duplicated elements from list and add str to head
                     var li = history.list;
-                    for (var i = 0; i < li.length; ++i) {
-                        if (text == li[i]) {
+                    for (var i = 0; i < li.length; ++i)
+                    {
+                        if (text == li[i])
                             li.splice(i, 1);
-                        }
                     }
+
                     li.unshift(text);
-                } else {
+                }
+                else
+                {
                     history.list.unshift(text);
                 }
             }
