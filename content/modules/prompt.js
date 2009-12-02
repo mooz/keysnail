@@ -900,8 +900,8 @@ KeySnail.Prompt = function () {
             {
                 // single col
                 matcher = (useMigemoActual) ?
-                    function () { return wholeList[i].match(migexp, "i"); }
-                :   function () {
+                    function (i) { return wholeList[i].match(migexp, "i"); }
+                :   function (i) {
                     return keywords.every(
                         function (keyword) { return wholeList[i].match(keyword, "i"); }
                     );
