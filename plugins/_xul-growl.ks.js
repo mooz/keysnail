@@ -55,11 +55,11 @@ key.setGlobalKey("C-0", function (ev, arg) {
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
-// 
+//
 // ==== 0.0.2 (2009 12/05) ====
-// 
-// * Added transparent effect (not works on Linux) 
-// 
+//
+// * Added transparent effect (not works on Linux)
+//
 // }} ======================================================================= //
 
 // Main {{ ================================================================== //
@@ -99,7 +99,7 @@ var xulGrowl =
 
          let containerStyle =
              'padding: 5px; color:white; background-color:rgba(0,0,0,0.8);' +
-             'width:300px; margin-left: auto; margin-right: 0;';
+             'width:300px; margin-left: auto; margin-right: 0; opacity:0;';
 
          let headerStyle = "border-bottom: thin solid rgba(192,192,192,0.5);";
 
@@ -111,7 +111,7 @@ var xulGrowl =
          {
              if (xulRuntime.OS !== "Linux")
              {
-                 containerStyle += "-moz-border-radius:5px;";
+                 containerStyle += "-moz-border-radius:5px; margin-top: 10px;";
                  panelStyle     += "background-color:transparent;";
              }
          };
@@ -131,6 +131,24 @@ var xulGrowl =
              range.detach();
 
              return fragment.childNodes.length > 1 ? fragment : fragment.firstChild;
+         }
+
+         // original code by piro
+         function doAnimation(aAnimator, aInterval, aDuration) {
+             var startTime = Date.now();
+
+             var timer = window.setInterval(
+                 function () {
+                     var progress = Math.min(
+                         1,
+                         (Date.now() - startTime) / aDuration
+                     );
+
+                     aAnimator(progress);
+
+                     if (progress === 1)
+                         window.clearInterval(timer);
+                 }, aInterval);
          }
 
          /**
@@ -156,9 +174,23 @@ var xulGrowl =
              setTimer: function (sec) {
                  if (!sec)
                      sec = 10;
-                 this.time = setTimeout(function (self, manager) {
-                                            manager.remove(self.count);
-                                        }, sec * 1000, this, growlManager);
+
+                 let self = this;
+
+                 doAnimation(
+                     function (progress) {
+                         if (progress === 1)
+                         {
+                             self.time = setTimeout(
+                                 function () {
+                                     growlManager.remove(self.count);
+                                 }, sec * 1000);
+                         }
+                         else
+                         {
+                             self.dom.style.opacity = progress;
+                         }
+                     }, 25, 500);
              },
 
              clearTimer: function () {
