@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.1.8</version>
+    <version>1.1.9</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -51,6 +51,10 @@ key.setGlobalKey(["C-x", ";"], function (ev, arg) {
 // }}}
 
 // ChangeLog : {{{
+// 
+// ==== 1.1.9 (2009 12/05) ====
+// 
+// * Supported % in the URL.
 // 
 // ==== 1.1.8 (2009 11/23) ====
 //
@@ -158,7 +162,7 @@ function showCommentOfPage(aPageURL, aArg) {
                              var matched;
                              var comment = collection[aIndex][HB_COMMENT];
 
-                             while ((matched = comment.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?#_*.:/=&\\-]+)")))
+                             while ((matched = comment.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?#_*.:/=&%\\-]+)")))
                              {
                                  var prefix = (matched[1] == "ftp") ? "ftp" : "http";
                                  if (matched[1][matched[1].length - 1] == 's')

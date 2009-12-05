@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.7</version>
+    <version>1.3.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -203,15 +203,20 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.3.8 (2009 12/05) ====
+// 
+// * Supported % in the URL.
+// * xulGrowl prototype 
 //
 // ==== 1.3.7 (2009 11/28) ====
-// 
+//
 // * Fixed the bug user can't cancel the action "search".
-// 
+//
 // ==== 1.3.6 (2009 11/24) ====
-// 
+//
 // * Added description for official RT
-// 
+//
 // ==== 1.3.5 (2009 11/24) ====
 //
 // * Supported official RT.
@@ -363,7 +368,7 @@ var twitterClient =
                   {
                       var matched;
 
-                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?#_*.:/=&\\-]+)")))
+                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?#_*.:/=&%\\-]+)")))
                       {
                           var prefix = (matched[1] == "ftp") ? "ftp" : "http";
                           if (matched[1][matched[1].length - 1] == 's')
@@ -486,18 +491,34 @@ var twitterClient =
          // ============================== Popup notifications {{ ============================== //
 
          var unPopUppedStatuses;
-         var popUpNewStatusesObserver = {
-             observe: function (subject, topic, data) {
-                 if (topic == "alertclickcallback") {
-                     gBrowser.loadOneTab(data, null, null, null, false);
-                 }
 
-                 if (!unPopUppedStatuses || !unPopUppedStatuses.length)
-                     return;
+         function showPopup(arg) {
+             if (false /* plugins.lib.xulGrowl */)
+             {
+                 plugins.lib.xulGrowl.update(
+                     {
+                         title   : arg.title,
+                         message : arg.message,
+                         link    : arg.link,
+                         icon    : arg.icon
+                     }
+                 );
 
-                 showOldestUnPopUppedStatus();
+                 setTimeout(function () {
+                                if (typeof arg.callback === "function")
+                                    arg.callback();
+                            }, 1000);
              }
-         };
+             else
+             {
+                 alertsService.showAlertNotification(arg.icon,
+                                                     arg.title,
+                                                     arg.message,
+                                                     !!arg.link,
+                                                     arg.link,
+                                                     arg.observer);
+             }
+         }
 
          function showOldestUnPopUppedStatus() {
              var status = unPopUppedStatuses.pop();
@@ -520,12 +541,28 @@ var twitterClient =
                  return;
              }
 
-             alertsService.showAlertNotification(status.user.profile_image_url,
-                                                 status.user.name,
-                                                 html.unEscapeTag(status.text),
-                                                 true,
-                                                 "http://twitter.com/" + status.user.screen_name + "/status/" + status.id,
-                                                 popUpNewStatusesObserver);
+             function proc() {
+                 if (!unPopUppedStatuses || !unPopUppedStatuses.length)
+                     return;
+
+                 showOldestUnPopUppedStatus();
+             }
+
+             showPopup({
+                           icon     : status.user.profile_image_url,
+                           title    : status.user.name,
+                           message  : html.unEscapeTag(status.text),
+                           link     : "http://twitter.com/" + status.user.screen_name + "/status/" + status.id,
+                           callback : proc,
+                           observer : {
+                               observe: function (subject, topic, data) {
+                                   if (topic === "alertclickcallback")
+                                       gBrowser.loadOneTab(data, null, null, null, false);
+
+                                   proc();
+                               }
+                           }
+                       });
          }
 
          function popUpNewStatuses(statuses) {
@@ -917,10 +954,13 @@ var twitterClient =
                          var icon_url  = status.user.profile_image_url;
                          var user_name = status.user.name;
                          var message   = html.unEscapeTag(status.text);
-                         alertsService.showAlertNotification(icon_url,
-                                                             M({ja: "ふぁぼりました",
-                                                                en: "Added to favorites"}),
-                                                             user_name + ": " + message, false, "", null);
+
+                         showPopup({
+                                       icon     : icon_url,
+                                       title    : M({ja: "ふぁぼりました", en: "Added to favorites"}),
+                                       message  : user_name + ": " + message,
+                                       link     : null
+                                   });
                      }
                  }
              );
@@ -1005,11 +1045,11 @@ var twitterClient =
                          else if (xhr.status != 200)
                          {
                              // misc error
-                             alertsService.showAlertNotification(null,
-                                                                 M({ja: "ごめんなさい", en: "I'm sorry..."}),
-                                                                 M({ja: "RT に失敗しました [Twitter のサイトへ行き、アカウントの言語環境を英語に変更した上でもう一度お試し下さい]",
-                                                                    en: "Failed to ReTweet"}) + " (" + xhr.status + ")",
-                                                                 false, "", null);
+                             showPopup({
+                                           title    : M({ja: "ごめんなさい", en: "I'm sorry..."}),
+                                           message  : M({ja: "RT に失敗しました [Twitter のサイトへ行き、アカウントの言語環境を英語に変更した上でもう一度お試し下さい]",
+                                                         en: "Failed to ReTweet"}) + " (" + xhr.status + ")"
+                                       });
                          }
                          else
                          {
@@ -1019,9 +1059,11 @@ var twitterClient =
                              var user_name = status.user.name;
                              var message   = html.unEscapeTag(status.text);
 
-                             alertsService.showAlertNotification(icon_url,
-                                                                 M({ja: "RT しました", en: "ReTweeted"}),
-                                                                 message, false, "", null);
+                             showPopup({
+                                           icon    : icon_url,
+                                           title   : M({ja: "RT しました", en: "ReTweeted"}),
+                                           message : message
+                                       });
                          }
                      }
                  }
@@ -1083,11 +1125,11 @@ var twitterClient =
                                      else if (xhr.status != 200)
                                      {
                                          // misc error
-                                         alertsService.showAlertNotification(null,
-                                                                             M({ja: "ごめんなさい", en: "I'm sorry..."}),
-                                                                             M({ja: "つぶやけませんでした",
-                                                                                en: "Failed to tweet"}) + " (" + xhr.status + ")",
-                                                                             false, "", null);
+                                         showPopup({
+                                                       title   : M({ja: "ごめんなさい", en: "I'm sorry..."}),
+                                                       message : M({ja: "つぶやけませんでした",
+                                                                    en: "Failed to tweet"}) + " (" + xhr.status + ")"
+                                                   });
                                      }
                                      else
                                      {
@@ -1102,7 +1144,11 @@ var twitterClient =
                                          var icon_url  = status.user.profile_image_url;
                                          var user_name = status.user.name;
                                          var message   = html.unEscapeTag(status.text);
-                                         alertsService.showAlertNotification(icon_url, user_name, message, false, "", null);
+                                         showPopup({
+                                                       icon    : icon_url,
+                                                       title   : user_name,
+                                                       message : message
+                                                   });
                                      }
                                  }
                              }
