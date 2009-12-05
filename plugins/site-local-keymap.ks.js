@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -18,13 +18,13 @@ var PLUGIN_INFO =
     </provides>
     <options>
         <option>
-            <name>remap_pages.local_keymap</name>
+            <name>site_local_keymap.local_keymap</name>
             <type>array</type>
             <description>Local keymaps by each site</description>
             <description lang="ja">サイト毎のローカルキーマップ (詳細は説明を参照のこと)</description>
         </option>
         <option>
-            <name>remap_pages.disable_in_textarea</name>
+            <name>site_local_keymap.disable_in_textarea</name>
             <type>boolean</type>
             <description>Disable site local keymap in the textarea (Default: )</description>
             <description lang="ja">編集エリアではサイトローカルのキーマップを無視する (デフォルト値 true)</description>
@@ -48,31 +48,112 @@ Paste the code below to your .keysnail.js PRESERVE area or preserved codes area 
 
      // ============================================================ //
 
-     local["https?://mail.google.com/mail/*"] = [
+     local["^https?://mail.google.com/mail/"] = [
+         // prefix
+         ['g', null],
+         // g-*
+         ['i', null],
+         ['s', null],
+         ['t', null],
+         ['d', null],
+         ['a', null],
+         ['c', null],
+         ['k', null],
+
+         // prefix
+         ['*', null],
+         ['a', null],
+         ['n', null],
+         ['r', null],
+         ['u', null],
+         ['s', null],
+         ['t', null],
+
+         ['u', null],
+         ['k', null],
+         ['j', null],
+         ['o', null],
+         ['p', null],
+         ['n', null],
+
+         ['c', null],
+         ['/', null],
+         ['q', null],
+         ['?', null],
+         
+         ['x', null],
+         ['s', null],
+         ['y', null],
+         ['e', null],
+         ['m', null],
+         ['!', null],
+         ['#', null],
+         ['r', null],
+
+         ['R', null],
+         ['a', null],
+         ['A', null],
+         ['f', null],
+         ['F', null],
+         ['N', null],
+
+         // <tab>, RET
+         ['<tab>', null],
+         ['RET', null],
+
+         ['ESC', null],
+         [']', null],
+         ['[', null],
+         ['z', null],
+         ['.', null],
+         ['I', null],
+         ['U', null],
+         ['C-s', null],
+         ['T', null]
+     ];
+
+     local["^http://www.google.(co.jp|com)/reader/view/"] = [
+         // prefix key
+         ["g", null],
+         ["G", null],
+         // {g, G}-*
+         ["h", null],
+         ["a", null],
+         ["s", null],
+         ["S", null],
+         ["u", null],
+         ["t", null],
+         ["T", null],
+         ["d", null],
+         ["f", null],
+         ["F", null],
+         ["c", null],
+         ["C", null],
+         // misc
          ["j", null],
          ["k", null],
-         [["C-c", "w"], function () { window.alert("hoge"); }]
-     ];
-
-     local["http://www.google.com/reader/view/*"] = [
-         ["j", fake("n")],
-         ["k", fake("p")]
-     ];
-
-     local["http://wiki.github.com/*"] = [
-         ["j", null],
-         ["k", null]
+         ["n", null],
+         ["p", null],
+         ["L", null],
+         ["e", null],
+         ["X", null],
+         ["D", null],
+         ["O", null],
+         ["v", null],
+         ["o", null],
+         ["m", null],
+         ["A", null]
      ];
 
      // ============================================================ //
 
-     plugins.options["remap_pages.local_keymap"] = local;
+     plugins.options["site_local_keymap.local_keymap"] = local;
  })();
 ||<
 
-In this example, we disable the KeySnail's j / k keybindings in the Gmail and github. Meanwhile, in the Google Reader, we rebinds the  n / p to the j / k.
+In this example, keysnail prefer the shortcut keys of Gmail and Google Reader.
 
-You can specify the local key settings to the local["URL pattern"] following the expressions below.
+You can specify the local keybindings by changing local["URL pattern"] in following expressions listed below.
 
 >||
 [
@@ -82,7 +163,15 @@ You can specify the local key settings to the local["URL pattern"] following the
 ]
 ||<
 
-When null is specified, KeySnail ignores the key while in that site. This is useful if you prefer the web site's shortcut key.
+When null is specified, keysnail ignores the key pressed in that site. This is useful if you prefer the web site's shortcut keys.
+
+You can switch "Shotcut keys in that site" and "KeySnail's keybindings" by calling site-local-keymap-toggle-status.
+
+>||
+key.setGlobalKey("C-;", function (ev, arg) {
+    ext.exec("site-local-keymap-toggle-status", arg, ev);
+}, 'Site local keymap', true);
+||<
     ]]></detail>
     <detail lang="ja"><![CDATA[
 === 使い方 ===
@@ -102,29 +191,110 @@ When null is specified, KeySnail ignores the key while in that site. This is use
 
      // ============================================================ //
 
-     local["https?://mail.google.com/mail/*"] = [
+     local["^https?://mail.google.com/mail/"] = [
+         // prefix
+         ['g', null],
+         // g-*
+         ['i', null],
+         ['s', null],
+         ['t', null],
+         ['d', null],
+         ['a', null],
+         ['c', null],
+         ['k', null],
+
+         // prefix
+         ['*', null],
+         ['a', null],
+         ['n', null],
+         ['r', null],
+         ['u', null],
+         ['s', null],
+         ['t', null],
+
+         ['u', null],
+         ['k', null],
+         ['j', null],
+         ['o', null],
+         ['p', null],
+         ['n', null],
+
+         ['c', null],
+         ['/', null],
+         ['q', null],
+         ['?', null],
+         
+         ['x', null],
+         ['s', null],
+         ['y', null],
+         ['e', null],
+         ['m', null],
+         ['!', null],
+         ['#', null],
+         ['r', null],
+
+         ['R', null],
+         ['a', null],
+         ['A', null],
+         ['f', null],
+         ['F', null],
+         ['N', null],
+
+         // <tab>, RET
+         ['<tab>', null],
+         ['RET', null],
+
+         ['ESC', null],
+         [']', null],
+         ['[', null],
+         ['z', null],
+         ['.', null],
+         ['I', null],
+         ['U', null],
+         ['C-s', null],
+         ['T', null]
+     ];
+
+     local["^http://www.google.(co.jp|com)/reader/view/"] = [
+         // prefix key
+         ["g", null],
+         ["G", null],
+         // {g, G}-*
+         ["h", null],
+         ["a", null],
+         ["s", null],
+         ["S", null],
+         ["u", null],
+         ["t", null],
+         ["T", null],
+         ["d", null],
+         ["f", null],
+         ["F", null],
+         ["c", null],
+         ["C", null],
+         // misc
          ["j", null],
          ["k", null],
-         [["C-c", "w"], function () { window.alert("hoge"); }]
-     ];
-
-     local["http://www.google.com/reader/view/*"] = [
-         ["j", fake("n")],
-         ["k", fake("p")]
-     ];
-
-     local["http://wiki.github.com/*"] = [
-         ["j", null],
-         ["k", null]
+         ["n", null],
+         ["p", null],
+         ["L", null],
+         ["e", null],
+         ["X", null],
+         ["D", null],
+         ["O", null],
+         ["v", null],
+         ["o", null],
+         ["m", null],
+         ["A", null]
      ];
 
      // ============================================================ //
 
-     plugins.options["remap_pages.local_keymap"] = local;
+     plugins.options["site_local_keymap.local_keymap"] = local;
  })();
 ||<
 
-ここでは Gmail, github の Wiki ページにて j / k を無効にし、 Google Reader においては j / k 入力をそれぞれ n / p にリマップしています。
+ここでは Gmail, Google Reader においてサイト側のショートカットキーを優先させるようにしています。
 
 上記の例を見て分かるとおり local["キーの再定義を行いたいページの URL パターン"] には
 
@@ -139,11 +309,23 @@ When null is specified, KeySnail ignores the key while in that site. This is use
 といったものを指定します。
 
 null が指定された場合、 KeySnail はそのサイトにいる間、そのキーを一時的に無視するようになります。各ウェブサイトのショートカットキーを優先させたい場合などに便利でしょう。
+
+以下のようにして適当なキーへ site-local-keymap-toggle-status を割り当てておけば、ワンキーで「サイト側のショートカットキー」と「KeySnail のキーバインド」を切り替えることが可能となりとても便利です。
+
+>||
+key.setGlobalKey("C-;", function (ev, arg) {
+    ext.exec("site-local-keymap-toggle-status", arg, ev);
+}, 'Site local keymap', true);
+||<
 ]]></detail>
 </KeySnailPlugin>;
 // }}}
 
 // ChangeLog : {{{
+// 
+// ==== 1.0.8 (2009 12/5) ====
+// 
+// * Made status site local. Renamed option prefix name to "site_local_keymap" from "remap_pages".
 //
 // ==== 1.0.6 (2009 11/13) ====
 //
@@ -181,170 +363,194 @@ null が指定された場合、 KeySnail はそのサイトにいる間、そ�
 //
 // }}}
 
-// {pattern : keymap}
-var localKeyMaps = {};
-var status = true;
+var siteLocalKeymap =
+    (function () {
+         // {pattern : keymap}
+         var localKeyMaps = {};
 
-var iconData = "data:image/png;base64," +
-    "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A" +
-    "/wD/oL2nkwAAAAlwSFlzAAACVgAAAlYBSEjC2wAAAAd0SU1FB9kLAQomGZyrHwEAAAItSURBVDjL" +
-    "lZJdSJNhFMd/z7vXvW9lzo9sOmoucGqkY6bMYDPBpEiULkoMKTGLoIi+oC68kboMuyropkZQXUQX" +
-    "FRjShZJOKkVr4Mg+jCkamLo0cUi57e3CemPYKs/VOc/5/3/PgXPE2bauQ4OB8WtDI9OprCKK7OZ5" +
-    "d3HOeUOSpbJ7tWaAqS9hJRJZqpRXYy7KzcS5dRPmjHVomsbI+Fyy/D9GV6GFlmMeiu2mFb1/Ag7s" +
-    "dtB22oUQ4o/9vwI8JVauninT61BY4+nzIC/9k6SYjFS5rEiJzAZJcOlEhV4/80+xo8GLEIILTSWc" +
-    "qncSjWmJJ/CU5pKbrQIwEYpwpPUxPd5GNmcouiZruznxBOXObD2/9WiI5n2lceZfsQJwvM6FQRJk" +
-    "ZSbrb50vPuDM2xCn6/HPMB/+CRBCkGddPofJmQWiMY3v32K6OD1N5UnvWBzAZknhTsfwMkCWZVwO" +
-    "GwCzc1/ZYjHxJjiji5tqnXT4hnnQNcbiooHQQpSW6z1IkoRI9bRpAHvc+fS+GiXdpFJTUUB791t8" +
-    "N+sQQqBpGodbO/ENBnWoapTpv9f4ewvvR6c4WO3g9sMBqstt3Ljfh7d9hKO1doQQ3L1cxeC7WfoC" +
-    "n8lIXcNedw4pKkhFdvM8QPDTLDU7bUgGGaMsU2BL54q3l+7X0/qvJflpnNxfQP2uZTMQNjQ0n5uO" +
-    "RJYqJ0NhY1mhFVVVWL9WRlEU+gMTtPs+Eo0lsc2+ESX+asLAxR/Sxa1hhI4dIQAAAABJRU5ErkJggg==";
+         var iconData = "data:image/png;base64," +
+             "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A" +
+             "/wD/oL2nkwAAAAlwSFlzAAACVgAAAlYBSEjC2wAAAAd0SU1FB9kLAQomGZyrHwEAAAItSURBVDjL" +
+             "lZJdSJNhFMd/z7vXvW9lzo9sOmoucGqkY6bMYDPBpEiULkoMKTGLoIi+oC68kboMuyropkZQXUQX" +
+             "FRjShZJOKkVr4Mg+jCkamLo0cUi57e3CemPYKs/VOc/5/3/PgXPE2bauQ4OB8WtDI9OprCKK7OZ5" +
+             "d3HOeUOSpbJ7tWaAqS9hJRJZqpRXYy7KzcS5dRPmjHVomsbI+Fyy/D9GV6GFlmMeiu2mFb1/Ag7s" +
+             "dtB22oUQ4o/9vwI8JVauninT61BY4+nzIC/9k6SYjFS5rEiJzAZJcOlEhV4/80+xo8GLEIILTSWc" +
+             "qncSjWmJJ/CU5pKbrQIwEYpwpPUxPd5GNmcouiZruznxBOXObD2/9WiI5n2lceZfsQJwvM6FQRJk" +
+             "ZSbrb50vPuDM2xCn6/HPMB/+CRBCkGddPofJmQWiMY3v32K6OD1N5UnvWBzAZknhTsfwMkCWZVwO" +
+             "GwCzc1/ZYjHxJjiji5tqnXT4hnnQNcbiooHQQpSW6z1IkoRI9bRpAHvc+fS+GiXdpFJTUUB791t8" +
+             "N+sQQqBpGodbO/ENBnWoapTpv9f4ewvvR6c4WO3g9sMBqstt3Ljfh7d9hKO1doQQ3L1cxeC7WfoC" +
+             "n8lIXcNedw4pKkhFdvM8QPDTLDU7bUgGGaMsU2BL54q3l+7X0/qvJflpnNxfQP2uZTMQNjQ0n5uO" +
+             "RJYqJ0NhY1mhFVVVWL9WRlEU+gMTtPs+Eo0lsc2+ESX+asLAxR/Sxa1hhI4dIQAAAABJRU5ErkJggg==";
 
-var iconElem = document.getElementById("keysnail-statusbar-icon");
-if (typeof plugins.options["remap_pages.disable_in_textarea"] == "undefined")
-    plugins.options["remap_pages.disable_in_textarea"] = true;
+         var iconElem = document.getElementById("keysnail-statusbar-icon");
+         if (typeof plugins.options["site_local_keymap.disable_in_textarea"] === "undefined")
+             plugins.options["site_local_keymap.disable_in_textarea"] = true;
 
-// ============================================================ //
+         // ============================================================ //
 
-// arrange keymap
-key.modes.SITELOCAL = "sitelocal";
+         // arrange keymap
+         key.modes.SITELOCAL = "sitelocal";
 
-function locationChangeHandler(aNsURI) {
-    if (!status)
-        return;
+         function locationChangeHandler(aNsURI) {
+             // about:blank?
+             if (!aNsURI || !aNsURI.spec)
+             {
+                 localKeyMaps[regexp] = null;
+                 key.updateStatusBar();
+                 return;
+             }
 
-    // about:blank?
-    if (!aNsURI || !aNsURI.spec)
-    {
-        localKeyMaps[regexp] = null;
-        key.updateStatusBar();
-        return;
-    }
+             var url = aNsURI.spec;
+             var keymap;
 
-    var url = aNsURI.spec;
-    var keymap;
+             for (var regexp in localKeyMaps)
+             {
+                 if (url.match(regexp))
+                 {
+                     keymap = localKeyMaps[regexp];
+                     break;
+                 }
+             }
 
-    for (var regexp in localKeyMaps)
-    {
-        if (url.match(regexp))
-        {
-            keymap = localKeyMaps[regexp];
-            // TODO: need some visual effects?
-            break;
-        }
-    }
+             key.keyMapHolder[key.modes.SITELOCAL] = keymap;
 
-    key.keyMapHolder[key.modes.SITELOCAL] = keymap;
+             // change statusbar icon
+             if (keymap && key.status && !key.suspended)
+             {
+                 iconElem.setAttribute("src", iconData);
+                 iconElem.tooltipText = M({en: "Site local keymap of this page enabled",
+                                           ja: "このサイト用のローカルキーマップが使われています"}) + " [" + regexp + "]";
+             }
+             else
+             {
+                 key.updateStatusBar();
+             }
+         }
 
-    // change statusbar icon
-    if (keymap && key.status && !key.suspended)
-    {
-        iconElem.setAttribute("src", iconData);
-        iconElem.tooltipText = M({en: "Site local keymap of this page enabled",
-                                  ja: "このサイト用のローカルキーマップが使われています"}) + " [" + regexp + "]";
-    }
-    else
-    {
-        key.updateStatusBar();
-    }
-}
+         if (my.siteLocalKeymapLocationChangeHandler)
+             hook.removeHook('LocationChange', my.siteLocalKeymapLocationChangeHandler);
+         my.siteLocalKeymapLocationChangeHandler = locationChangeHandler;
 
-if (my.remapPagesLocationChangeHandler)
-    hook.removeHook('LocationChange', my.remapPagesLocationChangeHandler);
-my.remapPagesLocationChangeHandler = locationChangeHandler;
+         hook.addToHook('LocationChange', locationChangeHandler);
 
-hook.addToHook('LocationChange', locationChangeHandler);
+         // ============================================================ //
 
-// ============================================================ //
+         // save key.getCurrentMode
+         if (!my.siteLocalOriginalGetCurrentMode)
+         {
+             my.siteLocalOriginalGetCurrentMode = key.getCurrentMode;
+         }
 
-// save key.getCurrentMode
-if (!my.siteLocalOriginalGetCurrentMode)
-{
-    my.siteLocalOriginalGetCurrentMode = key.getCurrentMode;
-}
+         // override mode detector
+         key.getCurrentMode = function (aEvent, aKey) {
+             if (self.status &&
+                 key.keyMapHolder[key.modes.SITELOCAL] &&
+                 !(plugins.options["site_local_keymap.disable_in_textarea"] && util.isWritable(aEvent)))
+             {
+                 if (typeof key.keyMapHolder[key.modes.SITELOCAL][aKey] !== "undefined")
+                 {
+                     return key.modes.SITELOCAL;
+                 }
+             }
 
-// override mode detector
-key.getCurrentMode = function (aEvent, aKey) {
-    if (key.keyMapHolder[key.modes.SITELOCAL] &&
-        !(plugins.options["remap_pages.disable_in_textarea"] && util.isWritable(aEvent)))
-    {
-        if (typeof(key.keyMapHolder[key.modes.SITELOCAL][aKey]) != "undefined")
-        {
-            return key.modes.SITELOCAL;
-        }
-    }
+             return my.siteLocalOriginalGetCurrentMode.call(key, aEvent, aKey);
+         };
 
-    return my.siteLocalOriginalGetCurrentMode.call(key, aEvent, aKey);
-};
+         // ============================================================ //
 
-// ============================================================ //
+         function processLocalKeyMap() {
+             var keyMapDefinition =
+                 plugins.options["site_local_keymap.local_keymap"] ||
+                 // to keep compatibility
+                 plugins.options["remap_pages.local_keymap"];
 
-function processLocalKeyMap() {
-    var keyMapDefinition = plugins.options["remap_pages.local_keymap"];
+             if (!keyMapDefinition)
+                 return;
 
-    if (!keyMapDefinition)
-        return;
+             for (var pattern in keyMapDefinition)
+             {
+                 var regexp = pattern.replace(".", "\\.", "g");
+                 regexp     = regexp.replace("*", ".*", "g");
 
-    for (var pattern in keyMapDefinition)
-    {
-        var regexp = pattern.replace(".", "\\.", "g");
-        regexp     = regexp.replace("*", ".*", "g");
+                 if (!localKeyMaps[regexp])
+                     localKeyMaps[regexp] = {};
 
-        if (!localKeyMaps[regexp])
-            localKeyMaps[regexp] = {};
+                 for each (var pair in keyMapDefinition[pattern])
+                 {
+                     var keySetting = pair[0];
+                     var definition = pair[1];
 
-        for each(var pair in keyMapDefinition[pattern])
-        {
-            var keySetting = pair[0];
-            var definition = pair[1];
+                     if (typeof keySetting === "string")
+                     {
+                         // single stroke
+                         localKeyMaps[regexp][keySetting] = definition;
+                     }
+                     else
+                     {
+                         // key sequence
+                         var current = localKeyMaps[regexp];
 
-            if (typeof keySetting == "string")
-            {
-                // single stroke
-                localKeyMaps[regexp][keySetting] = definition;
-            }
-            else
-            {
-                // key sequence
-                var current = localKeyMaps[regexp];
+                         for (var i = 0; i < keySetting.length - 1; ++i)
+                         {
+                             var keyStr = keySetting[i];
 
-                for (var i = 0; i < keySetting.length - 1; ++i)
-                {
-                    var keyStr = keySetting[i];
+                             if (typeof current[keyStr] !== "object")
+                                 current[keyStr] = {};
 
-                    if (typeof(current[keyStr]) != "object")
-                        current[keyStr] = {};
+                             current = current[keyStr];
+                         }
 
-                    current = current[keyStr];
-                }
+                         current[keySetting[i]] = definition;
+                     }
+                 }
+             }
+         }
 
-                current[keySetting[i]] = definition;
-            }
-        }
-    }
-}
+         function toggleStatus() {
+             if (self.status)
+             {
+                 // disable
+                 self.status = false;
+                 key.keyMapHolder[key.modes.SITELOCAL] = undefined;
+                 key.updateStatusBar();
+             }
+             else
+             {
+                 // enable
+                 self.status = true;
+                 locationChangeHandler({spec : window.content.location.href});
+             }
 
-function toggleStatus() {
-    if (status)
-    {
-        // disable
-        status = false;
-        key.keyMapHolder[key.modes.SITELOCAL] = undefined;
-        key.updateStatusBar();
-    }
-    else
-    {
-        // enable
-        status = true;
-        locationChangeHandler({spec : window.content.location.href});
-    }
+             gBrowser.focus();
+             _content.focus();
+             document.commandDispatcher.advanceFocus();
+         }
 
-    gBrowser.focus();
-    _content.focus();
-    document.commandDispatcher.advanceFocus();
-}
+         var self = {
+             get status() {
+                 if (typeof content.document.__siteLocalKeymapStatus__ === "boolean")
+                     return content.document.__siteLocalKeymapStatus__;
 
-processLocalKeyMap();
+                 return self.status = true;
+             },
 
-ext.add("site-local-keymap-toggle-status", toggleStatus,
+             set status(aStatus) {
+                 content.document.__siteLocalKeymapStatus__ = aStatus;
+             },
+
+             init: function () {
+                 processLocalKeyMap();
+             },
+
+             toggleStatus: toggleStatus
+         };
+
+         return self;
+     })();
+
+siteLocalKeymap.init();
+
+ext.add("site-local-keymap-toggle-status",
+        siteLocalKeymap.toggleStatus,
         M({ja: 'サイトローカルなキーマップの有効 / 無効を切り替え',
            en: "Toggle site local keymap"}));
