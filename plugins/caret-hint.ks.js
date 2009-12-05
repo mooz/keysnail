@@ -33,7 +33,7 @@ THE POSSIBILITY OF SUCH DAMAGE.
 var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Caret hint</name>
-    <description>Prefer LDRize keyboard shortcut</description>
+    <description>Move caret by hitting hints</description>
     <description lang="ja">ヒントを使ってキャレット移動</description>
     <version>0.0.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/caret-hint.ks.js</updateURL>
