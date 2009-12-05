@@ -128,6 +128,7 @@
             <label class="keysnail-prompt-label" id="keysnail-prompt-label" />
             <textbox id="keysnail-prompt-textbox" flex="1" />
             <toolbarbutton id="keysnail-prompt-close-button"
+                           class="tab-close-button"
                            tooltiptext="&keySnail.statusbar.closePrompt;"
                            oncommand="KeySnail.modules.prompt.finish(true);" />
         </hbox>

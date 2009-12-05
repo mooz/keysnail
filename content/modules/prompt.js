@@ -1359,47 +1359,6 @@ KeySnail.Prompt = function () {
             self.setActionKey("selector", "<end>"  , "prompt-end-of-candidates");
             self.setActionKey("selector", "C-i"    , "prompt-select-action");
 
-            // Setup close button {{ ==================================================== //
-
-            var closeButtonStyle;
-
-            var xulRuntime = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
-            if (xulRuntime.OS === "Darwin")
-            {
-                closeButtonStyle = <><![CDATA[
-                                            #keysnail-prompt #keysnail-prompt-close-button {
-                                                list-style-image: url("chrome://global/skin/icons/closetab.png") !important;
-                                            }
-
-                                            #keysnail-prompt #keysnail-prompt-close-button:hover {
-                                                list-style-image: url("chrome://global/skin/icons/closetab-hover.png") !important;
-                                            }
-
-                                            #keysnail-prompt #keysnail-prompt-close-button:hover:active {
-                                                list-style-image: url("chrome://global/skin/icons/closetab-active.png") !important;
-                                            }
-                                        ]]></>.toString();
-            }
-            else
-            {
-                closeButtonStyle = <><![CDATA[
-                                            #keysnail-prompt #keysnail-prompt-close-button {
-                                                list-style-image: url('chrome://global/skin/icons/close.png');
-                                                -moz-image-region: rect(0px, 14px, 14px, 0px);
-                                            }
-
-                                            #keysnail-prompt #keysnail-prompt-close-button:hover {
-                                                -moz-image-region: rect(0px, 28px, 14px, 14px);
-                                            }
-
-                                            #keysnail-prompt #keysnail-prompt-close-button:hover:active {
-                                                -moz-image-region: rect(0px, 42px, 14px, 28px);
-                                            }
-                                        ]]></>.toString();
-            }
-
-            modules.style.register(closeButtonStyle);
-
             // }} ======================================================================= //
         },
 
