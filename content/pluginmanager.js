@@ -44,18 +44,6 @@ var ksPluginManager = function () {
         }
     }
 
-    function xmlToDom(xml, xmlns) {
-        var doc = (new DOMParser).parseFromString(
-            '<root xmlns="' + xmlns + '">' + xml.toXMLString() + "</root>",
-            "application/xml");
-        var imported = document.importNode(doc.documentElement, true);
-        var range = document.createRange();
-        range.selectNodeContents(imported);
-        var fragment = range.extractContents();
-        range.detach();
-        return fragment.childNodes.length > 1 ? fragment : fragment.firstChild;
-    }
-
     function initPluginList() {
         removeAllChilds(pluginListbox);
 
@@ -326,21 +314,21 @@ var ksPluginManager = function () {
 
         // ====================================================================== //
 
-        var table = xmlToDom(<table>
-                             <tr>
-                             <td>{modules.util.getLocaleString("author")}</td>
-                             <td>{authorCell}</td>
-                             </tr>
-                             <tr>
-                             <td>{modules.util.getLocaleString("license")}</td>
-                             <td>{licenseCell}</td>
-                             </tr>
-                             <tr>
-                             <td>{modules.util.getLocaleString("compatibleVersion")}</td>
-                             <td>{versionMsg}</td>
-                             </tr>
-                             </table>
-                             ,"http://www.w3.org/1999/xhtml");
+        var table = modules.util.xmlToDom(<table>
+                                          <tr>
+                                          <td>{modules.util.getLocaleString("author")}</td>
+                                          <td>{authorCell}</td>
+                                          </tr>
+                                          <tr>
+                                          <td>{modules.util.getLocaleString("license")}</td>
+                                          <td>{licenseCell}</td>
+                                          </tr>
+                                          <tr>
+                                          <td>{modules.util.getLocaleString("compatibleVersion")}</td>
+                                          <td>{versionMsg}</td>
+                                          </tr>
+                                          </table>
+                                          , modules.util.XHTML);
 
         // ====================================================================== //
 

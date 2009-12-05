@@ -786,6 +786,36 @@ KeySnail.Util = {
 
     // XML {{ =================================================================== //
 
+    get XHTML() {
+        return "http://www.w3.org/1999/xhtml";
+    },
+
+    get XUL() {
+        return "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+    },
+
+    // Original code by piro (http://d.hatena.ne.jp/teramako/20081113/p1#c1226602807)
+    /**
+     * Convert E4X to DOM object
+     * @param {} xml
+     * @param {} xmlns
+     * @returns {} 
+     */
+    xmlToDom: function (xml, xmlns) {
+        if (!xmlns)
+            xmlns = this.XUL;
+
+        var doc = (new DOMParser).parseFromString(
+            '<root xmlns="' + xmlns + '">' + xml.toXMLString() + "</root>",
+            "application/xml");
+        var imported = document.importNode(doc.documentElement, true);
+        var range = document.createRange();
+        range.selectNodeContents(imported);
+        var fragment = range.extractContents();
+        range.detach();
+        return fragment.childNodes.length > 1 ? fragment : fragment.firstChild;
+    },
+
     /**
      * Get locale specific string from given node.
      * @param {XML} aNodes E4X type XML object
