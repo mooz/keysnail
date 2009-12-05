@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Provides prompt system which get inputs from user and process it
  * @name prompt.js
  * @author mooz <stillpedant@gmail.com>
  * @license The MIT License

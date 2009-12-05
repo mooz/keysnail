@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Manipulate styles
  * @name style.js
  * @author mooz <stillpedant@gmail.com>
  * @license The MIT License
@@ -24,7 +24,7 @@ KeySnail.Style = function () {
         .getService(Components.interfaces.nsIStyleSheetService);
 
     function cssURI(aCss, aNs) {
-        return ios.newURI((aCss.indexOf("file://") === 0) ? 
+        return ios.newURI((aCss.indexOf("file://") === 0) ?
                           window.encodeURI(aCss) :
                           "data:text/css," + window.encodeURI((aNs || XUL) + aCss), null, null);
     }
@@ -40,8 +40,9 @@ KeySnail.Style = function () {
                 aAgent ? sss.AGENT_SHEET : sss.USER_SHEET];
     }
 
-    // ================ public ================ //
-
+    /**
+     * @public
+     */
     var self = {
         init: function () {
             modules = this.modules;
@@ -55,12 +56,12 @@ KeySnail.Style = function () {
          *
          * ex1)
          * For xul document,
-         * 
+         *
          * style.register("img { display:none; }");
-         * 
+         *
          * ex2)
          * For current xhtml document,
-         * 
+         *
          * style.register(style.local("img { display:none; }",
          *                            window.content.location.href),
          *                style.XHTML);
@@ -101,7 +102,7 @@ KeySnail.Style = function () {
                         let matched = aURI.match("\(.*\)\\*");
                         if (matched)
                             return "url-prefix('" + matched[1] + "')";
-                        
+
                         return "url('" + aURI + "')";
                     }
                     else
@@ -116,4 +117,3 @@ KeySnail.Style = function () {
 
     return self;
 }();
-

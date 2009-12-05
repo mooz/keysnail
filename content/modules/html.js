@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Manipulate HTML
  * @name html.js
  * @author mooz <stillpedant@gmail.com>
  * @license The MIT License

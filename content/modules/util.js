@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Collection of utilities
  * @name util.js
  * @author mooz <stillpedant@gmail.com>
  * @license The MIT License
@@ -799,7 +799,7 @@ KeySnail.Util = {
      * Convert E4X to DOM object
      * @param {} xml
      * @param {} xmlns
-     * @returns {} 
+     * @returns {}
      */
     xmlToDom: function (xml, xmlns) {
         if (!xmlns)

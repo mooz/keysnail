@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Functions which displays something to the screen
  * @name display.js
  * @author mooz <stillpedant@gmail.com>
  * @license The MIT License

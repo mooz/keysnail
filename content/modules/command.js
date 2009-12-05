@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Collection of editor commands
  * @name command.js
  * @author mooz <stillpedant@gmail.com>
  * @license The MIT License

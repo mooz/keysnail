@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Handle key sequences and commands.
  * @name key.js
  * @author mooz <stillpedant@gmail.com>
  * @license The MIT License

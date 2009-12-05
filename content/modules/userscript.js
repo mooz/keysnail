@@ -1,5 +1,5 @@
 /**
- * @fileOverview
+ * @fileOverview Codes related to init file and plugins
  * @name userscript.js
  * @author mooz <stillpedant@gmail.com>
  * @license The MIT License
@@ -14,7 +14,7 @@ KeySnail.UserScript = {
      */
     jsFileLoader: function (aScriptPath, aPreserve) {
         var code = this.modules.util.readTextFile(aScriptPath);
-        if (KeySnail.windowType == "navigator:browser" && aPreserve)
+        if (this.parent.windowType === "navigator:browser" && aPreserve)
             this.preserveCode(code);
         Function("with (KeySnail.modules) {" + code + " }")();
     },
