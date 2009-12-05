@@ -9,7 +9,7 @@ var PLUGIN_INFO =
     <name>XUL Growl</name>
     <description>Growl like interface using XUL</description>
     <description lang="ja">XUL を用いた Growl のようなインタフェース</description>
-    <version>1.0.0</version>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_xul-growl.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_xul-growl.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -19,14 +19,47 @@ var PLUGIN_INFO =
     <detail><![CDATA[
 === What's this ==='
 ==== Growl like notification interface ====
-==== Override the content type ====
+
+>||
+key.setGlobalKey("C-0", function (ev, arg) {
+    var length = Math.round(10 * Math.random());
+    plugins.lib.xulGrowl.update(
+        {
+            title   : "Hello!",
+            message : Array(length).join("Hello!"),
+            link    : "http://www.google.co.jp/"
+        }
+    );
+}, 'Growl', true);
+||<
     ]]></detail>
     <detail lang="ja"><![CDATA[
 === 説明 ===
 ==== Growl ライクな通知インタフェース ====
+
+>||
+key.setGlobalKey("C-0", function (ev, arg) {
+    var length = Math.round(10 * Math.random());
+    plugins.lib.xulGrowl.update(
+        {
+            title   : "Hello!",
+            message : Array(length).join("Hello!"),
+            link    : "http://www.google.co.jp/"
+        }
+    );
+}, 'Growl', true);
+||<
     ]]></detail>
 </KeySnailPlugin>;
 
+// }} ======================================================================= //
+
+// ChangeLog {{ ============================================================= //
+// 
+// ==== 0.0.2 (2009 12/05) ====
+// 
+// * Added transparent effect (not works on Linux) 
+// 
 // }} ======================================================================= //
 
 // Main {{ ================================================================== //
@@ -36,6 +69,9 @@ var xulGrowl =
          let count = 0;
          let xulNS   = new Namespace("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
          let xhtmlNS = new Namespace("http://www.w3.org/1999/xhtml");
+
+         const Cc = Components.classes;
+         const Ci = Components.interfaces;
 
          const iconData = 'data:image/png;base64,' +
              'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAAlwSFlz' +
@@ -70,6 +106,15 @@ var xulGrowl =
          let messageStyle = "max-width:250px;";
 
          let panelStyle = 'border:none; width:300px;';
+
+         let (xulRuntime = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime))
+         {
+             if (xulRuntime.OS !== "Linux")
+             {
+                 containerStyle += "-moz-border-radius:5px;";
+                 panelStyle     += "background-color:transparent;";
+             }
+         };
 
          // }} ======================================================================= //
 
