@@ -52,22 +52,41 @@ KeySnail.Display = function () {
             modules = this.modules;
 
             statusBar = document.getElementById('statusbar-display');
+
+            // if (!statusBar)
+            // {
+            //     var parent = document.createElement("hbox");
+            //     parent.setAttribute("flex", 1);
+
+            //     var container = document.createElement("statusbar");
+            //     container.setAttribute("id", "status-bar");
+            //     container.setAttribute("flex", 1);
+
+            //     var panel = document.createElement("statusbarpanel");
+            //     panel.setAttribute("flex", 1);
+
+            //     container.appendChild(panel);
+            //     parent.appendChild(container);
+            //     document.documentElement.appendChild(parent);
+
+            //     statusBar = panel;
+            // }
         },
 
         echoStatusBar: function (msg, time) {
             if (!statusBar) return;
 
-            if (msgTimeOut) {
-                // Cancell, when the timeout is already set to
+            if (msgTimeOut)
+            {
+                // Cancell, when the timeout has been already set
                 clearTimeout(msgTimeOut);
                 msgTimeOut = null;
             }
 
             statusBar.label = msg;
-            if (time) {
-                // Revert to default state (make closure and self to static)
+
+            if (time)
                 msgTimeOut = setTimeout(function () { self.echoStatusBar('', 0); }, time);
-            }
         },
 
         prettyPrint: function (aMsg, aOptions) {
@@ -106,7 +125,8 @@ KeySnail.Display = function () {
                 function after() {
                     container.style.opacity = origOpacity;
 
-                    if (aTimeout) {
+                    if (aTimeout)
+                    {
                         if (hideMessageTimeout)
                             clearTimeout(hideMessageTimeout);
                         hideMessageTimeout = setTimeout(hideMessage, aTimeout);
@@ -122,7 +142,8 @@ KeySnail.Display = function () {
             var doc = content ? content.document : document;
             var dBody = doc.body;
 
-            if (!dBody || modules.util.isFrameSetWindow(content)) {
+            if (!dBody || modules.util.isFrameSetWindow(content))
+            {
                 window.alert(aMsg);
                 return;
             }
