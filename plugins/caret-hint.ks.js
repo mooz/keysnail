@@ -35,13 +35,13 @@ var PLUGIN_INFO =
     <name>Caret hint</name>
     <description>Move caret by hitting hints</description>
     <description lang="ja">ヒントを使ってキャレット移動</description>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/caret-hint.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/caret-hint.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>new BSD License</license>
     <license lang="ja">修正 BSD ライセンス</license>
-    <minVersion>1.0.8</minVersion>
+    <minVersion>1.1.8</minVersion>
     <provides>
         <ext>swap-caret</ext>
     </provides>
@@ -200,7 +200,7 @@ function getOption(aName) {
 
          if (select)
          {
-             nsPreferences.setBoolPref("accessibility.browsewithcaret", true);
+             util.setBoolPref("accessibility.browsewithcaret", true);
              content.document.documentElement.ksMarked = true;
          }
          else
@@ -210,7 +210,7 @@ function getOption(aName) {
              else
                  r.setStart(r.endContainer, r.endOffset);
 
-             nsPreferences.setBoolPref("accessibility.browsewithcaret", true);
+             util.setBoolPref("accessibility.browsewithcaret", true);
          }
 
          if (extendMode)
