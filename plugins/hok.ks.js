@@ -10,7 +10,7 @@ var PLUGIN_INFO =
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>MPL</license>
-    <minVersion>1.1.4</minVersion>
+    <minVersion>1.1.8</minVersion>
     <include>main</include>
     <provides>
         <ext>hok-start-foreground-mode</ext>
@@ -321,15 +321,15 @@ http://github.com/myuhe
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
-// 
+//
 // ==== 1.2.4 (2009 11/19) ====
 //
 // * Made hok export entire context of itself, using __ksSelf__.
-// 
+//
 // ==== 1.2.3 (2009 11/19) ====
 //
 // * Made user keymap system use keysnails key expression instead of raw keycode.
-// 
+//
 // ==== 1.2.2 (2009 11/17) ====
 //
 // * Added user keymap system.
@@ -337,7 +337,7 @@ http://github.com/myuhe
 // ==== 1.2.1 (2009 11/16) ====
 //
 // * Added site local query system.
-// 
+//
 // ==== 1.2.0 (2009 11/09) ====
 //
 // * Made HoK use Selectors API again and added XPath option.
@@ -494,9 +494,10 @@ function followLink(elem, where) {
 
     elem.focus();
 
-    // var savedOption = util.getUnicharPref(L("browser.tabs.loadInBackground"));
-    // util.setUnicharPref(L("browser.tabs.loadInBackground"), true);
-    try {
+    // ============================================================ //
+
+    try
+    {
         ["mousedown", "mouseup", "click"].forEach(
             function (event) {
                 elem.dispatchEvent(
@@ -507,8 +508,8 @@ function followLink(elem, where) {
                                          ctrlKey: ctrlKey, shiftKey: shiftKey, metaKey: ctrlKey
                                      }));
             });
-    } catch (x) { util.message(x); }
-    // util.setUnicharPref(L("browser.tabs.loadInBackground"), savedOption);
+    }
+    catch (x) {}
 }
 
 function openContextMenu(elem) {
@@ -1058,7 +1059,7 @@ var hok = function () {
                 {
                     if (row[2])
                     {
-                        // not append   
+                        // not append
                         localQuery = row[1];
                     }
                     else
@@ -1290,10 +1291,3 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
         }, M({ja: "HoK - 拡張ヒントモードを開始", en: "Start Hit a Hint extended mode"}));
 
 // }} ======================================================================= //
-
-// if (!document.querySelectorAll)
-// {
-//     display.notify(M({ja: "HoK :: このプラグインは Firefox 3.1 以降専用です。 Firefox をアップデートするか、このプラグインを無効にしてください。",
-//                       en: "HoK :: This plugin is only works over Firefox version 3.1. Please update your Firefox or disable this plugin."}));
-//     hok = null;
-// }

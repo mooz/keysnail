@@ -177,10 +177,14 @@ var xulGrowl =
 
                  let self = this;
 
+                 let width = 300;
+
                  doAnimation(
                      function (progress) {
                          if (progress === 1)
                          {
+                             self.dom.style.opacity = 1.0;
+
                              self.time = setTimeout(
                                  function () {
                                      growlManager.remove(self.count);
@@ -190,7 +194,7 @@ var xulGrowl =
                          {
                              self.dom.style.opacity = progress;
                          }
-                     }, 25, 500);
+                     }, 25, 1000);
              },
 
              clearTimer: function () {
