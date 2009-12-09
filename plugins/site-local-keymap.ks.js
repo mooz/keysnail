@@ -5,13 +5,13 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.0.8</version>
+    <version>1.0.9</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.0.8</minVersion>
+    <minVersion>1.1.8</minVersion>
     <include>main</include>
     <provides>
         <ext>site-local-keymap-toggle-status</ext>
@@ -37,118 +37,117 @@ var PLUGIN_INFO =
 Paste the code below to your .keysnail.js PRESERVE area or preserved codes area in the setting dialog.
 
 >||
-(function () {
-     function fake(aKey, aKsHandle) {
-         return function (ev, arg) {
-             ev.stopPropagation();
-             ev.originalTarget.dispatchEvent(key.stringToKeyEvent(aKey, !aKsHandle));
-         };
-     }
-     var local = {};
+>||
+var local = {};
+plugins.options["site_local_keymap.local_keymap"] = local;
 
-     // ============================================================ //
+function fake(k, i) function () { key.feed(k, i); };
+function pass(k, i) [k, fake(k, i)];
+function ignore(k, i) [k, null];
 
-     local["^https?://mail.google.com/mail/"] = [
-         // prefix
-         ['g', null],
-         // g-*
-         ['i', null],
-         ['s', null],
-         ['t', null],
-         ['d', null],
-         ['a', null],
-         ['c', null],
-         ['k', null],
+local["^https?://mail.google.com/mail/"] = [
+    pass(['g', 'i'], 4),
+    pass(['g', 's'], 4),
+    pass(['g', 't'], 4),
+    pass(['g', 'd'], 4),
+    pass(['g', 'a'], 4),
+    pass(['g', 'c'], 4),
+    pass(['g', 'k'], 4),
+    // thread list
+    pass(['*', 'a'], 4),
+    pass(['*', 'n'], 4),
+    pass(['*', 'r'], 4),
+    pass(['*', 'u'], 4),
+    pass(['*', 's'], 4),
+    pass(['*', 't'], 4),
+    // navigation
+    ['u', null],
+    ['k', null],
+    ['j', null],
+    ['o', null],
+    ['p', null],
+    ['n', null],
+    // application
+    ['c', null],
+    ['/', null],
+    ['q', null],
+    ['?', null],
+    // manipulation
+    ['x', null],
+    ['s', null],
+    ['y', null],
+    ['e', null],
+    ['m', null],
+    ['!', null],
+    ['#', null],
+    ['r', null],
+    ['R', null],
+    ['a', null],
+    ['A', null],
+    ['f', null],
+    ['F', null],
+    ['N', null],
+    pass(['<tab>', 'RET'], 4),
+    ['ESC', null],
+    [']', null],
+    ['[', null],
+    ['z', null],
+    ['.', null],
+    ['I', null],
+    ['U', null],
+    ['C-s', null],
+    ['T', null]
+];
 
-         // prefix
-         ['*', null],
-         ['a', null],
-         ['n', null],
-         ['r', null],
-         ['u', null],
-         ['s', null],
-         ['t', null],
-
-         ['u', null],
-         ['k', null],
-         ['j', null],
-         ['o', null],
-         ['p', null],
-         ['n', null],
-
-         ['c', null],
-         ['/', null],
-         ['q', null],
-         ['?', null],
-         
-         ['x', null],
-         ['s', null],
-         ['y', null],
-         ['e', null],
-         ['m', null],
-         ['!', null],
-         ['#', null],
-         ['r', null],
-
-         ['R', null],
-         ['a', null],
-         ['A', null],
-         ['f', null],
-         ['F', null],
-         ['N', null],
-
-         // <tab>, RET
-         ['<tab>', null],
-         ['RET', null],
-
-         ['ESC', null],
-         [']', null],
-         ['[', null],
-         ['z', null],
-         ['.', null],
-         ['I', null],
-         ['U', null],
-         ['C-s', null],
-         ['T', null]
-     ];
-
-     local["^http://www.google.(co.jp|com)/reader/view/"] = [
-         // prefix key
-         ["g", null],
-         ["G", null],
-         // {g, G}-*
-         ["h", null],
-         ["a", null],
-         ["s", null],
-         ["S", null],
-         ["u", null],
-         ["t", null],
-         ["T", null],
-         ["d", null],
-         ["f", null],
-         ["F", null],
-         ["c", null],
-         ["C", null],
-         // misc
-         ["j", null],
-         ["k", null],
-         ["n", null],
-         ["p", null],
-         ["L", null],
-         ["e", null],
-         ["X", null],
-         ["D", null],
-         ["O", null],
-         ["v", null],
-         ["o", null],
-         ["m", null],
-         ["A", null]
-     ];
-
-     // ============================================================ //
-
-     plugins.options["site_local_keymap.local_keymap"] = local;
- })();
+local["^http://www.google.(co.jp|com)/reader/view/"] = [
+    // jump
+    pass(["g", "h"]),
+    pass(["g", "a"]),
+    pass(["g", "s"]),
+    pass(["g", "S"]),
+    pass(["g", "u"]),
+    pass(["g", "t"]),
+    pass(["g", "T"]),
+    pass(["g", "d"]),
+    pass(["g", "f"]),
+    pass(["g", "F"]),
+    pass(["g", "c"]),
+    pass(["g", "C"]),
+    pass(["g", "e"]),
+    pass(["g", "p"]),
+    // navigation
+    ["j", null],
+    ["k", null],
+    ["n", null],
+    ["p", null],
+    ["N", null],
+    ["P", null],
+    ["X", null],
+    ["o", null],
+    // item
+    ["s", null],
+    ["L", null],
+    ["t", null],
+    ["e", null],
+    ["S", null],
+    ["d", null],
+    ["v", null],
+    ["o", null],
+    ["c", null],
+    ["C", null],
+    ["m", null],
+    ["A", null],
+    ["T", null],
+    // application
+    ["r", null],
+    ["u", null],
+    ["1", null],
+    ["2", null],
+    ["/", null],
+    ["a", null],
+    ["=", null],
+    ["-", null]
+];
 ||<
 
 In this example, keysnail prefer the shortcut keys of Gmail and Google Reader.
@@ -177,121 +176,119 @@ key.setGlobalKey("C-;", function (ev, arg) {
 === 使い方 ===
 ==== サイトローカルなキーバインドの定義 ====
 
-.keysnail.js の PRESERVE エリアか設定ダイアログ内「その他のコード」へ、次のようなコードを張り付けます。
+.keysnail.js の PRESERVE エリアか設定ダイアログ内「その他のコード」へ、次のようなコードを張り付けます。'"
 
 >||
-(function () {
-     function fake(aKey, aKsHandle) {
-         return function (ev, arg) {
-             ev.stopPropagation();
-             ev.originalTarget.dispatchEvent(key.stringToKeyEvent(aKey, !aKsHandle));
-         };
-     }
-     var local = {};
+var local = {};
+plugins.options["site_local_keymap.local_keymap"] = local;
 
-     // ============================================================ //
+function fake(k, i) function () { key.feed(k, i); };
+function pass(k, i) [k, fake(k, i)];
+function ignore(k, i) [k, null];
 
-     local["^https?://mail.google.com/mail/"] = [
-         // prefix
-         ['g', null],
-         // g-*
-         ['i', null],
-         ['s', null],
-         ['t', null],
-         ['d', null],
-         ['a', null],
-         ['c', null],
-         ['k', null],
+local["^https?://mail.google.com/mail/"] = [
+    pass(['g', 'i'], 4),
+    pass(['g', 's'], 4),
+    pass(['g', 't'], 4),
+    pass(['g', 'd'], 4),
+    pass(['g', 'a'], 4),
+    pass(['g', 'c'], 4),
+    pass(['g', 'k'], 4),
+    // thread list
+    pass(['*', 'a'], 4),
+    pass(['*', 'n'], 4),
+    pass(['*', 'r'], 4),
+    pass(['*', 'u'], 4),
+    pass(['*', 's'], 4),
+    pass(['*', 't'], 4),
+    // navigation
+    ['u', null],
+    ['k', null],
+    ['j', null],
+    ['o', null],
+    ['p', null],
+    ['n', null],
+    // application
+    ['c', null],
+    ['/', null],
+    ['q', null],
+    ['?', null],
+    // manipulation
+    ['x', null],
+    ['s', null],
+    ['y', null],
+    ['e', null],
+    ['m', null],
+    ['!', null],
+    ['#', null],
+    ['r', null],
+    ['R', null],
+    ['a', null],
+    ['A', null],
+    ['f', null],
+    ['F', null],
+    ['N', null],
+    pass(['<tab>', 'RET'], 4),
+    ['ESC', null],
+    [']', null],
+    ['[', null],
+    ['z', null],
+    ['.', null],
+    ['I', null],
+    ['U', null],
+    ['C-s', null],
+    ['T', null]
+];
 
-         // prefix
-         ['*', null],
-         ['a', null],
-         ['n', null],
-         ['r', null],
-         ['u', null],
-         ['s', null],
-         ['t', null],
-
-         ['u', null],
-         ['k', null],
-         ['j', null],
-         ['o', null],
-         ['p', null],
-         ['n', null],
-
-         ['c', null],
-         ['/', null],
-         ['q', null],
-         ['?', null],
-         
-         ['x', null],
-         ['s', null],
-         ['y', null],
-         ['e', null],
-         ['m', null],
-         ['!', null],
-         ['#', null],
-         ['r', null],
-
-         ['R', null],
-         ['a', null],
-         ['A', null],
-         ['f', null],
-         ['F', null],
-         ['N', null],
-
-         // <tab>, RET
-         ['<tab>', null],
-         ['RET', null],
-
-         ['ESC', null],
-         [']', null],
-         ['[', null],
-         ['z', null],
-         ['.', null],
-         ['I', null],
-         ['U', null],
-         ['C-s', null],
-         ['T', null]
-     ];
-
-     local["^http://www.google.(co.jp|com)/reader/view/"] = [
-         // prefix key
-         ["g", null],
-         ["G", null],
-         // {g, G}-*
-         ["h", null],
-         ["a", null],
-         ["s", null],
-         ["S", null],
-         ["u", null],
-         ["t", null],
-         ["T", null],
-         ["d", null],
-         ["f", null],
-         ["F", null],
-         ["c", null],
-         ["C", null],
-         // misc
-         ["j", null],
-         ["k", null],
-         ["n", null],
-         ["p", null],
-         ["L", null],
-         ["e", null],
-         ["X", null],
-         ["D", null],
-         ["O", null],
-         ["v", null],
-         ["o", null],
-         ["m", null],
-         ["A", null]
-     ];
-
-     // ============================================================ //
-
-     plugins.options["site_local_keymap.local_keymap"] = local;
- })();
+local["^http://www.google.(co.jp|com)/reader/view/"] = [
+    // jump
+    pass(["g", "h"]),
+    pass(["g", "a"]),
+    pass(["g", "s"]),
+    pass(["g", "S"]),
+    pass(["g", "u"]),
+    pass(["g", "t"]),
+    pass(["g", "T"]),
+    pass(["g", "d"]),
+    pass(["g", "f"]),
+    pass(["g", "F"]),
+    pass(["g", "c"]),
+    pass(["g", "C"]),
+    pass(["g", "e"]),
+    pass(["g", "p"]),
+    // navigation
+    ["j", null],
+    ["k", null],
+    ["n", null],
+    ["p", null],
+    ["N", null],
+    ["P", null],
+    ["X", null],
+    ["o", null],
+    // item
+    ["s", null],
+    ["L", null],
+    ["t", null],
+    ["e", null],
+    ["S", null],
+    ["d", null],
+    ["v", null],
+    ["o", null],
+    ["c", null],
+    ["C", null],
+    ["m", null],
+    ["A", null],
+    ["T", null],
+    // application
+    ["r", null],
+    ["u", null],
+    ["1", null],
+    ["2", null],
+    ["/", null],
+    ["a", null],
+    ["=", null],
+    ["-", null]
+];
 ||<
 
 ここでは Gmail, Google Reader においてサイト側のショートカットキーを優先させるようにしています。
@@ -322,6 +319,10 @@ key.setGlobalKey("C-;", function (ev, arg) {
 // }}}
 
 // ChangeLog : {{{
+// 
+// ==== 1.0.9 (2009 12/9) ====
+// 
+// * Updated details.
 // 
 // ==== 1.0.8 (2009 12/5) ====
 // 
