@@ -158,15 +158,14 @@ KeySnail.Prompt = function () {
     }
 
     function isMultipleList(aList) {
-        return (typeof aList == 'object' && typeof(aList[0]) == 'object');
+        return (typeof aList === 'object' && typeof aList[0] === 'object');
     }
 
     function getListText(aList, aIndex, aCellNum) {
-        if (aCellNum == undefined)
+        if (aCellNum === undefined)
             aCellNum = 0;
 
-        return isMultipleList(aList) ?
-            aList[aIndex][aCellNum] : aList[aIndex];
+        return isMultipleList(aList) ? aList[aIndex][aCellNum] : aList[aIndex];
     }
 
     function isFlagOn(i, aFlag) {
@@ -285,9 +284,7 @@ KeySnail.Prompt = function () {
                     setLabel(cell, getCellValue(aCells, i));
 
                     if (listStyle && j < listStyle.length && listStyle[j])
-                    {
                         style += listStyle[j];
-                    }
                 }
 
                 if (style)
@@ -365,7 +362,7 @@ KeySnail.Prompt = function () {
 
     function setListBoxFromStringList(aList, aOffset) {
         setListBoxGeneral(aList, aOffset, aList.length,
-                          function (i) { return aList[i]; },
+                          function (i) aList[i],
                           function () {
                               currentList      = aList;
                               currentIndexList = null;
@@ -374,7 +371,7 @@ KeySnail.Prompt = function () {
 
     function setListBoxFromIndexList(aList, aIndexList, aOffset) {
         setListBoxGeneral(aList, aOffset, aIndexList.length,
-                          function (i) { return aList[aIndexList[i]]; },
+                          function (i) aList[aIndexList[i]],
                           function () {
                               currentList      = aList;
                               currentIndexList = aIndexList;
@@ -475,7 +472,7 @@ KeySnail.Prompt = function () {
         if (!currentCallback)
             return;
 
-        if (textbox.value.length != oldTextLength)
+        if (textbox.value.length !== oldTextLength)
         {
             if (delayedCommandTimeout)
                 clearTimeout(delayedCommandTimeout);
@@ -491,15 +488,15 @@ KeySnail.Prompt = function () {
 
         oldTextLength = textbox.value.length;
 
-        if (typeof userOnChange == "function")
+        if (typeof userOnChange === "function")
         {
-            let (arg = {
-                key     : modules.key.keyEventToString(aEvent),
-                textbox : textbox,
-                event   : aEvent,
-                context : selectorContext[SELECTOR_STATE_CANDIDATES],
-                finish  : self.finish
-            }) userOnChange(arg);
+            let arg = {
+                textbox          : textbox,
+                event            : aEvent,
+                finish           : self.finish
+            };
+
+            userOnChange(arg);
         }
     }
 
@@ -668,15 +665,16 @@ KeySnail.Prompt = function () {
     }
 
     function updateSelector(aContext) {
-        // self.message(aContext.whole);
-
         removeAllChilds(listbox);
 
-        if (aContext.compIndexList == null) {
+        if (aContext.compIndexList === null)
+        {
             // create list of whole completion
             setListBoxFromStringList(wholeList);
             setRows(wholeList.length);
-        } else {
+        }
+        else
+        {
             setListBoxFromIndexList(wholeList, compIndexList);
             setRows(compIndexList.length);
         }
@@ -689,20 +687,26 @@ KeySnail.Prompt = function () {
     }
 
     function setListBoxIndex(aIndex) {
-        if (compIndexList) {
+        if (compIndexList)
+        {
             compIndex = aIndex;
             wholeListIndex = compIndexList[aIndex];
-        } else {
+        }
+        else
+        {
             wholeListIndex = aIndex;
         }
     }
 
     function selectorDisplayStatusbarLine(aQuery, aIndex, aTotalLength) {
-        if (aIndex < 0) {
+        if (aIndex < 0)
+        {
             modules.display.echoStatusBar("No match for [" + aQuery + "]");
-        } else {
-            modules.display.echoStatusBar("Completion Regexp Match for [" + aQuery + "]" +
-                                          " (" + (aIndex + 1) +  " / " + aTotalLength + ")");
+        }
+        else
+        {
+            modules.display.echoStatusBar(modules.util.format("Completion Regexp Match for [%s] (%s / %s)",
+                                                              aQuery, (aIndex + 1), aTotalLength));
         }
     }
 
@@ -822,10 +826,6 @@ KeySnail.Prompt = function () {
 
             var substrIndex;
 
-            // generate new completion list
-            compIndexList = [];
-            compIndex = 0;
-
             var keywords = regexp.split(" ");
             var useMigemoActual = (options.useMigemo &&
                                    window.xulMigemoCore &&
@@ -834,17 +834,7 @@ KeySnail.Prompt = function () {
             if (useMigemoActual)
                 var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
 
-            var cellForSearch;
-            if (flags)
-            {
-                cellForSearch = [];
-
-                for (let i = 0; i < flags.length; ++i)
-                {
-                    if (!(flags[i] & modules.IGNORE))
-                        cellForSearch.push(i);
-                }
-            }
+            var cellForSearch = flags ? [i for (i in flags) if ((flags[i] & modules.IGNORE) === 0)] : null;
 
             var matcher;
             if (isMultipleList(wholeList))
@@ -854,59 +844,47 @@ KeySnail.Prompt = function () {
                 {
                     // cells specified "IGNORE" by user will be ignored
                     matcher = (useMigemoActual) ?
-                        function (i) {
-                            return cellForSearch.some(
-                                function (j) {
-                                    return getCellValue(wholeList[i], j).match(migexp, "i");
-                                });
-                        } : function (i) {
-                            return keywords.every(
-                                function (keyword) {
-                                    return cellForSearch.some(
-                                        function (j) {
-                                            return getCellValue(wholeList[i], j).match(keyword, "i");
-                                        }
-                                    );
-                                }
-                            );
-                        };
+                        function (i) cellForSearch.some(
+                            function (j) getCellValue(wholeList[i], j).match(migexp, "i")
+                        )
+                        :
+                        function (i) keywords.every(
+                            function (keyword) cellForSearch.some(
+                                function (j) getCellValue(wholeList[i], j).match(keyword, "i")
+                            )
+                        );
                 }
                 else
                 {
                     // search whole cells
                     matcher = (useMigemoActual) ?
-                        function (i) {
-                            return wholeList[i].some(
-                                function (item) {
-                                    return (typeof item === "function" ?
-                                            item.call(null, wholeList[i]) : item).match(migexp, "i");
-                                }
-                            );
-                        } : function (i) {
-                            return keywords.every(
-                                function (keyword) {
-                                    return wholeList[i].some(
-                                        function (item) {
-                                            return (typeof item === "function" ?
-                                                    item.call(null, wholeList[i]) : item).match(keyword, "i");
-                                        }
-                                    );
-                                }
-                            );
-                        };
+                        function (i) wholeList[i].some(
+                            function (item) (typeof item === "function" ? item.call(null, wholeList[i]) : item)
+                                .match(migexp, "i")
+                        )
+                    :
+                    function (i) keywords.every(
+                        function (keyword) wholeList[i].some(
+                            function (item) (typeof item === "function" ? item.call(null, wholeList[i]) : item)
+                                .match(keyword, "i")
+                        )
+                    );
                 }
             }
             else
             {
                 // single col
                 matcher = (useMigemoActual) ?
-                    function (i) { return wholeList[i].match(migexp, "i"); }
-                :   function (i) {
-                    return keywords.every(
-                        function (keyword) { return wholeList[i].match(keyword, "i"); }
+                    function (i) wholeList[i].match(migexp, "i")
+                    :
+                    function (i) keywords.every(
+                        function (keyword) wholeList[i].match(keyword, "i")
                     );
-                };
             }
+
+            // generate new completion list
+            compIndexList = [];
+            compIndex = 0;
 
             for (let i = 0; i < listLen; ++i)
             {
@@ -914,7 +892,7 @@ KeySnail.Prompt = function () {
                     compIndexList.push(i);
             }
 
-            if (compIndexList.length == 0)
+            if (compIndexList.length === 0)
             {
                 // no candidates found
                 removeAllChilds(listbox);
@@ -969,9 +947,8 @@ KeySnail.Prompt = function () {
         // Some KeyPress event is grabbed by KeySnail and stopped.
         // So we need to listen the keyup event for resetting the misc values.
 
-        if ((textbox.value.indexOf(currentHead) !== 0)
-            || (textbox.selectionStart !== oldSelectionStart &&
-                currentHead !== textbox.value))
+        if (textbox.value.indexOf(currentHead)
+            || (textbox.selectionStart !== oldSelectionStart && currentHead !== textbox.value))
         {
             resetReadState();
         }
@@ -1003,14 +980,18 @@ KeySnail.Prompt = function () {
             self.finish();
             break;
         case "prompt-next-line":
-            if (completion.state) {
+            if (completion.state)
+            {
                 fetchItem(completion, 1, true, true, options.substrMatch, true);
                 return;
             }
 
-            if (history.state) {
+            if (history.state)
+            {
                 fetchItem(history, 1);
-            } else {
+            }
+            else
+            {
                 fetchItem(history, 0);
                 history.state = true;
             }
@@ -1018,14 +999,18 @@ KeySnail.Prompt = function () {
             resetState(completion);
             break;
         case "prompt-previous-line":
-            if (completion.state) {
+            if (completion.state)
+            {
                 fetchItem(completion, -1, true, true, options.substrMatch, true);
                 return;
             }
 
-            if (history.state) {
+            if (history.state)
+            {
                 fetchItem(history, -1);
-            } else {
+            }
+            else
+            {
                 fetchItem(history, 0);
                 history.state = true;
             }
@@ -1034,9 +1019,12 @@ KeySnail.Prompt = function () {
             resetState(completion);
             break;
         case "prompt-next-completion":
-            if (completion.state) {
+            if (completion.state)
+            {
                 fetchItem(completion, 1, true, true, options.substrMatch, true);
-            } else {
+            }
+            else
+            {
                 // begin
                 fetchItem(completion, 0, true, true, options.substrMatch, true);
                 completion.state = true;
@@ -1045,9 +1033,12 @@ KeySnail.Prompt = function () {
             resetState(history);
             break;
         case "prompt-previous-completion":
-            if (completion.state) {
+            if (completion.state)
+            {
                 fetchItem(completion, -1, true, true, options.substrMatch, true);
-            } else {
+            }
+            else
+            {
                 // begin
                 fetchItem(completion, 0, true, true, options.substrMatch, true);
                 completion.state = true;
@@ -1060,7 +1051,8 @@ KeySnail.Prompt = function () {
             break;
         }
 
-        if (stopEventPropagation) {
+        if (stopEventPropagation)
+        {
             aEvent.preventDefault();
             aEvent.stopPropagation();
         }
@@ -1074,16 +1066,21 @@ KeySnail.Prompt = function () {
                 modules.util.stopEventPropagation(aEvent);
                 var after = listbox.selectedIndex;
 
-                if ((after - before) != 0) {
+                if ((after - before) !== 0)
+                {
                     var delta = (after - before);
-                    if (completion.state) {
+                    if (completion.state)
+                    {
                         fetchItem(completion, delta, true, true, options.substrMatch, true);
                         return;
                     }
 
-                    if (history.state) {
+                    if (history.state)
+                    {
                         fetchItem(history, delta);
-                    } else {
+                    }
+                    else
+                    {
                         fetchItem(history, 0);
                         history.state = true;
                     }
@@ -1255,20 +1252,18 @@ KeySnail.Prompt = function () {
      */
     function getCommonSubstrIndex(aStringList, aIndexList) {
         var i = 1;
-        while (true) {
+
+        while (true)
+        {
             var header = getListText(aStringList, aIndexList[0]).slice(0, i);
 
             if (aIndexList.some(
-                    function (strIndex) {
-                        return (getListText(aStringList, strIndex).slice(0, i) != header)
-                            || (i > getListText(aStringList, strIndex).length);
-                    }
+                    function (strIndex) (getListText(aStringList, strIndex).slice(0, i) !== header)
+                        || (i > getListText(aStringList, strIndex).length)
                 )) break;
 
             i++;
         }
-
-        // modules.display.prettyPrint(getListText(aStringList, aIndexList[0]).slice(0, i - 1));
 
         return i - 1;
     }
@@ -1279,9 +1274,12 @@ KeySnail.Prompt = function () {
         if (typeof aCallback === "function")
         {
             // try to execute
-            try {
+            try
+            {
                 aCallback.apply(modules, aCallbackArg);
-            } catch (x) {
+            }
+            catch (x)
+            {
                 self.message("filename :: " + x.fileName + " :: msg :: " + x);
                 return false;
             }
@@ -1373,7 +1371,7 @@ KeySnail.Prompt = function () {
         get substrMatch() { return options.substrMatch; },
 
         set rows(aNum) {
-            if (typeof(aNum) == "number")
+            if (typeof aNum === "number")
                 options.listboxMaxRows = Math.round(aNum);
         },
         get rows() {
@@ -1385,12 +1383,12 @@ KeySnail.Prompt = function () {
         },
 
         set migemoMinWordLength(aNum) {
-            if (typeof(aNum) == "number")
+            if (typeof aNum === "number")
                 options.migemoMinWordLength = Math.round(aNum);
         },
 
         set displayDelayTime(aMiliSec) {
-            if (typeof(aMiliSec) == "number")
+            if (typeof aMiliSec === "number")
                 options.displayDelayTime = aMiliSec;
         },
 
@@ -1568,7 +1566,7 @@ KeySnail.Prompt = function () {
             // set up history
             history.index = 0;
             aGroup = aGroup || "default";
-            if (aGroup && typeof(historyHolder[aGroup]) == "undefined")
+            if (aGroup && typeof historyHolder[aGroup] === "undefined")
                 historyHolder[aGroup] = [];
             history.list = historyHolder[aGroup];
 
@@ -1627,7 +1625,7 @@ KeySnail.Prompt = function () {
             // set up history
             history.index = 0;
             var group = aContext.group || "default";
-            if (group && typeof(historyHolder[group]) == "undefined")
+            if (group && typeof historyHolder[group] === "undefined")
                 historyHolder[group] = [];
             history.list = historyHolder[group];
 
@@ -1696,7 +1694,7 @@ KeySnail.Prompt = function () {
             type = TYPE_SELECTOR;
 
             // set up completion
-            wholeList  = typeof(aContext.collection) == "function" ? aContext.collection.call() : aContext.collection;
+            wholeList  = typeof aContext.collection === "function" ? aContext.collection.call() : aContext.collection;
             flags      = aContext.flags;
             listHeader = aContext.header;
             listStyle  = aContext.style;

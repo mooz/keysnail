@@ -110,15 +110,15 @@
         <!-- Plugin Settings -->
         <groupbox orient="vertical">
             <caption label="&keySnail.preference.plugin;" />
-            <checkbox label="&keySnail.preference.plugin.globalEnabled;"
-                      preference="extensions.keysnail.plugin.global_enabled" />
-            <spacer height="5px" />
             <hbox align="center" flex="1">
                 <label value="&keySnail.preference.plugin.location;" flex="1"/>
                 <filefield id="keysnail.preference.plugin.location" flex="8"/>
                 <button label="&keySnail.preference.reference;"
                         oncommand="ksPreference.changePathClicked('PLUGIN');" />
             </hbox>
+            <spacer height="5px" />
+            <checkbox label="&keySnail.preference.plugin.globalEnabled;"
+                      preference="extensions.keysnail.plugin.global_enabled" />
         </groupbox>
     </prefpane>
 
@@ -484,11 +484,7 @@
         </vbox>
         <spacer flex="1"/>
     </prefpane>
-    <!-- load preference manipulating library -->
-    <script type="application/x-javascript" src="chrome://global/content/nsUserSettings.js"/>
     <script type="application/x-javascript" src="chrome://keysnail/content/preference.js"/>
     <script type="application/x-javascript" src="chrome://keysnail/content/keycustomizer.js"/>
-    <script type="application/x-javascript" src="chrome://keysnail/content/beautify.js"/>
-
 </prefwindow>
 

@@ -1,9 +1,6 @@
 <?xml version="1.0"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <!-- load preference manipulating library -->
-  <script type="application/x-javascript" src="chrome://global/content/nsUserSettings.js"/>
-
   <!-- load main extension object -->
   <script type="application/x-javascript" src="chrome://keysnail/content/keysnail.js" />
 

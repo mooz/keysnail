@@ -213,7 +213,7 @@ KeySnail.UserScript = {
             this.initFileLoaded = true;
 
             if (this.parent.windowType == "navigator:browser" ||
-                nsPreferences.getBoolPref("extensions.keysnail.plugin.global_enabled", false))
+                this.modules.util.getBoolPref("extensions.keysnail.plugin.global_enabled", false))
             {
                 this.loadPlugins();
                 this.modules.hook.callHook("PluginLoaded");
@@ -934,7 +934,7 @@ KeySnail.UserScript = {
     editFile: function (aFilePath, aLineNum) {
         var args = [aFilePath];
 
-        if (typeof(aLineNum) == 'number')
+        if (typeof aLineNum === 'number')
             args.push("+" + aLineNum.toString());
 
         if (!aFilePath)
@@ -960,7 +960,7 @@ KeySnail.UserScript = {
             .getService(Components.interfaces.nsIXULRuntime);
         if ("Darwin" == xulRuntime.OS)
         {
-            // wrap with open command (inspired from GreaseMonkey)
+            // wrap with open command (borrowed idea from GreaseMonkey)
 
             args.unshift(editorPath);
             args.unshift("-a");
@@ -972,9 +972,11 @@ KeySnail.UserScript = {
         }
         else
         {
-            try {
+            try
+            {
                 editorFile = this.modules.util.openFile(editorPath);
-            } catch (e)
+            }
+            catch (e)
             {
                 this.modules.display.notify(this.modules.util
                                             .getLocaleString("editorErrorOccurred"));
@@ -1129,7 +1131,7 @@ KeySnail.UserScript = {
             // }} ======================================================================= //
         }
 
-        nsPreferences.setUnicharPref("extensions.keysnail.userscript.location", rcFilePlace);
+        this.modules.util.setUnicharPref("extensions.keysnail.userscript.location", rcFilePlace);
         this.userPath = rcFilePlace;
 
         return true;

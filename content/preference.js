@@ -40,7 +40,7 @@ var ksPreference = {
         }
         this.updateAllFileFields();
 
-        var usePrefixArgument = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", false);
+        var usePrefixArgument = this.modules.util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", false);
         this.setDigitArgumentFieldState(usePrefixArgument);
 
         switch (this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type")) {
@@ -897,7 +897,7 @@ var ksPreference = {
     generateKeyBindSettings: function (aContentHolder) {
         var row;
         var data = ksKeybindTreeView.data;
-        var useBeautifier = nsPreferences.getBoolPref("extensions.keysnail.preference.indent_all_function", false);
+        var useBeautifier = this.modules.util.getBoolPref("extensions.keysnail.preference.indent_all_function", false);
 
         var prefixKeys = {};
 

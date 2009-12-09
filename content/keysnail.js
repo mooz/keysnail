@@ -56,11 +56,13 @@ var KeySnail = {
 
         var i;
         var len = moduleObjects.length;
-        for (i = 0; i < len; ++i) {
+        for (i = 0; i < len; ++i)
+        {
             this.registerModule.call(this, moduleObjects[i]);
         }
 
-        for (i = 0; i < len; ++i) {
+        for (i = 0; i < len; ++i)
+        {
             this.initModule.call(this, moduleObjects[i]);
         }
 
@@ -68,29 +70,28 @@ var KeySnail = {
 
         // now, run the keyhandler
         if (this.modules.key.status &&
-            this.modules.userscript.initFileLoaded) {
+            this.modules.userscript.initFileLoaded)
+        {
             this.modules.key.run();
         }
 
         // arrange hook points when window is the main browser-window
-        if (this.windowType == "navigator:browser") {
+        if (this.windowType === "navigator:browser")
+        {
             gBrowser.addProgressListener(KeySnail.urlBarListener,
                                          Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
 
             // add context menu
             this.createInstallPluginMenu();
 
-            // arrange destructor
-            window.addEventListener("unload", function () { KeySnail.uninit(); }, false);
+            // hook window unload event
+            window.addEventListener("unload", function () { KeySnail.Hook.callHook("Unload"); }, false);
+
+            this.modules.hook.addToHook("Unload", function () { gBrowser.removeProgressListener(KeySnail.urlBarListener); });
+            this.workAroundPopup();
         }
 
         this.modules.key.updateStatusBar();
-    },
-
-    uninit: function () {
-        if (this.windowType == "navigator:browser") {
-            gBrowser.removeProgressListener(KeySnail.urlBarListener);
-        }
     },
 
     /**
@@ -111,10 +112,12 @@ var KeySnail = {
      * @param {[string]} aModuleName
      */
     initModule: function (aModuleName) {
-         if (!this[aModuleName]) {
+        if (!this[aModuleName])
+        {
             this.message('initModule: module "' + aModuleName + '" is not loaded. Skip this module.');
             return;
         }
+
         // add member "modules" to each module Object
         this[aModuleName].modules = this.modules;
         // add member "parent" to each module Object
@@ -155,6 +158,25 @@ var KeySnail = {
         contextMenu.addEventListener("popupshowing", setMenuDisplay, false);
     },
 
+    workAroundPopup: function () {
+        with (KeySnail.modules)
+        {
+            const allowedEventsKey = "dom.popup_allowed_events";
+            var allowedEvents = util.getUnicharPref(allowedEventsKey, "");
+            var tmpAllowedEvents;
+
+            if (allowedEvents.indexOf("keypress") === -1)
+            {
+                tmpAllowedEvents = allowedEvents + " keypress";
+                util.setUnicharPref(allowedEventsKey, tmpAllowedEvents);
+
+                hook.addToHook("Unload", function () {
+                                   util.setUnicharPref(allowedEventsKey, allowedEvents);
+                               });
+            }
+        }
+    },
+
     /**
      * Open preference dialog
      */
@@ -163,9 +185,12 @@ var KeySnail = {
             .getService(Components.interfaces.nsIWindowMediator)
             .getMostRecentWindow('KeySnail:Preference');
 
-        if (openedWindow) {
+        if (openedWindow)
+        {
             openedWindow.focus();
-        } else {
+        }
+        else
+        {
             window.openDialog("chrome://keysnail/content/preference.xul",
                               "Preferences",
                               "chrome=yes,titlebar=yes,toolbar=yes,centerscreen=yes,resizable=yes,scrollbars=yes",
@@ -191,7 +216,9 @@ var KeySnail = {
             if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
                 aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
                 aIID.equals(Components.interfaces.nsISupports))
+            {
                 return KeySnail.urlBarListener;
+            }
             throw Components.results.NS_NOINTERFACE;
         },
 

@@ -81,9 +81,9 @@ KeySnail.Key = {
         this.declareKeyMap(this.modes.CARET);
         this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
 
-        this.useCapture = !nsPreferences.getBoolPref("extensions.keysnail.keyhandler.low_priority", false);
+        this.useCapture = !this.modules.util.getBoolPref("extensions.keysnail.keyhandler.low_priority", false);
 
-        this.status = nsPreferences.getBoolPref("extensions.keysnail.keyhandler.status", true);
+        this.status = this.modules.util.getBoolPref("extensions.keysnail.keyhandler.status", true);
     },
 
     // Run / Stop {{ ============================================================ //
@@ -102,7 +102,7 @@ KeySnail.Key = {
             this.hasEventListener = true;
         }
         this.status = true;
-        nsPreferences.setBoolPref("extensions.keysnail.keyhandler.status", true);
+        this.modules.util.setBoolPref("extensions.keysnail.keyhandler.status", true);
     },
 
     /**
@@ -115,7 +115,7 @@ KeySnail.Key = {
             this.hasEventListener = false;
         }
         this.status = false;
-        nsPreferences.setBoolPref("extensions.keysnail.keyhandler.status", false);
+        this.modules.util.setBoolPref("extensions.keysnail.keyhandler.status", false);
     },
 
     /**
@@ -245,7 +245,7 @@ KeySnail.Key = {
         }
 
         return this.modules.util.isCaretEnabled()
-            || nsPreferences.getBoolPref("accessibility.browsewithcaret") ?
+            || this.modules.util.getBoolPref("accessibility.browsewithcaret") ?
             this.modes.CARET : this.modes.VIEW;
     },
 
@@ -563,7 +563,7 @@ KeySnail.Key = {
         else
         {
             // first stroke
-            if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument")
+            if (this.modules.util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument")
                 && this.isPrefixArgumentKey(key, aEvent))
             {
                 // transit state: to inputting prefix argument
@@ -992,10 +992,15 @@ KeySnail.Key = {
         }
         else
         {
-            if (aKey.length == 1)
+            if (aKey.length === 1)
             {
                 // ascii char
-                charCode = aKey.charCodeAt(0);
+                if (!aType || aType === 'keypress')
+                    charCode = aKey.charCodeAt(0);
+                else
+                    keyCode = KeyEvent.DOM_VK_A + (aKey.toLowerCase().charCodeAt(0) - 'a'.charCodeAt(0));
+
+                shiftKey = (aKey !== aKey.toLowerCase());
             }
             else
             {
@@ -1402,7 +1407,7 @@ KeySnail.Key = {
             contentHolder.push("</table>\n");
 
             contentHolder.push("<h2 id='parg'>Prefix Argument Keys</h2>");
-            if (nsPreferences.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true))
+            if (this.modules.util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true))
             {
                 contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanDisable") + "</p>\n");
                 contentHolder.push("<table class='table-keybindings'>");

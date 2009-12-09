@@ -8,7 +8,6 @@
 KeySnail.Util = {
     // ==== common ====
     modules: null,
-
     autoCompleteController: null,
 
     init: function () {
@@ -28,6 +27,11 @@ KeySnail.Util = {
             // en
             "en-US"     : "en"
         }[locale] || "en";
+    },
+
+    get mPrefService() {
+        return Components.classes["@mozilla.org/preferences-service;1"]
+            .getService(Components.interfaces.nsIPrefBranch);
     },
 
     get focusedElement() {
@@ -198,7 +202,7 @@ KeySnail.Util = {
     confirmCheck: function (aTitle, aMessage, aCheckMessage, aId) {
         var key = "extensions.keysnail." + aId;
 
-        if (nsPreferences.getBoolPref(key, false))
+        if (this.getBoolPref(key, false))
             return true;
 
         var prompts = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
@@ -211,7 +215,7 @@ KeySnail.Util = {
                                           aCheckMessage,
                                           check);
         if (result)
-            nsPreferences.setBoolPref(key, check.value);
+            this.setBoolPref(key, check.value);
 
         return result;
     },
@@ -359,6 +363,7 @@ KeySnail.Util = {
     // }} ======================================================================= //
 
     // Preference {{ ============================================================ //
+    // some method's are borrowed from chrome://global/content/nsUserSettings.js
 
     /**
      * set preference value at a stroke
@@ -370,16 +375,54 @@ KeySnail.Util = {
             value = aPrefList[prefKey];
             switch (typeof(value)) {
                 case 'string':
-                nsPreferences.setUnicharPref(prefKey, value);
+                this.setUnicharPref(prefKey, value);
                 break;
                 case 'number':
-                nsPreferences.setIntPref(prefKey, value);
+                this.setIntPref(prefKey, value);
                 break;
                 case 'boolean':
-                nsPreferences.setBoolPref(prefKey, value);
+                this.setBoolPref(prefKey, value);
                 break;
             }
         }
+    },
+
+    setBoolPref: function (aPrefName, aPrefValue) {
+        try
+        {
+            this.mPrefService.setBoolPref(aPrefName, aPrefValue);
+        }
+        catch (e) {}
+    },
+
+    getBoolPref: function (aPrefName, aDefVal) {
+        try
+        {
+            return this.mPrefService.getBoolPref(aPrefName);
+        }
+        catch (e)
+        {
+            return typeof aDefVal === "undefined" ? null : aDefVal;
+        }
+
+        return null;
+    },
+
+    /**
+     * set unicode string preference value
+     * @param {string} aStringKey key of the preference
+     * @param {string} aValue value of the preference specified by <b>aStringKey</b>
+     */
+    setUnicharPref: function (aPrefName, aPrefValue) {
+        try
+        {
+            var str = Components.classes["@mozilla.org/supports-string;1"]
+                .createInstance(Components.interfaces.nsISupportsString);
+            str.data = aPrefValue;
+            this.mPrefService.setComplexValue(aPrefName,
+                                              Components.interfaces.nsISupportsString, str);
+        }
+        catch (e) {}
     },
 
     /**
@@ -389,24 +432,60 @@ KeySnail.Util = {
      * @returns {string} fetched preference value specified by <b>aStringKey</b>
      */
     getUnicharPref: function (aStringKey) {
-        return nsPreferences.getLocalizedUnicharPref(aStringKey)
-            || nsPreferences.copyUnicharPref(aStringKey);
+        return this.getLocalizedUnicharPref(aStringKey)
+            || this.copyUnicharPref(aStringKey);
     },
 
-    /**
-     * set unicode string preference value
-     * @param {string} aStringKey key of the preference
-     * @param {string} aValue value of the preference specified by <b>aStringKey</b>
-     */
-    setUnicharPref: function (aStringKey, aValue) {
-        var prefs = Components.classes["@mozilla.org/preferences-service;1"].
-            getService(Components.interfaces.nsIPrefBranch);
-        var str = Components.classes["@mozilla.org/supports-string;1"]
-            .createInstance(Components.interfaces.nsISupportsString);
-        str.data = aValue;
-        prefs.setComplexValue(aStringKey,
-                              Components.interfaces.nsISupportsString,
-                              str);
+    copyUnicharPref: function (aPrefName, aDefVal)
+    {
+        try
+        {
+            return this.mPrefService.getComplexValue(aPrefName,
+                                                     Components.interfaces.nsISupportsString).data;
+        }
+        catch (e)
+        {
+            return typeof aDefVal === "undefined" ? null : aDefVal;
+        }
+        return null;        // quiet warnings
+    },
+
+    setIntPref: function (aPrefName, aPrefValue)
+    {
+        try
+        {
+            this.mPrefService.setIntPref(aPrefName, aPrefValue);
+        }
+        catch (e) {}
+    },
+
+    getIntPref: function (aPrefName, aDefVal)
+    {
+        try
+        {
+            return this.mPrefService.getIntPref(aPrefName);
+        }
+        catch (e)
+        {
+            return typeof aDefVal === "undefined" ? null : aDefVal;
+        }
+
+        return null;        // quiet warnings
+    },
+
+    getLocalizedUnicharPref: function (aPrefName, aDefVal)
+    {
+        try
+        {
+            return this.mPrefService.getComplexValue(aPrefName,
+                                                     Components.interfaces.nsIPrefLocalizedString).data;
+        }
+        catch (e)
+        {
+            return typeof aDefVal === "undefined" ? null : aDefVal;
+        }
+
+        return null;        // quiet warnings
     },
 
     // }} ======================================================================= //
@@ -438,7 +517,7 @@ KeySnail.Util = {
                 return this._stringBundle
                 .formatStringFromName(aStringKey, aReplacements, aReplacements.length);
         }
-        catch (ex)
+        catch (e)
         {
             return aStringKey;
         }
@@ -538,7 +617,7 @@ KeySnail.Util = {
         try {
             UConv.charset = aCharCode;
             tmpString = UConv.ConvertFromUnicode(aString);
-        } catch(e) {
+        } catch (e) {
             tmpString = null;
         }
         return tmpString;
