@@ -46,9 +46,36 @@ var bmany =
 
          const defaultFavicon = "chrome://mozapps/skin/places/defaultFavicon.png";
 
+         function getBookmarks(aItemId, aContainer, aParentName) {
+             var parentNode = PlacesUtils.getFolderContents(aItemId).root;
+
+             if (!aContainer)
+                 aContainer = [];
+
+             for (var i = 0; i < parentNode.childCount; i++)
+             {
+                 var childNode = parentNode.getChild(i);
+
+                 if (PlacesUtils.nodeIsBookmark(childNode))
+                 {
+                     aContainer.push([aParentName || "",
+                                      (childNode.icon || {spec : defaultFavicon}).spec,
+                                      childNode.title,
+                                      childNode.uri]);
+                 }
+                 else if (PlacesUtils.nodeIsFolder(childNode)
+                          && !PlacesUtils.nodeIsLivemarkContainer(childNode))
+                 {
+                     arguments.callee(childNode.itemId, aContainer, childNode.title);
+                 }
+             }
+
+             return aContainer;
+         }
+
          // Based on http://www.xuldev.org/blog/?p=181
          // via http://d.hatena.ne.jp/Griever/20090625/1245933515
-         function getRow(aItemId, aContainer) {
+         function getBookmarksWithKeywords(aItemId, aContainer) {
              var parentNode = PlacesUtils.getFolderContents(aItemId).root;
 
              if (!aContainer)
@@ -82,14 +109,29 @@ var bmany =
          }
 
          function getRows() {
-             return getRow(1).filter(function (elem, index, array) array.indexOf(elem) === index);
+             return getBookmarksWithKeywords(1).filter(function (elem, index, array) array.indexOf(elem) === index);
          }
+
+         function getRows2() {
+             return getBookmarks(1).filter(function (elem, index, array) array.indexOf(elem) === index);
+         }
+
+         var actions = [
+             [function (url) { self.go(url, "current");    }, M({en: "Open link in current tab", ja: "現在のタブで開く"})],
+             [function (url) { self.go(url, "tab");        }, M({en: "Open link in new tab (foreground)", ja: "新しいタブを前面に開く"})],
+             [function (url) { self.go(url, "tabshifted"); }, M({en: "Open link in new tab (background)", ja: "新しいタブを背面に開く"})],
+             [function (url) { self.go(url, "window");     }, M({en: "Open link in new window", ja: "新しいウィンドウで開く"})],
+             [function (url) { self.go(url, "unique");     }, M({en: "Open link in unique tab", ja: "既に開いていればそのタブを選択し、いなければ現在のタブで開く"})]
+         ];
+
+         var cache = {};
 
          // Public {{ ================================================================ //
 
          let self = {
              go: function (aQuery, aOpenType) {
-                 util.message(aQuery);
+                 if (!aQuery)
+                     return;
 
                  if (aQuery.indexOf("javascript:") === -1)
                      aQuery = getShortcutOrURI(aQuery);
@@ -124,37 +166,40 @@ var bmany =
                      // tabshifted => background
                      // window     => new window
                      // current    => current tab
-                     openUILinkIn(aQuery, aOpenType || "current");                             
+                     openUILinkIn(aQuery, aOpenType || "current");
                  }
              },
 
-             list: function () {
-                 let collection = getRows().sort(function (a, b) (a[1] > b[1] ? 1 : a[1] === b[1] ? 0 : -1));
-
-                 function go(aOpenType) {
-                     return function (i) { if (i >= 0) self.go(collection[i][3], aOpenType); };
-                 }
+             listBookmarklets: function (ev, arg) {
+                 if (arg !== null || !cache.bookmarklets)
+                     cache.bookmarklets = getRows().sort(function (a, b) (a[1] > b[1] ? 1 : a[1] === b[1] ? 0 : -1));
 
                  prompt.selector({
                                      message    : "pattern:",
-                                     collection : collection,
+                                     collection : cache.bookmarklets,
                                      header     : ["Keyword", "Title", "URL / Script"],
                                      width      : [20, 30, 50],
                                      flags      : [ICON | IGNORE, 0, IGNORE, IGNORE],
-                                     actions    : [
-                                         [go("current")    , M({en: "Open link in current tab", ja: "現在のタブで開く"})],
-                                         [go("tab")        , M({en: "Open link in new tab (foreground)", ja: "新しいタブを前面に開く"})],
-                                         [go("tabshifted") , M({en: "Open link in new tab (background)", ja: "新しいタブを背面に開く"})],
-                                         [go("window")     , M({en: "Open link in new window", ja: "新しいウィンドウで開く"})],
-                                         [go("unique")     , M({en: "Open link in unique tab", ja: "既に開いていればそのタブを選択し、いなければ現在のタブで開く"})]
-                                     ],
-                                     onChange   : function (arg) {
-                                         // key     : modules.key.keyEventToString(aEvent),
-                                         // textbox : textbox,
-                                         // event   : aEvent,
-                                         // context : selectorContext[SELECTOR_STATE_CANDIDATES],
-                                         // finish  : self.finish
-                                     }
+                                     actions    : actions,
+                                     filter: function (i) [i >= 0 ? cache.bookmarklets[i][3] : null]
+                                 });
+             },
+
+             listBookmarks: function (ev, arg) {
+                 if (arg !== null || !cache.bookmarks)
+                     cache.bookmarks = getRows2();
+
+                 prompt.selector({
+                                     message    : "pattern:",
+                                     collection : cache.bookmarks,
+                                     flags      : [0, ICON | IGNORE, 0, 0],
+                                     // 
+                                     header     : ["Folder", "Title", "URL / Script"],
+                                     width      : [17, 38, 45],
+                                     style      : [null, "font-weight:bold;", "color:#04169b;"],
+                                     // 
+                                     actions    : actions,
+                                     filter     : function (i) [i >= 0 ? cache.bookmarks[i][3] : null]
                                  });
              }
          };
@@ -173,8 +218,13 @@ plugins.bmany = bmany;
 // Add exts {{ ============================================================== //
 
 ext.add("bmany-list-keywords-and-bookmarklet",
-        function () { bmany.list(); },
+        function () { bmany.listBookmarklets(); },
         M({ja: "B-Many - キーワードとブックマークレットを一覧表示",
            en: "B-many - List keywords and bookmarklets"}));
+
+ext.add("bmany-list-all-bookmarks",
+        function () { bmany.listBookmarks(); },
+        M({ja: "B-Many - ブックマークを一覧表示",
+           en: "B-many - List all bookmarks"}));
 
 // }} ======================================================================= //
