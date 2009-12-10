@@ -28,191 +28,11 @@ the provisions above, a recipient may use your version of this file under
 the terms of any one of the MPL, the GPL or the LGPL.
 }}} ***** END LICENSE BLOCK *****/
 
-// PLUGIN_INFO {{ =========================================================== //
-
-var PLUGIN_INFO =
-<KeySnailPlugin>
-    <name>Scrollet!</name>
-    <name lang="ja">スクロレット！</name>
-    <description>Provides various scroll commands and mark system</description>
-    <description lang="ja">様々なスクロールコマンドとマークシステムを提供します</description>
-    <version>0.0.2</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
-    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
-    <license>MPL</license>
-    <minVersion>1.1.3</minVersion>
-    <include>main</include>
-    <provides>
-        <ext>scrollet-scroll-line-down</ext>
-        <ext>scrollet-scroll-line-up</ext>
-        <ext>scrollet-scroll-document-down</ext>
-        <ext>scrollet-scroll-document-up</ext>
-        <ext>scrollet-scroll-document-right</ext>
-        <ext>scrollet-scroll-document-left</ext>
-        <ext>scrollet-scroll-percent</ext>
-        <ext>scrollet-set-mark</ext>
-        <ext>scrollet-scroll-to-mark</ext>
-    </provides>
-    <detail><![CDATA[
-=== What's this ===
-==== Provides various scroll commands ====
-
-If you want to scroll half a page down by SPC and C-v, paste the code below to the bottom of your .keysnail.js.
-
->||
-key.setViewKey([['SPC'], ['C-v']], function (ev, arg) {
-    ext.exec("scrollet-scroll-document-down", arg);
-}, 'Scroll document down');
-
-key.setViewKey('M-v', function (ev, arg) {
-    ext.exec("scrollet-scroll-document-up", arg);
-}, 'Scroll document up');
-||<
-
-You can scroll to the {prefix argument} percent of the document by putting the setting belowto your .keysnail.js.
-
->||
-key.setViewKey('%', function (ev, arg) {
-    ext.exec("scrollet-scroll-percent", arg);
-}, 'Scroll to {prefix argument} percent of the document');
-||<
-
-For example, press C-u 75 % and you can scroll to the 75 percent of the current document.
-
-==== Mark system ====
-
-Do you want records the scroll position of document temporarily?
-
-Scrollet provides the mark system which allows you to record the current scroll position to the certain keys.
-
-Paste the code below to the bottom of your .keysnail.js.
-
->||
-key.setViewKey("C-1", function (ev, arg) {
-    ext.exec("scrollet-set-mark", arg, ev);
-}, "Save current scroll position to the mark", true);
-
-key.setViewKey("C-2", function (ev, arg) {
-    ext.exec("scrollet-scroll-to-mark", arg, ev);
-}, "Scroll to the saved position", true);
-||<
-
-Now you can record the current scroll position by pressing C-1 and C-2. By pressing C-1, the prompt will appear and if you press some key (may be alphabet?), current scroll position will be recorded to that key.
-
-You can recover the scroll position by pressing C-2 and the key which has the scroll position you recorded.
-
-Here is the settings which is similar to register keybindings in Emacs.
-
->||
-key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
-    ext.exec("scrollet-set-mark", arg, ev);
-}, "Save current scroll position to the mark", true);
-
-key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
-    ext.exec("scrollet-scroll-to-mark", arg, ev);
-}, "Scroll to the saved position", true);
-||<
-
-==== Methods ====
-
-Besides these exts, this plugin provides a lot of methods which can be used from .keysnail.js and other plugins.
-
-These picked up methods are especially useful.
-
-- plugins.scrollet.scrollPages(pages)
- - Scroll page by {pages}
-- plugins.scrollet.scrollByScrollSize(arg, direction)
- - Scroll by {half a page in pixels} * arg
-- plugins.scrollet.scrollToPercentiles(x, y)
- - Scroll to x, y in percent of the document
-    ]]></detail>
-    <detail lang="ja"><![CDATA[
-=== 説明 ===
-==== 様々なスクロールコマンドを提供 ====
-
-Firefox デフォルトのスクロールコマンドはあまり融通が効きません。そこで、このプラグインの出番というわけです。
-
-例えば半画面スクロール。 SPC と C-v は半画面スクロールが良い！ という方は次のような設定を .keysnail.js の末尾へ張り付けておきましょう。
-
->||
-key.setViewKey([['SPC'], ['C-v']], function (ev, arg) {
-    ext.exec("scrollet-scroll-document-down", arg);
-}, '半画面スクロールダウン');
-
-key.setViewKey('M-v', function (ev, arg) {
-    ext.exec("scrollet-scroll-document-up", arg);
-}, '半画面スクロールアップ');
-||<
-
-また、今見ているページの「70 パーセント辺りまでスクロールしたいな」というときは次のキーバインドが使えます。
-
->||
-key.setViewKey('%', function (ev, arg) {
-    ext.exec("scrollet-scroll-percent", arg);
-}, '前置引数で指定した割合までページをスクロール');
-||<
-
-これを C-u 75 % のようにして呼べば、ページの 75 パーセントまで一気にスクロールすることができてしまいます。
-
-==== マークシステム ====
-
-一時的にページのスクロール位置を保存しておきたいと思ったことはありませんか？
-
-このプラグインが提供するマークシステムを使えば、ページのスクロール位置を一時的に保存しておき、あとでその場所までスクロールすることが可能となります。
-
-次のような設定を .keysnail.js ファイル末尾へ張り付けてみてください。
-
->||
-key.setViewKey("C-1", function (ev, arg) {
-    ext.exec("scrollet-set-mark", arg, ev);
-}, "現在のスクロール位置を保存", true);
-
-key.setViewKey("C-2", function (ev, arg) {
-    ext.exec("scrollet-scroll-to-mark", arg, ev);
-}, "マークに保存された位置へスクロール", true);
-||<
-
-この設定により C-1 を押すことで現在のスクロール位置を保存し、 C-2 を押すことで記録されたスクロール位置を復元することが可能となります。
-
-C-1 を押すとプロンプトが現れるので、適当なキー (アルファベット) を入力してください。そのキーへとスクロール位置が保存されます。
-
-保存されたスクロール位置を復元するには C-2 を入力してください。プロンプトが現れるので、先ほどのキーを入力してやれば、その位置へとスクロールが行われます。
-
-どんなキーへ記録したか忘れてしまった場合は TAB を押すことで記録されたキーの一覧を確認することができます。
-
-以下に Emacs のレジスタシステムに似たキーバインド例を示します。長ったらしいですが、何回も打ち込んでいると慣れてくるものです。
-
->||
-key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
-    ext.exec("scrollet-set-mark", arg, ev);
-}, "現在のスクロール位置を保存", true);
-
-key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
-    ext.exec("scrollet-scroll-to-mark", arg, ev);
-}, "マークに保存された位置へスクロール", true);
-||<
-
-ややこしい Emacs のキーバインドが覚えられて一石二丁ですね。
-
-==== メソッド ====
-
-このプラグインはエクステだけでなく、初期化ファイルや他のプラグイン中から使用可能なメソッドも提供します。
-
-以下のメソッドが特に便利でしょう。
-
-- plugins.scrollet.scrollPages(pages)
- - pages 画面分スクロール
-- plugins.scrollet.scrollByScrollSize(arg, direction)
- - 半画面 * arg 分スクロール
-- plugins.scrollet.scrollToPercentiles(x, y)
- - x, y それぞれのスクロール率をパーセンテージ指定
-    ]]></detail>
-</KeySnailPlugin>;
-
-// }} ======================================================================= //
-
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 0.0.3 (2009 12/11) ==== 
+// 
+// * Mark system has become support the caret position in caret-mode and edit-mode.
 //
 // ==== 0.0.2 (2009 12/10) ====
 //
@@ -224,62 +44,156 @@ key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
 //
 // }} ======================================================================= //
 
-// Main {{ ================================================================== //
+// Mark {{ ============================================================== //
+
+const DEFAULT_MODE = key.modes.VIEW;
+
+var modes = {
+    VIEW  : key.modes.VIEW,
+    EDIT  : key.modes.EDIT,
+    CARET : key.modes.CARET
+};
+
+function createMarkHolder() {
+    var markHolder = {};
+
+    for each (let mode in modes)
+    {
+        markHolder[mode] = {};
+    }
+
+    return markHolder;
+}
+
+function getMarks(win) {
+    var mode = getCurrentMode();
+
+    if (!(mode in modes))
+        mode = DEFAULT_MODE;
+
+    var markHolder = content.document.__ksScrolletMarkHolder__;
+    if (!markHolder)
+        markHolder = content.document.__ksScrolletMarkHolder__ = createMarkHolder();
+
+    var marks = markHolder[mode];
+    if (!marks)
+        marks = {};
+
+    // var uri   = win.location.href;
+    // var marks = markHolder[mode][uri];
+
+    // if (!marks)
+    //     marks = markHolder[mode][uri] = {};
+
+    return marks;
+}
+
+function getSelection(aWin) {
+    var win = new XPCNativeWrapper(aWin || window.content.window);
+    return win.getSelection();
+}
+
+function Mark() {
+    // view
+    var scrollX;
+    var scrollY;
+    // edit
+    var input;
+    // caret
+    var range;
+    // common
+    var date;
+    var mode;
+}
+
+Mark.prototype.set = function (win) {
+    var mode = getCurrentMode();
+
+    switch (mode)
+    {
+    case modes.VIEW:
+        this.scrollX = win.scrollX;
+        this.scrollY = win.scrollY;
+        break;
+    case modes.CARET:
+        let sel = getSelection(win);
+        this.range = sel.getRangeAt(0);
+        break;
+    case modes.EDIT:
+        this.input = document.commandDispatcher.focusedElement;
+        this.start = this.input.selectionStart;
+        break;
+    }
+
+    this.mode = mode;
+
+    this.date = Date.now();
+};
+
+Mark.prototype.toString = function () {
+    switch (this.mode)
+    {
+    case modes.VIEW:
+        return util.format("(%s, %s)", this.scrollX, this.scrollY);
+    case modes.CARET:
+        let range = this.range;
+        try
+        {
+            return range.commonAncestorContainer.textContent;
+        }
+        catch (x)
+        {
+            return "";
+        }
+    case modes.EDIT:
+        return util.format("%s %s (%s...)",
+                           this.start,
+                           M({ja: "文字目", en: "count of "}),
+                           this.input.value.slice(0, 80));
+    default:
+        return "";
+        break;
+    }
+};
+
+// }} ======================================================================= //
+
+// Utils {{ ================================================================= //
+
+function getCurrentMode() {
+    var ev = { originalTarget : document.commandDispatcher.focusedElement || content.document };
+
+    if (!ev.originalTarget.localName)
+        ev.originalTarget = { localName : "" };
+
+    return key.getCurrentMode(ev);
+}
+
+function findScrollableWindow()
+{
+    let win = window.document.commandDispatcher.focusedWindow;
+    if (win && (win.scrollMaxX > 0 || win.scrollMaxY > 0))
+        return win;
+
+    win = window.content;
+    if (win.scrollMaxX > 0 || win.scrollMaxY > 0)
+        return win;
+
+    for (let frame in win.frames)
+        if (frame.scrollMaxX > 0 || frame.scrollMaxY > 0)
+            return frame;
+
+    return win;
+}
+
+// }} ======================================================================= //
 
 var scrollet =
-    (function() {
-         // Mark {{ ============================================================== //
-
-         var markHolder = {};
-
-         function getMarks(win) {
-             var uri = win.location.href;
-             var marks = markHolder[uri];
-             if (!marks)
-                 marks = markHolder[uri] = {};
-
-             return marks;
-         }
-
-         function Mark(scrollX, scrollY) {
-             var x    = scrollX;
-             var y    = scrollY;
-             var date = Date.now();
-         }
-
-         Mark.prototype.setWindow = function (win) {
-             this.x    =  win.scrollX;
-             this.y    =  win.scrollY;
-             this.date = Date.now();
-         };
-
-         // }} ======================================================================= //
-
-         // Utils {{ ================================================================= //
-
+    (function () {
          function checkScrollYBounds(win, direction)
          {
              return !(direction > 0 && win.scrollY >= win.scrollMaxY || direction < 0 && win.scrollY == 0);
          }
-
-         function findScrollableWindow()
-         {
-             let win = window.document.commandDispatcher.focusedWindow;
-             if (win && (win.scrollMaxX > 0 || win.scrollMaxY > 0))
-                 return win;
-
-             win = window.content;
-             if (win.scrollMaxX > 0 || win.scrollMaxY > 0)
-                 return win;
-
-             for (let frame in win.frames)
-                 if (frame.scrollMaxX > 0 || frame.scrollMaxY > 0)
-                     return frame;
-
-             return win;
-         }
-
-         // }} ======================================================================= //
 
          // Scroll methods {{ ======================================================== //
 
@@ -336,7 +250,7 @@ var scrollet =
                      return 0;
              },
 
-             scrollYPercentForWin: function(aWin, aScrollY) {
+             scrollYPercentForWin: function(aWin) {
                  let win = findScrollableWindow();
                  if (win.scrollMaxY > 0)
                      return Math.round(win.scrollY / win.scrollMaxY * 100);
@@ -460,24 +374,71 @@ var scrollet =
                  scrollToPercentiles(-1, 0);
              },
 
-             //
-
              setMark: function (aKey)
              {
                  var win   = findScrollableWindow();
                  var marks = getMarks(win);
 
                  marks[aKey] = new Mark();
-                 marks[aKey].setWindow(win);
+                 marks[aKey].set(win);
              },
 
-             scrollToMark: function (aMark)
+             jumpToMark: function (aMark)
              {
                  if (!aMark)
                      return;
 
                  var win = findScrollableWindow();
-                 win.scrollTo(aMark.x, aMark.y);
+
+                 switch (aMark.mode)
+                 {
+                 case modes.VIEW:
+                     win.scrollTo(aMark.scrollX, aMark.scrollY);
+                     break;
+                 case modes.EDIT:
+                     let input = aMark.input;
+                     input.focus();
+                     input.selectionStart = input.selectionEnd = aMark.start;
+
+                     command.recenter({originalTarget : input});
+                     break;
+                 case modes.CARET:
+                     let doc   = win.document;
+                     let range = aMark.range;
+
+                     let sel = getSelection(win);
+                     let r   = doc.createRange();
+
+                     let container = range.endContainer;
+
+                     sel.removeAllRanges();
+
+                     r.setStart(container, range.endOffset);
+                     r.setEnd(container, range.endOffset);
+
+                     sel.addRange(r);
+
+                     // we need to reflesh the range in mark too
+                     aMark.range = r;
+
+                     // ======== scroll ======== //
+
+                     var elem = doc.createElement('span');
+                     r.setStart(sel.focusNode, sel.focusOffset);
+                     r.setEnd(sel.focusNode, sel.focusOffset);
+                     r.insertNode(elem);
+
+                     var box = doc.getBoxObjectFor(elem);
+                     if (!box.x && !box.y)
+                         box = doc.getBoxObjectFor(elem.parentNode);
+
+                     win.scrollTo(box.x - win.innerWidth / 2, box.y - win.innerHeight / 2);
+
+                     elem.parentNode.removeChild(elem);
+                     range.detach();
+
+                     break;
+                 }
              },
 
              getMarksForWin: function (aWin)
@@ -555,9 +516,14 @@ ext.add("scrollet-scroll-percent", function (ev, arg) {
         }, M({en: "Scroll document to the left", ja: "前置引数で指定した割合までページをスクロール"}));
 
 ext.add("scrollet-set-mark", function (ev, arg) {
+            var description = {};
+            description[modes.VIEW]  = M({en: "Input the mark:", ja: "現在のスクロール位置を保存:"});
+            description[modes.EDIT]  = M({en: "Input the mark:", ja: "現在のカーソル位置を保存:"});
+            description[modes.CARET] = M({en: "Input the mark:", ja: "現在のキャレット位置を保存:"});
+
             prompt.reader(
                 {
-                    message: M({en: "Input the mark", ja: "現在のスクロール位置を保存:"}),
+                    message: description[getCurrentMode()],
                     onChange: function (arg) {
                         var current = arg.textbox.value;
                         if (current)
@@ -574,26 +540,32 @@ ext.add("scrollet-set-mark", function (ev, arg) {
             );
         }, M({en: "Save current scroll position to the mark", ja: "現在のスクロール位置を保存"}));
 
-ext.add("scrollet-scroll-to-mark", function (ev, arg) {
-            var win   = scrollet.currentWindow();
-            var marks = scrollet.getMarksForWin(win);
-
-            var current = Date.now();
-            var collection = [[k,
-                               util.format("(%s, %s)", marks[k].x, marks[k].y),
-                               getElapsedTimeString(current - marks[k].date)] for (k in marks)].sort(
-                                   function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
-                               );
-
+ext.add("scrollet-jump-to-mark", function (ev, arg) {
             function recoverFocus()
             {
                 gBrowser.focus();
                 _content.focus();
             }
 
+            var win   = scrollet.currentWindow();
+            var marks = scrollet.getMarksForWin(win);
+            var mode  = getCurrentMode();
+
+            var current = Date.now();
+            var collection = [[k,
+                               marks[k],
+                               getElapsedTimeString(current - marks[k].date)] for (k in marks)].sort(
+                                   function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
+                               );
+
+            var message = {};
+            message[modes.VIEW]  = M({en: "Scroll to (Press TAB to see completions)", ja: "スクロール先 (TAB で一覧):"});
+            message[modes.EDIT]  = M({en: "Move to (Press TAB to see completions)", ja: "カーソルの移動先 (TAB で一覧):"});
+            message[modes.CARET] = M({en: "Move to (Press TAB to see completions)", ja: "キャレットの移動先:"});
+
             prompt.reader(
                 {
-                    message: M({ja: "スクロール先 (TAB で一覧):", en: "Scroll to (Press TAB to see completions):"}),
+                    message: message[getCurrentMode()],
                     onChange: function (arg) {
                         if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT ||
                             arg.event.keyCode === KeyEvent.DOM_VK_TAB)
@@ -619,12 +591,15 @@ ext.add("scrollet-scroll-to-mark", function (ev, arg) {
                     callback: function (aStr) {
                         if (aStr === null || !marks[aStr])
                         {
-                            recoverFocus();
+                            if (mode !== modes.EDIT)
+                                recoverFocus();
                             return;
                         }
 
-                        scrollet.scrollToMark(marks[aStr]);
-                        recoverFocus();
+                        scrollet.jumpToMark(marks[aStr]);
+
+                        if (mode !== modes.EDIT)
+                            recoverFocus();
                     }
                 }
             );
@@ -635,5 +610,188 @@ ext.add("scrollet-scroll-to-mark", function (ev, arg) {
 // Export library {{ ======================================================== //
 
 plugins.scrollet = scrollet;
+
+// }} ======================================================================= //
+
+// PLUGIN_INFO {{ =========================================================== //
+
+var PLUGIN_INFO =
+<KeySnailPlugin>
+    <name>Scrollet!</name>
+    <description>Provides various scroll commands and mark system</description>
+    <description lang="ja">マークシステムをに加え、様々なスクロールコマンドを提供します</description>
+    <version>0.0.3</version>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
+    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+    <license>MPL</license>
+    <minVersion>1.1.3</minVersion>
+    <include>main</include>
+    <provides>
+        <ext>scrollet-scroll-line-down</ext>
+        <ext>scrollet-scroll-line-up</ext>
+        <ext>scrollet-scroll-document-down</ext>
+        <ext>scrollet-scroll-document-up</ext>
+        <ext>scrollet-scroll-document-right</ext>
+        <ext>scrollet-scroll-document-left</ext>
+        <ext>scrollet-scroll-percent</ext>
+        <ext>scrollet-set-mark</ext>
+        <ext>scrollet-jump-to-mark</ext>
+    </provides>
+    <detail><![CDATA[
+=== What's this ===
+==== Provides various scroll commands ====
+
+If you want to scroll half a page down by SPC and C-v, paste the code below to the bottom of your .keysnail.js.
+
+>||
+key.setViewKey([['SPC'], ['C-v']], function (ev, arg) {
+    ext.exec("scrollet-scroll-document-down", arg);
+}, 'Scroll document down');
+
+key.setViewKey('M-v', function (ev, arg) {
+    ext.exec("scrollet-scroll-document-up", arg);
+}, 'Scroll document up');
+||<
+
+You can scroll to the {prefix argument} percent of the document by putting the setting belowto your .keysnail.js.
+
+>||
+key.setViewKey('%', function (ev, arg) {
+    ext.exec("scrollet-scroll-percent", arg);
+}, 'Scroll to {prefix argument} percent of the document');
+||<
+
+For example, press C-u 75 % and you can scroll to the 75 percent of the current document.
+
+==== Mark system ====
+
+Do you want records the scroll position of document temporarily?
+
+Scrollet provides the mark system which allows you to record the current scroll position to the certain keys.
+
+Paste the code below to the bottom of your .keysnail.js.
+
+>||
+key.setViewKey("C-1", function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "Save current scroll position to the mark", true);
+
+key.setViewKey("C-2", function (ev, arg) {
+    ext.exec("scrollet-jump-to-mark", arg, ev);
+}, "Scroll to the saved position", true);
+||<
+
+Now you can record the current scroll position by pressing C-1 and C-2. By pressing C-1, the prompt will appear and if you press some key (may be alphabet?), current scroll position will be recorded to that key.
+
+You can recover the scroll position by pressing C-2 and the key which has the scroll position you recorded.
+
+Here is the settings which is similar to register keybindings in Emacs.
+
+>||
+key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "Save current scroll position to the mark", true);
+
+key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
+    ext.exec("scrollet-jump-to-mark", arg, ev);
+}, "Scroll to the saved position", true);
+||<
+
+==== Methods ====
+
+Besides these exts, this plugin provides a lot of methods which can be used from .keysnail.js and other plugins.
+
+These picked up methods are especially useful.
+
+- plugins.scrollet.scrollPages(pages)
+ - Scroll page by {pages}
+- plugins.scrollet.scrollByScrollSize(arg, direction)
+ - Scroll by {half a page in pixels} * arg
+- plugins.scrollet.scrollToPercentiles(x, y)
+ - Scroll to x, y in percent of the document
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
+=== 説明 ===
+==== 様々なスクロールコマンドを提供 ====
+
+Firefox デフォルトのスクロールコマンドはあまり融通が効きません。そこで、このプラグインの出番というわけです。
+
+例えば半画面スクロール。 SPC と C-v は半画面スクロールが良い！ という方は次のような設定を .keysnail.js の末尾へ張り付けておきましょう。
+
+>||
+key.setViewKey([['SPC'], ['C-v']], function (ev, arg) {
+    ext.exec("scrollet-scroll-document-down", arg);
+}, '半画面スクロールダウン');
+
+key.setViewKey('M-v', function (ev, arg) {
+    ext.exec("scrollet-scroll-document-up", arg);
+}, '半画面スクロールアップ');
+||<
+
+また、今見ているページの「70 パーセント辺りまでスクロールしたいな」というときは次のキーバインドが使えます。
+
+>||
+key.setViewKey('%', function (ev, arg) {
+    ext.exec("scrollet-scroll-percent", arg);
+}, '前置引数で指定した割合までページをスクロール');
+||<
+
+これを C-u 75 % のようにして呼べば、ページの 75 パーセントまで一気にスクロールすることができてしまいます。
+
+==== マークシステム ====
+
+一時的にページのスクロール位置を保存しておきたいと思ったことはありませんか？
+
+このプラグインが提供するマークシステムを使えば、ページのスクロール位置を一時的に保存しておき、あとでその場所までスクロールすることが可能となります。
+
+次のような設定を .keysnail.js ファイル末尾へ張り付けてみてください。
+
+>||
+key.setViewKey("C-1", function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "現在のスクロール位置を保存", true);
+
+key.setViewKey("C-2", function (ev, arg) {
+    ext.exec("scrollet-jump-to-mark", arg, ev);
+}, "マークに保存された位置へスクロール", true);
+||<
+
+この設定により C-1 を押すことで現在のスクロール位置を保存し、 C-2 を押すことで記録されたスクロール位置を復元することが可能となります。
+
+C-1 を押すとプロンプトが現れるので、適当なキー (アルファベット) を入力してください。そのキーへとスクロール位置が保存されます。
+
+保存されたスクロール位置を復元するには C-2 を入力してください。プロンプトが現れるので、先ほどのキーを入力してやれば、その位置へとスクロールが行われます。
+
+どんなキーへ記録したか忘れてしまった場合は TAB を押すことで記録されたキーの一覧を確認することができます。
+
+以下に Emacs のレジスタシステムに似たキーバインド例を示します。長ったらしいですが、何回も打ち込んでいると慣れてくるものです。
+
+>||
+key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "現在のスクロール位置を保存", true);
+
+key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
+    ext.exec("scrollet-jump-to-mark", arg, ev);
+}, "マークに保存された位置へスクロール", true);
+||<
+
+ややこしい Emacs のキーバインドが覚えられて一石二丁ですね。
+
+==== メソッド ====
+
+このプラグインはエクステだけでなく、初期化ファイルや他のプラグイン中から使用可能なメソッドも提供します。
+
+以下のメソッドが特に便利でしょう。
+
+- plugins.scrollet.scrollPages(pages)
+ - pages 画面分スクロール
+- plugins.scrollet.scrollByScrollSize(arg, direction)
+ - 半画面 * arg 分スクロール
+- plugins.scrollet.scrollToPercentiles(x, y)
+ - x, y それぞれのスクロール率をパーセンテージ指定
+    ]]></detail>
+</KeySnailPlugin>;
 
 // }} ======================================================================= //
