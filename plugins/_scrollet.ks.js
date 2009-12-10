@@ -34,9 +34,9 @@ var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Scrollet!</name>
     <name lang="ja">スクロレット！</name>
-    <description>Provides various scroll commands</description>
-    <description lang="ja">様々なスクロールコマンドを提供します</description>
-    <version>0.0.1</version>
+    <description>Provides various scroll commands and mark system</description>
+    <description lang="ja">様々なスクロールコマンドとマークシステムを提供します</description>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -51,6 +51,8 @@ var PLUGIN_INFO =
         <ext>scrollet-scroll-document-right</ext>
         <ext>scrollet-scroll-document-left</ext>
         <ext>scrollet-scroll-percent</ext>
+        <ext>scrollet-set-mark</ext>
+        <ext>scrollet-scroll-to-mark</ext>
     </provides>
     <detail><![CDATA[
 === What's this ===
@@ -77,6 +79,40 @@ key.setViewKey('%', function (ev, arg) {
 ||<
 
 For example, press C-u 75 % and you can scroll to the 75 percent of the current document.
+
+==== Mark system ====
+
+Do you want records the scroll position of document temporarily?
+
+Scrollet provides the mark system which allows you to record the current scroll position to the certain keys.
+
+Paste the code below to the bottom of your .keysnail.js.
+
+>||
+key.setViewKey("C-1", function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "Save current scroll position to the mark", true);
+
+key.setViewKey("C-2", function (ev, arg) {
+    ext.exec("scrollet-scroll-to-mark", arg, ev);
+}, "Scroll to the saved position", true);
+||<
+
+Now you can record the current scroll position by pressing C-1 and C-2. By pressing C-1, the prompt will appear and if you press some key (may be alphabet?), current scroll position will be recorded to that key.
+
+You can recover the scroll position by pressing C-2 and the key which has the scroll position you recorded.
+
+Here is the settings which is similar to register keybindings in Emacs.
+
+>||
+key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "Save current scroll position to the mark", true);
+
+key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
+    ext.exec("scrollet-scroll-to-mark", arg, ev);
+}, "Scroll to the saved position", true);
+||<
 
 ==== Methods ====
 
@@ -119,6 +155,46 @@ key.setViewKey('%', function (ev, arg) {
 
 これを C-u 75 % のようにして呼べば、ページの 75 パーセントまで一気にスクロールすることができてしまいます。
 
+==== マークシステム ====
+
+一時的にページのスクロール位置を保存しておきたいと思ったことはありませんか？
+
+このプラグインが提供するマークシステムを使えば、ページのスクロール位置を一時的に保存しておき、あとでその場所までスクロールすることが可能となります。
+
+次のような設定を .keysnail.js ファイル末尾へ張り付けてみてください。
+
+>||
+key.setViewKey("C-1", function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "現在のスクロール位置を保存", true);
+
+key.setViewKey("C-2", function (ev, arg) {
+    ext.exec("scrollet-scroll-to-mark", arg, ev);
+}, "マークに保存された位置へスクロール", true);
+||<
+
+この設定により C-1 を押すことで現在のスクロール位置を保存し、 C-2 を押すことで記録されたスクロール位置を復元することが可能となります。
+
+C-1 を押すとプロンプトが現れるので、適当なキー (アルファベット) を入力してください。そのキーへとスクロール位置が保存されます。
+
+保存されたスクロール位置を復元するには C-2 を入力してください。プロンプトが現れるので、先ほどのキーを入力してやれば、その位置へとスクロールが行われます。
+
+どんなキーへ記録したか忘れてしまった場合は TAB を押すことで記録されたキーの一覧を確認することができます。
+
+以下に Emacs のレジスタシステムに似たキーバインド例を示します。長ったらしいですが、何回も打ち込んでいると慣れてくるものです。
+
+>||
+key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "現在のスクロール位置を保存", true);
+
+key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
+    ext.exec("scrollet-scroll-to-mark", arg, ev);
+}, "マークに保存された位置へスクロール", true);
+||<
+
+ややこしい Emacs のキーバインドが覚えられて一石二丁ですね。
+
 ==== メソッド ====
 
 このプラグインはエクステだけでなく、初期化ファイルや他のプラグイン中から使用可能なメソッドも提供します。
@@ -138,6 +214,10 @@ key.setViewKey('%', function (ev, arg) {
 
 // ChangeLog {{ ============================================================= //
 //
+// ==== 0.0.2 (2009 12/10) ====
+//
+// * Added mark sytem
+//
 // ==== 0.0.1 (2009 12/09) ====
 //
 // * First release
@@ -148,10 +228,38 @@ key.setViewKey('%', function (ev, arg) {
 
 var scrollet =
     (function() {
+         // Mark {{ ============================================================== //
+
+         var markHolder = {};
+
+         function getMarks(win) {
+             var uri = win.location.href;
+             var marks = markHolder[uri];
+             if (!marks)
+                 marks = markHolder[uri] = {};
+
+             return marks;
+         }
+
+         function Mark(scrollX, scrollY) {
+             var x    = scrollX;
+             var y    = scrollY;
+             var date = Date.now();
+         }
+
+         Mark.prototype.setWindow = function (win) {
+             this.x    =  win.scrollX;
+             this.y    =  win.scrollY;
+             this.date = Date.now();
+         };
+
+         // }} ======================================================================= //
+
+         // Utils {{ ================================================================= //
+
          function checkScrollYBounds(win, direction)
          {
-             // if (direction > 0 && win.scrollY >= win.scrollMaxY || direction < 0 && win.scrollY == 0)
-             //       return;
+             return !(direction > 0 && win.scrollY >= win.scrollMaxY || direction < 0 && win.scrollY == 0);
          }
 
          function findScrollableWindow()
@@ -164,12 +272,16 @@ var scrollet =
              if (win.scrollMaxX > 0 || win.scrollMaxY > 0)
                  return win;
 
-             for (let frame in util.Array.itervalues(win.frames))
+             for (let frame in win.frames)
                  if (frame.scrollMaxX > 0 || frame.scrollMaxY > 0)
                      return frame;
 
              return win;
          }
+
+         // }} ======================================================================= //
+
+         // Scroll methods {{ ======================================================== //
 
          // both values are given in percent, -1 means no change
          function scrollToPercentiles(horizontal, vertical)
@@ -190,17 +302,17 @@ var scrollet =
              win.scrollTo(h, v);
          }
 
+         // }} ======================================================================= //
+
+         // Public {{ ================================================================ //
+
          var self = {
              /**
               * @property {number} The buffer's horizontal scroll percentile.
               */
              get scrollXPercent()
              {
-                 let win = findScrollableWindow();
-                 if (win.scrollMaxX > 0)
-                     return Math.round(win.scrollX / win.scrollMaxX * 100);
-                 else
-                     return 0;
+                 return scrollXPercentForWin();
              },
 
              /**
@@ -208,6 +320,23 @@ var scrollet =
               */
              get scrollYPercent()
              {
+                 return self.scrollYPercentForWin();
+             },
+
+             get currentWindow()
+             {
+                 return findScrollableWindow();
+             },
+
+             scrollXPercentForWin: function(aWin) {
+                 let win = aWin || findScrollableWindow();
+                 if (win.scrollMaxX > 0)
+                     return Math.round(win.scrollX / win.scrollMaxX * 100);
+                 else
+                     return 0;
+             },
+
+             scrollYPercentForWin: function(aWin, aScrollY) {
                  let win = findScrollableWindow();
                  if (win.scrollMaxY > 0)
                      return Math.round(win.scrollY / win.scrollMaxY * 100);
@@ -257,7 +386,8 @@ var scrollet =
              scrollLines: function (lines)
              {
                  let win = findScrollableWindow();
-                 checkScrollYBounds(win, lines);
+                 if (checkScrollYBounds(win, lines))
+                     return;
                  win.scrollByLines(lines);
              },
 
@@ -270,7 +400,8 @@ var scrollet =
              scrollPages: function (pages)
              {
                  let win = findScrollableWindow();
-                 checkScrollYBounds(win, pages);
+                 if (checkScrollYBounds(win, pages))
+                     return;
                  win.scrollByPages(pages);
              },
 
@@ -286,7 +417,8 @@ var scrollet =
                  arg = arg || 1;
                  let win = findScrollableWindow();
 
-                 checkScrollYBounds(win, direction);
+                 if (checkScrollYBounds(win, direction))
+                     return;
                  win.scrollBy(0, (win.innerHeight / 2 * direction) * arg);
              },
 
@@ -326,11 +458,65 @@ var scrollet =
              scrollTop: function ()
              {
                  scrollToPercentiles(-1, 0);
+             },
+
+             //
+
+             setMark: function (aKey)
+             {
+                 var win   = findScrollableWindow();
+                 var marks = getMarks(win);
+
+                 marks[aKey] = new Mark();
+                 marks[aKey].setWindow(win);
+             },
+
+             scrollToMark: function (aMark)
+             {
+                 if (!aMark)
+                     return;
+
+                 var win = findScrollableWindow();
+                 win.scrollTo(aMark.x, aMark.y);
+             },
+
+             getMarksForWin: function (aWin)
+             {
+                 var win   = aWin || findScrollableWindow();
+                 var marks = getMarks(win);
+
+                 return marks;
              }
          };
 
+         // }} ======================================================================= //
+
          return self;
      })();
+
+// }} ======================================================================= //
+
+// Misc {{ ================================================================== //
+
+function getElapsedTimeString(aMillisec) {
+    function format(num, str) {
+        return Math.floor(num) + " " + str;
+    }
+
+    var sec = aMillisec / 1000;
+    if (sec < 1.0)
+        return M({ja: "ついさっき", en: "just now"});
+    var min = sec / 60;
+    if (min < 1.0)
+        return format(sec, M({ja: "秒前", en: "seconds ago"}));
+    var hour = min / 60;
+    if (hour < 1.0)
+        return format(min, M({ja: "分前", en: "minutes ago"}));
+    var date = hour / 24;
+    if (date < 1.0)
+        return format(hour, M({ja: "時間前", en: "hours ago"}));
+    return format(date, M({ja: "日前", en: "days ago"}));
+}
 
 // }} ======================================================================= //
 
@@ -367,6 +553,82 @@ ext.add("scrollet-scroll-percent", function (ev, arg) {
             if (arg > 0 && arg <= 100)
                 scrollet.scrollToPercentiles(scrollet.scrollXPercent, arg);
         }, M({en: "Scroll document to the left", ja: "前置引数で指定した割合までページをスクロール"}));
+
+ext.add("scrollet-set-mark", function (ev, arg) {
+            prompt.reader(
+                {
+                    message: M({en: "Input the mark", ja: "現在のスクロール位置を保存:"}),
+                    onChange: function (arg) {
+                        var current = arg.textbox.value;
+                        if (current)
+                            arg.finish();
+                    },
+                    collection: null,
+                    callback: function (aStr) {
+                        if (aStr === null)
+                            return;
+
+                        scrollet.setMark(aStr);
+                    }
+                }
+            );
+        }, M({en: "Save current scroll position to the mark", ja: "現在のスクロール位置を保存"}));
+
+ext.add("scrollet-scroll-to-mark", function (ev, arg) {
+            var win   = scrollet.currentWindow();
+            var marks = scrollet.getMarksForWin(win);
+
+            var current = Date.now();
+            var collection = [[k,
+                               util.format("(%s, %s)", marks[k].x, marks[k].y),
+                               getElapsedTimeString(current - marks[k].date)] for (k in marks)].sort(
+                                   function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
+                               );
+
+            function recoverFocus()
+            {
+                gBrowser.focus();
+                _content.focus();
+            }
+
+            prompt.reader(
+                {
+                    message: M({ja: "スクロール先 (TAB で一覧):", en: "Scroll to (Press TAB to see completions):"}),
+                    onChange: function (arg) {
+                        if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT ||
+                            arg.event.keyCode === KeyEvent.DOM_VK_TAB)
+                        {
+                            return;
+                        }
+
+                        var current = arg.textbox.value;
+                        if (current)
+                            arg.finish();
+                    },
+                    collection: collection,
+                    header: [
+                        M({ja: "マーク", en: "Mark"}), M({ja: "位置", en: "Position"}), M({ja: "記録された時間", en: "Recorded time"})
+                    ],
+                    style: [
+                        "font-weight:bold;text-align:right;margin-right:1em;", "font-weight:bold;", "color:#132fc2;"
+                    ],
+                    width: [
+                        30, 40, 30
+                    ],
+                    supressRecoverFocus: true,
+                    callback: function (aStr) {
+                        if (aStr === null || !marks[aStr])
+                        {
+                            recoverFocus();
+                            return;
+                        }
+
+                        scrollet.scrollToMark(marks[aStr]);
+                        recoverFocus();
+                    }
+                }
+            );
+        }, M({en: "Scroll to the saved position", ja: "マークに保存された位置へスクロール"}));
 
 // }} ======================================================================= //
 
