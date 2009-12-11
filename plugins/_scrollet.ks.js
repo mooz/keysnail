@@ -1,5 +1,3 @@
-// Most functions in this plugin are borrowed from buffer.js of liberator
-
 /***** BEGIN LICENSE BLOCK ***** {{{
 Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
@@ -30,8 +28,12 @@ the terms of any one of the MPL, the GPL or the LGPL.
 
 // ChangeLog {{ ============================================================= //
 // 
-// ==== 0.0.3 (2009 12/11) ==== 
+// ==== 0.0.4 (2009 12/11) ====
 // 
+// * Power upped mark system.
+//
+// ==== 0.0.3 (2009 12/11) ====
+//
 // * Mark system has become support the caret position in caret-mode and edit-mode.
 //
 // ==== 0.0.2 (2009 12/10) ====
@@ -71,13 +73,17 @@ function getMarks(win) {
     if (!(mode in modes))
         mode = DEFAULT_MODE;
 
-    var markHolder = content.document.__ksScrolletMarkHolder__;
-    if (!markHolder)
-        markHolder = content.document.__ksScrolletMarkHolder__ = createMarkHolder();
-
-    var marks = markHolder[mode];
+    var marks = content.document.__ksScrolletMarks__;
     if (!marks)
-        marks = {};
+        marks = content.document.__ksScrolletMarks__ = {};
+
+    // var markHolder = content.document.__ksScrolletMarkHolder__;
+    // if (!markHolder)
+    //     markHolder = content.document.__ksScrolletMarkHolder__ = createMarkHolder();
+
+    // var marks = markHolder[mode];
+    // if (!marks)
+    //     marks = {};
 
     // var uri   = win.location.href;
     // var marks = markHolder[mode][uri];
@@ -117,7 +123,20 @@ Mark.prototype.set = function (win) {
         break;
     case modes.CARET:
         let sel = getSelection(win);
-        this.range = sel.getRangeAt(0);
+        if (sel.rangeCount === 0)
+        {
+            // move caret to the head of document
+            let r         = win.document.createRange();
+            let container = win.document.body;
+            r.setStart(container, 0);
+            r.setEnd(container, 0);
+            sel.addRange(r);
+            this.range = r;
+        }
+        else
+        {
+            this.range = sel.getRangeAt(0);
+        }
         break;
     case modes.EDIT:
         this.input = document.commandDispatcher.focusedElement;
@@ -139,17 +158,21 @@ Mark.prototype.toString = function () {
         let range = this.range;
         try
         {
-            return range.commonAncestorContainer.textContent;
+            return util.format("%s %s [%s]",
+                               range.endOffset,
+                               M({ja: "文字目", en: "count of "}),
+                               range.commonAncestorContainer.textContent
+                              );
         }
         catch (x)
         {
             return "";
         }
     case modes.EDIT:
-        return util.format("%s %s (%s...)",
+        return util.format("%s %s [%s]",
                            this.start,
                            M({ja: "文字目", en: "count of "}),
-                           this.input.value.slice(0, 80));
+                           input.value);
     default:
         return "";
         break;
@@ -403,6 +426,8 @@ var scrollet =
                      command.recenter({originalTarget : input});
                      break;
                  case modes.CARET:
+                     util.setBoolPref("accessibility.browsewithcaret", true);
+
                      let doc   = win.document;
                      let range = aMark.range;
 
@@ -459,10 +484,9 @@ var scrollet =
 
 // Misc {{ ================================================================== //
 
-function getElapsedTimeString(aMillisec) {
-    function format(num, str) {
-        return Math.floor(num) + " " + str;
-    }
+function getElapsedTimeString(aMillisec)
+{
+    function format(num, str) Math.floor(num) + " " + str;
 
     var sec = aMillisec / 1000;
     if (sec < 1.0)
@@ -538,7 +562,7 @@ ext.add("scrollet-set-mark", function (ev, arg) {
                     }
                 }
             );
-        }, M({en: "Save current scroll position to the mark", ja: "現在のスクロール位置を保存"}));
+        }, M({en: "Save current scroll / caret position to the mark", ja: "現在のスクロール位置 / キャレット位置を保存"}));
 
 ext.add("scrollet-jump-to-mark", function (ev, arg) {
             function recoverFocus()
@@ -552,20 +576,19 @@ ext.add("scrollet-jump-to-mark", function (ev, arg) {
             var mode  = getCurrentMode();
 
             var current = Date.now();
-            var collection = [[k,
+            var collection = [[marks[k].mode,
+                               k,
                                marks[k],
-                               getElapsedTimeString(current - marks[k].date)] for (k in marks)].sort(
-                                   function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
-                               );
+                               getElapsedTimeString(current - marks[k].date)
+                              ] for (k in marks)].sort(
+                                  function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
+                              );
 
-            var message = {};
-            message[modes.VIEW]  = M({en: "Scroll to (Press TAB to see completions)", ja: "スクロール先 (TAB で一覧):"});
-            message[modes.EDIT]  = M({en: "Move to (Press TAB to see completions)", ja: "カーソルの移動先 (TAB で一覧):"});
-            message[modes.CARET] = M({en: "Move to (Press TAB to see completions)", ja: "キャレットの移動先:"});
+            var selectedMark;
 
-            prompt.reader(
+            prompt.selector(
                 {
-                    message: message[getCurrentMode()],
+                    message: M({en: "Jump to:", ja: "ジャンプ先:"}),
                     onChange: function (arg) {
                         if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT ||
                             arg.event.keyCode === KeyEvent.DOM_VK_TAB)
@@ -575,35 +598,48 @@ ext.add("scrollet-jump-to-mark", function (ev, arg) {
 
                         var current = arg.textbox.value;
                         if (current)
+                        {
+                            selectedMark = current;
                             arg.finish();
+                        }
                     },
                     collection: collection,
+                    flags: [IGNORE, 0, IGNORE, IGNORE],
                     header: [
-                        M({ja: "マーク", en: "Mark"}), M({ja: "位置", en: "Position"}), M({ja: "記録された時間", en: "Recorded time"})
+                        M({ja: "モード", en: "Mode"}),
+                        M({ja: "マーク", en: "Mark"}),
+                        M({ja: "位置", en: "Position"}),
+                        M({ja: "記録された時間", en: "Recorded time"})
                     ],
                     style: [
-                        "font-weight:bold;text-align:right;margin-right:1em;", "font-weight:bold;", "color:#132fc2;"
+                        "text-align:right;margin-right:1em;",
+                        "font-weight:bold;",
+                        null,
+                        "color:#132fc2;"
                     ],
                     width: [
-                        30, 40, 30
+                        20, 10, 40, 30
                     ],
                     supressRecoverFocus: true,
-                    callback: function (aStr) {
-                        if (aStr === null || !marks[aStr])
+                    callback: function (i) {
+                        let key  = (i < 0) ? null : selectedMark || collection[i][1];
+                        let mark;
+
+                        if (!key || !(mark = marks[key]))
                         {
                             if (mode !== modes.EDIT)
                                 recoverFocus();
                             return;
                         }
+                        
+                        scrollet.jumpToMark(mark);
 
-                        scrollet.jumpToMark(marks[aStr]);
-
-                        if (mode !== modes.EDIT)
+                        if (mark.mode !== modes.EDIT)
                             recoverFocus();
                     }
                 }
             );
-        }, M({en: "Scroll to the saved position", ja: "マークに保存された位置へスクロール"}));
+        }, M({en: "Jump to the saved position", ja: "マークに保存された位置へジャンプ"}));
 
 // }} ======================================================================= //
 
@@ -619,8 +655,8 @@ var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Scrollet!</name>
     <description>Provides various scroll commands and mark system</description>
-    <description lang="ja">マークシステムをに加え、様々なスクロールコマンドを提供します</description>
-    <version>0.0.3</version>
+    <description lang="ja">強力なマークシステムと様々なスクロールコマンドを提供します</description>
+    <version>0.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -713,9 +749,48 @@ These picked up methods are especially useful.
     ]]></detail>
     <detail lang="ja"><![CDATA[
 === 説明 ===
+
+==== マークシステム ====
+
+一時的にページのスクロール位置や、カーソル位置を保存しておきたいと思ったことはありませんか？
+
+このプラグインが提供するマークシステムを使えば、ページのスクロール位置やカーソル位置を一時的に保存しておき、あとでその場所までジャンプすることが可能となります。
+
+次のような設定を .keysnail.js ファイル末尾へ張り付けてみてください。
+
+>||
+key.setViewKey("C-1", function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "現在の位置をマークに保存", true);
+
+key.setViewKey("C-2", function (ev, arg) {
+    ext.exec("scrollet-jump-to-mark", arg, ev);
+}, "マークに保存された位置へジャンプ", true);
+||<
+
+この設定により C-1 を押すことで現在の位置を保存し、 C-2 を押すことで保存された位置へとジャンプすることが可能となります。
+
+C-1 を押すとプロンプトが現れるので、適当なキー (アルファベット) を入力してください。そのキーへとスクロール位置 / カーソル位置が保存されます。
+
+保存された位置へとジャンプするには C-2 を入力してください。プロンプトが現れるので、先ほどのキーを入力してやれば、その位置へとスクロールが行われます。キーを入力するのでなく、十字キーや TAB を使ってマークを選択しても OK です。
+
+以下に Emacs のレジスタシステムに似たキーバインド例を示します。長ったらしいですが、何回も打ち込んでいると慣れてくるものです。
+
+>||
+key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
+    ext.exec("scrollet-set-mark", arg, ev);
+}, "現在の位置をマークに保存", true);
+
+key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
+    ext.exec("scrollet-jump-to-mark", arg, ev);
+}, "マークに保存された位置へジャンプ", true);
+||<
+
+ややこしい Emacs のキーバインドが覚えられて一石二丁ですね。
+
 ==== 様々なスクロールコマンドを提供 ====
 
-Firefox デフォルトのスクロールコマンドはあまり融通が効きません。そこで、このプラグインの出番というわけです。
+Firefox デフォルトのスクロールコマンドはあまり融通が効きません。このプラグインは、もう少し柔軟なスクロールコマンドをいくつか提供します。
 
 例えば半画面スクロール。 SPC と C-v は半画面スクロールが良い！ という方は次のような設定を .keysnail.js の末尾へ張り付けておきましょう。
 
@@ -729,7 +804,7 @@ key.setViewKey('M-v', function (ev, arg) {
 }, '半画面スクロールアップ');
 ||<
 
-また、今見ているページの「70 パーセント辺りまでスクロールしたいな」というときは次のキーバインドが使えます。
+また、今見ているページの「75 パーセント辺りまでスクロールしたいな」というときは次のキーバインドが使えます。
 
 >||
 key.setViewKey('%', function (ev, arg) {
@@ -739,56 +814,18 @@ key.setViewKey('%', function (ev, arg) {
 
 これを C-u 75 % のようにして呼べば、ページの 75 パーセントまで一気にスクロールすることができてしまいます。
 
-==== マークシステム ====
-
-一時的にページのスクロール位置を保存しておきたいと思ったことはありませんか？
-
-このプラグインが提供するマークシステムを使えば、ページのスクロール位置を一時的に保存しておき、あとでその場所までスクロールすることが可能となります。
-
-次のような設定を .keysnail.js ファイル末尾へ張り付けてみてください。
-
->||
-key.setViewKey("C-1", function (ev, arg) {
-    ext.exec("scrollet-set-mark", arg, ev);
-}, "現在のスクロール位置を保存", true);
-
-key.setViewKey("C-2", function (ev, arg) {
-    ext.exec("scrollet-jump-to-mark", arg, ev);
-}, "マークに保存された位置へスクロール", true);
-||<
-
-この設定により C-1 を押すことで現在のスクロール位置を保存し、 C-2 を押すことで記録されたスクロール位置を復元することが可能となります。
-
-C-1 を押すとプロンプトが現れるので、適当なキー (アルファベット) を入力してください。そのキーへとスクロール位置が保存されます。
-
-保存されたスクロール位置を復元するには C-2 を入力してください。プロンプトが現れるので、先ほどのキーを入力してやれば、その位置へとスクロールが行われます。
-
-どんなキーへ記録したか忘れてしまった場合は TAB を押すことで記録されたキーの一覧を確認することができます。
-
-以下に Emacs のレジスタシステムに似たキーバインド例を示します。長ったらしいですが、何回も打ち込んでいると慣れてくるものです。
-
->||
-key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
-    ext.exec("scrollet-set-mark", arg, ev);
-}, "現在のスクロール位置を保存", true);
-
-key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
-    ext.exec("scrollet-jump-to-mark", arg, ev);
-}, "マークに保存された位置へスクロール", true);
-||<
-
-ややこしい Emacs のキーバインドが覚えられて一石二丁ですね。
-
 ==== メソッド ====
 
 このプラグインはエクステだけでなく、初期化ファイルや他のプラグイン中から使用可能なメソッドも提供します。
 
 以下のメソッドが特に便利でしょう。
 
+- plugins.scrollet.scrollLines(lines)
+ - lines 行だけスクロール (lines が負のときスクロールアップ)
 - plugins.scrollet.scrollPages(pages)
- - pages 画面分スクロール
+ - pages 画面分スクロール (pages が負のときスクロールアップ
 - plugins.scrollet.scrollByScrollSize(arg, direction)
- - 半画面 * arg 分スクロール
+ - 半画面 * arg 分スクロール (direction が false のときスクロールアップ)
 - plugins.scrollet.scrollToPercentiles(x, y)
  - x, y それぞれのスクロール率をパーセンテージ指定
     ]]></detail>
