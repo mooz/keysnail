@@ -168,7 +168,8 @@ var rcWizard = {
 
     setSpecialKeys: function (aStorage) {
         var keys = keyCustomizer.keys;
-        for (var i = 0; i < keys.length; ++i) {
+        for (var i = 0; i < keys.length; ++i)
+        {
             aStorage[keys[i] + "Key"] = keyCustomizer.getTextBoxValue(keys[i]);
         }
     },

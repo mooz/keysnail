@@ -8,12 +8,14 @@ var ksExtViewer = function () {
 
         var keyList = [];
         var name;
-        for (name in exts) {
+        for (name in exts)
+        {
             keyList.push(name);
         }
         keyList = keyList.sort();
 
-        for (var i = 0; i < keyList.length; ++i) {
+        for (var i = 0; i < keyList.length; ++i)
+        {
             name = keyList[i];
 
             var item = document.createElement("listitem");
@@ -51,7 +53,7 @@ var ksExtViewer = function () {
             var name = extListBox.selectedItem.firstChild.getAttribute("label");
             var description = exts[name].description;
 
-            var func = "function (aEvent, aArg) { ext.exec('" + name + "', aArg); }";
+            var func = "function (ev, arg) { ext.exec('" + name + "', arg, ev); }";
 
             window.arguments[0].out = {
                 desc : description,

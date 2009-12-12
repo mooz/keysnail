@@ -36,7 +36,7 @@ KeySnail.Macro = {
 
         for each (var event in aEvents)
         {
-            if (event.keyCode == KeyEvent.DOM_VK_TAB)
+            if (event.keyCode === KeyEvent.DOM_VK_TAB)
             {
                 if (event.shiftKey)
                     document.commandDispatcher.rewindFocus();

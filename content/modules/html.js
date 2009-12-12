@@ -54,7 +54,8 @@ KeySnail.HTML = {
             .getService(Ci.nsIIOService);
         var xmlFilePath = ioService.newFileURI(tmpFile).spec;
 
-        if (tmpFile.exists()) {
+        if (tmpFile.exists())
+        {
             tmpFile.remove(true);
         }
         tmpFile.create(tmpFile.NORMAL_FILE_TYPE, 0666);
@@ -74,25 +75,25 @@ KeySnail.HTML = {
         var source = this.htmlTemplate.replace("##HTMLTITLE##", aTitle);
         source = source.replace("##CONTENTS##", aBody);
 
-        if (!this.styleSheet) {
+        if (!this.styleSheet)
+        {
             this.styleSheet = this.modules.util
                 .readTextFileFromPackage("chrome://keysnail/content/resources/design.css");
         }
 
         source = source.replace("##CSS##", this.styleSheet);
 
-        // source = source.replace("##CSSPATH##", this.modules.util
-        //                         .chromeToPath("chrome://keysnail/content/design.css"));
-        return this.modules.util
-            .convertCharCodeFrom(source, "UTF-8");
+        return this.modules.util.convertCharCodeFrom(source, "UTF-8");
     },
 
     escapeTag: function (aString) {
         if (!aString)
             return "";
 
-        for (var badStr in this.replacePair) {
-            while (aString.search(badStr) != -1) {
+        for (var badStr in this.replacePair)
+        {
+            while (aString.search(badStr) !== -1)
+            {
                 aString = aString.replace(badStr, this.replacePair[badStr]);
             }
         }
@@ -104,9 +105,11 @@ KeySnail.HTML = {
         if (!aString)
             return "";
 
-        for (var badStr in this.replacePair) {
+        for (var badStr in this.replacePair)
+        {
             var replacedStr = this.replacePair[badStr];
-            while (aString.indexOf(replacedStr) != -1) {
+            while (aString.indexOf(replacedStr) != -1)
+            {
                 aString = aString.replace(replacedStr, badStr);
             }
         }
@@ -121,41 +124,6 @@ KeySnail.HTML = {
         div.appendChild(text);
         text.data = aStrTarget;
         return div.innerHTML;
-    },
-
-    /**
-     * (Original Code from liberator)
-     * Converts an E4X XML literal to a DOM node.
-     * @param {Node} node
-     * @param {Document} doc
-     * @param {Object} nodes If present, nodes with the "key" attribute are
-     *     stored here, keyed to the value thereof.
-     * @returns {Node}
-     */
-    xmlToDom: function xmlToDom(node, doc, nodes)
-    {
-        XML.prettyPrinting = false;
-        if (node.length() != 1)
-        {
-            let domnode = doc.createDocumentFragment();
-            for each (let child in node)
-            domnode.appendChild(arguments.callee(child, doc, nodes));
-            return domnode;
-        }
-        switch (node.nodeKind())
-        {
-        case "text":
-            return doc.createTextNode(node);
-        case "element":
-            let domnode = doc.createElementNS(node.namespace(), node.localName());
-            for each (let attr in node.@*)
-            domnode.setAttributeNS(attr.name() == "highlight" ? NS.uri : attr.namespace(), attr.name(), String(attr));
-            for each (let child in node.*)
-            domnode.appendChild(arguments.callee(child, doc, nodes));
-            if (nodes && node.@key)
-                nodes[node.@key] = domnode;
-            return domnode;
-        }
     },
 
     message: KeySnail.message

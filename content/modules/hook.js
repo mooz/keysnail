@@ -27,7 +27,8 @@ KeySnail.Hook = {
     },
 
     addToHook: function (aHookName, aFunction) {
-        if (!this.hookList[aHookName]) {
+        if (!this.hookList[aHookName])
+        {
             this.hookList[aHookName] = [];
         }
         this.setWhetherDefinedInExternalFile(aFunction);
@@ -51,9 +52,11 @@ KeySnail.Hook = {
     },
 
     callHook: function (aHookName, aArgument) {
-        if (this.hookList[aHookName]) {
+        if (this.hookList[aHookName])
+        {
             var hook = this.hookList[aHookName];
-            for (var i = 0; i < hook.length; ++i) {
+            for (var i = 0; i < hook.length; ++i)
+            {
                 hook[i].apply(KeySnail, [aArgument]);
             }
         }

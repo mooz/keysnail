@@ -35,7 +35,8 @@ var ksBuiltinViewer = {
     },
 
     initCategoryListBox: function () {
-        for (var category in ksBuiltin) {
+        for (var category in ksBuiltin)
+        {
             this.categoryListBox.appendItem(this.getLocaleStringNoArg(category), category);
         }
     },
@@ -46,7 +47,8 @@ var ksBuiltinViewer = {
 
         this.removeAllChilds(this.commandsListBox);
 
-        for (var name in commands) {
+        for (var name in commands)
+        {
             if (name == "__mode__")
                 continue;
 
@@ -57,7 +59,8 @@ var ksBuiltinViewer = {
     // ============================== event handlers ============================== //
 
     handleCategoryListBox: function (aEvent) {
-        switch (aEvent.type) {
+        switch (aEvent.type)
+        {
             case 'select':
             var i = this.categoryListBox.selectedIndex;
             this.updateCommandsList(i);
@@ -66,15 +69,19 @@ var ksBuiltinViewer = {
     },
 
     handleCommandsListBox: function (aEvent) {
-        switch (aEvent.type) {
+        switch (aEvent.type)
+        {
         case 'select':
             var i = this.commandsListBox.selectedIndex;
             var item = this.commandsListBox.selectedItem;
-            if (item) {
+            if (item)
+            {
                 var category, name;
                 [category, name] = item.value.split(",");
                 this.functionTextBox.value = ksBuiltin[category][name][0];
-            } else {
+            }
+            else
+            {
                 this.functionTextBox.value = "";
             }
             break;
@@ -85,14 +92,16 @@ var ksBuiltinViewer = {
     },
 
     removeAllChilds: function (aElement) {
-        while (aElement.hasChildNodes()) {
+        while (aElement.hasChildNodes())
+        {
             aElement.removeChild(aElement.firstChild);
         }
     },
 
     stringBundle: null,
     getLocaleStringNoArg: function (aStringKey) {
-        if (!this.stringBundle) {
+        if (!this.stringBundle)
+        {
             const kBundleURI = "chrome://keysnail/locale/functions.properties";
             var bundleSvc = Components.classes["@mozilla.org/intl/stringbundle;1"]
                 .getService(Components.interfaces.nsIStringBundleService);

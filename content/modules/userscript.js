@@ -70,11 +70,14 @@ KeySnail.UserScript = {
     initFileLoader: function (aInitFilePath) {
         var savedStatus = this.modules.key.inExternalFile;
         this.modules.key.inExternalFile = false;
-        try {
+        try
+        {
             var start = new Date();
             this.jsFileLoader(aInitFilePath, true);
             var end = new Date();
-        } catch (e) {
+        }
+        catch (e)
+        {
             if (!e.fileName || e.fileName == "chrome://keysnail/content/modules/userscript.js")
             {
                 e.fileName = aInitFilePath;
@@ -276,7 +279,8 @@ KeySnail.UserScript = {
                 aLoader.call(this, filePath);
                 // success
                 return 0;
-            } catch (e)
+            }
+            catch (e)
             {
                 // userscript error
                 var msgstr = this.modules.util
@@ -377,7 +381,8 @@ KeySnail.UserScript = {
                 aFile.moveTo(destinationDir, "");
 
                 return destinationFile;
-            } catch (x)
+            }
+            catch (x)
             {
                 throw util.getLocaleString("failedToInstallFile", [aFile.leafName]) + " :: " + x;
             }
@@ -407,7 +412,8 @@ KeySnail.UserScript = {
                     var tmpFile      = this.writeTextTmp(fileName, xhr.responseText);
                     var installed    = this.installFile(tmpFile);
                     this.message(installed.path + " installed");
-                } catch (x)
+                }
+                catch (x)
                 {
                     this.modules.display.notify("Error occurred while installing the required file :: " + x);
                 }
@@ -605,7 +611,8 @@ KeySnail.UserScript = {
                                     headers[pair.shift()] = pair.join('');
                                 }
                             });
-                } catch (e)
+                }
+                catch (e)
                 {
                     this.message(e);
                 }
@@ -662,7 +669,8 @@ KeySnail.UserScript = {
                     {
                         this.openPluginManager();
                     }
-                } catch (x)
+                }
+                catch (x)
                 {
                     display.notify(x, 2000);
                 }
@@ -694,11 +702,7 @@ KeySnail.UserScript = {
     },
 
     isDisabledPlugin: function (aPath) {
-        return this.disabledPlugins.some(
-            function (aDisabled) {
-                return aPath == aDisabled;
-            }
-        );
+        return this.disabledPlugins.some(function (aDisabled) aPath === aDisabled);
     },
 
     checkCompatibility: function (aXml) {
@@ -788,7 +792,8 @@ KeySnail.UserScript = {
         {
             this.loadSubScript(filePath, context);
             context.__ksLoaded__ = true;
-        } catch (e)
+        }
+        catch (e)
         {
             context.__ksLoaded__ = false;
             // delete KeySnail.modules.plugins.context[filePath];
@@ -874,7 +879,8 @@ KeySnail.UserScript = {
                 this.loadSubScript(filePath, aContext);
                 loaded = true;
                 break;
-            } catch (e)
+            }
+            catch (e)
             {
                 var msgstr = this.modules.util
                     .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
@@ -1246,7 +1252,8 @@ KeySnail.UserScript = {
         {
             Components.utils.import("resource://keysnail-share/functions.js", builtin);
             builtin = builtin.ksBuiltin;
-        } catch (x)
+        }
+        catch (x)
         {
             return;
         }

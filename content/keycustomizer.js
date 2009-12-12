@@ -15,7 +15,8 @@ var keyCustomizer = {
 
     initPane: function () {
         var keys = this.keys;
-        for (var i = 0; i < keys.length; ++i) {
+        for (var i = 0; i < keys.length; ++i)
+        {
             this.setTextBoxValue(keys[i], this.modules.key[keys[i] + "Key"]);
         }
 
@@ -36,17 +37,21 @@ var keyCustomizer = {
             this.modules.util.getLocaleString('cancel')
         );
 
-        if (output.keyStr != "") {
+        if (output.keyStr != "")
+        {
             this.setTextBoxValue(aKeyName, output.keyStr);
             this.modules.key[aKeyName] = output.keyStr;
-        } else {
+        }
+        else
+        {
             this.setTextBoxValue(aKeyName, "Not defined");
         }
     },
 
     apply: function () {
         var keys = this.keys;
-        for (var i = 0; i < keys.length; ++i) {
+        for (var i = 0; i < keys.length; ++i)
+        {
             this.modules.key[keys[i] + "Key"] = this.getTextBoxValue(keys[i]) || "";
         }
     },
@@ -65,7 +70,8 @@ var keyCustomizer = {
             suspendKey           : null
         };
 
-        for (var key in specialKeys) {
+        for (var key in specialKeys)
+        {
             specialKeys[key] =
                 document.getElementById(this.prefPrefix +
                                         key.slice(0, key.length - 3)).value || "";
