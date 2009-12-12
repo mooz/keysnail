@@ -566,7 +566,6 @@ var ksPluginManager = function () {
                 var pluginArea = document.getElementById("plugin-area");
                 pluginArea.setAttribute("hidden", true);
 
-
                 removeAllChilds(container);
                 container.appendChild(createElementWithText("h1", "Please reload this page"));
                 container.appendChild(iframeDoc.createElement("hr"));
@@ -606,6 +605,28 @@ var ksPluginManager = function () {
                 selectNewlyInstalledPlugin();
                 modules.userscript.newlyInstalledPlugin = null;
             }
+        },
+
+        selectPlugin: function (aNext) {
+            var current = pluginListbox.selectedIndex;
+
+            if (current < 0)
+            {
+                if (pluginListbox.itemCount === 0)
+                    return;
+
+                pluginListbox.selectedIndex = 0;
+            }
+            else
+            {
+                var max = pluginListbox.itemCount;
+                var next = current + (aNext ? 1 : -1);
+                next = (next < 0) ? max - 1 : next % max;
+
+                pluginListbox.selectedIndex = next;
+            }
+
+            pluginListbox.ensureIndexIsVisible(pluginListbox.selectedIndex);
         },
 
         pluginListboxOnSelect: function (aEvent) {

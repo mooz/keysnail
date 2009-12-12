@@ -951,7 +951,7 @@ KeySnail.Util = {
      * @returns {string}
      */
     toStringForm: function (aStr) {
-        return (typeof aStr == "string") ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "";
+        return (typeof aStr === "string") ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "''";
     },
 
     // }} ======================================================================= //

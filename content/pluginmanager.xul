@@ -10,8 +10,6 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
         onload="ksPluginManager.onLoad();"
-        minheight="600px"
-        minwidth="800px"
         >
     <hbox flex="1">
         <!-- plugin list -->
@@ -33,8 +31,7 @@
         <vbox id="plugin-detail" flex="8">
             <iframe id="plugin-description"
                     src="chrome://keysnail/content/buffer.xhtml"
-                    flex="1"
-                    />
+                    flex="1"/>
         </vbox>
     </hbox>
 

@@ -1057,7 +1057,7 @@ KeySnail.Key = {
         {
             key = aKeys[i];
 
-            switch (typeof(aKeyMap[key]))
+            switch (typeof aKeyMap[key])
             {
             case "function":
                 this.message("%s bound to [%s] overrided with the prefix key.",
@@ -1095,41 +1095,44 @@ KeySnail.Key = {
 
     defineKey: function (aKeyMapName, aKeys, aFunc, aKsDescription, aKsNoRepeat) {
         if (!aKeyMapName || !aKeys || !aFunc)
-        {
             return;
-        }
 
-        var addTo = this.keyMapHolder[aKeyMapName];
+        if (!(aKeyMapName instanceof Array))
+            aKeyMapName = [aKeyMapName];
 
-        aFunc.ksDescription = aKsDescription;
-        // true, if you want to prevent the iteration
-        // of the command when prefix argument specified.
-        aFunc.ksNoRepeat = aKsNoRepeat;
-
-        if (this.inExternalFile)
-            aFunc.ksDefinedInExternalFile = this.inExternalFile;
-
-        switch (typeof(aKeys))
+        for each (var keyMapName in aKeyMapName)
         {
-        case "string":
-            // one key stroke
-            addTo[aKeys] = aFunc;
-            break;
-        case "object":
-            if (typeof(aKeys[0]) == "object")
+            var addTo = this.keyMapHolder[keyMapName];
+
+            aFunc.ksDescription = aKsDescription;
+            aFunc.ksNoRepeat    = aKsNoRepeat;
+
+            // check if this keybind is defined in external file (plugins)
+            if (this.inExternalFile)
+                aFunc.ksDefinedInExternalFile = this.inExternalFile;
+
+            switch (typeof aKeys)
             {
-                // multi registration
-                for (var i = 0; i < aKeys.length; ++i)
+            case "string":
+                // one key stroke
+                addTo[aKeys] = aFunc;
+                break;
+            case "object":
+                if (aKeys[0] instanceof Array)
                 {
-                    this.registerKeySequence(aKeys[i], aFunc, addTo);
+                    // multiple registration
+                    for (var i = 0; i < aKeys.length; ++i)
+                    {
+                        this.registerKeySequence(aKeys[i], aFunc, addTo);
+                    }
                 }
+                else
+                {
+                    // simple form
+                    this.registerKeySequence(aKeys, aFunc, addTo);
+                }
+                break;
             }
-            else
-            {
-                // simple form
-                this.registerKeySequence(aKeys, aFunc, addTo);
-            }
-            break;
         }
     },
 
@@ -1138,21 +1141,21 @@ KeySnail.Key = {
     /**
      * @param {keyMap} aKeyMap
      * @param {[String]} aKeySequence
-     * @returns {keyMap} trailed keymap using <keyMap>. null when failed to trail
+     * @returns {keyMap} trailed keymap using <b>keyMap</b>. null when failed to trail
      */
     trailByKeySequence: function (aKeyMap, aKeySequence) {
         var key;
         var to = aKeySequence.length;
+
         for (var i = 0; i < to; ++i)
         {
             key = aKeySequence[i];
-            if (typeof(aKeyMap[key]) != "object")
-            {
-                // failed to trail
-                return null;
-            }
 
-            // when trailable, go to the next keymap
+            // if we can't find key sequence specified by aKeySequence in aKeyMap, return null
+            if (typeof aKeyMap[key] !== "object")
+                return null;
+
+            // go to the next keymap (dig)
             aKeyMap = aKeyMap[key];
         }
 

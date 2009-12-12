@@ -144,16 +144,14 @@
                 <tabpanels flex="1">
                     <tabpanel id="keybindings" flex="1">
                         <vbox flex="1">
-                            <vbox flex="1"
-                                  id="keybind-tree-box">
+                            <vbox id="keybind-tree-box" flex="1">
                                 <vbox>
                                     <description class="long-description">&keySnail.preference.keys.treeDescription1;</description>
                                     <description class="long-description">&keySnail.preference.keys.treeDescription2;</description>
                                     <description class="long-description">&keySnail.preference.keys.treeDescription3;</description>
                                 </vbox>
-                                <tree id="keybind-tree"
-                                      flex="1"
-                                      seltype="single"
+                                <!-- ====================================================================== -->
+                                <tree id="keybind-tree" flex="1" seltype="single"
 		                      onselect="ksPreference.handleTreeEvent(event);"
 		                      onclick="ksPreference.handleTreeEvent(event);"
 		                      ondblclick="ksPreference.handleTreeEvent(event);"
@@ -164,11 +162,11 @@
                                                  flex="1"/>
                                         <treecol id="binds-key"
                                                  label="&keySnail.preference.keys.treeheader.key;"
-                                                 flex="2"/>
+                                                 flex="3"/>
 		                        <splitter class="tree-splitter" />
                                         <treecol id="binds-description"
                                                  label="&keySnail.preference.keys.treeheader.description;"
-                                                 flex="4"/>
+                                                 flex="5"/>
 		                        <splitter class="tree-splitter" />
                                         <treecol id="binds-function"
                                                  label="&keySnail.preference.keys.treeheader.function;"
@@ -179,74 +177,31 @@
                                                  label="&keySnail.preference.keys.treeheader.argument;"
                                                  flex="1"/>
                                     </treecols>
-                                    <treechildren></treechildren>
+                                    <treechildren />
                                 </tree>
-                                <!-- command buttons -->
-                                <separator height="7px"/>
-                                <hbox align="center">
-                                    <label>&keySnail.preference.keys.treeheader.key;: </label>
-                                    <!-- key input area -->
-                                    <textbox id="keybind-textarea"
-                                             onfocus="ksPreference.handleKeyBindTextareaEvent(event);"
-                                             onblur="ksPreference.handleKeyBindTextareaEvent(event);"
-                                             onmousedown="ksPreference.handleKeyBindTextareaEvent(event);"
-                                             readonly="true"
-                                             >
-                                    </textbox>
-                                    <popupset>
-                                        <menupopup id="insert-key-menu">
-                                        </menupopup>
-                                    </popupset>
-                                    <dropmarker id="keybind-button-insert"
-                                                disabled="true"
-                                                popup="insert-key-menu"/>
-                                    <spacer flex="1" />
-                                    <!-- edit button -->
-                                    <button label="&keySnail.preference.keys.edit;"
-                                            id="keybind-button-edit"
-                                            disabled="true"
-                                            oncommand="ksPreference.toggleEditView.call(ksPreference);"
-                                            accesskey="e"
-                                            />
-                                    <!-- add button -->
-                                    <popupset>
-                                        <menupopup id="add-command-menu">
-                                            <menuitem label="&keySnail.preference.command.builtin;"
-                                                      oncommand="ksPreference.addBuiltinCommand();"/>
-                                            <menuitem label="&keySnail.preference.command.original;"
-                                                      oncommand="ksKeybindTreeView.appendItem();"/>
-                                            <menuitem label="&keySnail.preference.command.ext;"
-                                                      oncommand="ksPreference.addExt();"/>
-                                        </menupopup>
-                                    </popupset>
-                                    <button label="&keySnail.preference.keys.add;"
-                                            popup="add-command-menu"
-                                            accesskey="a"
-                                            />
-                                    <!-- delete button -->
-                                    <button label="&keySnail.preference.keys.delete;"
-                                            id="keybind-button-delete"
-                                            oncommand="if (ksKeybindTreeView.deleteSelectedItem() >= 0)
-                                                       ksPreference.updateKeyBindTextarea();ksPreference.needsApply = true;"
-                                            disabled="true"
-                                            accesskey="d"
-                                            />
-                                </hbox>
                             </vbox>
+                            <!-- ====================================================================== -->
+                            <!-- command editor -->
                             <vbox flex="1"
                                   id="keybind-edit-box"
                                   collapsed="true">
+                                <description>&keySnail.preference.edit.function;:</description>
+                                <textbox id="keybind-function-body"
+                                         onblur="ksPreference.handleFunctionTextarea(event);"
+                                         onkeypress="ksPreference.handleFunctionTextarea(event);"
+                                         multiline="true" flex="3">
+                                </textbox>
+                            </vbox>
+                            <!-- ====================================================================== -->
+                            <!-- ====================================================================== -->
+                            <!-- command settings box -->
+                            <spacer height="7px" />
+                            <vbox id="command-setting-box">
                                 <hbox align="center">
-                                    <label>&keySnail.preference.keys.treeheader.description;: </label>
-                                    <textbox flex="1"
-                                             onblur="ksPreference.handleDescriptionTextarea(event);"
-                                             onkeypress="ksPreference.handleDescriptionTextarea(event);"
-                                             id="keybind-function-description">
-                                    </textbox>
-                                </hbox>
-                                <hbox align="center">
+                                    <!-- mode -->
                                     <label>&keySnail.preference.keys.treeheader.mode;: </label>
                                     <menulist id="keybind-function-mode"
+                                              disabled="true"
                                               oncommand="ksPreference.handleModeMenuList(event);">
                                         <menupopup>
                                             <menuitem label="Global"/>
@@ -255,28 +210,88 @@
                                             <menuitem label="Caret"/>
                                         </menupopup>
                                     </menulist>
-                                    <separator width="10px"/>
+                                    <!-- command name -->
+                                    <label>&keySnail.preference.keys.treeheader.description;: </label>
+                                    <textbox flex="1"
+                                             readonly="true"
+                                             onkeyup="ksPreference.handleDescriptionTextarea(event);"
+                                             onblur="ksPreference.handleDescriptionTextarea(event);"
+                                             onkeypress="ksPreference.handleDescriptionTextarea(event);"
+                                             id="keybind-function-description">
+                                    </textbox>
+                                </hbox>
+                                <hbox align="center">
+                                    <!-- key input area -->
+                                    <label>&keySnail.preference.keys.treeheader.key;: </label>
+                                    <textbox id="keybind-textarea"
+                                             onfocus="ksPreference.handleKeyBindTextareaEvent(event);"
+                                             onblur="ksPreference.handleKeyBindTextareaEvent(event);"
+                                             onmousedown="ksPreference.handleKeyBindTextareaEvent(event);"
+                                             readonly="true"
+                                             flex="1" />
+                                    <popupset>
+                                        <menupopup id="insert-key-menu" />
+                                    </popupset>
+                                    <dropmarker id="keybind-button-insert"
+                                                disabled="true"
+                                                popup="insert-key-menu" />
+                                    <!-- prefix argument handling -->
                                     <checkbox id="keybind-function-norepeat"
                                               label="&keySnail.preference.edit.noRepeat;"
                                               onclick="ksPreference.noRepeatToggled();"
+                                              disabled="true"
                                               checked="false"/>
                                 </hbox>
-                                <description>&keySnail.preference.edit.function;:</description>
-                                <textbox id="keybind-function-body"
-                                         onblur="ksPreference.handleFunctionTextarea(event);"
-                                         onkeypress="ksPreference.handleFunctionTextarea(event);"
-                                         multiline="true" flex="3">
-                                </textbox>
-                                <hbox>
-                                    <button label="&keySnail.preference.edit.backToTree;"
-                                            oncommand="ksPreference.toggleEditView.call(ksPreference);"
-                                            accesskey="v"/>
-                                    <spacer flex="1"/>
-                                    <button label="&keySnail.preference.edit.beautifyCode;"
-                                            oncommand="ksPreference.beautify.call(ksPreference);"
-                                            accesskey="b"/>
-                                </hbox>
                             </vbox>
+                            <!-- ====================================================================== -->
+                            <!-- ====================================================================== -->
+                            <spacer height="13px" />
+                            <!-- command buttons for treeview-->
+                            <hbox id="bottom-for-tree-box" align="center">
+                                <spacer flex="1" />
+                                <!-- edit button -->
+                                <button label="&keySnail.preference.keys.edit;"
+                                        id="keybind-button-edit"
+                                        disabled="true"
+                                        oncommand="ksPreference.toggleEditView.call(ksPreference);"
+                                        accesskey="e"
+                                        />
+                                <!-- add button -->
+                                <popupset>
+                                    <menupopup id="add-command-menu">
+                                        <menuitem label="&keySnail.preference.command.builtin;"
+                                                  oncommand="ksPreference.addBuiltinCommand();"/>
+                                        <menuitem label="&keySnail.preference.command.original;"
+                                                  oncommand="ksKeybindTreeView.appendItem();"/>
+                                        <menuitem label="&keySnail.preference.command.ext;"
+                                                  oncommand="ksPreference.addExt();"/>
+                                    </menupopup>
+                                </popupset>
+                                <button label="&keySnail.preference.keys.add;"
+                                        popup="add-command-menu" accesskey="a"
+                                        />
+                                <!-- delete button -->
+                                <button label="&keySnail.preference.keys.delete;"
+                                        id="keybind-button-delete"
+                                        oncommand="if (ksKeybindTreeView.deleteSelectedItem() >= 0)
+                                                   ksPreference.updateKeyBindTextarea();ksPreference.needsApply = true;"
+                                        disabled="true" accesskey="d"
+                                        />
+                            </hbox>
+                            <!-- ====================================================================== -->
+                            <!-- command buttons for edit box -->
+                            <hbox id="bottom-for-edit-box" align="center" collapsed="true">
+                                <button label="&keySnail.preference.edit.beautifyCode;"
+                                        oncommand="ksPreference.beautify.call(ksPreference);"
+                                        accesskey="b" />
+                                <button label="&keySnail.preference.edit.insertTemplate;"
+                                        oncommand="ksPreference.insertTemplate();"
+                                        accesskey="i" />
+                                <spacer flex="1" />
+                                <button label="&keySnail.preference.edit.backToTree;"
+                                        oncommand="ksPreference.toggleEditView.call(ksPreference);"
+                                        accesskey="v" />
+                            </hbox>
                         </vbox>
                     </tabpanel>
 

@@ -58,14 +58,15 @@
 
 <!ENTITY keySnail.preference.command.builtin "Builtin command">
 <!ENTITY keySnail.preference.command.original "Original command">
-<!ENTITY keySnail.preference.command.ext "Ext">
+<!ENTITY keySnail.preference.command.ext "Ext (Commands provided by plugins)">
 
 <!-- command edit box -->
 
-<!ENTITY keySnail.preference.edit.noRepeat "Don't repeat command when prefix argument is given">
-<!ENTITY keySnail.preference.edit.function "Function">
+<!ENTITY keySnail.preference.edit.noRepeat "Original prefix argument handling">
+<!ENTITY keySnail.preference.edit.function "Function (Must be the function form e.g. enclosed with 'function (ev, arg) {' and '}')">
 <!ENTITY keySnail.preference.edit.backToTree "Back to the keybinding list">
 <!ENTITY keySnail.preference.edit.beautifyCode "Beautify the code">
+<!ENTITY keySnail.preference.edit.insertTemplate "Insert template">
 
 <!-- special keys -->
 

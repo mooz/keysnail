@@ -12,13 +12,14 @@
         onload="ksExtViewer.onLoad();"
         ondialogaccept="return ksExtViewer.onFinish();"
         minwidth="700px"
+        minheight="500px"
         >
     <vbox flex="1">
         <description>&keySnail.extViewer.select;:</description>
         <listbox id="ext-listbox" flex="1">
             <listcols>
-                <listcol flex="1"/>
-                <listcol flex="1"/>
+                <listcol flex="1" width="50%" />
+                <listcol flex="1" width="50%" />
             </listcols>
             <listhead>
                 <listheader label="&keySnail.extViewer.extName;"/>

@@ -228,6 +228,8 @@ KeySnail.UserScript = {
             this.modules.key.updateMenu();
             this.modules.key.updateStatusBar();
         }
+
+        return this.initFileLoaded;
     },
 
     /**
@@ -242,7 +244,7 @@ KeySnail.UserScript = {
         this.userPath = this.modules.util.getUnicharPref("extensions.keysnail.userscript.location");
 
         this.modules.key.init();
-        this.load();
+        return this.load();
     },
 
     /**

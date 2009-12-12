@@ -8,6 +8,7 @@
 KeySnail.Display = function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
+    const NOTIFY_ID = "ks-notify-message";
 
     var modules;
 
@@ -213,14 +214,14 @@ KeySnail.Display = function () {
         },
 
         notify: function (aMsg, aButtons) {
-            const NOTIFY_ID = "ksNotifyMessage";
-
-            if (typeof gBrowser == 'undefined') {
+            if (typeof gBrowser == 'undefined')
+            {
                 window.alert(aMsg);
                 return;
             }
 
-            if (!aButtons) {
+            if (!aButtons)
+            {
                 aButtons = [
                     {
                         label: "OK",
@@ -245,6 +246,20 @@ KeySnail.Display = function () {
                                          "chrome://keysnail/skin/notify-icon16.png",
                                          "PRIORITY_WARNING_HIGH",
                                          aButtons);
+        },
+
+        clearNotify: function (aId) {
+            if (!aId)
+                aId = NOTIFY_ID;
+
+            var notifyBox = gBrowser.getNotificationBox();
+            var current = notifyBox.currentNotification;
+
+            while (current && current.value === aId)
+            {
+                current.close();
+                current = notifyBox.currentNotification;
+            }
         },
 
         message: function (msg) {

@@ -23,6 +23,10 @@ var KeySnail = {
         return "keysnail@mooz.github.com";
     },
 
+    get isThunderbird() {
+        return !!window.navigator.userAgent.match(/thunderbird/i);
+    },
+
     init: function () {
         var extmanager = Components.classes["@mozilla.org/extensions/manager;1"]
             .createInstance(Components.interfaces.nsIExtensionManager);
@@ -87,8 +91,10 @@ var KeySnail = {
             // hook window unload event
             window.addEventListener("unload", function () { KeySnail.Hook.callHook("Unload"); }, false);
 
+            this.modules.key.inExternalFile = true;
             this.modules.hook.addToHook("Unload", function () { gBrowser.removeProgressListener(KeySnail.urlBarListener); });
             this.workAroundPopup();
+            this.modules.key.inExternalFile = false;
         }
 
         this.modules.key.updateStatusBar();
@@ -180,12 +186,12 @@ var KeySnail = {
     /**
      * Open preference dialog
      */
-    openPreference: function () {
+    openPreference: function (aForce) {
         var openedWindow = Components.classes['@mozilla.org/appshell/window-mediator;1']
             .getService(Components.interfaces.nsIWindowMediator)
             .getMostRecentWindow('KeySnail:Preference');
 
-        if (openedWindow)
+        if (openedWindow && !aForce)
         {
             openedWindow.focus();
         }

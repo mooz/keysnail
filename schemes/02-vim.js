@@ -89,8 +89,8 @@ var nonEditableCommon = [
     [":", "ext_select", true],
     // Navigation
     ["r", "reload_the_page", true],
-    ["L", "back"],
-    ["H", "forward"],
+    ["H", "back"],
+    ["L", "forward"],
     // Hint
     ["f", [function (ev, arg) { ext.exec("hok-start-foreground-mode", arg); }, "Start foreground hint mode"], true],
     ["F", [function (ev, arg) { ext.exec("hok-start-background-mode", arg); }, "Start background hint mode"], true],

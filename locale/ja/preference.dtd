@@ -57,14 +57,15 @@
 
 <!ENTITY keySnail.preference.command.builtin "組み込みコマンド">
 <!ENTITY keySnail.preference.command.original "オリジナルのコマンド">
-<!ENTITY keySnail.preference.command.ext "エクステ">
+<!ENTITY keySnail.preference.command.ext "エクステ (プラグインの提供するコマンド等)">
 
 <!-- command edit box -->
 
 <!ENTITY keySnail.preference.edit.noRepeat "前置引数付与時にコマンドを繰り返さない">
-<!ENTITY keySnail.preference.edit.function "関数">
+<!ENTITY keySnail.preference.edit.function "関数 (必ず 'function () {' と '}' といったものでコードを囲う必要があります)">
 <!ENTITY keySnail.preference.edit.backToTree "キーバインド一覧表示へ戻る">
 <!ENTITY keySnail.preference.edit.beautifyCode "コードを整形">
+<!ENTITY keySnail.preference.edit.insertTemplate "テンプレートを挿入">
 
 <!-- special keys -->
 
@@ -101,7 +102,7 @@
 <!ENTITY keySnail.preference.key.preserved.description2 "特殊キー、キーバインド定義、フック、ブラックリスト以外のコードはこの中に書くようにして下さい。">
 
 <!-- create -->
-<!ENTITY keySnail.preference.key.indent_all_function "設定ファイル再生成時にソースコードを整形する">
+<!ENTITY keySnail.preference.key.indent_all_function "ソースコードを整形する (処理時間が多少増加します)">
 <!ENTITY keySnail.preference.key.create "変更の反映 (設定ファイルを上書きします)">
 
 <!-- # ABOUT # -->
