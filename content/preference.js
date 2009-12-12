@@ -218,6 +218,9 @@ var ksPreference = {
 
                 // reload
                 this.modules.userscript.reload();
+                this.modules.key.run();
+                this.modules.key.updateMenu();
+                this.modules.key.updateStatusBar();
 
                 // close the window and reopen
                 window.close();
