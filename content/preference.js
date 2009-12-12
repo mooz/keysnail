@@ -207,6 +207,8 @@ var ksPreference = {
 
             if (!status)
             {
+                // close the window and reopen
+                window.close();
                 this.modules.display.clearNotify();
                 // generated init file contains some error, recover hook
                 this.modules.util.alert("An error found in the generated init file",
@@ -214,7 +216,8 @@ var ksPreference = {
 
                 // recover
                 tmpDir.append(initFile.leafName);
-                tmpDir.copyTo(initFile.parent, "");
+                // copyTo fails if the destination file already exists.
+                tmpDir.moveTo(initFile.parent, "");
 
                 // reload
                 this.modules.userscript.reload();
@@ -222,8 +225,6 @@ var ksPreference = {
                 this.modules.key.updateMenu();
                 this.modules.key.updateStatusBar();
 
-                // close the window and reopen
-                window.close();
                 this.modules.util.parent.openPreference(true);
 
                 return false;
@@ -391,10 +392,11 @@ var ksPreference = {
         switch (aEvent.type)
         {
         case "command":
-            var i        = this.keybindEditBox.ksSelectedIndex;
+            var i        = ksKeybindTreeView.currentIndex;
             var row      = ksKeybindTreeView.data[i];
             row[KS_MODE] = this.modeMenuList.selectedIndex;
 
+            ksKeybindTreeView.update();
             this.needsApply = true;
             break;
         }
@@ -406,7 +408,7 @@ var ksPreference = {
      * Apply ksNoRepeat checkbox value to the data
      */
     noRepeatToggled: function () {
-        var i            = this.keybindEditBox.ksSelectedIndex;
+        var i            = ksKeybindTreeView.currentIndex;
         var row          = ksKeybindTreeView.data[i];
         row[KS_ARGUMENT] = !row[KS_ARGUMENT];
 
@@ -426,8 +428,6 @@ var ksPreference = {
 
         if (editBoxCollapsed)
         {
-            // editbox will be displayed
-            this.keybindEditBox.ksSelectedIndex = ksKeybindTreeView.currentIndex;
             destination = this.functionTextarea;
         }
         else
