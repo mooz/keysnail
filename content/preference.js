@@ -1299,7 +1299,7 @@ var ksKeybindTreeView = {
         {
             newItem[KS_DESC]     = "";
             newItem[KS_ARGUMENT] = false;
-            newItem[KS_FUNCTION] = this.functionTemplate;
+            newItem[KS_FUNCTION] = ksPreference.functionTemplate;
             newItem[KS_MODE]     = 0;
         }
 
