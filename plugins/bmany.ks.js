@@ -1,9 +1,9 @@
 var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>bmany</name>
-    <description>Search bookmarks increamentally and go!</description>
+    <description>Search bookmarks incrementally and go!</description>
     <description lang="ja">anything.el 気分でブックマークを操作</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/bmany.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/bmany.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -132,6 +132,23 @@ plugins.options["bmany.default_open_type"] = "tab";
 
 また、アイテムが選択された状態で C-i (Ctrl + i) を入力すれば、デフォルトのもの以外にも様々な動作を選択することが可能です。
 
+==== ローカルキーマップ ====
+
+例えば次のような設定を .keysnail.js の PRESERVE エリアへ含めておくことにより Ctrl + Enter で二番目のアクションを実行することが可能となります。
+
+>||
+plugins.options["bmany.keymap"] = {
+    "C-RET" : "prompt-nth-action-2"
+};
+||<
+
+今回の場合、二番目のアクションは「タブを前面に新しく開く」でした。つまり
+
+- 単なる Enter で確定した場合は現在のタブで開き
+- Ctrl + Enter とした場合は前面のタブで開く
+
+といった使い分けをすることが可能となるわけです。
+
 ==== 謝辞 ====
 
 http://www.pixel-mixer.com のアイコンをベースに使わせて頂きました。
@@ -145,7 +162,8 @@ var optionsDefaultValue = {
     "keyword_style"     : 'font-weight:bold;',
     "title_style"       : 'font-weight:bold;',
     "url_style"         : 'color:#1e2799;text-decoration:underline;',
-    "default_open_type" : 'current'
+    "default_open_type" : 'current',
+    "keymap"            : {}
 };
 
 function getOption(aName) {
@@ -278,9 +296,7 @@ var bmany =
 
          var cache = {};
 
-         var commonKeyMap = {
-             "C-RET" : "prompt-nth-action-2"
-         };
+         var commonKeyMap = getOption("keymap");
 
          const folderIcon = 'data:image/png;base64,' +
              'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +

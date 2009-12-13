@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.8</version>
+    <version>1.3.9</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -204,6 +204,10 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.3.9 (2009 12/14) ====
+// 
+// * Supported local keymap system
+// 
 // ==== 1.3.8 (2009 12/05) ====
 // 
 // * Supported % in the URL.
@@ -270,7 +274,8 @@ var optionsDefaultValue = {
     "timeline_count_beginning"     : 80,
     "timeline_count_every_updates" : 20,
     "unread_status_count_style"    : "color:#383838;font-weight:bold;",
-    "automatically_begin"          : true
+    "automatically_begin"          : true,
+    "keymap"                       : {}
 };
 
 function getOption(aName) {
@@ -1012,6 +1017,7 @@ var twitterClient =
                                                user_id: result.from_user_id,
                                                text: html.unEscapeTag(result.text)}];
                                      },
+                                     keymap: getOption("keymap"),
                                      actions: twitterActions
                                  });
                          }
@@ -1278,6 +1284,7 @@ var twitterClient =
                                user_id: status.user.id,
                                text: html.unEscapeTag(status.text)}];
                      },
+                     keymap: getOption("keymap"),
                      actions: twitterActions
                  });
          }
