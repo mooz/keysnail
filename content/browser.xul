@@ -99,6 +99,7 @@
 	              label="&keySnail.statusbar.openPluginManager;"
 	              accesskey="o"
 	              oncommand="KeySnail.UserScript.openPluginManager();"
+                      src="chrome://keysnail/skin/icon/plugin.png"
 	              />
 	    <menuitem id="keysnail-menu-open-preference"
 	              label="&keySnail.statusbar.openPreference;"

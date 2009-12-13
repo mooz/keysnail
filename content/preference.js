@@ -200,10 +200,18 @@ var ksPreference = {
             // backup file
             var initFile = this.modules.util.openFile(this.modules.userscript.initFilePath);
             var tmpDir   = this.modules.util.getSpecialDir("TmpD");
-            initFile.copyTo(tmpDir, "");
+            initFile.moveTo(tmpDir, "");
 
-            this.modules.util.writeTextFile(output, this.modules.userscript.initFilePath, false, "preference.ask_when_overwrite");
-            let status = this.modules.userscript.reload();
+            let status;
+            try
+            {
+                this.modules.util.writeTextFile(output, this.modules.userscript.initFilePath, false, "preference.ask_when_overwrite");
+                status = this.modules.userscript.reload();
+            }
+            catch (x)
+            {
+                status = 0;
+            }
 
             if (!status)
             {

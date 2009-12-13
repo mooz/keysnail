@@ -45,15 +45,38 @@ var ksBuiltinViewer = {
         var category = this.categoryListBox.getItemAtIndex(aIndex).value;
         var commands = ksBuiltin[category];
 
-        this.removeAllChilds(this.commandsListBox);
+        let listbox = this.commandsListBox;
+
+        let availableCount = listbox.itemCount;
+        let processedItemCount = 0;
 
         for (var name in commands)
         {
             if (name == "__mode__")
                 continue;
 
-            this.commandsListBox.appendItem(this.getLocaleStringNoArg(name), category + "," + name);
+            let label = this.getLocaleStringNoArg(name);
+            let value = category + "," + name;
+
+            if (processedItemCount < availableCount)
+            {
+                // modify the already existing item
+                let item = listbox.getItemAtIndex(processedItemCount);
+                item.setAttribute("label", label);
+                item.setAttribute("value", value);
+            }
+            else
+            {
+                // create new one
+                listbox.appendItem(label, value);
+            }
+
+            processedItemCount++;
         }
+
+        // remove rest items
+        while (processedItemCount < listbox.itemCount)
+            listbox.removeChild(listbox.lastChild);
     },
 
     // ============================== event handlers ============================== //

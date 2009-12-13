@@ -14,7 +14,7 @@
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="logo-mac.svg"
+   sodipodi:docname="icon-mac.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs4">
@@ -67,7 +67,7 @@
      inkscape:cx="273.27883"
      inkscape:cy="334.27854"
      inkscape:document-units="px"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer2"
      showgrid="true"
      inkscape:window-width="1276"
      inkscape:window-height="718"
@@ -190,20 +190,5 @@
          d="M 152.16652,709.96631 C 152.16652,709.96631 157.07518,749.23408 160.69654,751.75147 L 163.34939,751.02591 C 166.41243,747.81027 152.16652,709.96631 152.16652,709.96631 z"
          style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.14975619px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
     </g>
-    <text
-       xml:space="preserve"
-       style="font-size:12.20919514px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;line-height:125%;fill:#eeeeec;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;display:inline;font-family:AlMateen;-inkscape-font-specification:AlMateen Bold"
-       x="654.64923"
-       y="-129.8853"
-       id="text2418"
-       sodipodi:linespacing="125%"
-       transform="matrix(0,1,-1,0,0,0)"
-       inkscape:transform-center-x="-5.6409222"
-       inkscape:transform-center-y="-34.480843"><tspan
-         sodipodi:role="line"
-         id="tspan2420"
-         x="654.64923"
-         y="-129.8853"
-         style="font-size:12.20919514px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:URW Gothic L;-inkscape-font-specification:URW Gothic L Semi-Bold">KeySnail</tspan></text>
   </g>
 </svg>

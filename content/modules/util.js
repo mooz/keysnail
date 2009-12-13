@@ -263,15 +263,23 @@ KeySnail.Util = {
      * @returns {boolean} true if text is insertable
      */
     isWritable: function (aEvent) {
+        var localName = aEvent.originalTarget.localName.toLowerCase();
+
+        // in select or option, we shold ignore the alphabet key
+        if (localName === 'select' || localName === 'option')
+            return true;
+
         var insertTextController= document.commandDispatcher
             .getControllerForCommand("cmd_insertText");
 
-        try {
+        try
+        {
             return (insertTextController &&
                     insertTextController.isCommandEnabled("cmd_insertText"));
-        } catch (x) {
-            var localName = aEvent.originalTarget.localName.toLowerCase();
-            return (localName == 'input' || localName == 'textarea');
+        }
+        catch (x)
+        {
+            return (localName === 'input' || localName === 'textarea');
         }
     },
 
@@ -286,11 +294,13 @@ KeySnail.Util = {
             Components.classes['@mozilla.org/autocomplete/controller;1']
             .getService(Components.interfaces.nsIAutoCompleteController);
 
-        if (autoCompleteController.matchCount !== 0) {
+        if (autoCompleteController.matchCount !== 0)
+        {
             var open = false;
             var actpps = document.getElementsByAttribute('autocompletepopup', '*');
             var len = actpps.length;
-            for (var i = 0; i < len; i++) {
+            for (var i = 0; i < len; i++)
+            {
                 open = open || document.getElementById(actpps[i].getAttribute('autocompletepopup'))
                     .QueryInterface(Components.interfaces.nsIAutoCompletePopup).popupOpen;
             }

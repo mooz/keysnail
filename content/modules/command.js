@@ -331,20 +331,13 @@ KeySnail.Command = {
 
     bookMarkToolBarJumpTo: function (aEvent, aArg) {
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
-        var items = toolbarBookMarks.getElementsByTagName('toolbarbutton');
+        var items            = toolbarBookMarks.getElementsByTagName('toolbarbutton');
 
-        var urlList = [];
-
-        for (var i = 0; i < items.length; ++i)
-        {
-            if (items[i].node.uri.match(/^(https?|ftp):/))
-            {
-                urlList.push([this.modules.util.getFaviconPath(items[i].node.uri),
-                              items[i].label,
-                              items[i].node.uri,
-                              items[i].node.itemId]);
-            }
-        }
+        var urlList = [[this.modules.util.getFaviconPath(item.node.uri),
+                        item.label,
+                        item.node.uri,
+                        item.node.itemId] for each (item in items)
+                                          if (item.node && item.node.uri.match(/^(https?|ftp):/))];
 
         with (this.modules)
         {
@@ -822,8 +815,10 @@ KeySnail.Command = {
     pushKillRing: function (aText) {
         var textLen = aText.length;
 
-        if (textLen && (this.kill.textLengthMax < 0 || textLen <= this.kill.textLengthMax)) {
-            if (this.kill.ring.length >= this.kill.killRingMax) {
+        if (textLen && (this.kill.textLengthMax < 0 || textLen <= this.kill.textLengthMax))
+        {
+            if (this.kill.ring.length >= this.kill.killRingMax)
+            {
                 this.kill.ring.pop();
             }
             this.kill.ring.unshift(aText);

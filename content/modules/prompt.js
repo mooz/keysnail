@@ -1756,6 +1756,7 @@ KeySnail.Prompt = function () {
 
             setSelectorActions(aContext.actions || aContext.callback);
             setSelectorContextMenu(aContext.actions || aContext.callback);
+            selectorContext[SELECTOR_STATE_ACTION].wholeListIndex = aContext.initialAction || 0;
 
             createCompletionList();
         },

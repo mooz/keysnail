@@ -1,11 +1,3 @@
-textbox.keysnail-specialkey-textbox {
-    width: 7em;
-}
-
-button.keysnail-specialkey-button {
-    width: 4em;
-}
-
 listbox#keysnail-rcwizard-selectscheme listitem {
     padding: 5px;
     border-bottom: 1px #BBB dotted;
