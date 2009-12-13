@@ -21,7 +21,7 @@ WikiParser.prototype = {
             case '>': return '&gt;';
             case '&': return '&amp;';
             default:
-                return '<a href="#" highlight="URL">'+str+'</a>';
+                return '<a href="' + str + '" target="_blank">' + str + '</a>';
             }
         }
         return XMLList(str.replace(/>|<|&|(?:https?:\/\/|mailto:)\S+/g, replacer));

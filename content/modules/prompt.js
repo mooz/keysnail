@@ -15,10 +15,13 @@ KeySnail.Prompt = function () {
 
     var modules;
 
-    // key settings
+    // defalut key settings
     var actionKeys      = {};
     actionKeys.read     = {};
     actionKeys.selector = {};
+
+    var readerKeymap;
+    var selectorKeymap;
 
     // ==================== Common objects between each context ==================== //
 
@@ -82,6 +85,7 @@ KeySnail.Prompt = function () {
     var selectorStatus;
     var selectorFilter;
     var selectorContext;
+    var selectorLocalKeymap;
 
     function createSelectorContext() {
         return {
@@ -146,6 +150,22 @@ KeySnail.Prompt = function () {
     };
 
     // ============================== prompt common functions ============================== //
+
+    function combineObject(a, b) {
+        var newObject = {};
+        var key;
+
+        for ([key, value] in Iterator(a))
+            newObject[key] = value;
+
+        for ([key, value] in Iterator(b))
+        {
+            modules.util.message("new keymap key %s action %s", key, value);
+            newObject[key] = value;
+        }
+
+        return newObject;
+    }
 
     function getNextIndex(aCurrent, aDirection, aMin, aMax, aRing) {
         var index = aCurrent + aDirection;
@@ -508,7 +528,7 @@ KeySnail.Prompt = function () {
         var key = modules.key.keyEventToString(aEvent);
 
         var stopEventPropagation = true;
-        var keymap = actionKeys["selector"];
+        var keymap = selectorKeymap;
 
         var match;
         if (keymap[key] && (match = keymap[key].match("^prompt-nth-action-(.*)")))
@@ -970,7 +990,7 @@ KeySnail.Prompt = function () {
         var key = modules.key.keyEventToString(aEvent);
 
         var stopEventPropagation = true;
-        var keymap = actionKeys["read"];
+        var keymap = readerKeymap;
 
         switch (keymap[key]) {
         case "prompt-cancel":
@@ -1588,6 +1608,8 @@ KeySnail.Prompt = function () {
             // now focus to the input area
             textbox.focus();
 
+            readerKeymap = actionKeys["read"];
+
             // add event listener
             textbox.addEventListener('keypress', handleKeyPressRead, false);
             textbox.addEventListener('keyup', handleKeyUpRead, false);
@@ -1652,6 +1674,8 @@ KeySnail.Prompt = function () {
             textbox.selectionStart = textbox.selectionEnd = aContext.cursorEnd ? textbox.value.length : 0;
 
             textbox.focus();
+
+            readerKeymap = combineObject(actionKeys["read"], aContext.keymap || {});
 
             // add event listener
             textbox.addEventListener('keypress', handleKeyPressRead, false);
@@ -1753,6 +1777,8 @@ KeySnail.Prompt = function () {
             selectorContext[SELECTOR_STATE_ACTION].listHeader = ["Actions"];
             selectorContext[SELECTOR_STATE_ACTION].listStyle  = options.actionsListStyle;
             selectorContext[SELECTOR_STATE_ACTION].flags      = [modules.IGNORE | modules.HIDDEN, 0];
+
+            selectorKeymap = combineObject(actionKeys["selector"], aContext.keymap || {});
 
             setSelectorActions(aContext.actions || aContext.callback);
             setSelectorContextMenu(aContext.actions || aContext.callback);

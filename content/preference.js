@@ -210,14 +210,13 @@ var ksPreference = {
             }
             catch (x)
             {
-                status = 0;
+                status = false;
             }
 
             if (!status)
             {
                 // close the window and reopen
                 window.close();
-                this.modules.display.clearNotify();
                 // generated init file contains some error, recover hook
                 this.modules.util.alert("An error found in the generated init file",
                                         this.modules.util.getLocaleString("initFileWillBeRecovered"));
@@ -225,15 +224,22 @@ var ksPreference = {
                 // recover
                 tmpDir.append(initFile.leafName);
                 // copyTo fails if the destination file already exists.
+                this.modules.util.message("tmpDir.path :: %s", tmpDir.path);
                 tmpDir.moveTo(initFile.parent, "");
+                this.modules.util.message("initFile.parent.path :: %s", initFile.parent.path);
 
                 // reload
-                this.modules.userscript.reload();
-                this.modules.key.run();
-                this.modules.key.updateMenu();
-                this.modules.key.updateStatusBar();
+                status = this.modules.userscript.reload();
+                if (status)
+                {
+                    this.modules.display.clearNotify();
 
-                this.modules.util.parent.openPreference(true);
+                    this.modules.key.run();
+                    this.modules.key.updateMenu();
+                    this.modules.key.updateStatusBar();
+
+                    this.modules.util.parent.openPreference(true);
+                }
 
                 return false;
             }
