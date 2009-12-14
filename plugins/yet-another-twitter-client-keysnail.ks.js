@@ -134,7 +134,7 @@ plugins.options["twitter_client.keymap"] = {
     // twitter client specific actions
     "r"     : "reply",
     "R"     : "retweet",
-    "D"     : "delete",
+    "D"     : "delete-tweet",
     "F"     : "add-to-favorite",
     "v"     : "display-entire-message",
     "V"     : "view-in-twitter",
@@ -217,7 +217,7 @@ plugins.options["twitter_client.keymap"] = {
     // twitter client specific actions
     "r"     : "reply",
     "R"     : "retweet",
-    "D"     : "delete",
+    "D"     : "delete-tweet",
     "F"     : "add-to-favorite",
     "v"     : "display-entire-message",
     "V"     : "view-in-twitter",
