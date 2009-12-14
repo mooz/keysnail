@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -1338,9 +1338,10 @@ var twitterClient =
              var current = new Date();
 
              // ignore black users
-             var statuses = aStatuses.filter(
-                 aNoFilter || function (status) blackUsers.every(function (name) status.user.screen_name !== name)
-             );
+             var statuses = aNoFilter ? aStatuses :
+                 aStatuses.filter(
+                     function (status) blackUsers.every(function (name) status.user.screen_name !== name)
+                 );
 
              var collection = statuses.map(
                  function (status) {
