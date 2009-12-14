@@ -5,13 +5,13 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.3.9</version>
+    <version>1.4.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.0.5</minVersion>
+    <minVersion>1.2.3</minVersion>
     <include>main</include>
     <provides>
         <ext>twitter-client-display-timeline</ext>
@@ -75,6 +75,12 @@ var PLUGIN_INFO =
             <description>Specify style of the unread statuses count in the statusbar with CSS</description>
             <description lang="ja">ステータスバーへ表示される未読ステータス数のスタイルを CSS で指定</description>
         </option>
+        <option>
+            <name>twitter_client.keymap</name>
+            <type>object</type>
+            <description>Local keymap</description>
+            <description lang="ja">ローカルキーマップ。</description>
+        </option>
     </options>
     <detail><![CDATA[
 === Usage ===
@@ -111,6 +117,36 @@ key.setGlobalKey(["C-c", "T"],
         ext.exec("twitter-client-tweet-this-page", arg);
     }, "Tweet with the title and URL of this page", true);
 ||<
+
+==== Keybindings ====
+
+By inserting the code below to PRESERVE area in your .keysnail.js, you can manipulate this client more easily.
+
+>||
+plugins.options["twitter_client.keymap"] = {
+    "C-z"   : "prompt-toggle-edit-mode",
+    "SPC"   : "prompt-next-page",
+    "b"     : "prompt-previous-page",
+    "j"     : "prompt-next-completion",
+    "k"     : "prompt-previous-completion",
+    "g"     : "prompt-beginning-of-candidates",
+    "G"     : "prompt-end-of-candidates",
+    // twitter client specific actions
+    "r"     : "reply",
+    "R"     : "retweet",
+    "D"     : "delete",
+    "F"     : "add-to-favorite",
+    "v"     : "display-entire-message",
+    "V"     : "view-in-twitter",
+    "c"     : "copy-tweet",
+    "s"     : "show-target-status",
+    "@"     : "show-mentions",
+    "S"     : "search-word",
+    "o"     : "open-url"
+};
+||<
+
+When you want to input the alphabet key, press C-z or click earth icon and switch to the edit mode.
 
 ==== Actions ====
 Twitter client displays your time line. If you press **Enter** key, you can go to the **tweet** area.
@@ -165,6 +201,38 @@ key.setGlobalKey(["C-c", "T"],
 
 KeySnail を使って、じゃんじゃんつぶやいてしまいましょう。
 
+==== キーバインドの設定 ====
+
+次のような設定を .keysnail.js の PRESERVE エリアへ張り付けておくと、かくだんに操作がしやすくなります。
+
+>||
+plugins.options["twitter_client.keymap"] = {
+    "C-z"   : "prompt-toggle-edit-mode",
+    "SPC"   : "prompt-next-page",
+    "b"     : "prompt-previous-page",
+    "j"     : "prompt-next-completion",
+    "k"     : "prompt-previous-completion",
+    "g"     : "prompt-beginning-of-candidates",
+    "G"     : "prompt-end-of-candidates",
+    // twitter client specific actions
+    "r"     : "reply",
+    "R"     : "retweet",
+    "D"     : "delete",
+    "F"     : "add-to-favorite",
+    "v"     : "display-entire-message",
+    "V"     : "view-in-twitter",
+    "c"     : "copy-tweet",
+    "s"     : "show-target-status",
+    "@"     : "show-mentions",
+    "S"     : "search-word",
+    "o"     : "open-url"
+};
+||<
+
+どのようなキーバインドとなっているかは、設定を見ていただければ分かるかと思います。気に入らなければ変更してしまってください。
+
+このままではアルファベットが入力できないので、もし絞り込み健作などでアルファベットを入力したくなった場合は C-z を入力するか「閉じる」ボタン左の「地球マーク」をクリックし、編集モードへと切り替えてください。
+
 ==== アクションの選択 ====
 タイムライン一覧でそのまま Enter キーを入力すると、つぶやき画面へ移行することができます。
 
@@ -203,15 +271,15 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
-// 
+//
 // ==== 1.3.9 (2009 12/14) ====
-// 
+//
 // * Supported local keymap system
-// 
+//
 // ==== 1.3.8 (2009 12/05) ====
-// 
+//
 // * Supported % in the URL.
-// * xulGrowl prototype 
+// * xulGrowl prototype
 //
 // ==== 1.3.7 (2009 11/28) ====
 //
@@ -275,7 +343,9 @@ var optionsDefaultValue = {
     "timeline_count_every_updates" : 20,
     "unread_status_count_style"    : "color:#383838;font-weight:bold;",
     "automatically_begin"          : true,
-    "keymap"                       : {}
+    "keymap"                       : {},
+    "block_users"                  : [],
+    "black_users"                  : []
 };
 
 function getOption(aName) {
@@ -300,32 +370,38 @@ var twitterClient =
               {
                   if (status)
                       tweet();
-              }, M({ja: "つぶやく : ", en: ""}) + "Tweet"],
+              }, M({ja: "つぶやく : ", en: ""}) + "Tweet",
+              "tweet"],
              [function (status)
               {
                   if (status)
                       tweet("@" + status.screen_name + " ", status.id);
-              }, M({ja: "このつぶやきに返信 : ", en: ""}) + "Send reply message"],
+              }, M({ja: "このつぶやきに返信 : ", en: ""}) + "Send reply message",
+             "reply"],
              [function (status)
               {
                   if (status)
                       tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
-              }, M({ja: "このつぶやきを => コメント付き ", en: ""}) + "RT : Retweet with comment"],
+              }, M({ja: "このつぶやきを => コメント付き ", en: ""}) + "RT (QT): Quote tweet",
+             "retweet"],
              [function (status)
               {
                   if (status)
                       retweet(status.id);
-              }, M({ja: "このつぶやきを => 公式 ", en: ""}) + "RT : Official Retweet"],
+              }, M({ja: "このつぶやきを => 公式 ", en: ""}) + "RT : Official Retweet",
+              "official-retweet"],
              [function (status)
               {
                   if (status)
                       deleteStatus(status.id);
-              }, M({ja: "このつぶやきを => 削除 : ", en: ""}) + "Delete this status"],
+              }, M({ja: "このつぶやきを => 削除 : ", en: ""}) + "Delete this status",
+              "delete-tweet"],
              [function (status)
               {
                   if (status)
                       addFavorite(status.id);
-              }, M({ja: "このつぶやきを => ふぁぼる : ", en: ""}) + "Add this status to favorites"],
+              }, M({ja: "このつぶやきを => ふぁぼる : ", en: ""}) + "Add this status to favorites",
+              "add-to-favorite,c"],
              [function (status)
               {
                   if (status)
@@ -333,47 +409,60 @@ var twitterClient =
                       gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
                                           + "/status/" + status.id, null, null, null, false);
                   }
-              }, M({ja: "このつぶやきを => Twitter で見る : ", en: ""}) + "Show status in web page"],
+              }, M({ja: "このつぶやきを => Twitter で見る : ", en: ""}) + "Show status in web page",
+              "view-in-twitter,c"],
              [function (status)
               {
                   command.setClipboardText(html.unEscapeTag(status.text));
-              }, M({ja: "このつぶやきを => クリップボードにコピー : ", en: ""}) + "Copy selected message"],
+              }, M({ja: "このつぶやきを => クリップボードにコピー : ", en: ""}) + "Copy selected message",
+              "copy-tweet,c"],
              [function (status)
               {
                   display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 300});
-              }, M({ja: "このつぶやきを => 全文表示 : ", en: ""}) + "Display entire message"],
+              }, M({ja: "このつぶやきを => 全文表示 : ", en: ""}) + "Display entire message",
+              "display-entire-message,c"],
              [function (status)
               {
                   if (status)
                       showTargetStatus(status.screen_name);
-              }, M({ja: "このユーザのつぶやきを一覧表示 : ", en: ""}) + "Show Target status"],
+              }, M({ja: "このユーザのつぶやきを一覧表示 : ", en: ""}) + "Show Target status",
+              "show-target-status"],
              [function (status)
               {
                   if (status)
                       showFavorites(status.user_id);
-              }, M({ja: "このユーザのふぁぼり一覧を表示 : ", en: ""}) + "Show this users favorites"],
+              }, M({ja: "このユーザのふぁぼり一覧を表示 : ", en: ""}) + "Show this users favorites",
+              "show-user-favorites"],
              [function (status)
               {
                   if (status)
                       showMentions();
-              }, M({ja: "自分の @ を一覧表示 : ", en: ""}) + "Show mentions"],
+              }, M({ja: "自分の @ を一覧表示 : ", en: ""}) + "Show mentions",
+              "show-mentions"],
              [function (status)
               {
                   if (status)
                       self.tweetWithTitleAndURL();
-              }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL"],
+              }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL",
+              "tweet-current-page"],
              [function (status)
               {
                   if (status)
                       search();
-              }, M({ja: "単語を検索 : ", en: ""}) + "Search keyword"],
+              }, M({ja: "単語を検索 : ", en: ""}) + "Search keyword",
+              "search-word"],
+             // [function (status)
+             //  {
+             //      command.setClipboardText(status.screen_name);
+             //  }, M({ja: "このユーザの id をコピー : ", en: ""}) + "Copy id of the selected user",
+             //  "copy-user-id,c"],
              [function (status)
               {
                   if (status)
                   {
                       var matched;
 
-                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?#_*.:/=&%\\-]+)")))
+                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?;#_*.:/=&%\\-]+)")))
                       {
                           var prefix = (matched[1] == "ftp") ? "ftp" : "http";
                           if (matched[1][matched[1].length - 1] == 's')
@@ -384,7 +473,8 @@ var twitterClient =
                           status.text = status.text.slice(status.text.indexOf(matched[2]) + matched[2].length);
                       }
                   }
-              }, M({ja: "メッセージ中の URL を開く : ", en: ""}) + "Visit URL in the message"]
+              }, M({ja: "メッセージ中の URL を開く : ", en: ""}) + "Visit URL in the message",
+              "open-url,c"]
          ];
 
          // ================================================================================ //
@@ -398,7 +488,8 @@ var twitterClient =
          // [User name, Message, Information] in percentage
          var mainColumnWidth = getOption("main_column_width");
 
-         var blockUser = getOption("block_users");
+         var blockUsers = getOption("block_users");
+         var blackUsers = getOption("black_users");
          var myScreenName;
 
          // ================================================================================ //
@@ -528,8 +619,8 @@ var twitterClient =
          function showOldestUnPopUppedStatus() {
              var status = unPopUppedStatuses.pop();
 
-             if ((blockUser &&
-                  blockUser.some(function (username) username == status.user.screen_name))
+             if ((blockUsers &&
+                  blockUsers.some(function (username) username == status.user.screen_name))
                  || status.user.screen_name == myScreenName) {
                  util.message("ignored :: " + html.unEscapeTag(status.text) + " " + status.user.screen_name);
 
@@ -913,7 +1004,8 @@ var twitterClient =
 
                          var statuses = util.safeEval(xhr.responseText);
 
-                         callSelector(statuses, M({ja: "言及一覧", en: "Mentions"}));
+                         // no filter
+                         callSelector(statuses, M({ja: "言及一覧", en: "Mentions"}), true);
                      }
                  });
          }
@@ -1001,9 +1093,8 @@ var twitterClient =
                                  {
                                      message: "regexp:",
                                      collection: results.map(
-                                         function (result) {
-                                             return [result.profile_image_url, result.from_user, html.unEscapeTag(result.text)];
-                                         }),
+                                         function (result) [result.profile_image_url, result.from_user, html.unEscapeTag(result.text)]
+                                     ),
                                      style: ["color:#003870;", null],
                                      width: [15, 85],
                                      header: ["From", 'Search result for "' + aWord + '"'],
@@ -1243,19 +1334,27 @@ var twitterClient =
          // Sub methods
          // ================================================================================ //
 
-         function callSelector(aStatuses, aMessage) {
+         function callSelector(aStatuses, aMessage, aNoFilter) {
              var current = new Date();
 
-             var collection = aStatuses.map(
+             // ignore black users
+             var statuses = aStatuses.filter(
+                 aNoFilter || function (status) blackUsers.every(function (name) status.user.screen_name !== name)
+             );
+
+             var collection = statuses.map(
                  function (status) {
                      var created = Date.parse(status.created_at);
                      var matched = status.source.match(">(.*)</a>");
 
-                     return [status.user.profile_image_url, status.user.name, html.unEscapeTag(status.text),
-                             getElapsedTimeString(current - created) +
-                             " " + (matched ? matched[1] : "Web") +
-                             (status.in_reply_to_screen_name ?
-                              " to " + status.in_reply_to_screen_name : "")];
+                     return [status.user.profile_image_url,
+                             status.user.name,
+                             html.unEscapeTag(status.text),
+                             util.format("%s %s",
+                                         getElapsedTimeString(current - created),
+                                         (matched ? matched[1] : "Web"),
+                                         (status.in_reply_to_screen_name ?
+                                          " to " + status.in_reply_to_screen_name : ""))];
                  }
              );
 
@@ -1276,7 +1375,7 @@ var twitterClient =
                               aMessage + helpMessage,
                               M({ja: "情報", en: 'Info'})],
                      filter: function (aIndex) {
-                         var status = aStatuses[aIndex];
+                         var status = statuses[aIndex];
 
                          return (aIndex < 0 ) ? [null] :
                              [{screen_name: status.user.screen_name,
