@@ -646,15 +646,20 @@ KeySnail.UserScript = {
             if (arg.type == "install")
             {
                 // install
-                if (!this.checkCompatibility(arg.xml) &&
-                    !util.confirm(util.getLocaleString("installingNotCompatiblePlugin"),
-                                  util.getLocaleString("installingNotCompatiblePluginPrompt",
-                                                       [util.xmlGetLocaleString(arg.xml.name),
-                                                        arg.xml.version,
-                                                        KeySnail.version])))
+                if (!this.checkCompatibility(arg.xml))
                 {
-                    // The file to be installed is not compatible with the current KeySnail
-                    return;
+                    // Not compatible with the current keysnail
+                    this.modules.key.viewURI("http://wiki.github.com/mooz/keysnail");
+
+                    if (!util.confirm(util.getLocaleString("installingNotCompatiblePlugin"),
+                                      util.getLocaleString("installingNotCompatiblePluginPrompt",
+                                                           [util.xmlGetLocaleString(arg.xml.name),
+                                                            arg.xml.version,
+                                                            KeySnail.version])))
+                        {
+                            // user canceled
+                            return;
+                        }
                 }
 
                 try

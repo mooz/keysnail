@@ -22,6 +22,7 @@ KeySnail.Prompt = function () {
 
     var readerKeymap;
     var selectorKeymap;
+    var selectorTranslator;
 
     // ==================== Common objects between each context ==================== //
 
@@ -85,7 +86,7 @@ KeySnail.Prompt = function () {
     var selectorStatus;
     var selectorFilter;
     var selectorContext;
-    var selectorLocalKeymap;
+    var promptEditMode;
 
     function createSelectorContext() {
         return {
@@ -160,7 +161,6 @@ KeySnail.Prompt = function () {
 
         for ([key, value] in Iterator(b))
         {
-            modules.util.message("new keymap key %s action %s", key, value);
             newObject[key] = value;
         }
 
@@ -525,14 +525,49 @@ KeySnail.Prompt = function () {
      * @param {KeyBoardEvent} aEvent event which called this handler
      */
     function handleKeyPressSelector(aEvent) {
+        if (promptEditMode &&
+            modules.key.isDisplayableKey(aEvent) &&
+            !modules.key.isMetaKey(aEvent) &&
+            !modules.key.isControlKey(aEvent))
+        {
+            return;
+        }
+
         var key = modules.key.keyEventToString(aEvent);
 
         var stopEventPropagation = true;
         var keymap = selectorKeymap;
+        var command = keymap[key] || "";
+
+        if (command in selectorTranslator)
+            command = selectorTranslator[command];
+
+        var tmp = command.split(",");
+        command = tmp[0];
+        var flags = tmp[1] || "";
+
+        /**
+         * This code cause error. Why?
+         */
+        // [command, flags] = command.split(",");
+
+        var continuousMode = false;
+        for each (let flag in flags)
+        {
+            switch (flag)
+            {
+                case "c":
+                continuousMode = true;
+                break;
+            }
+        }
 
         var match;
-        if (keymap[key] && (match = keymap[key].match("^prompt-nth-action-(.*)")))
+        if (command && (match = command.match("^prompt-nth-action-(.*)")))
         {
+            aEvent.preventDefault();
+            aEvent.stopPropagation();
+
             var actions = selectorContext[SELECTOR_STATE_ACTION];
             var num = parseInt(match[1]) - 1;
 
@@ -544,16 +579,21 @@ KeySnail.Prompt = function () {
             if (num < 0 || num >= actions.wholeList.length)
                 self.finish(true);
             else
-                self.finish();
+                self.finish(false, continuousMode);
+
+            return;
         }
 
-        switch (keymap[key])
+        switch (command)
         {
+        case "prompt-toggle-edit-mode":
+            self.toggleEditMode();
+            break;
         case "prompt-cancel":
             self.finish(true);
             break;
         case "prompt-decide":
-            self.finish();
+            self.finish(false, continuousMode);
             break;
         case "prompt-continuous-decide":
             self.finish(false, true);
@@ -755,7 +795,7 @@ KeySnail.Prompt = function () {
     function setSelectorActions(aActions) {
         var context = selectorContext[SELECTOR_STATE_ACTION];
 
-        if (typeof(aActions) === "function")
+        if (typeof aActions === "function")
         {
             // set callback
             context.wholeList = [[aActions, "1. Default callback"]];
@@ -765,11 +805,20 @@ KeySnail.Prompt = function () {
 
         var list = [];
 
-        // create action list
-        aActions.forEach(
-            function (action, i) {
-                list.push([action[0], (i + 1).toString() + ". " + action[1]]);
-            });
+        selectorTranslator = {};
+
+        // create action list and local command
+        for ([i, action] in Iterator(aActions))
+        {
+            let index = i + 1;
+            list.push([action[0], index.toString() + ". " + action[1]]);
+
+            if (action[2])
+            {
+                [command, flag] = action[2].split(",");
+                selectorTranslator[command] = "prompt-nth-action-" + index + (flag ? ("," + flag) : "");
+            }
+        }
 
         context.wholeList      = list;
         context.wholeListIndex = 0;
@@ -992,7 +1041,8 @@ KeySnail.Prompt = function () {
         var stopEventPropagation = true;
         var keymap = readerKeymap;
 
-        switch (keymap[key]) {
+        switch (keymap[key])
+        {
         case "prompt-cancel":
             self.finish(true);
             break;
@@ -1380,6 +1430,25 @@ KeySnail.Prompt = function () {
             // }} ======================================================================= //
         },
 
+        get editModeEnabled () {
+            return promptEditMode;
+        },
+
+        set editModeEnabled (value) {
+            promptEditMode = value;
+
+            var button      = document.getElementById("keysnail-prompt-toggle-edit-mode-button");
+            var iconURL     = "chrome://keysnail/skin/icon/prompt-" + (value ? "edit" : "view") + "-mode.png";
+            var tooltipText = modules.util.getLocaleString("promptEditMode" + (value ? "Enabled" : "Disabled"));
+            button.setAttribute("image", iconURL);
+            button.setAttribute("tooltiptext", tooltipText);
+            modules.display.echoStatusBar(tooltipText, 2000);
+        },
+
+        toggleEditMode: function () {
+            self.editModeEnabled = !self.editModeEnabled;
+        },
+
         setActionKey: function(aType, aKey, aAction) {
             actionKeys[aType][aKey] = aAction;
         },
@@ -1547,7 +1616,8 @@ KeySnail.Prompt = function () {
 
             // ==================== execute callback ==================== //
 
-            aCanceled = !executeCallback(savedCallback, callbackArg, aCanceled);
+            if (!aCanceled)
+                aCanceled = !executeCallback(savedCallback, callbackArg, aCanceled);
 
             // if canceled or error occurred in callback, reset statusbar
             if (aCanceled)
@@ -1601,6 +1671,7 @@ KeySnail.Prompt = function () {
             // display prompt box
             label.value = aMsg;
             textbox.value = aInitialInput || "";
+            self.editModeEnabled = false;
             promptbox.hidden = false;
             // do not set selection value till textbox appear (cause crash)
             textbox.selectionStart = textbox.selectionEnd = 0;
@@ -1670,6 +1741,7 @@ KeySnail.Prompt = function () {
             // display prompt box
             label.value            = aContext.message;
             textbox.value          = aContext.initialinput || "";
+            self.editModeEnabled = false;
             promptbox.hidden       = false;
             textbox.selectionStart = textbox.selectionEnd = aContext.cursorEnd ? textbox.value.length : 0;
 
@@ -1734,6 +1806,7 @@ KeySnail.Prompt = function () {
 
             // display prompt box
             label.value = aContext.message;
+            self.editModeEnabled = false;
             promptbox.hidden = false;
             // do not set selection value till textbox appear (cause crash)
             textbox.selectionStart = textbox.selectionEnd = 0;
