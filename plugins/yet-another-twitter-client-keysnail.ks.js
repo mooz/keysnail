@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.4.1</version>
+    <version>1.4.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -131,17 +131,18 @@ plugins.options["twitter_client.keymap"] = {
     "k"     : "prompt-previous-completion",
     "g"     : "prompt-beginning-of-candidates",
     "G"     : "prompt-end-of-candidates",
+    "q"     : "prompt-cancel",
     // twitter client specific actions
     "r"     : "reply",
     "R"     : "retweet",
     "D"     : "delete-tweet",
-    "F"     : "add-to-favorite",
+    "f"     : "add-to-favorite",
     "v"     : "display-entire-message",
     "V"     : "view-in-twitter",
     "c"     : "copy-tweet",
     "s"     : "show-target-status",
     "@"     : "show-mentions",
-    "S"     : "search-word",
+    "/"     : "search-word",
     "o"     : "open-url"
 };
 ||<
@@ -214,17 +215,18 @@ plugins.options["twitter_client.keymap"] = {
     "k"     : "prompt-previous-completion",
     "g"     : "prompt-beginning-of-candidates",
     "G"     : "prompt-end-of-candidates",
+    "q"     : "prompt-cancel",
     // twitter client specific actions
     "r"     : "reply",
     "R"     : "retweet",
     "D"     : "delete-tweet",
-    "F"     : "add-to-favorite",
+    "f"     : "add-to-favorite",
     "v"     : "display-entire-message",
     "V"     : "view-in-twitter",
     "c"     : "copy-tweet",
     "s"     : "show-target-status",
     "@"     : "show-mentions",
-    "S"     : "search-word",
+    "/"     : "search-word",
     "o"     : "open-url"
 };
 ||<
@@ -271,6 +273,15 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.4.2 (2009 12/15) ==== 
+// 
+// * Added favorited icon and changed add-to-favorite action behavior.
+// * Made tweetWithTitleAndURL() recognize prefix argument.
+// 
+// ==== 1.4.0 (2009 12/14) ==== 
+//
+// * Added local action system 
 //
 // ==== 1.3.9 (2009 12/14) ====
 //
@@ -350,9 +361,12 @@ var optionsDefaultValue = {
 
 function getOption(aName) {
     var fullName = "twitter_client." + aName;
-    if (typeof(plugins.options[fullName]) != "undefined") {
+    if (typeof plugins.options[fullName] !== "undefined")
+    {
         return plugins.options[fullName];
-    } else {
+    }
+    else
+    {
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
     }
 }
@@ -399,8 +413,8 @@ var twitterClient =
              [function (status)
               {
                   if (status)
-                      addFavorite(status.id);
-              }, M({ja: "このつぶやきを => ふぁぼる : ", en: ""}) + "Add this status to favorites",
+                      addFavorite(status.id, status.favorited);
+              }, M({ja: "このつぶやきを => お気に入りへ追加 / 削除 : ", en: ""}) + "Add / Remove this status to favorites",
               "add-to-favorite,c"],
              [function (status)
               {
@@ -530,8 +544,10 @@ var twitterClient =
          // Statusbar
          // ================================================================================ //
 
-         function setAttributes(aElem, aAttributes) {
-             for (var key in aAttributes) {
+         function setAttributes(aElem, aAttributes)
+         {
+             for (var key in aAttributes)
+             {
                  aElem.setAttribute(key, aAttributes[key]);
              }
          }
@@ -621,10 +637,12 @@ var twitterClient =
 
              if ((blockUsers &&
                   blockUsers.some(function (username) username == status.user.screen_name))
-                 || status.user.screen_name == myScreenName) {
+                 || status.user.screen_name == myScreenName)
+             {
                  util.message("ignored :: " + html.unEscapeTag(status.text) + " " + status.user.screen_name);
 
-                 if (unPopUppedStatuses && unPopUppedStatuses.length) {
+                 if (unPopUppedStatuses && unPopUppedStatuses.length)
+                 {
                      showOldestUnPopUppedStatus();
                  }
 
@@ -632,7 +650,8 @@ var twitterClient =
              }
 
              var browserWindow = wm.getMostRecentWindow("navigator:browser");
-             if (!browserWindow || browserWindow.KeySnail != KeySnail) {
+             if (!browserWindow || browserWindow.KeySnail != KeySnail)
+             {
                  util.message("other window");
                  return;
              }
@@ -734,7 +753,6 @@ var twitterClient =
              {
                  newStatuses = aNew.slice(0, newStatusCount);
              }
-
 
              var latestTimeline = newStatuses.concat(aOld);
 
@@ -1030,17 +1048,21 @@ var twitterClient =
                  });
          }
 
-         function addFavorite(aStatusID) {
+         function addFavorite(aStatusID, aDelete) {
              oauthASyncRequest(
                  {
-                     action: "http://twitter.com/favorites/create/" + aStatusID + ".json",
+                     action: util.format("http://twitter.com/favorites/%s/%s.json", aDelete ? "destroy" : "create", aStatusID),
                      method: "POST"
                  },
                  function (aEvent, xhr) {
                      if (xhr.readyState == 4) {
+                         var errorMsg = aDelete ? M({ja: "お気に入りから削除できませんでした", en: "Failed to remove status from favorites"})
+                         : M({ja: "お気に入りに追加できませんでした", en: "Failed to add status to favorites"});
+                         var successMsg = aDelete ? M({ja: "お気に入りから削除しました", en: "Removed status from favorites"})
+                         : M({ja: "お気に入りに追加しました", en: "Added status to favorites"});
+
                          if (xhr.status != 200) {
-                             display.echoStatusBar(M({ja: "ふぁぼれませんでした",
-                                                      en: "Failed to add status to favorites"}), 2000);
+                             display.echoStatusBar(errorMsg, 2000);
                              return;
                          }
 
@@ -1054,10 +1076,14 @@ var twitterClient =
 
                          showPopup({
                                        icon     : icon_url,
-                                       title    : M({ja: "ふぁぼりました", en: "Added to favorites"}),
+                                       title    : successMsg,
                                        message  : user_name + ": " + message,
                                        link     : null
                                    });
+
+                         modifyCache(status.id, function (status) {
+                                         status.favorited = !aDelete;
+                                     });
                      }
                  }
              );
@@ -1103,10 +1129,13 @@ var twitterClient =
                                          var result = results[aIndex];
 
                                          return (aIndex < 0 ) ? [null] :
-                                             [{screen_name: result.from_user,
-                                               id: result.id,
-                                               user_id: result.from_user_id,
-                                               text: html.unEscapeTag(result.text)}];
+                                             [{
+                                                  screen_name : result.from_user,
+                                                  id          : result.id,
+                                                  user_id     : result.from_user_id,
+                                                  text        : html.unEscapeTag(result.text),
+                                                  favorited   : result.favorited
+                                              }];
                                      },
                                      keymap: getOption("keymap"),
                                      actions: twitterActions
@@ -1334,6 +1363,20 @@ var twitterClient =
          // Sub methods
          // ================================================================================ //
 
+         const favoritedIcon = 'data:image/png;base64,' +
+             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
+             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIwSURBVDjLlZLNS5RRFMafe9/3vjPOjI1j' +
+             'aKKEVH40tGgRBWEibfoPQoKkVdtoEQQF4T/QqkVtWrSTFrVsF1FgJbWpIAh1k2PNh+PrfL4f95zT' +
+             'Qk0HHKkDD/cc7vP8uHCuEhF0q/KnmXNgGR248PZFN4/GISXMC8L89DBPV0Dp4/SsazJjrtfb9/vd' +
+             'xfn/BgjzY5M8Aq8nBya+V3h93vtnQHFxat4kszntJAAAxus1YvnZQV5V/jyTEZarwnwFLGeFZdT0' +
+             'ZFOJdD84qoCDOpQ7grZfRNj020JSEOKvwvxGiF+q0tL0N5PuO+Mk0nC0B0BDsYCCImyzAIktBBlo' +
+             'MwKJLSgKYcMAcdhC2KpVlIig+H5qxcv0n0xmj4Gbq+BwC2wtJLbgHUlMEFJwUpMIGpto16u+kJzS' +
+             'ACAk+WCzvNbe+AVljkOYIcQQou3TbvdOJo+g4aNdqzaF+PT43HJVA8DQpcVIiPPtaqlEUQzlDELs' +
+             'TpgYwgTAQIjQqlUCtpQfn1spdmxh+PJSQyw9CrbKgM7tvcISQAxlBhC3GuCYXk3cWP25m3M7dk88' +
+             'qbWBRDVApaATOSjPBdXXwYEP5QyCgvjE/kwHgInHtHYBnYA2owhrPiiuw0sOw3EZFEagIB7qChDi' +
+             'YaUcNIoFtP1KxCTPhWiDw7WbXk9vKpnOgsI4exjg6Mbq96YQPxm79uPOvqvbXx4O3KrF6w8osv2d' +
+             'f17kr5YXJq7vnw/S0v3k7Ie7xtud/wAaRnP+Cw8iKQAAAABJRU5ErkJggg==';
+
          function callSelector(aStatuses, aMessage, aNoFilter) {
              var current = new Date();
 
@@ -1343,14 +1386,18 @@ var twitterClient =
                      function (status) blackUsers.every(function (name) status.user.screen_name !== name)
                  );
 
+             function favIconGetter(aRow) aRow[0].favorited ? favoritedIcon : "";
+
              var collection = statuses.map(
                  function (status) {
                      var created = Date.parse(status.created_at);
                      var matched = status.source.match(">(.*)</a>");
 
-                     return [status.user.profile_image_url,
+                     return [status,
+                             status.user.profile_image_url,
                              status.user.name,
                              html.unEscapeTag(status.text),
+                             favIconGetter,
                              util.format("%s %s",
                                          getElapsedTimeString(current - created),
                                          (matched ? matched[1] : "Web"),
@@ -1358,6 +1405,9 @@ var twitterClient =
                                           " to " + status.in_reply_to_screen_name : ""))];
                  }
              );
+
+             const ico = ICON | IGNORE;
+             const hid = HIDDEN | IGNORE;
 
              var helpMessage = M({ja: ' : そのまま Enter でつぶやき画面へ。 Ctrl + i でアクションを選択。 Ctrl + Enter でクライアントを閉じずに連続アクション。',
                                   en: " : Press Enter to tweet. Ctrl + i (or your defined one) to select the action!"});
@@ -1367,26 +1417,38 @@ var twitterClient =
 
              prompt.selector(
                  {
-                     message: "pattern:",
-                     collection: collection,
-                     flags: [ICON | IGNORE, 0, 0, 0],
-                     style: ["color:#0e0067;", null, "color:#660025;"],
-                     width: mainColumnWidth,
-                     header: [M({ja: 'ユーザ', en: "User"}),
-                              aMessage + helpMessage,
-                              M({ja: "情報", en: 'Info'})],
-                     filter: function (aIndex) {
+                     message    : "pattern:",
+                     collection : collection,
+                     // status, icon, name, message, fav-icon, info
+                     flags      : [hid, ico, 0, 0, ico, 0],
+                     header     : [M({ja: 'ユーザ', en: "User"}), aMessage + helpMessage, M({ja : "情報", en: 'Info'})],
+                     style      : ["color:#0e0067;", null, "color:#660025;"],
+                     width      : mainColumnWidth,
+                     filter     : function (aIndex) {
                          var status = statuses[aIndex];
-
+                         
                          return (aIndex < 0 ) ? [null] :
-                             [{screen_name: status.user.screen_name,
-                               id: status.id,
-                               user_id: status.user.id,
-                               text: html.unEscapeTag(status.text)}];
+                             [{
+                                  screen_name : status.user.screen_name,
+                                  id          : status.id,
+                                  user_id     : status.user.id,
+                                  text        : html.unEscapeTag(status.text),
+                                  favorited   : status.favorited
+                              }];
                      },
-                     keymap: getOption("keymap"),
-                     actions: twitterActions
+                     keymap  : getOption("keymap"),
+                     actions : twitterActions
                  });
+         }
+
+         function modifyCache(aId, proc) {
+             for each (var status in my.twitterJSONCache)
+             {
+                 if (status.id === aId)
+                 {
+                     proc(status);
+                 }
+             }
          }
 
          function setLastStatus(aStatuses) {
@@ -1463,8 +1525,8 @@ var twitterClient =
                  tweet();
              },
 
-             tweetWithTitleAndURL: function () {
-                 tweet('"' + content.document.title + '" - ' + getTinyURL(window.content.location.href));
+             tweetWithTitleAndURL: function (ev, arg) {
+                 tweet((arg ? "" : '"' + content.document.title + '" - ') + getTinyURL(window.content.location.href));
              },
 
              showMentions: function () {
