@@ -434,6 +434,7 @@ var twitterClient =
              [function (status)
               {
                   command.setClipboardText(html.unEscapeTag(status.text));
+                  display.echoStatusBar(M({ja: "コピーしました", en: "Copied"}), 1000);
               }, M({ja: "このつぶやきを => クリップボードにコピー : ", en: ""}) + "Copy selected message",
               "copy-tweet,c"],
              [function (status)
