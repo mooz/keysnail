@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.4.2</version>
+    <version>1.4.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -133,6 +133,7 @@ plugins.options["twitter_client.keymap"] = {
     "G"     : "prompt-end-of-candidates",
     "q"     : "prompt-cancel",
     // twitter client specific actions
+    "t"     : "tweet",
     "r"     : "reply",
     "R"     : "retweet",
     "D"     : "delete-tweet",
@@ -217,6 +218,7 @@ plugins.options["twitter_client.keymap"] = {
     "G"     : "prompt-end-of-candidates",
     "q"     : "prompt-cancel",
     // twitter client specific actions
+    "t"     : "tweet",
     "r"     : "reply",
     "R"     : "retweet",
     "D"     : "delete-tweet",
@@ -273,6 +275,10 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.4.3 (2009 12/15) ==== 
+// 
+// * Migrated from tinyurl to j.mp (bit.ly)
 // 
 // ==== 1.4.2 (2009 12/15) ==== 
 // 
@@ -690,6 +696,27 @@ var twitterClient =
          }
 
          // ============================== }} Popup notifications ============================== //
+
+         function shortenURL(aURL) {
+             const id  = "stillpedant";
+             const key = "R_168719821d1100c59352962dce863251";
+
+             var xhr = new XMLHttpRequest();
+             // bit.ly
+             var endPoint = "http://api.j.mp/shorten?" +              
+                 util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s', id, key, aURL);
+
+             xhr.mozBackgroundRequest = true;
+             xhr.open("GET", endPoint, false);
+             xhr.send(null);
+
+             var response = util.safeEval("(" + xhr.responseText + ")");
+
+             if (response && response.results && response.results[aURL])
+                 return response.results[aURL].shortUrl;
+
+             return aURL;
+         }
 
          function getTinyURL(aURL) {
              var xhr = new XMLHttpRequest();
@@ -1526,7 +1553,7 @@ var twitterClient =
              },
 
              tweetWithTitleAndURL: function (ev, arg) {
-                 tweet((arg ? "" : '"' + content.document.title + '" - ') + getTinyURL(window.content.location.href));
+                 tweet((arg ? "" : '"' + content.document.title + '" - ') + shortenURL(window.content.location.href));
              },
 
              showMentions: function () {
