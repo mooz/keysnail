@@ -704,7 +704,7 @@ var twitterClient =
              var xhr = new XMLHttpRequest();
              // bit.ly
              var endPoint = "http://api.j.mp/shorten?" +              
-                 util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s', id, key, aURL);
+                 util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s', id, key, encodeURIComponent(aURL));
 
              xhr.mozBackgroundRequest = true;
              xhr.open("GET", endPoint, false);
