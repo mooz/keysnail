@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.4.3</version>
+    <version>1.4.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -68,6 +68,12 @@ var PLUGIN_INFO =
             <type>[string]</type>
             <description>Specify user id who you don&apos;t want to see pop up notification</description>
             <description lang="ja">ステータス更新時にポップアップを表示させたくないユーザの id を配列で指定</description>
+        </option>
+        <option>
+            <name>twitter_client.black_users</name>
+            <type>[string]</type>
+            <description>Specify user id who you don&apos;t want to see in the timeline :)</description>
+            <description lang="ja">タイムラインに表示させたくないユーザの id を配列で指定</description>
         </option>
         <option>
             <name>twitter_client.unread_status_count_style</name>
@@ -276,18 +282,23 @@ plugins.options["twitter_client.block_users"] = ["foo", "bar"];
 
 // ChangeLog {{ ============================================================= //
 // 
-// ==== 1.4.3 (2009 12/15) ==== 
+// ==== 1.4.4 (2009 12/17) ====
 // 
+// * Fixed the problem that the , in the URL does not handled properly.
+// * Added mentions count and pretty icons.
+//
+// ==== 1.4.3 (2009 12/15) ====
+//
 // * Migrated from tinyurl to j.mp (bit.ly)
-// 
-// ==== 1.4.2 (2009 12/15) ==== 
-// 
+//
+// ==== 1.4.2 (2009 12/15) ====
+//
 // * Added favorited icon and changed add-to-favorite action behavior.
 // * Made tweetWithTitleAndURL() recognize prefix argument.
-// 
-// ==== 1.4.0 (2009 12/14) ==== 
 //
-// * Added local action system 
+// ==== 1.4.0 (2009 12/14) ====
+//
+// * Added local action system
 //
 // ==== 1.3.9 (2009 12/14) ====
 //
@@ -483,7 +494,9 @@ var twitterClient =
                   {
                       var matched;
 
-                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?;#_*.:/=&%\\-]+)")))
+                      // "http://api.twitter.com/1/user/lists/list_id/statuses.format";
+
+                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?;#_*,.:/=&%\\-]+)")))
                       {
                           var prefix = (matched[1] == "ftp") ? "ftp" : "http";
                           if (matched[1][matched[1].length - 1] == 's')
@@ -544,12 +557,38 @@ var twitterClient =
          var lastStatusID  = util.getUnicharPref(LAST_STATUS_KEY);
          var lastMentionID = util.getUnicharPref(LAST_MENTION_KEY);
 
-         var unreadStatusCount   = 0;
-         var unreadMentionsCount = 0;
+         var unreadStatusCount  = 0;
+         var unreadMentionCount = 0;
 
          // ================================================================================ //
          // Statusbar
          // ================================================================================ //
+
+         const statusesIcon = 'data:image/png;base64,' +
+             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
+             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAG/SURBVDjLjZK9T8JQFMVZTUyc3IyJg4mD' +
+             'i87+GyYu6qB/gcZdFxkkJM66qJMGSNRBxDzigJMRQ1jQ4EcQ+SgVKB+FtuL13EdJxNDq8Ev7Xu85' +
+             '797T51nwhqeAH5w6cAxWwDgReX7jwYfdaCIraroptB7NLlVQrOoiGEsL1G06GZyxuILicsMUH3VT' +
+             'lOqGKNUMUdTacj+j1Nng0NGAT2WxYosK1bbIVVoiW27J9V8G57WWKVSczMV5iK+Tudv1vVh5yXdl' +
+             'LQN+os4AFZss2Ob82CCgQmhYHSnmkzf2b6rIhTAaaT2aXZALIRdCLgRtkA1WfYG4iKcVYX52JIs7' +
+             'EYvFmJ8wGiEXQi6EXAhdyn2MxQaPcg68zIETTvzyLsPzWnwqixVbhFwI3RFykes+A9vkIBKX4jCo' +
+             'IxdCLrI4/0OcUXXK4/1dbbDBS088xGGCCzAJCsiF2lanT8xdKNhHXvRarLFBqmcwCrbAhL32+kP3' +
+             'lHguETKRsNlbqUFPeY2OoikW62DNM+jf2ibzQNN0g5ALC75AGiT59oIReQ+cDGyTB+TC4jaYGXiR' +
+             'XMTD3AFogVmnOjeDMRAC025duo7wH74BwZ8JlHrTPLcAAAAASUVORK5CYII=';
+
+         const mentionsIcon = 'data:image/png;base64,' +
+             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
+             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAITSURBVBgZpcHLThNhGIDh9/vn7/RApwc5' +
+             'VCmFWBPi1mvwAlx7BW69Afeu3bozcSE7E02ILjCRhRrds8AEbKVS2gIdSjvTmf+TYqLu+zyiqszD' +
+             'MCf75PnnnVwhuNcLpwsXk8Q4BYeSOsWpkqrinJI6JXVK6lSRdDq9PO+19vb37XK13Hj0YLMUTVVy' +
+             'WY//Cf8IVwQEGEeJN47S1YdPo4npDpNmnDh5udOh1YsZRcph39EaONpnjs65oxsqvZEyTaHdj3n2' +
+             'psPpKDLBcuOOGUWpZDOG+q0S7751ObuYUisJGQ98T/Ct4Fuo5IX+MGZr95jKjRKLlSxXxFxOEmaa' +
+             'N4us1Upsf+1yGk5ZKhp8C74H5ZwwCGO2drssLZZo1ouIcs2MJikz1oPmapHlaoFXH1oMwphyTghy' +
+             'Qj+MefG+RblcoLlaJG/5y4zGCTMikEwTctaxXq/w9kuXdm9Cuzfh9acujXqFwE8xmuBb/hCwl1GK' +
+             'AnGccDwIadQCfD9DZ5Dj494QA2w2qtQW84wmMZ1eyFI1QBVQwV5GiaZOpdsPaSwH5HMZULi9UmB9' +
+             'pYAAouBQbMHHrgQcnQwZV/KgTu1o8PMgipONu2t5KeaNiEkxgAiICDMCCFeEK5aNauAOfoXx8KR9' +
+             'ZOOLk8P7j7er2WBhwWY9sdbDeIJnwBjBWBBAhGsCmiZxPD4/7Z98b/0QVWUehjkZ5vQb/Un5e/DI' +
+             'sVsAAAAASUVORK5CYII=';
 
          function setAttributes(aElem, aAttributes)
          {
@@ -561,40 +600,93 @@ var twitterClient =
 
          const CONTAINER_ID      = "keysnail-twitter-client-container";
          const UNREAD_STATUS_ID  = "keysnail-twitter-client-unread-status";
+         const UNREAD_MENTION_ID = "keysnail-twitter-client-unread-mention";
+       
 
+         var statusbar           = document.getElementById("status-bar");
          var statusbarPanel      = document.getElementById("keysnail-status");
          var container           = document.getElementById(CONTAINER_ID);
          var unreadStatusLabel   = document.getElementById(UNREAD_STATUS_ID);
+         var unreadMentionLabel  = document.getElementById(UNREAD_MENTION_ID);
 
          var unreadStatusLabelStyle = getOption("unread_status_count_style");
 
-         if (!container) {
+         if (!container)
+         {
              // create a new one
-             container = document.createElement("hbox");
+             container = document.createElement("statusbarpanel");
              setAttributes(container,
                            {
                                align: "center",
-                               flex: 1,
-                               insertafter: "keysnail-statusbar-icon",
                                id: CONTAINER_ID
                            });
 
+             let box, icon;
+
+             // ================================================== //
+
+             box = document.createElement("hbox");
+             setAttributes(box,
+                           {
+                               align : "center",
+                               flex  : 1
+                           });
+             icon = document.createElement("image");
+             setAttributes(icon,
+                          {
+                              src : statusesIcon
+                          });
              unreadStatusLabel = document.createElement("label");
              setAttributes(unreadStatusLabel,
                            {
-                               id: UNREAD_STATUS_ID,
-                               flex: 1,
-                               value: "-"
+                               id    : UNREAD_STATUS_ID,
+                               flex  : 1,
+                               value : "-"
                            });
+             box.appendChild(icon);
+             box.appendChild(unreadStatusLabel);
+             container.appendChild(box);
 
-             container.appendChild(unreadStatusLabel);
+             // ================================================== //
 
-             statusbarPanel.appendChild(container);
+             box = document.createElement("hbox");
+             setAttributes(box,
+                           {
+                               align : "center",
+                               flex  : 1
+                           });
+             icon = document.createElement("image");
+             setAttributes(icon,
+                          {
+                              src : mentionsIcon
+                          });
+             unreadMentionLabel = document.createElement("label");
+             setAttributes(unreadMentionLabel,
+                           {
+                               id    : UNREAD_MENTION_ID,
+                               flex  : 1,
+                               value : "-"
+                           });
+             box.appendChild(icon);
+             box.appendChild(unreadMentionLabel);
+             container.appendChild(box);
+
+             // ================================================== //
+
+             function insertAfter(parent, node, referenceNode) {
+	         parent.insertBefore(node, referenceNode.nextSibling);
+             }
+             
+             insertAfter(statusbar, container, statusbarPanel);
+
+             // statusbar.appendChild(container);
          }
 
          unreadStatusLabel.setAttribute("style", unreadStatusLabelStyle);
+         unreadStatusLabel.parentNode.onclick = function () { self.showTimeline(); };
 
-         unreadStatusLabel.onclick = function () { self.showTimeline(); };
+         unreadMentionLabel.setAttribute("style", unreadStatusLabelStyle);
+         unreadMentionLabel.parentNode.onclick = function () { self.showMentions(); };
 
          // ============================== Arrange services ============================== //
 
@@ -698,13 +790,24 @@ var twitterClient =
 
          // ============================== }} Popup notifications ============================== //
 
+         function suggest(aWord) {
+             var xhr = new XMLHttpRequest();
+             var endPoint = "http://www.google.co.jp/complete/search?output=toolbar&q=" + encodeURIComponent(aWord);
+
+             xhr.mozBackgroundRequest = true;
+             xhr.open("GET", endPoint, false);
+             xhr.send(null);
+
+             return XML(xhr.responseText.match("<toplevel>.*</toplevel>")[0]);
+         }
+
          function shortenURL(aURL) {
              const id  = "stillpedant";
              const key = "R_168719821d1100c59352962dce863251";
 
              var xhr = new XMLHttpRequest();
              // bit.ly
-             var endPoint = "http://api.j.mp/shorten?" +              
+             var endPoint = "http://api.j.mp/shorten?" +
                  util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s', id, key, encodeURIComponent(aURL));
 
              xhr.mozBackgroundRequest = true;
@@ -1035,27 +1138,6 @@ var twitterClient =
 
          // ============================== Actions ============================== //
 
-         function showMentions() {
-             oauthASyncRequest(
-                 {
-                     action: "http://twitter.com/statuses/mentions.json",
-                     method: "GET"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status != 200) {
-                             display.echoStatusBar(M({en: "Failed to get mentions", ja: "言及一覧の取得に失敗しました"}));
-                             return;
-                         }
-
-                         var statuses = util.safeEval(xhr.responseText);
-
-                         // no filter
-                         callSelector(statuses, M({ja: "言及一覧", en: "Mentions"}), true);
-                     }
-                 });
-         }
-
          function showFavorites(aTargetID) {
              oauthASyncRequest(
                  {
@@ -1344,14 +1426,46 @@ var twitterClient =
                  });
          }
 
-         function showFollowersStatus(aArg) {
+         function showMentions(aArg) {
              var updateForced = (aArg != null);
 
-             if (updateForced || !my.twitterJSONCache) {
-                 if (twitterPending) {
+             if (updateForced || !my.twitterMentionsJSONCache)
+             {
+                 if (twitterPending)
+                 {
                      display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
                                               en: "Requesting to the Twitter ... Please wait."}), 2000);
-                 } else {
+                 }
+                 else
+                 {
+                     self.updateMentionsCache(
+                         function () {
+                             callSelector(my.twitterMentionsJSONCache);
+                             setLastMention(my.twitterMentionsJSONCache);
+                         }, updateForced);
+                 }
+             }
+             else
+             {
+                 // use cache
+                 callSelector(my.twitterMentionsJSONCache);
+                 setLastMention(my.twitterMentionsJSONCache);
+             }
+            
+         }
+
+         function showFollowersStatus(aArg) {
+             var updateForced = (aArg != null);
+             
+             if (updateForced || !my.twitterJSONCache)
+             {
+                 if (twitterPending)
+                 {
+                     display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
+                                              en: "Requesting to the Twitter ... Please wait."}), 2000);
+                 }
+                 else
+                 {
                      // rebuild cache
                      self.updateStatusesCache(
                          function () {
@@ -1359,7 +1473,9 @@ var twitterClient =
                              setLastStatus(my.twitterJSONCache);
                          }, updateForced);
                  }
-             } else {
+             }
+             else
+             {
                  // use cache
                  callSelector(my.twitterJSONCache);
                  setLastStatus(my.twitterJSONCache);
@@ -1454,7 +1570,7 @@ var twitterClient =
                      width      : mainColumnWidth,
                      filter     : function (aIndex) {
                          var status = statuses[aIndex];
-                         
+
                          return (aIndex < 0 ) ? [null] :
                              [{
                                   screen_name : status.user.screen_name,
@@ -1487,6 +1603,15 @@ var twitterClient =
              }
          }
 
+         function setLastMention(aMentions) {
+             if (aMentions.length)
+             {
+                 lastMentionID = aMentions[0].id;
+                 util.setUnicharPref(LAST_MENTION_KEY, lastMentionID);
+                 self.updateStatusbar();
+             }
+         }
+
          function getStatusPos(aJSON, aID) {
              if (!aID)
                  return aJSON.length;
@@ -1505,6 +1630,73 @@ var twitterClient =
          var self = {
              updateStatusesCache: function (aAfterWork, aNoRepeat) {
                  twitterPending = true;
+
+                 oauthASyncRequest(
+                     {
+                         action : "http://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
+                         method : "GET"
+                     },
+                     function (aEvent, xhr) {
+                         if (xhr.readyState == 4)
+                         {
+                             twitterPending = false;
+
+                             if (xhr.status != 200)
+                             {
+                                 display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
+                                                          en: "Failed to get statuses"}), 2000);
+                             }
+                             else
+                             {
+                                 var statuses = util.safeEval(xhr.responseText) || [];
+
+                                 twitterLastUpdated = new Date();
+                                 my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
+
+                                 timelineCount = timelineCountEveryUpdates;
+
+                                 self.updateStatusbar();
+                             }
+
+                             if (!aNoRepeat)
+                             {
+                                 my.twitterStatusesCacheUpdater = setTimeout(self.updateStatusesCache, updateInterval);
+                             }
+
+                             if (typeof aAfterWork === "function")
+                                 aAfterWork();
+                         }
+                     });
+             },
+
+             updateMentionsCache: function (aAfterWork, aNoRepeat) {
+                 twitterPending = true;
+
+                 oauthASyncRequest(
+                     {
+                         action: "http://twitter.com/statuses/mentions.json",
+                         method: "GET"
+                     },
+                     function (aEvent, xhr) {
+                         if (xhr.readyState == 4)
+                         {
+                             twitterPending = false;
+
+                             if (xhr.status != 200)
+                             {
+                                 display.echoStatusBar(M({en: "Failed to get mentions", ja: "言及一覧の取得に失敗しました"}));
+                                 return;
+                             }
+
+                             var statuses = util.safeEval(xhr.responseText);
+
+                             my.twitterMentionsJSONCache = combineJSONCache(statuses, my.twitterMentionsJSONCache);
+                             self.updateStatusbar();
+
+                             if (typeof aAfterWork === "function")
+                                 aAfterWork();
+                         }
+                     });
 
                  oauthASyncRequest(
                      {
@@ -1579,10 +1771,21 @@ var twitterClient =
 
              updateStatusbar: function () {
                  // calc unread statuses count
-                 unreadStatusCount = getStatusPos(my.twitterJSONCache, lastStatusID);
-                 unreadStatusLabel.setAttribute("value", unreadStatusCount);
-                 unreadStatusLabel.setAttribute("tooltiptext", unreadStatusCount + M({ja: " 個の未読ステータスがあります",
-                                                                                      en: " unread statuses"}));
+                 if (my.twitterJSONCache)
+                 {
+                     unreadStatusCount = getStatusPos(my.twitterJSONCache, lastStatusID);
+                     unreadStatusLabel.setAttribute("value", unreadStatusCount);
+                     unreadStatusLabel.parentNode.setAttribute("tooltiptext",
+                                                               unreadStatusCount + M({ja: " 個の未読ステータスがあります", en: " unread statuses"}));
+                 }
+
+                 if (my.twitterMentionsJSONCache)
+                 {
+                     unreadMentionCount = getStatusPos(my.twitterMentionsJSONCache, lastMentionID);
+                     unreadMentionLabel.setAttribute("value", unreadMentionCount);
+                     unreadMentionLabel.parentNode.setAttribute("tooltiptext",
+                                                                unreadMentionCount + M({ja: " 個のあなた宛メッセージがあります", en: " unread mentions"}));    
+                 }
              }
          };
 
@@ -1628,6 +1831,10 @@ ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
 if (my.twitterStatusesCacheUpdater)
     clearTimeout(my.twitterStatusesCacheUpdater);
 
-if (getOption("automatically_begin")) {
-    twitterClient.updateStatusesCache();
+if (getOption("automatically_begin"))
+{
+    twitterClient.updateStatusesCache(
+        function () {
+            twitterClient.updateMentionsCache();
+        });
 }
