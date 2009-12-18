@@ -559,7 +559,7 @@ KeySnail.Util = {
     },
 
     /**
-     * Original code from liberator
+     * Original code by liberator
      * Returns the list of files in <b>aDirectory</b>.
      * @param {nsIFile|string} aDirectory The directory to read, either a full
      *     pathname or an instance of nsIFile.
@@ -668,10 +668,13 @@ KeySnail.Util = {
      * @returns {dbconnection} places db
      */
     getPlacesDB: function () {
-        try {
+        try
+        {
             return Components.classes['@mozilla.org/browser/nav-history-service;1']
                 .getService(Ci.nsPIPlacesDatabase).DBConnection;
-        } catch (x) {
+        }
+        catch (x)
+        {
             var places = Components.classes["@mozilla.org/file/directory_service;1"].
                 getService(Components.interfaces.nsIProperties).
                 get("ProfD", Components.interfaces.nsIFile);
@@ -753,18 +756,22 @@ KeySnail.Util = {
      * @returns {string} favicon path
      */
     getFaviconPath: function (aURL, aDefault) {
-        if (!this.IOService) {
+        if (!this.IOService)
+        {
             this.IOService = Components.classes['@mozilla.org/network/io-service;1']
             .getService(Components.interfaces.nsIIOService);
         }
 
         var iconURL;
 
-        try {
+        try
+        {
             var icon = PlacesUtils.favicons
                 .getFaviconForPage(this.IOService.newURI(aURL, null, null));
             iconURL = icon.spec;
-        } catch (x) {
+        }
+        catch (x)
+        {
             iconURL = aDefault || "chrome://mozapps/skin/places/defaultFavicon.png";
         }
 
@@ -811,7 +818,7 @@ KeySnail.Util = {
     // Network {{ =============================================================== //
 
     /**
-     * Original code from liberator
+     * Original code by liberator
      * Sends a synchronous HTTP request to <b>aUrl</b> and returns the
      * XMLHttpRequest object. If <b>aCallback</b> is specified the request is
      * asynchronous and the <b>aCallback</b> is invoked with the object as its
@@ -823,11 +830,13 @@ KeySnail.Util = {
      */
     httpGet: function (aUrl, aRaw, aCallback)
     {
-        try {
+        try
+        {
             var req = new XMLHttpRequest();
             req.mozBackgroundRequest = true;
 
-            if (aCallback) {
+            if (aCallback)
+            {
                 req.onreadystatechange = function () {
                     if (req.readyState == 4)
                         aCallback(req);
@@ -840,7 +849,9 @@ KeySnail.Util = {
             req.send(null);
 
             return req;
-        } catch (e) {
+        }
+        catch (e)
+        {
             this.modules.display.notify("Error opening " + aUrl + " :: " + e);
 
             return null;
@@ -865,7 +876,8 @@ KeySnail.Util = {
             .getService().mainThread;
 
         var interval = window.setInterval(function () { timer.timeup = true; }, aWait);
-        while (!timer.timeup) {
+        while (!timer.timeup)
+        {
             thread.processNextEvent(true);
         }
         window.clearInterval(interval);
@@ -911,7 +923,7 @@ KeySnail.Util = {
      * @returns {string} locale specific string of the <b>aNodes</b>
      */
     xmlGetLocaleString: function (aNodes) {
-        if (typeof aNodes == "string")
+        if (typeof aNodes === "string")
             return aNodes;
 
         var length = aNodes.length();
@@ -919,7 +931,8 @@ KeySnail.Util = {
         if (length == 0)
             return "";
 
-        for (var i = 0; i < length; ++i) {
+        for (var i = 0; i < length; ++i)
+        {
             if (aNodes[i].@lang.toString() == this.userLocale)
                 return aNodes[i].text();
         }
