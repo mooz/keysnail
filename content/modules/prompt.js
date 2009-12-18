@@ -538,26 +538,63 @@ KeySnail.Prompt = function () {
         var stopEventPropagation = true;
         var keymap = selectorKeymap;
         var command = keymap[key] || "";
+        var flags;
 
+        [command, flags] = command.split(",");
+        if (!flags)
+            flags = "";
+
+        // convert local command name to prompt-nth-action-*
         if (command in selectorTranslator)
             command = selectorTranslator[command];
 
-        var tmp = command.split(",");
-        command = tmp[0];
-        var flags = tmp[1] || "";
+        // function uniq(array) {
+        //     return array.reduce(
+        //         function (accum, current) {
+        //             if (accum.every(function (done) current !== done))
+        //                 accum.push(current);
+        //             return accum;
+        //         }, []);
+        // }
 
-        /**
-         * This code cause error. Why?
-         */
-        // [command, flags] = command.split(",");
+        function uniq(str) {
+            var found = {};
+            var uniqStr = "";
+
+            for each (let c in str)
+            {
+                if (found[c])
+                    continue;
+
+                uniqStr += c;
+                found[c] = true;
+            }
+
+            return uniqStr;
+        }
+
+        // if additional flags are found
+        let (tmp = command.split(","))
+        {
+            command = tmp[0];
+            flags  += tmp[1] || "";
+        };
+
+        var next = 0;
 
         var continuousMode = false;
-        for each (let flag in flags)
+        for ([, flag] in Iterator(uniq(flags)))
         {
             switch (flag)
             {
-                case "c":
+            case "c":
                 continuousMode = true;
+                break;
+            case "n":
+                next = 1;
+                break;
+            case "p":
+                next = -1;
                 break;
             }
         }
@@ -581,7 +618,7 @@ KeySnail.Prompt = function () {
             else
                 self.finish(false, continuousMode);
 
-            return;
+            stopEventPropagation = false;
         }
 
         switch (command)
@@ -602,19 +639,19 @@ KeySnail.Prompt = function () {
             self.finish(false, true);
         case "prompt-next-line":
         case "prompt-next-completion":
-            selectNextCompletion(1, true);
+            next = 1;
             break;
         case "prompt-continuous-decide-and-previous":
             self.finish(false, true);
         case "prompt-previous-line":
         case "prompt-previous-completion":
-            selectNextCompletion(-1, true);
+            next = -1;
             break;
         case "prompt-next-page":
-            selectNextCompletion(listboxRows, true);
+            next = listboxRows;
             break;
         case "prompt-previous-page":
-            selectNextCompletion(-listboxRows, true);
+            next = -listboxRows;
             break;
         case "prompt-beginning-of-candidates":
             setListBoxIndex(0);
@@ -655,6 +692,11 @@ KeySnail.Prompt = function () {
         default:
             stopEventPropagation = false;
             break;
+        }
+
+        if (next !== 0)
+        {
+            selectNextCompletion(next, true);
         }
 
         if (stopEventPropagation)
