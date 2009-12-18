@@ -460,6 +460,25 @@ KeySnail.Command = {
         }
     },
 
+    inputScrollSelectionIntoView: function (aInput) {
+        let selCon;
+
+        if (aInput.editor)
+        {
+            // XUL (?)
+            selCon = aInput.editor.selectionController;
+        }
+        else
+        {
+            selCon = aInput.QueryInterface(Components.interfaces.nsIDOMNSEditableElement)
+                .editor.selectionController;
+        }
+
+        selCon.scrollSelectionIntoView(selCon.SELECTION_NORMAL,
+                                       selCon.SELECTION_ANCHOR_REGION,
+                                       true);
+    },
+
     // ==================== Insertion ==================== //
 
     openLine: function (aEvent) {
@@ -875,9 +894,6 @@ KeySnail.Command = {
     },
 
     insertKillRingText: function (aInput, aIndex, aSelect) {
-        var oldScrollTop = aInput.scrollTop;
-        var oldScrollLeft = aInput.scrollLeft;
-
         if (aIndex < 0)
         {
             // reset to the original text
@@ -902,8 +918,7 @@ KeySnail.Command = {
             }
         }
 
-        aInput.scrollTop  = oldScrollTop;
-        aInput.scrollLeft = oldScrollLeft;
+        this.inputScrollSelectionIntoView(aInput);
     },
 
     /**
@@ -1096,49 +1111,139 @@ KeySnail.Command = {
             goDoCommand('cmd_endLine');
     },
 
-    // ==================== Transformation ==================== //
+    // Word manipulation {{ ===================================================== //
 
-    // processBackwardWord: function (aInput, aFilter) {
-    //     var begin = aInput.selectionStart;
-    //     var end   = aInput.selectionEnd;
-    //     var text  = aInput.value;
-    //     var subword = text.slice(0, end).match(/[a-zA-Z]+\s*$/);
+    wordChars: "a-zA-Z",
 
-    //     var wordBegin = !!subword ? end - subword[0].length : end;
+    getNextWord: function (aString, aCurrentPos) {
+        let matched = aString.slice(aCurrentPos).match(
+            this.modules.util.format("[^%s]*[%s]+|[^%s]+",
+                                     this.wordChars, this.wordChars, this.wordChars)
+        );
 
-    //     subword[0] = aFilter(subword[0]);
+        return (matched || {0: null})[0];
+    },
 
-    //     aInput.value = text.slice(0, wordBegin) + subword[0] + text.slice(end);
-    //     aInput.setSelectionRange(wordBegin, wordBegin);
-    // },
+    getPreviousWord: function (aString, aCurrentPos) {
+        let matched = aString.slice(0, aCurrentPos).match(
+            this.modules.util.format("[%s]+[^%s]*$|[^%s]+$",
+                                     this.wordChars, this.wordChars, this.wordChars)
+        );
+
+        return (matched || {0: null})[0];
+    },
+
+    processWord: function (aInput, aSubWordGetter, aProcess) {
+        var input    = aInput;
+        var selected = this.marked({originalTarget : aInput});
+
+        var oldScrollTop  = input.scrollTop;
+        var oldScrollLeft = input.scrollLeft;
+
+        var current = input.selectionEnd;
+        var text    = input.value;
+        var subword = aSubWordGetter.call(this, text, current);
+
+        if (subword)
+        {
+            aProcess.call(this, input, subword, selected, current);
+            // recover scroll position
+
+            this.inputScrollSelectionIntoView(input);
+        }
+    },
+
+    // original function by piro
+    getSelectionController: function (aTarget) {
+        if (!aTarget)
+            return null;
+
+        const Ci = Components.interfaces;
+        const nsIDOMNSEditableElement = Ci.nsIDOMNSEditableElement;
+        const nsIDOMWindow            = Ci.nsIDOMWindow;
+
+        try
+        {
+            return (aTarget instanceof nsIDOMNSEditableElement) ?
+                aTarget.QueryInterface(nsIDOMNSEditableElement).editor.selectionController :
+                (aTarget instanceof nsIDOMWindow) ?
+                DocShellIterator.prototype.getDocShellFromFrame(aTarget)
+                .QueryInterface(Ci.nsIInterfaceRequestor)
+                .getInterface(Ci.nsISelectionDisplay)
+                .QueryInterface(Ci.nsISelectionController) :
+                null;
+        }
+        catch (e) {}
+
+        return null;
+    },
+
+    // ========================================================================== //
+
+    nextWord: function (aEvent) {
+        this.processWord(aEvent.originalTarget, this.getNextWord,
+                         function (input, subword, selected, current) {
+                             var wordEnd = current + subword.length;
+
+                             if (!selected)
+                                 input.selectionStart = wordEnd;
+                             input.selectionEnd = wordEnd;
+                         });
+    },
+
+    previousWord: function (aEvent) {
+        this.processWord(aEvent.originalTarget, this.getPreviousWord,
+                         function (input, subword, selected, current) {
+                             var wordEnd = current - subword.length;
+
+                             if (!selected)
+                                 input.selectionEnd = wordEnd;
+                             input.selectionStart = wordEnd;
+                         });
+    },
 
     processForwardWord: function (aInput, aFilter) {
-        var oldScrollTop  = aInput.scrollTop;
-        var oldScrollLeft = aInput.scrollLeft;
+        with (KeySnail.modules)
+        {
+            command.processWord(aInput, command.getNextWord,
+                             function (input, subword, selected, current) {
+                                 var wordEnd = current + subword.length;
+                                 var text    = input.value;
+                                 subword = aFilter(subword);
 
-        var begin   = aInput.selectionStart;
-        var end     = aInput.selectionEnd;
-        var text    = aInput.value;
-        var subword = text.slice(end).match(/[^a-zA-Z]*[a-zA-Z]+|[^a-zA-Z]+/);
+                                 input.value = text.slice(0, current) + subword + text.slice(wordEnd);
+                                 input.setSelectionRange(wordEnd, wordEnd);
+                             });
+        }
+    },
 
-        if (!!subword) {
-            var wordEnd = end + subword[0].length;
-            subword[0] = aFilter(subword[0]);
-            aInput.value = text.slice(0, begin) + subword[0] + text.slice(wordEnd);
-            aInput.setSelectionRange(wordEnd, wordEnd);
-            // without a line below, textbox scrollTop becomes 0!
-            aInput.scrollTop = oldScrollTop;
-            aInput.scrollLeft = oldScrollLeft;
+    processBackwardWord: function (aInput, aFilter) {
+        with (KeySnail.modules)
+        {
+            command.processWord(aInput, command.getNextWord,
+                             function (input, subword, selected, current) {
+                                 var wordEnd = current - subword.length;
+                                 var text    = input.value;
+                                 subword = aFilter(subword);
+
+                                 input.value = text.slice(0, wordEnd) + subword + text.slice(current);
+                                 input.setSelectionRange(wordEnd, wordEnd);
+                             });
         }
     },
 
     capitalizeWord: function (aString) {
-        var spaces = aString.match(/^[^a-zA-Z]*/);
-        var wordBegin = !!spaces ? spaces[0].length : 0;
-        return aString.slice(0, wordBegin)
-            + aString.charAt(wordBegin).toUpperCase()
-            + aString.slice(wordBegin + 1).toLowerCase();
+        with (KeySnail.modules)
+        {
+            var spaces = aString.match(util.format("^[^%s]*", command.wordChars));
+            var wordBegin = !!spaces ? spaces[0].length : 0;
+            return aString.slice(0, wordBegin)
+                + aString.charAt(wordBegin).toUpperCase()
+                + aString.slice(wordBegin + 1).toLowerCase();
+        }
     },
+
+    // }} ======================================================================= //
 
     // ==================== Complete move ==================== //
 
