@@ -136,18 +136,18 @@ KeySnail.Prompt = function () {
     // History
     var historyHolder;
     var history = {
-        list: null,
-        index: 0,
-        state: false,
-        name: "History"
+        list  : null,
+        index : 0,
+        state : false,
+        name  : "History"
     };
 
     // Completion
     var completion = {
-        list: null,
-        index: 0,
-        state: false,
-        name: "Completion"
+        list  : null,
+        index : 0,
+        state : false,
+        name  : "Completion"
     };
 
     // ============================== prompt common functions ============================== //
@@ -1066,7 +1066,7 @@ KeySnail.Prompt = function () {
 
         oldSelectionStart = textbox.selectionStart;
 
-        if (typeof userOnChange == "function")
+        if (typeof userOnChange === "function")
         {
             let (arg = {
                      key     : modules.key.keyEventToString(aEvent),
@@ -1083,6 +1083,12 @@ KeySnail.Prompt = function () {
         var stopEventPropagation = true;
         var keymap = readerKeymap;
 
+        // var currentText = textbox.value;
+        // var args        = currentText.split(" ");
+        // var currentArg  = args[args.length - 1];
+
+        // modules.util.message(currentArg);
+
         switch (keymap[key])
         {
         case "prompt-cancel":
@@ -1094,17 +1100,18 @@ KeySnail.Prompt = function () {
         case "prompt-next-line":
             if (completion.state)
             {
-                fetchItem(completion, 1, true, true, options.substrMatch, true);
+                readerComplete(completion, 1, true, true, options.substrMatch, true);
                 return;
             }
 
             if (history.state)
             {
-                fetchItem(history, 1);
+                readerComplete(history, 1);
             }
             else
             {
-                fetchItem(history, 0);
+                // begin trailing history
+                readerComplete(history, 0);
                 history.state = true;
             }
             // reset completion index
@@ -1113,17 +1120,17 @@ KeySnail.Prompt = function () {
         case "prompt-previous-line":
             if (completion.state)
             {
-                fetchItem(completion, -1, true, true, options.substrMatch, true);
+                readerComplete(completion, -1, true, true, options.substrMatch, true);
                 return;
             }
 
             if (history.state)
             {
-                fetchItem(history, -1);
+                readerComplete(history, -1);
             }
             else
             {
-                fetchItem(history, 0);
+                readerComplete(history, 0);
                 history.state = true;
             }
 
@@ -1133,12 +1140,12 @@ KeySnail.Prompt = function () {
         case "prompt-next-completion":
             if (completion.state)
             {
-                fetchItem(completion, 1, true, true, options.substrMatch, true);
+                readerComplete(completion, 1, true, true, options.substrMatch, true);
             }
             else
             {
                 // begin
-                fetchItem(completion, 0, true, true, options.substrMatch, true);
+                readerComplete(completion, 0, true, true, options.substrMatch, true);
                 completion.state = true;
             }
             // reset history index
@@ -1147,12 +1154,12 @@ KeySnail.Prompt = function () {
         case "prompt-previous-completion":
             if (completion.state)
             {
-                fetchItem(completion, -1, true, true, options.substrMatch, true);
+                readerComplete(completion, -1, true, true, options.substrMatch, true);
             }
             else
             {
                 // begin
-                fetchItem(completion, 0, true, true, options.substrMatch, true);
+                readerComplete(completion, 0, true, true, options.substrMatch, true);
                 completion.state = true;
             }
             // reset history index
@@ -1183,17 +1190,17 @@ KeySnail.Prompt = function () {
                     var delta = (after - before);
                     if (completion.state)
                     {
-                        fetchItem(completion, delta, true, true, options.substrMatch, true);
+                        readerComplete(completion, delta, true, true, options.substrMatch, true);
                         return;
                     }
 
                     if (history.state)
                     {
-                        fetchItem(history, delta);
+                        readerComplete(history, delta);
                     }
                     else
                     {
-                        fetchItem(history, 0);
+                        readerComplete(history, 0);
                         history.state = true;
                     }
                     // reset completion index
@@ -1217,7 +1224,7 @@ KeySnail.Prompt = function () {
      * @param {boolean} aSubstrMatch whether use substring match or not
      * @param {boolean} aNoSit whether move caret or not
      */
-    function fetchItem(aType, aDirection, aExpand, aRing, aSubstrMatch, aNoSit) {
+    function readerComplete(aType, aDirection, aExpand, aRing, aSubstrMatch, aNoSit) {
         if (!aType.list || !aType.list.length)
         {
             modules.display.echoStatusBar("No " + aType.name + " found", 1000);
