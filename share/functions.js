@@ -505,12 +505,12 @@ var ksBuiltin = {
 
         next_word: [
             function(aEvent) {
-                command.nextWord(aEvent);
+                command.forwardWord(aEvent);
             }, false],
 
         previous_word: [
             function(aEvent) {
-                command.previousWord(aEvent);
+                command.backwardWord(aEvent);
             }, false],
 
         next_line: [
@@ -555,37 +555,33 @@ var ksBuiltin = {
 
         delete_forward_word: [
             function() {
-                goDoCommand("cmd_deleteWordForward");
+                command.deleteForwardWord(ev);
             }, false],
 
         delete_backward_word: [
-            function() {
-                goDoCommand("cmd_deleteWordBackward");
+            function(ev) {
+                command.deleteBackwardWord(ev);
             }, false],
 
         convert_following_word_to_upper_case: [
-            function(aEvent) {
-                command.processForwardWord(aEvent.originalTarget, function(aString) {
-                                               return aString.toUpperCase();
-                                           });
-            }, false],
+            function(ev, arg) {
+                command.wordCommand(ev, arg, command.upcaseForwardWord, command.upcaseBackwardWord);
+            }, true],
 
         convert_following_word_to_lower_case: [
-            function(aEvent) {
-                command.processForwardWord(aEvent.originalTarget, function(aString) {
-                                               return aString.toLowerCase();
-                                           });
-            }, false],
+            function(ev, arg) {
+                command.wordCommand(ev, arg, command.downcaseForwardWord, command.downcaseBackwardWord);
+            }, true],
 
         capitalize_the_following_word: [
-            function(aEvent) {
-                command.processForwardWord(aEvent.originalTarget, command.capitalizeWord);
-            }, false],
+            function(ev, arg) {
+                command.wordCommand(ev, arg, command.capitalizeForwardWord, command.capitalizeBackwardWord);
+            }, true],
 
         recenter: [
             function(aEvent) {
                 command.recenter(aEvent);
-            }, false]
+            }, true]
     },
 
     // =========================================================================== //
