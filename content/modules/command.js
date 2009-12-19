@@ -1125,21 +1125,6 @@ KeySnail.Command = {
         this.backwardWord(aEvent);
     },
 
-    // Behavior of these methods are different from Emacs
-    backwardWordNs: function (aEvent) {
-        if (this.marked(aEvent))
-            goDoCommand('cmd_selectWordPrevious');
-        else
-            goDoCommand('cmd_wordPrevious');
-    },
-
-    forwardWordNs: function (aEvent) {
-        if (this.marked(aEvent))
-            goDoCommand('cmd_selectWordNext');
-        else
-            goDoCommand('cmd_wordNext');
-    },
-
     // Word manipulation {{ ===================================================== //
 
     wordChars: "a-zA-Z",
@@ -1225,7 +1210,32 @@ KeySnail.Command = {
 
     // ========================================================================== //
 
+    // Behavior of these methods are different from Emacs
+    // But multibyte language handlings are pretty good.
+
+    backwardWord: function (aEvent) {
+        if (this.marked(aEvent))
+            goDoCommand('cmd_selectWordPrevious');
+        else
+            goDoCommand('cmd_wordPrevious');
+    },
+
     forwardWord: function (aEvent) {
+        if (this.marked(aEvent))
+            goDoCommand('cmd_selectWordNext');
+        else
+            goDoCommand('cmd_wordNext');
+    },
+
+    deleteBackwardWord: function (aEvent) {
+        goDoCommand("cmd_deleteWordBackward");
+    },
+
+    deleteForwardWord: function (aEvent) {
+        goDoCommand("cmd_deleteWordForward");
+    },
+
+    forwardWordKs: function (aEvent) {
         this.processWord(aEvent.originalTarget, this.getForwardWord,
                          function (input, subword, selected, current) {
                              var wordEnd = current + subword.length;
@@ -1236,7 +1246,7 @@ KeySnail.Command = {
                          });
     },
 
-    backwardWord: function (aEvent) {
+    backwardWordKs: function (aEvent) {
         this.processWord(aEvent.originalTarget, this.getBackwardWord,
                          function (input, subword, selected, current) {
                              var wordEnd = current - subword.length;
@@ -1247,7 +1257,7 @@ KeySnail.Command = {
                          });
     },
 
-    deleteForwardWord: function (aEvent) {
+    deleteForwardWordKs: function (aEvent) {
         this.processWord(aEvent.originalTarget, this.getForwardWord,
                          function (input, subword, selected, current) {
                              var wordEnd = current + subword.length;
@@ -1260,7 +1270,7 @@ KeySnail.Command = {
                          });
     },
 
-    deleteBackwardWord: function (aEvent) {
+    deleteBackwardWordKs: function (aEvent) {
         this.processWord(aEvent.originalTarget, this.getBackwardWord,
                          function (input, subword, selected, current) {
                              var wordEnd = current - subword.length;
@@ -1272,6 +1282,8 @@ KeySnail.Command = {
                              this.resetMark(aEvent);
                          });
     },
+
+    // Transformation {{ ======================================================== //
 
     upcaseForwardWord: function (aEvent) {
         KeySnail.modules.command
@@ -1320,6 +1332,8 @@ KeySnail.Command = {
             }
         }
     },
+
+    // }} ======================================================================= //
 
     // }} ======================================================================= //
 
