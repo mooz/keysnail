@@ -82,13 +82,31 @@ KeySnail.Command = {
         var moduleList  = [module for (module in KeySnail.modules)];
         var commandList = [];
 
+        for (var property in document.defaultView)
+        {
+            try
+            {
+                var cand = document.defaultView[property];
+            }
+            catch (x)
+            {
+                continue;
+            }
+
+            if (typeof cand === 'function')
+            {
+                var arg = this.getArgList(cand);
+                commandList.push("window" + "." + property + arg + ";");
+            }
+        }
+
         moduleList.forEach(
             function (aModuleName) {
                 for (var property in this.modules[aModuleName])
                 {
                     var cand = this.modules[aModuleName][property];
 
-                    if (typeof(cand) == 'function')
+                    if (typeof cand === 'function')
                     {
                         var arg = this.getArgList(cand);
                         commandList.push(aModuleName + "." + property + arg + ";");
@@ -96,7 +114,7 @@ KeySnail.Command = {
                 }
             }, this);
 
-        return commandList;
+        return commandList.sort();
     },
 
     interpreter: function () {
@@ -926,14 +944,12 @@ KeySnail.Command = {
      * @param {KeyBoardEvent} aEvent
      */
     yank: function (aEvent, aArg) {
-        var i     = aArg || 0;
-        var input = aEvent.originalTarget;
-
-        // yank() and yankPop() is directly passed to the key.set*Key()
-        // so 'this' value becomes KeySnail
-        with (this.modules.command)
+        with (KeySnail.modules)
         {
-            var clipboardText = getClipboardText();
+            var i     = aArg || 0;
+            var input = aEvent.originalTarget;
+
+            var clipboardText = command.getClipboardText();
 
             if (clipboardText === null)
             {
@@ -941,31 +957,31 @@ KeySnail.Command = {
                 return;
             }
 
-            if (!clipboardText && !kill.ring.length)
+            if (!clipboardText && !command.kill.ring.length)
             {
-                modules.display.echoStatusBar("Kill ring empty", 2000);
+                display.echoStatusBar("Kill ring empty", 2000);
                 return;
             }
 
             // copied outside the Firefox
-            if (kill.ring.length == 0 || clipboardText != kill.ring[0])
+            if (command.kill.ring.length === 0 || clipboardText !== command.kill.ring[0])
             {
-                if (kill.textLengthMax >= 0 && clipboardText.length > kill.textLengthMax)
+                if (command.kill.textLengthMax >= 0 && clipboardText.length > command.kill.textLengthMax)
                 {
-                    insertText(clipboardText);
+                    command.insertText(clipboardText);
                     return;
                 }
 
-                pushKillRing(clipboardText);
+                command.pushKillRing(clipboardText);
             }
 
-            kill.originalText     = input.value;
-            kill.originalSelStart = input.selectionStart;
-            kill.originalSelEnd   = input.selectionEnd;
-            i = Math.min(i, kill.ring.length - 1);
-            kill.index = i;
+            command.kill.originalText     = input.value;
+            command.kill.originalSelStart = input.selectionStart;
+            command.kill.originalSelEnd   = input.selectionEnd;
+            i = Math.min(i, command.kill.ring.length - 1);
+            command.kill.index = i;
 
-            insertKillRingText(input, i);
+            command.insertKillRingText(input, i);
         }
     },
 
@@ -974,35 +990,38 @@ KeySnail.Command = {
      * @param {KeyBoardEvent} aEvent
      */
     yankPop: function (aEvent) {
-        var input = aEvent.originalTarget;
-        var lastFunc = this.modules.key.lastFunc;
-
-        if ((lastFunc != this.modules.command.yank && lastFunc != this.modules.command.yankPop)
-            || (lastFunc == this.modules.command.yankPop && this.modules.command.kill.popFailed))
+        with (KeySnail.modules)
         {
-            this.modules.display.echoStatusBar("Previous command was not a yank", 2000);
-            this.modules.command.kill.popFailed = true;
-            return;
-        }
-        this.modules.command.kill.popFailed = false;
 
-        with (this.modules.command)
-        {
-            if (!kill.ring.length)
+            var input = aEvent.originalTarget;
+            var lastFunc = key.lastFunc;
+
+            if ((lastFunc !== command.yank && lastFunc !== command.yankPop)
+                || (lastFunc === command.yankPop && command.kill.popFailed))
             {
-                modules.display.echoStatusBar("Kill ring is empty", 2000);
-                originalText = null;
+                display.echoStatusBar("Previous command was not a yank", 2000);
+                command.kill.popFailed = true;
+                return;
+            }
+            command.kill.popFailed = false;
+
+            if (!command.kill.ring.length)
+            {
+                display.echoStatusBar("Kill ring is empty", 2000);
+                command.kill.originalText = null;
                 return;
             }
 
-            kill.index++;
-            if (kill.index >= kill.ring.length)
+            command.kill.index++;
+            if (command.kill.index >= command.kill.ring.length)
             {
-                kill.index = 0;
+                command.kill.index = 0;
             }
 
-            insertKillRingText(input, kill.index, true);
-            modules.display.echoStatusBar("Yank pop (" + (kill.index + 1) + " / " + kill.ring.length + ")");
+            command.insertKillRingText(input, command.kill.index, true);
+
+            display.echoStatusBar(util.format("Yank pop (%s / %s)",
+                                              command.kill.index + 1, command.kill.ring.length));
         }
     },
 
@@ -1083,20 +1102,6 @@ KeySnail.Command = {
             goDoCommand('cmd_charNext');
     },
 
-    previousWord: function (aEvent) {
-        if (this.marked(aEvent))
-            goDoCommand('cmd_selectWordPrevious');
-        else
-            goDoCommand('cmd_wordPrevious');
-    },
-
-    nextWord: function (aEvent) {
-        if (this.marked(aEvent))
-            goDoCommand('cmd_selectWordNext');
-        else
-            goDoCommand('cmd_wordNext');
-    },
-
     beginLine: function (aEvent) {
         if (this.marked(aEvent))
             goDoCommand('cmd_selectBeginLine');
@@ -1111,11 +1116,35 @@ KeySnail.Command = {
             goDoCommand('cmd_endLine');
     },
 
+    // aliases
+    nextWord: function (aEvent) {
+        this.forwardWord(aEvent);
+    },
+
+    previousWord: function (aEvent) {
+        this.backwardWord(aEvent);
+    },
+
+    // Behavior of these methods are different from Emacs
+    backwardWordNs: function (aEvent) {
+        if (this.marked(aEvent))
+            goDoCommand('cmd_selectWordPrevious');
+        else
+            goDoCommand('cmd_wordPrevious');
+    },
+
+    forwardWordNs: function (aEvent) {
+        if (this.marked(aEvent))
+            goDoCommand('cmd_selectWordNext');
+        else
+            goDoCommand('cmd_wordNext');
+    },
+
     // Word manipulation {{ ===================================================== //
 
     wordChars: "a-zA-Z",
 
-    getNextWord: function (aString, aCurrentPos) {
+    getForwardWord: function (aString, aCurrentPos) {
         let matched = aString.slice(aCurrentPos).match(
             this.modules.util.format("[^%s]*[%s]+|[^%s]+",
                                      this.wordChars, this.wordChars, this.wordChars)
@@ -1124,7 +1153,7 @@ KeySnail.Command = {
         return (matched || {0: null})[0];
     },
 
-    getPreviousWord: function (aString, aCurrentPos) {
+    getBackwardWord: function (aString, aCurrentPos) {
         let matched = aString.slice(0, aCurrentPos).match(
             this.modules.util.format("[%s]+[^%s]*$|[^%s]+$",
                                      this.wordChars, this.wordChars, this.wordChars)
@@ -1153,59 +1182,10 @@ KeySnail.Command = {
         }
     },
 
-    // original function by piro
-    getSelectionController: function (aTarget) {
-        if (!aTarget)
-            return null;
-
-        const Ci = Components.interfaces;
-        const nsIDOMNSEditableElement = Ci.nsIDOMNSEditableElement;
-        const nsIDOMWindow            = Ci.nsIDOMWindow;
-
-        try
-        {
-            return (aTarget instanceof nsIDOMNSEditableElement) ?
-                aTarget.QueryInterface(nsIDOMNSEditableElement).editor.selectionController :
-                (aTarget instanceof nsIDOMWindow) ?
-                DocShellIterator.prototype.getDocShellFromFrame(aTarget)
-                .QueryInterface(Ci.nsIInterfaceRequestor)
-                .getInterface(Ci.nsISelectionDisplay)
-                .QueryInterface(Ci.nsISelectionController) :
-                null;
-        }
-        catch (e) {}
-
-        return null;
-    },
-
-    // ========================================================================== //
-
-    nextWord: function (aEvent) {
-        this.processWord(aEvent.originalTarget, this.getNextWord,
-                         function (input, subword, selected, current) {
-                             var wordEnd = current + subword.length;
-
-                             if (!selected)
-                                 input.selectionStart = wordEnd;
-                             input.selectionEnd = wordEnd;
-                         });
-    },
-
-    previousWord: function (aEvent) {
-        this.processWord(aEvent.originalTarget, this.getPreviousWord,
-                         function (input, subword, selected, current) {
-                             var wordEnd = current - subword.length;
-
-                             if (!selected)
-                                 input.selectionEnd = wordEnd;
-                             input.selectionStart = wordEnd;
-                         });
-    },
-
     processForwardWord: function (aInput, aFilter) {
         with (KeySnail.modules)
         {
-            command.processWord(aInput, command.getNextWord,
+            command.processWord(aInput, command.getForwardWord,
                              function (input, subword, selected, current) {
                                  var wordEnd = current + subword.length;
                                  var text    = input.value;
@@ -1220,14 +1200,14 @@ KeySnail.Command = {
     processBackwardWord: function (aInput, aFilter) {
         with (KeySnail.modules)
         {
-            command.processWord(aInput, command.getNextWord,
+            command.processWord(aInput, command.getBackwardWord,
                              function (input, subword, selected, current) {
-                                 var wordEnd = current - subword.length;
+                                 var wordBegin = current - subword.length;
                                  var text    = input.value;
                                  subword = aFilter(subword);
 
-                                 input.value = text.slice(0, wordEnd) + subword + text.slice(current);
-                                 input.setSelectionRange(wordEnd, wordEnd);
+                                 input.value = text.slice(0, wordBegin) + subword + text.slice(current);
+                                 input.setSelectionRange(wordBegin, wordBegin);
                              });
         }
     },
@@ -1240,6 +1220,104 @@ KeySnail.Command = {
             return aString.slice(0, wordBegin)
                 + aString.charAt(wordBegin).toUpperCase()
                 + aString.slice(wordBegin + 1).toLowerCase();
+        }
+    },
+
+    // ========================================================================== //
+
+    forwardWord: function (aEvent) {
+        this.processWord(aEvent.originalTarget, this.getForwardWord,
+                         function (input, subword, selected, current) {
+                             var wordEnd = current + subword.length;
+
+                             if (!selected)
+                                 input.selectionStart = wordEnd;
+                             input.selectionEnd = wordEnd;
+                         });
+    },
+
+    backwardWord: function (aEvent) {
+        this.processWord(aEvent.originalTarget, this.getBackwardWord,
+                         function (input, subword, selected, current) {
+                             var wordEnd = current - subword.length;
+
+                             if (!selected)
+                                 input.selectionEnd = wordEnd;
+                             input.selectionStart = wordEnd;
+                         });
+    },
+
+    deleteForwardWord: function (aEvent) {
+        this.processWord(aEvent.originalTarget, this.getForwardWord,
+                         function (input, subword, selected, current) {
+                             var wordEnd = current + subword.length;
+                             var text    = input.value;
+
+                             input.value = text.slice(0, current) + text.slice(wordEnd);
+                             input.setSelectionRange(current, current);
+
+                             this.resetMark(aEvent);
+                         });
+    },
+
+    deleteBackwardWord: function (aEvent) {
+        this.processWord(aEvent.originalTarget, this.getBackwardWord,
+                         function (input, subword, selected, current) {
+                             var wordEnd = current - subword.length;
+                             var text    = input.value;
+
+                             input.value = text.slice(0, wordEnd) + text.slice(current);
+                             input.setSelectionRange(wordEnd, wordEnd);
+
+                             this.resetMark(aEvent);
+                         });
+    },
+
+    upcaseForwardWord: function (aEvent) {
+        KeySnail.modules.command
+            .processForwardWord(aEvent.originalTarget, function (str) str.toUpperCase());
+    },
+
+    upcaseBackwardWord: function (aEvent) {
+        KeySnail.modules.command
+            .processBackwardWord(aEvent.originalTarget, function (str) str.toUpperCase());
+    },
+
+    downcaseForwardWord: function (aEvent) {
+        KeySnail.modules.command
+            .processForwardWord(aEvent.originalTarget, function (str) str.toLowerCase());
+    },
+
+    downcaseBackwardWord: function (aEvent) {
+        KeySnail.modules.command
+            .processBackwardWord(aEvent.originalTarget, function (str) str.toLowerCase());
+    },
+
+    capitalizeForwardWord: function (aEvent) {
+        KeySnail.modules.command
+            .processForwardWord(aEvent.originalTarget, this.capitalizeWord);
+    },
+
+    capitalizeBackwardWord: function (aEvent) {
+        KeySnail.modules.command
+            .processBackwardWord(aEvent.originalTarget, this.capitalizeWord);
+    },
+
+    wordCommand: function (aEvent, aArg, aForward, aBackward)  {
+        if (!aArg)
+        {
+            aForward.call(KeySnail.modules.command, aEvent);
+        }
+        else if (aArg < 0)
+        {
+            aBackward.call(KeySnail.modules.command, aEvent);
+        }
+        else
+        {
+            for (let i = 0; i < aArg; ++i)
+            {
+                aForward.call(KeySnail.modules.command, aEvent);
+            }
         }
     },
 
