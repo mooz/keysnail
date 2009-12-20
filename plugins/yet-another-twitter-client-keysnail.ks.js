@@ -483,11 +483,11 @@ var twitterClient =
                       search();
               }, M({ja: "単語を検索 : ", en: ""}) + "Search keyword",
               "search-word"],
-             // [function (status)
-             //  {
-             //      command.setClipboardText(status.screen_name);
-             //  }, M({ja: "このユーザの id をコピー : ", en: ""}) + "Copy id of the selected user",
-             //  "copy-user-id,c"],
+             [function (status)
+              {
+                  command.setClipboardText(status.screen_name);
+              }, M({ja: "このユーザの id をコピー : ", en: ""}) + "Copy id of the selected user",
+              "copy-user-id,c"],
              [function (status)
               {
                   if (status)
