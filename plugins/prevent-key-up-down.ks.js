@@ -8,7 +8,7 @@ var PLUGIN_INFO =
     <version>1.0.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/prevent-key-up-down.ks.js</updateURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
-    <license>MPL</license>
+    <license>MIT</license>
     <minVersion>1.0.1</minVersion>
     <include>main</include>
     <provides>
@@ -39,44 +39,6 @@ Google Reader などではサイトが用意するショートカットキーが
 
 var status = true;
 
-var disabledInThisURL = false;
-
-// function locationChangeHandler(aNsURI) {
-//     if (!status)
-//         return;
-
-//     // about:blank?
-//     if (!aNsURI)
-//     {
-//         disabledInThisURL = true;
-//         return;
-//     }
-
-//     var url = aNsURI.spec;
-//     var keymap;
-
-//     for (var regexp in localKeyMaps)
-//     {
-//         if (url.match(regexp))
-//         {
-//             keymap = localKeyMaps[regexp];
-//             // TODO: need some visual effects?
-//             break;
-//         }
-//     }
-
-//     key.keyMapHolder[key.modes.SITELOCAL] = keymap;
-
-//     // change statusbar icon
-//     if (keymap && key.status && !key.suspended) {
-//         iconElem.setAttribute("src", iconData);
-//         iconElem.tooltipText = M({en: "Site local keymap of this page enabled",
-//                                   ja: "このサイト用のローカルキーマップが使われています"}) + " [" + regexp + "]";
-//     } else {
-//         key.updateStatusBar();
-//     }
-// }
-
 var preventKeyUpDown = (
     function () {
         function preventEvent(aEvent) {
@@ -85,32 +47,29 @@ var preventKeyUpDown = (
                 !util.isWritable(aEvent))
             {
                 aEvent.stopPropagation();
+                aEvent.preventDefault();
             }
         }
 
+        let eventType = ["keydown", "keyup"];
+
         var self = {
             start: function () {
-                for each (var eventType in ["keydown", "keyup"])
+                for ([, type] in Iterator(eventType))
                 {
-                    window.addEventListener(eventType, preventEvent, true);
+                    window.addEventListener(type, preventEvent, true);
                 }
             },
 
             stop: function () {
-                for each (var eventType in ["keydown", "keyup"])
+                for ([, type] in Iterator(eventType))
                 {
-                    window.removeEventListener(eventType, preventEvent, true);
+                    window.removeEventListener(type, preventEvent, true);
                 }
             }
         };
 
         return self;
     })();
-
-// if (my.preventKeyUpDownLocationChangeHandler)
-//     hook.removeHook('LocationChange', my.preventKeyUpDownLocationChangeHandler);
-// my.preventKeyUpDownLocationChangeHandler = locationChangeHandler;
-
-// hook.addToHook('LocationChange', locationChangeHandler);
 
 preventKeyUpDown.start();
