@@ -35,7 +35,7 @@ var PLUGIN_INFO =
     <name>Caret hint</name>
     <description>Move caret by hitting hints</description>
     <description lang="ja">ヒントを使ってキャレット移動</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/caret-hint.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/caret-hint.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -111,6 +111,14 @@ C-SPC を押してマークを設定し C-f C-n などのキーを使って選�
 
 // }} ======================================================================= //
 
+// Change Log {{ ============================================================ //
+// 
+// ==== 0.0.3 (2009 12/20) ====
+// 
+// * Removed unnecessary codes
+// 
+// }} ======================================================================= //
+
 var optionsDefaultValue = {
     "head_key"        : 'c',
     "tail_key"        : 'C',
@@ -122,7 +130,7 @@ var optionsDefaultValue = {
 function getOption(aName) {
     var fullName = "caret_hint." + aName;
 
-    if (typeof(plugins.options[fullName]) !== "undefined")
+    if (typeof plugins.options[fullName] !== "undefined")
         return plugins.options[fullName];
     else
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
@@ -134,8 +142,6 @@ function getOption(aName) {
      let selectHeadMode = getOption('select_head_key');
      let selectTailMode = getOption('select_tail_key');
      let hintQuery      = getOption('hint_query');
-
-     let extendMode = false;
 
      function swapCaret (ev, arg) {
          let win = new XPCNativeWrapper(window.content.window);
@@ -213,23 +219,10 @@ function getOption(aName) {
              util.setBoolPref("accessibility.browsewithcaret", true);
          }
 
-         if (extendMode)
-         {
-             let a = sel.getRangeAt(0);
-
-             if (r.compareBoundaryPoints(Range.END_TO_START, a) < 0)
-                 r.setEnd(a.endContainer, a.endOffset);
-             else
-                 r.setStart(a.startContainer, a.startOffset);
-         }
-
          sel.addRange(r);
 
-         if (select)
-         {
-             if (head)
-                 swapCaret();
-         }
+         if (select && head)
+             swapCaret();
      }
 
      // Add HoK extend mode actions {{ =========================================== //
@@ -264,19 +257,13 @@ function getOption(aName) {
                                 if (!aKey)
                                     return;
 
-                                let i = seekAction(plugins.hok.actions, aKey);
+                                let i   = seekAction(plugins.hok.actions, aKey);
+                                let row = [aKey, aDesc, aFunc, false, false, hintQuery];
+
                                 if (i >= 0)
-                                {
-                                    plugins.hok.actions[i][1] = aDesc;
-                                    plugins.hok.actions[i][2] = aFunc;
-                                    plugins.hok.actions[i][3] = false;
-                                    plugins.hok.actions[i][4] = false;
-                                    plugins.hok.actions[i][5] = hintQuery;
-                                }
+                                    plugins.hok.actions[i] = row;
                                 else
-                                {
-                                    plugins.hok.actions.push([aKey, aDesc, aFunc, false, false, hintQuery]);
-                                }
+                                    plugins.hok.actions.push(row);
                             }
                         );
                     });
