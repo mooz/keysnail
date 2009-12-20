@@ -134,20 +134,28 @@ plugins.options["bmany.default_open_type"] = "tab";
 
 ==== ローカルキーマップ ====
 
-例えば次のような設定を .keysnail.js の PRESERVE エリアへ含めておくことにより Ctrl + Enter で二番目のアクションを実行することが可能となります。
+例えば次のような設定を .keysnail.js の PRESERVE エリアへ含めておくことにより Ctrl + Enter で「新しいタブでブックマークを開く(前面)」というアクションを実行することが可能となります。
 
 >||
 plugins.options["bmany.keymap"] = {
-    "C-RET" : "prompt-nth-action-2"
+    "C-RET" : "open-foreground-tab,c"
 };
 ||<
 
-今回の場合、二番目のアクションは「タブを前面に新しく開く」でした。つまり
+これにより
 
 - 単なる Enter で確定した場合は現在のタブで開き
 - Ctrl + Enter とした場合は前面のタブで開く
 
-といった使い分けをすることが可能となるわけです。
+といった使い分けをすることができるわけです。
+
+次の設定ではコマンドに cn といったフラグを追加しています。 c (continuous) は「コマンド実行後、プロンプトが閉じないようにする」ものであり、 n (next) は「コマンド実行後、一つ下へと自動的に移動する」というものです。
+
+>||
+plugins.options["bmany.keymap"] = {
+    "O" : "open-background-tab,cn"
+};
+||<
 
 ==== 謝辞 ====
 
@@ -281,17 +289,23 @@ var bmany =
 
          var actions = [
              [function (url, id) { self.go(url, "current");    },
-              M({en: "Open link in current tab", ja: "現在のタブで開く"})],
+              M({en: "Open link in current tab", ja: "現在のタブで開く"}),
+              "open-current-tab"],
              [function (url, id) { self.go(url, "tab");        },
-              M({en: "Open link in new tab (foreground)", ja: "新しいタブを前面に開く"})],
+              M({en: "Open link in new tab (foreground)", ja: "新しいタブを前面に開く"}),
+              "open-foreground-tab"],
              [function (url, id) { self.go(url, "tabshifted"); },
-              M({en: "Open link in new tab (background)", ja: "新しいタブを背面に開く"})],
+              M({en: "Open link in new tab (background)", ja: "新しいタブを背面に開く"}),
+              "open-background-tab"],
              [function (url, id) { self.go(url, "window");     },
-              M({en: "Open link in new window", ja: "新しいウィンドウで開く"})],
+              M({en: "Open link in new window", ja: "新しいウィンドウで開く"}),
+              "open-new-window"],
              [function (url, id) { self.go(url, "unique");     },
-              M({en: "Open link in unique tab", ja: "既に開いていればそのタブを選択し、いなければ現在のタブで開く"})],
+              M({en: "Open link in unique tab", ja: "既に開いていればそのタブを選択し、いなければ現在のタブで開く"}),
+              "open-unique-tab"],
              [function (url, id) { PlacesUIUtils.showItemProperties(id, "bookmark"); },
-              M({en: "Edit selected bookmark item", ja: "選択中のブックマークを編集"})]
+              M({en: "Edit selected bookmark item", ja: "選択中のブックマークを編集"}),
+              "edit-bookmark"]
          ];
 
          var cache = {};
