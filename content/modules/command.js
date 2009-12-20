@@ -9,12 +9,12 @@ KeySnail.Command = {
     modules: null,
 
     /**
-     * Will be overridden with the kill object in killring.jsm
+     * will be assigned by the killring.js
      */
     kill: null,
 
     get gFindBar() {
-        return typeof(gFindBar) == 'undefined' ?
+        return typeof gFindBar === 'undefined' ?
             document.getElementById('FindToolbar') : gFindBar;
     },
     get autoCompleteController() {
@@ -31,7 +31,7 @@ KeySnail.Command = {
         }
 
         // for window which does not have goDoCommand()
-        if (typeof(goDoCommand) == 'undefined')
+        if (typeof goDoCommand === 'undefined')
         {
             document.defaultView.goDoCommand = function (aCommand)
             {
@@ -64,7 +64,7 @@ KeySnail.Command = {
             {
                 var cand = global[aModuleName][property];
 
-                if (typeof(cand) == 'function')
+                if (typeof cand === 'function')
                 {
                     var arg = this.getArgList(cand);
                     commandList.push(aModuleName + "." + property + arg + ";");
@@ -124,10 +124,12 @@ KeySnail.Command = {
         {
             prompt.substrMatch = false;
             prompt.read("Eval:",
-                        function (aStr) {
+                        function (code) {
                             try
                             {
-                                Function("with (KeySnail.modules) { " + aStr + "; }")();
+                                eval("with (KeySnail.modules) {" +
+                                     code +
+                                     " } ");
                             }
                             catch (x)
                             {
@@ -288,6 +290,26 @@ KeySnail.Command = {
     closeFindBar: function () {
         if (this.gFindBar && !this.gFindBar.hidden)
             this.gFindBar.close();
+    },
+
+    iSearchForwardKs: function (aEvent) {
+        if (this.gFindBar.hidden)
+            this.gFindBar.open();
+        else if (aEvent.target == this.gFindBar)
+            this.gFindBar.onFindAgainCommand(false);
+
+        this.gFindBar._findField.focus();
+        goDoCommand("cmd_selectAll");
+    },
+
+    iSearchBackwardKs: function (aEvent) {
+        if (this.gFindBar.hidden)
+            this.gFindBar.open();
+        else if (aEvent.target == this.gFindBar)
+            this.gFindBar.onFindAgainCommand(true);
+
+        this.gFindBar._findField.focus();
+        goDoCommand("cmd_selectAll");
     },
 
     iSearchForward: function () {
@@ -1234,6 +1256,10 @@ KeySnail.Command = {
     deleteForwardWord: function (aEvent) {
         goDoCommand("cmd_deleteWordForward");
     },
+
+    // Behavior of these methods it's name end with *Ks is
+    // similar to Emacs. But the multibyte charactors will not be
+    // processed properly.
 
     forwardWordKs: function (aEvent) {
         this.processWord(aEvent.originalTarget, this.getForwardWord,

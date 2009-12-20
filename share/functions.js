@@ -269,12 +269,22 @@ var ksBuiltin = {
         incremental_search_forward: [
             function() {
                 command.iSearchForward();
-            }, false],
+            }, true],
 
         incremental_search_backward: [
             function() {
                 command.iSearchBackward();
-            }, false],
+            }, true],
+
+        incremental_search_forward_emacs: [
+            function(ev) {
+                command.iSearchForwardKs(ev);
+            }, true],
+
+        incremental_search_backward_emacs: [
+            function(ev) {
+                command.iSearchBackwardKs(ev);
+            }, true],
 
         open_the_bookmark_toolbar_item: [
             function(aEvent, arg) {

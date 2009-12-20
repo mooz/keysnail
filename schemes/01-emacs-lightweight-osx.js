@@ -46,8 +46,8 @@ SCHEME.keybindings["global"] = [
     [["C-x", "s"], "focus_to_the_first_button", true],
     // For Mac users, this will affect
     // ["M-w", "copy_selected_text", true],
-    ["C-s", "incremental_search_forward", true],
-    ["C-r", "incremental_search_backward", true],
+    ["C-s", "incremental_search_forward_emacs", true],
+    ["C-r", "incremental_search_backward_emacs", true],
     // Tab / Window
     [["C-x", "k"], "close_tab_window"],
     [["C-x", "K"], "close_the_window"],
