@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>bmany</name>
     <description>Search bookmarks incrementally and go!</description>
     <description lang="ja">anything.el 気分でブックマークを操作</description>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/bmany.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/bmany.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -170,7 +170,7 @@ var optionsDefaultValue = {
     "folder_style"      : "",
     "keyword_style"     : 'font-weight:bold;',
     "title_style"       : 'font-weight:bold;',
-    "url_style"         : 'color:#0045b3;text-decoration:underline;',
+    "url_style"         : 'color:#0000ff;text-decoration:underline;',
     "default_open_type" : 'current',
     "keymap"            : {}
 };
@@ -182,6 +182,11 @@ function getOption(aName) {
         return plugins.options[fullName];
     else
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
+}
+
+function tap(msg) {
+    util.message(msg || "nandayo!");
+    return msg;
 }
 
 // }} ======================================================================= //
@@ -201,6 +206,17 @@ var bmany =
          // PlacesUtils.toolbarFolderId;
          // PlacesUtils.bookmarksMenuFolderId;
          // PlacesUtils.unfiledBookmarksFolderId;
+
+         function getFaviconPath(aURL)
+         {
+             if (!aURL)
+                 return defaultFavicon;
+
+             if (typeof aURL === "string")
+                 return aURL;
+
+             return aURL.spec;
+         }
 
          // Based on http://www.xuldev.org/blog/?p=181
          // via http://d.hatena.ne.jp/Griever/20090625/1245933515
@@ -237,7 +253,7 @@ var bmany =
                  function (childNode, parentNode) [childNode.itemId,
                                                    folderIconGetter,
                                                    parentNode.title  || "",
-                                                   (childNode.icon   || {spec : defaultFavicon}).spec,
+                                                   getFaviconPath(childNode.icon),
                                                    childNode.title,
                                                    childNode.uri]
              );
@@ -255,7 +271,7 @@ var bmany =
                                  folderIconGetter,
                                  parentNode.title || "",
                                  keyword || "",
-                                 (childNode.icon || {spec : defaultFavicon}).spec,
+                                 getFaviconPath(childNode.icon),
                                  childNode.title,
                                  childNode.uri];
                      }
@@ -276,7 +292,7 @@ var bmany =
                                  folderIconGetter,
                                  parentNode.title  || "",
                                  keyword || "",
-                                 (childNode.icon || {spec : defaultFavicon}).spec,
+                                 getFaviconPath(childNode.icon),
                                  childNode.title,
                                  childNode.uri];
                      }
@@ -375,9 +391,10 @@ var bmany =
                                      message       : "pattern:",
                                      collection    : cache.toolbarBookmarks,
                                      //            : id, icon, folder, icon, title, uri
-                                     flags         : [hid, hid, hid, ico, 0, 0],
+                                     flags         : [hid, ico, 0, ico, 0, 0],
                                      header        : ["Title", "URL / Script"],
-                                     style         : [getOption("title_style"), getOption("url_style")],
+                                     width         : [17, 45, 38],
+                                     style         : [getOption("folder_style"), getOption("title_style"), getOption("url_style")],
                                      actions       : actions,
                                      initialAction : openType,
                                      keymap        : commonKeyMap,
