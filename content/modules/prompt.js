@@ -845,6 +845,8 @@ KeySnail.Prompt = function () {
     function setSelectorActions(aActions) {
         var context = selectorContext[SELECTOR_STATE_ACTION];
 
+        selectorTranslator = {};
+
         if (typeof aActions === "function")
         {
             // set callback
@@ -854,8 +856,6 @@ KeySnail.Prompt = function () {
         }
 
         var list = [];
-
-        selectorTranslator = {};
 
         // create action list and local command
         for ([i, action] in Iterator(aActions))

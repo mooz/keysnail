@@ -942,6 +942,37 @@ KeySnail.Util = {
 
     // }} ======================================================================= //
 
+    // Bookmarks / Places {{ ==================================================== //
+    
+    filterBookmarks: function (aItemId, aFilter, aContainer)
+    {
+        var parentNode = PlacesUtils.getFolderContents(aItemId).root;
+
+        if (!aContainer)
+            aContainer = [];
+
+        for (var i = 0; i < parentNode.childCount; i++)
+        {
+            var childNode = parentNode.getChild(i);
+
+            if (PlacesUtils.nodeIsBookmark(childNode))
+            {
+                let item = aFilter(childNode, parentNode);
+                if (item)
+                    aContainer.push(item);
+            }
+            else if (PlacesUtils.nodeIsFolder(childNode)
+                     && !PlacesUtils.nodeIsLivemarkContainer(childNode))
+            {
+                arguments.callee(childNode.itemId, aFilter, aContainer);
+            }
+        }
+
+        return aContainer;
+    },
+
+    // }} ======================================================================= //
+
     // String {{ ================================================================ //
 
     createSeparator: function (label) {
