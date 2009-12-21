@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>bmany</name>
     <description>Search bookmarks incrementally and go!</description>
     <description lang="ja">anything.el 気分でブックマークを操作</description>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/bmany.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/bmany.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -45,6 +45,7 @@ var PLUGIN_INFO =
     </options>
     <provides>
         <ext>bmany-list-all-bookmarks</ext>
+        <ext>bmany-list-toolbar-bookmarks</ext>
         <ext>bmany-list-bookmarks-with-keyword</ext>
         <ext>bmany-list-bookmarklets</ext>
     </provides>
@@ -169,7 +170,7 @@ var optionsDefaultValue = {
     "folder_style"      : "",
     "keyword_style"     : 'font-weight:bold;',
     "title_style"       : 'font-weight:bold;',
-    "url_style"         : 'color:#1e2799;text-decoration:underline;',
+    "url_style"         : 'color:#0045b3;text-decoration:underline;',
     "default_open_type" : 'current',
     "keymap"            : {}
 };
@@ -338,7 +339,7 @@ var bmany =
          let self = {
              get ACTION_CURRENT() { return 0; },
              get ACTION_TAB()     { return 1; },
-
+             
              listBookmarks: function (arg, openType) {
                  if (arg || !cache.bookmarks)
                  {
@@ -363,6 +364,25 @@ var bmany =
                                      keymap        : commonKeyMap,
                                      filter        : function (i) (i >= 0) ?
                                          [cache.bookmarks[i][5], cache.bookmarks[i][0]] : []
+                                 });
+             },
+
+             listToolbarBookmarks: function (arg, openType) {
+                 if (arg || !cache.bookmarks)
+                     cache.toolbarBookmarks = getBookmarks(PlacesUtils.toolbarFolderId);
+
+                 prompt.selector({
+                                     message       : "pattern:",
+                                     collection    : cache.toolbarBookmarks,
+                                     //            : id, icon, folder, icon, title, uri
+                                     flags         : [hid, hid, hid, ico, 0, 0],
+                                     header        : ["Title", "URL / Script"],
+                                     style         : [getOption("title_style"), getOption("url_style")],
+                                     actions       : actions,
+                                     initialAction : openType,
+                                     keymap        : commonKeyMap,
+                                     filter        : function (i) (i >= 0) ?
+                                         [cache.toolbarBookmarks[i][5], cache.toolbarBookmarks[i][0]] : []
                                  });
              },
 
@@ -486,6 +506,10 @@ var openType = {
 ext.add("bmany-list-all-bookmarks", function (ev, arg) { bmany.listBookmarks(arg, openType); },
         M({ja: "bmany - ブックマークを一覧表示",
            en: "bmany - List all bookmarks"}));
+
+ext.add("bmany-list-toolbar-bookmarks", function (ev, arg) { bmany.listToolbarBookmarks(arg, openType); },
+        M({ja: "bmany - ツールバーのブックマークを一覧表示",
+           en: "bmany - List toolbar bookmarks"}));
 
 ext.add("bmany-list-bookmarks-with-keyword", function (ev, arg) { bmany.listBookmarksWithKeywords(arg, openType); },
         M({ja: "bmany - キーワード付きブックマークを一覧表示",
