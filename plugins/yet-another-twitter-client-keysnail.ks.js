@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.4.4</version>
+    <version>1.4.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -164,11 +164,14 @@ You can select more actions like reply, retweet, search, et al by pressing the C
 === Customizing ===
 You can set options through your .keysnail.js.
 
-Put codes like blow to the PRESERVE area of the .keysnail.js and you can customize this plugin's behavior.
+Here is the example settings. This makes twitter client plugin tweet-only.
 
 >||
-plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
-plugins.options["twitter_client.block_users"] = ["foo", "bar"];
+style.register("#keysnail-twitter-client-container{ display:none !important; }");
+plugins.options["twitter_client.use_popup_notification"]       = false;
+plugins.options["twitter_client.automatically_begin"]          = false;
+plugins.options["twitter_client.timeline_count_beginning"]     = 0;
+plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 ||<
     ]]></detail>
     <detail lang="ja"><![CDATA[
@@ -268,19 +271,28 @@ twitter_client.use_popup_notification オプションが true に設定されて
 
 また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
 
-=== オプションの設定 ===
-以下に初期化ファイル PRESERVE エリアへの設定例を示します。
+=== つぶやき専用 ===
+つぶやき専用で TL の表示はしない、自動更新とかもいらないよ、という方向けの設定を以下に示します。
 
 >||
-plugins.options["twitter_client.update_interval"] = 2 * 60 * 1000;
-plugins.options["twitter_client.block_users"] = ["foo", "bar"];
+style.register("#keysnail-twitter-client-container{ display:none !important; }");
+plugins.options["twitter_client.use_popup_notification"]       = false;
+plugins.options["twitter_client.automatically_begin"]          = false;
+plugins.options["twitter_client.timeline_count_beginning"]     = 0;
+plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 ||<
+
+この設定は http://10sr.posterous.com/tltweetkeysnail-yatwitterclient を参考にさせていただいたものです。
 ]]></detail>
 </KeySnailPlugin>;
 
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.4.5 (2009 12/22) ====
+// 
+// * Added tsubuyaki-senyo settings (tweets only)
 // 
 // ==== 1.4.4 (2009 12/17) ====
 // 
