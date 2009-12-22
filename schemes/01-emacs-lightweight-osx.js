@@ -66,6 +66,8 @@ SCHEME.keybindings["global"] = [
 ];
 
 SCHEME.keybindings["edit"] = [
+    // selection
+    [["C-x", "h"], "select_whole_text", true],
     // Scroll
     [[["C-`"], ["C-@"]], "set_the_mark", true],
     ["C-o", "open_line"],

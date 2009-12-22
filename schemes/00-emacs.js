@@ -90,6 +90,8 @@ SCHEME.keybindings["global"] = [
 ];
 
 SCHEME.keybindings["edit"] = [
+    // selection
+    [["C-x", "h"], "select_whole_text", true],
     // Scroll
     [[["C-SPC"], ["C-@"]], "set_the_mark", true],
     ["C-o", "open_line"],
@@ -118,7 +120,7 @@ SCHEME.keybindings["edit"] = [
     ["M-u", "convert_following_word_to_upper_case"],
     ["M-l", "convert_following_word_to_lower_case"],
     ["M-c", "capitalize_the_following_word"],
-    // cut / passte
+    // cut / paste
     ["C-k", "kill_the_rest_of_the_line"],
     ["C-y", "paste"],
     ["M-y", "paste_pop", true],
