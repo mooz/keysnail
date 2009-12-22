@@ -689,6 +689,32 @@ KeySnail.Util = {
 
     // Path / URL {{ ============================================================ //
 
+    createDirectory: function (aLocalFile) {
+        if (aLocalFile.exists() && !aLocalFile.isDirectory())
+                aLocalFile.remove(false);
+
+        if (!aLocalFile.exists())
+            aLocalFile.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, 0755);
+
+        return aLocalFile;
+    },
+
+    getExtentionLocalDirectoryRoot: function () {
+        const extName = "keysnail";
+
+        var extDir  = this.getSpecialDir("ProfD");
+        extDir.append(extName);
+
+        return this.createDirectory(extDir);
+    },
+
+    getExtentionLocalDirectory: function (aDirName) {
+        var localDir = this.getExtentionLocalDirectoryRoot();
+        localDir.append(aDirName);
+
+        return this.createDirectory(localDir);
+    },
+
     /**
      * convert local file path to the URL expression
      * @param {string} aPath local file path
@@ -943,7 +969,7 @@ KeySnail.Util = {
     // }} ======================================================================= //
 
     // Bookmarks / Places {{ ==================================================== //
-    
+
     filterBookmarks: function (aItemId, aFilter, aContainer)
     {
         var parentNode = PlacesUtils.getFolderContents(aItemId).root;

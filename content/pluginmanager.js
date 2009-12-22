@@ -560,7 +560,8 @@ var ksPluginManager = function () {
 
             parserContext = {};
 
-            if (!modules || !modules.userscript) {
+            if (!modules || !modules.userscript)
+            {
                 // KeySnail not loaded
 
                 var pluginArea = document.getElementById("plugin-area");
@@ -585,9 +586,8 @@ var ksPluginManager = function () {
             }
 
             // Check if plugin directory is specified
-            if (!modules.userscript.pluginDir) {
-                modules.userscript.setPluginPathViaDialog(true);
-            }
+            if (!modules.userscript.pluginDir)
+                modules.userscript.setDefaultPluginDirectory();
 
             // load Wiki parser
             try {

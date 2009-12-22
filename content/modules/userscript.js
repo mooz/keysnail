@@ -311,6 +311,11 @@ KeySnail.UserScript = {
 
     // ============================== Plugin ============================== //
 
+    setDefaultPluginDirectory: function () {
+        var pluginDir  = this.modules.util.getExtentionLocalDirectory("plugins");
+        this.pluginDir = pluginDir.path;
+    },
+
     setPluginPathViaDialog: function (aForce) {
         var nsIFilePicker = Components.interfaces.nsIFilePicker;
         var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
@@ -359,7 +364,7 @@ KeySnail.UserScript = {
     installFile: function (aFile) {
         if (!this.pluginDir)
         {
-            this.setPluginPathViaDialog(true);
+            this.setDefaultPluginDirectory();
         }
 
         with (this.modules)
