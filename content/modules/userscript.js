@@ -1229,7 +1229,7 @@ KeySnail.UserScript = {
             var setting = settings[key] || "undefined";
             var padding = Math.max(maxLen - key.length, 0) + 2;
 
-            aContentHolder.push('key.' + key + new Array(padding).join(" ") + '= "' + setting + '";');
+            aContentHolder.push('key.' + key + 'Key' + new Array(padding).join(" ") + '= "' + setting + '";');
         }
     },
 
