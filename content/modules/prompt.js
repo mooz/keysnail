@@ -1556,7 +1556,7 @@ KeySnail.Prompt = function () {
             self.finish();
         },
 
-        refresh: function () {
+        refresh: function (aSelectIndex) {
             removeAllChilds(listbox);
 
             switch (type)
@@ -1583,7 +1583,7 @@ KeySnail.Prompt = function () {
                     compIndex = index;
                 }
 
-                setListBoxSelection(index);
+                setListBoxSelection(typeof aSelectIndex === "number" ? aSelectIndex : index);
 
                 break;
             }
