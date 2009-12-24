@@ -359,6 +359,7 @@ KeySnail.Prompt = function () {
         {
             // just change the selected index of the listbox
             listbox.currentIndex = listbox.selectedIndex = aIndex;
+
             return;
         }
 
@@ -1563,20 +1564,27 @@ KeySnail.Prompt = function () {
             case TYPE_READ:
                 break;
             case TYPE_SELECTOR:
+                let index;
+
                 if (compIndexList === null)
                 {
-                    // create list of whole completion
-
                     setListBoxFromStringList(wholeList);
                     setRows(wholeList.length);
+
+                    index = Math.min(Math.max(0, wholeListIndex), wholeList.length - 1);
+                    wholeListIndex = index;
                 }
                 else
                 {
                     setListBoxFromIndexList(wholeList, compIndexList);
                     setRows(compIndexList.length);
+
+                    index = Math.min(Math.max(0, compIndex), compIndexList.length - 1);
+                    compIndex = index;
                 }
 
-                setListBoxSelection(compIndexList ? compIndex : wholeListIndex);
+                setListBoxSelection(index);
+
                 break;
             }
         },
