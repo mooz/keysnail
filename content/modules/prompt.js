@@ -1555,6 +1555,32 @@ KeySnail.Prompt = function () {
             self.finish();
         },
 
+        refresh: function () {
+            removeAllChilds(listbox);
+
+            switch (type)
+            {
+            case TYPE_READ:
+                break;
+            case TYPE_SELECTOR:
+                if (compIndexList === null)
+                {
+                    // create list of whole completion
+
+                    setListBoxFromStringList(wholeList);
+                    setRows(wholeList.length);
+                }
+                else
+                {
+                    setListBoxFromIndexList(wholeList, compIndexList);
+                    setRows(compIndexList.length);
+                }
+
+                setListBoxSelection(compIndexList ? compIndex : wholeListIndex);
+                break;
+            }
+        },
+
         /**
          * Finish inputting and current the prompt and If user can
          * @param {boolean} aCanceled true, if user canceled the prompt
