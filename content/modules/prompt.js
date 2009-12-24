@@ -13,8 +13,6 @@ KeySnail.Prompt = function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
 
-    var rootContentViewer;
-
     var modules;
 
     // defalut key settings
@@ -769,8 +767,6 @@ KeySnail.Prompt = function () {
     }
 
     function updateSelector(aContext) {
-        rootContentViewer.hide();
-
         removeAllChilds(listbox);
 
         if (aContext.compIndexList === null)
@@ -792,8 +788,6 @@ KeySnail.Prompt = function () {
                                      compIndexList.length : wholeList.length);
 
         setListBoxSelection(compIndexList ? compIndex : wholeListIndex);
-
-        rootContentViewer.show();
     }
 
     function setListBoxIndex(aIndex) {
@@ -1446,12 +1440,6 @@ KeySnail.Prompt = function () {
                 return;
 
             modules = this.modules;
-
-            rootContentViewer = window.top
-                .QueryInterface(Ci.nsIInterfaceRequestor)
-                .getInterface(Ci.nsIWebNavigation)
-                .QueryInterface(Ci.nsIDocShell)
-                .contentViewer;
 
             promptbox = document.getElementById("keysnail-prompt");
             label     = document.getElementById("keysnail-prompt-label");
