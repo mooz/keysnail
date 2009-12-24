@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.4.5</version>
+    <version>1.4.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -289,13 +289,17 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
-// 
+//
+// ==== 1.4.6 (2009 12/24) ====
+//
+// * Due to inserted prompt.refresh in add favorite action, the star icon becomed to be applied immediately.
+//
 // ==== 1.4.5 (2009 12/22) ====
-// 
+//
 // * Added tsubuyaki-senyo settings (tweets only)
-// 
+//
 // ==== 1.4.4 (2009 12/17) ====
-// 
+//
 // * Fixed the problem that the , in the URL does not handled properly.
 // * Added mentions count and pretty icons.
 //
@@ -613,7 +617,7 @@ var twitterClient =
          const CONTAINER_ID      = "keysnail-twitter-client-container";
          const UNREAD_STATUS_ID  = "keysnail-twitter-client-unread-status";
          const UNREAD_MENTION_ID = "keysnail-twitter-client-unread-mention";
-       
+
 
          var statusbar           = document.getElementById("status-bar");
          var statusbarPanel      = document.getElementById("keysnail-status");
@@ -688,7 +692,7 @@ var twitterClient =
              function insertAfter(parent, node, referenceNode) {
 	         parent.insertBefore(node, referenceNode.nextSibling);
              }
-             
+
              insertAfter(statusbar, container, statusbarPanel);
 
              // statusbar.appendChild(container);
@@ -1206,6 +1210,9 @@ var twitterClient =
                          modifyCache(status.id, function (status) {
                                          status.favorited = !aDelete;
                                      });
+
+                         if (prompt.refresh)
+                             prompt.refresh();
                      }
                  }
              );
@@ -1463,12 +1470,12 @@ var twitterClient =
                  callSelector(my.twitterMentionsJSONCache);
                  setLastMention(my.twitterMentionsJSONCache);
              }
-            
+
          }
 
          function showFollowersStatus(aArg) {
              var updateForced = (aArg != null);
-             
+
              if (updateForced || !my.twitterJSONCache)
              {
                  if (twitterPending)
@@ -1796,7 +1803,7 @@ var twitterClient =
                      unreadMentionCount = getStatusPos(my.twitterMentionsJSONCache, lastMentionID);
                      unreadMentionLabel.setAttribute("value", unreadMentionCount);
                      unreadMentionLabel.parentNode.setAttribute("tooltiptext",
-                                                                unreadMentionCount + M({ja: " 個のあなた宛メッセージがあります", en: " unread mentions"}));    
+                                                                unreadMentionCount + M({ja: " 個のあなた宛メッセージがあります", en: " unread mentions"}));
                  }
              }
          };
