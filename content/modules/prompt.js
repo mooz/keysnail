@@ -1600,6 +1600,7 @@ KeySnail.Prompt = function () {
 
             var savedCallback;
             var savedUserArg  = currentUserArg;
+            var savedOnFinish = userOnFinish;
 
             // apply current status to saved context
             if (type === TYPE_SELECTOR)
@@ -1635,7 +1636,8 @@ KeySnail.Prompt = function () {
             // continuous
             if (aAgain)
             {
-                savedFocusedElement.focus();
+                if (savedFocusedElement)
+                    savedFocusedElement.focus();
                 executeCallback(savedCallback, callbackArg);
                 textbox.focus();
 
@@ -1707,6 +1709,9 @@ KeySnail.Prompt = function () {
             // if canceled or error occurred in callback, reset statusbar
             if (aCanceled)
                 modules.display.echoStatusBar("");
+
+            if (typeof savedOnFinish === 'function')
+                savedOnFinish();
         },
 
         /**
