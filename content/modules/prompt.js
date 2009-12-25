@@ -1943,6 +1943,12 @@ KeySnail.Prompt = function () {
             selectorContext[SELECTOR_STATE_ACTION].wholeListIndex = aContext.initialAction || 0;
 
             createCompletionList();
+
+            if (typeof aContext.initialIndex === 'number')
+            {
+                wholeListIndex = aContext.initialIndex;
+                setListBoxSelection(wholeListIndex);
+            }
         },
 
         message: KeySnail.message
