@@ -1,3 +1,1692 @@
+// ChangeLog {{ ============================================================= //
+//
+// ==== 1.4.6 (2009 12/24) ====
+//
+// * Due to inserted prompt.refresh in add favorite action, the star icon becomed to be applied immediately.
+//
+// ==== 1.4.5 (2009 12/22) ====
+//
+// * Added tsubuyaki-senyo settings (tweets only)
+//
+// ==== 1.4.4 (2009 12/17) ====
+//
+// * Fixed the problem that the , in the URL does not handled properly.
+// * Added mentions count and pretty icons.
+//
+// ==== 1.4.3 (2009 12/15) ====
+//
+// * Migrated from tinyurl to j.mp (bit.ly)
+//
+// ==== 1.4.2 (2009 12/15) ====
+//
+// * Added favorited icon and changed add-to-favorite action behavior.
+// * Made tweetWithTitleAndURL() recognize prefix argument.
+//
+// ==== 1.4.0 (2009 12/14) ====
+//
+// * Added local action system
+//
+// ==== 1.3.9 (2009 12/14) ====
+//
+// * Supported local keymap system
+//
+// ==== 1.3.8 (2009 12/05) ====
+//
+// * Supported % in the URL.
+// * xulGrowl prototype
+//
+// ==== 1.3.7 (2009 11/28) ====
+//
+// * Fixed the bug user can't cancel the action "search".
+//
+// ==== 1.3.6 (2009 11/24) ====
+//
+// * Added description for official RT
+//
+// ==== 1.3.5 (2009 11/24) ====
+//
+// * Supported official RT.
+//
+// ==== 1.3.4 (2009 11/23) ====
+//
+// * Supported multiple URL in the message.
+//
+// ==== 1.3.3 (2009 11/16) ====
+//
+// * Made all messages to be unescaped.
+//
+// ==== 1.3.2 (2009 11/13) ====
+//
+// * Added character count to the tweet phase.
+//
+// ==== 1.3.1 (2009 11/03) ====
+//
+// * Fixed the crucial bug in the combineJSONCache.
+//
+// ==== 1.3.0 (2009 11/03) ====
+//
+// * Refactored!
+// * Added action and ext manipulating favorites.
+//
+// ==== 1.2.8 (2009 11/01) ====
+//
+// * Fixed combineJSONCache again and again :(. I hope this fix the problem.
+//
+// ==== 1.2.8 (2009 11/01) ====
+//
+// * Fixed combineJSONCache again. (There were still bug ...)
+//
+// ==== 1.2.7 (2009 11/01) ====
+//
+// * Fixed combineJSONCache to avoid the status duplication which occured
+//   when user tweets and its status immediately added.
+//
+// ==== 1.2.6 (2009 10/31) ====
+//
+// * Cleaned up codes. (Mainly options default value handling.)
+// * Added "delete selected status" action.
+// * Made all actions use oauthASyncRequest() instead of oauthSyncRequest().
+//
+// }} ======================================================================= //
+
+var optionsDefaultValue = {
+    "update_interval"              : 60 * 1000,      // 1 minute
+    "mentions_update_interval"     : 60 * 1000 * 20, // 20 minute
+    "use_popup_notification"       : false,
+    "main_column_width"            : [11, 70, 19],
+    "timeline_count_beginning"     : 80,
+    "timeline_count_every_updates" : 20,
+    "unread_status_count_style"    : "color:#383838;font-weight:bold;",
+    "automatically_begin"          : true,
+    "keymap"                       : {},
+    "block_users"                  : [],
+    "black_users"                  : []
+};
+
+function getOption(aName) {
+    var fullName = "twitter_client." + aName;
+    if (typeof plugins.options[fullName] !== "undefined")
+        return plugins.options[fullName];
+    else
+        return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
+}
+
+var twitterClient =
+    (function () {
+         // ================================================================================ //
+
+         var twitterStatusesPending;
+         var twitterMentionsPending;
+
+         var twitterLastUpdated;
+         var immediatelyAddedStatuses = [];
+         var userInfo;
+
+         var currentCollection;
+
+         var twitterCommonActions = [
+             [function (status) {
+                  if (status) tweet();
+              }, M({ja: "つぶやく : ", en: ""}) + "Tweet",
+              "tweet"],
+             // ======================================== //
+             [function (status) {
+                  if (status) tweet("@" + status.screen_name + " ", status.id);
+              }, M({ja: "このつぶやきに返信 : ", en: ""}) + "Send reply message",
+             "reply"],
+             // ======================================== //
+             [function (status) {
+                  if (status) tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
+              }, M({ja: "このつぶやきを => コメント付き ", en: ""}) + "RT (QT): Quote tweet",
+             "retweet"],
+             // ======================================== //
+             [function (status) {
+                  if (status) retweet(status.id);
+              }, M({ja: "このつぶやきを => 公式 ", en: ""}) + "RT : Official Retweet",
+              "official-retweet"],
+             // ======================================== //
+             [function (status) {
+                  if (status) deleteStatus(status.id);
+              }, M({ja: "このつぶやきを => 削除 : ", en: ""}) + "Delete this status",
+              "delete-tweet"],
+             // ======================================== //
+             [function (status) {
+                  if (status) addFavorite(status.id, status.favorited);
+              }, M({ja: "このつぶやきを => お気に入りへ追加 / 削除 : ", en: ""}) + "Add / Remove this status to favorites",
+              "add-to-favorite,c"],
+             // ======================================== //
+             [function (status) {
+                  if (status) gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
+                                                  + "/status/" + status.id, null, null, null, false);
+              }, M({ja: "このつぶやきを => Twitter で見る : ", en: ""}) + "Show status in web page",
+              "view-in-twitter,c"],
+             // ======================================== //
+             [function (status) {
+                  let msg = html.unEscapeTag(status.text);
+                  command.setClipboardText(msg);
+                  display.echoStatusBar(M({ja: "コピーしました", en: "Copied"} + " : " + msg), 1000);
+              }, M({ja: "このつぶやきを => クリップボードにコピー : ", en: ""}) + "Copy selected message",
+              "copy-tweet,c"],
+             // ======================================== //
+             [function (status) {
+                  display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 200});
+              }, M({ja: "このつぶやきを => 全文表示 : ", en: ""}) + "Display entire message",
+              "display-entire-message,c"],
+             // ======================================== //
+             [function (status) {
+                  if (status) showTargetStatus(status.screen_name);
+              }, M({ja: "このユーザのつぶやきを一覧表示 : ", en: ""}) + "Show Target status",
+              "show-target-status"],
+             // ======================================== //
+             [function (status) {
+                  if (status) showFavorites(status.user_id);
+              }, M({ja: "このユーザのふぁぼり一覧を表示 : ", en: ""}) + "Show this users favorites",
+              "show-user-favorites"],
+             // ======================================== //
+             [function (status) {
+                  if (status) showMentions();
+              }, M({ja: "自分の @ を一覧表示 : ", en: ""}) + "Show mentions",
+              "show-mentions"],
+             // ======================================== //
+             [function (status) {
+                  if (status) self.tweetWithTitleAndURL();
+              }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL",
+              "tweet-current-page"],
+             // ======================================== //
+             [function (status) {
+                  if (status) search();
+              }, M({ja: "単語を検索 : ", en: ""}) + "Search keyword",
+              "search-word"],
+             // ======================================== //
+             [function (status) {
+                  command.setClipboardText(status.screen_name);
+              }, M({ja: "このユーザの id をコピー : ", en: ""}) + "Copy id of the selected user",
+              "copy-user-id,c"],
+             // ======================================== //
+             [function (status) {
+                  if (status)
+                  {
+                      var matched;
+
+                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?;#_*,.:/=&%\\-]+)")))
+                      {
+                          var prefix = (matched[1] === "ftp") ? "ftp" : "http";
+                          if (matched[1][matched[1].length - 1] === 's')
+                              prefix += "s";
+
+                          gBrowser.loadOneTab(prefix + matched[2], null, null, null, false);
+
+                          status.text = status.text.slice(status.text.indexOf(matched[2]) + matched[2].length);
+                      }
+                  }
+              }, M({ja: "メッセージ中の URL を開く : ", en: ""}) + "Visit URL in the message",
+              "open-url,c"],
+             // ======================================== //
+             [function (status) {
+                  if (!status) return;
+                  showLists(status.screen_name);
+              }, M({ja: "このユーザのリストを一覧表示 : ", en: ""}) + "Show selected user's lists",
+              "show-selected-users-lists"]
+         ];
+
+         // ================================================================================ //
+
+         // Update interval in mili second
+         var updateInterval = getOption("update_interval");
+
+         // Update interval in mili second
+         var mentionsUpdateInterval = getOption("mentions_update_interval");
+
+         // Show popup when timeline is updated
+         var popUpStatusWhenUpdated = getOption("use_popup_notification");
+
+         // [User name, Message, Information] in percentage
+         var mainColumnWidth = getOption("main_column_width");
+
+         var blockUsers = getOption("block_users");
+         var blackUsers = getOption("black_users");
+
+         // ================================================================================ //
+         // Timeline
+         // ================================================================================ //
+
+         var timelineCountBeginning    = getOption("timeline_count_beginning");
+         var timelineCountEveryUpdates = getOption("timeline_count_every_updates");
+
+         function normalizeCount(n) {
+             if (n <= 0)
+                 n = 20;
+             if (n > 200)
+                 n = 200;
+
+             return n;
+         }
+
+         timelineCountBeginning    = normalizeCount(timelineCountBeginning);
+         timelineCountEveryUpdates = normalizeCount(timelineCountEveryUpdates);
+
+         var timelineCount = timelineCountBeginning;
+
+         // ================================================================================ //
+         // Unread handler
+         // ================================================================================ //
+
+         const LAST_STATUS_KEY  = "extensions.keysnail.plugins.twitter_client.last_status_id";
+         const LAST_MENTION_KEY = "extensions.keysnail.plugins.twitter_client.last_mention_id";
+
+         var lastStatusID  = util.getUnicharPref(LAST_STATUS_KEY);
+         var lastMentionID = util.getUnicharPref(LAST_MENTION_KEY);
+
+         var unreadStatusCount  = 0;
+         var unreadMentionCount = 0;
+
+         // ================================================================================ //
+         // Statusbar
+         // ================================================================================ //
+
+         const statusesIcon = 'data:image/png;base64,' +
+             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
+             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAG/SURBVDjLjZK9T8JQFMVZTUyc3IyJg4mD' +
+             'i87+GyYu6qB/gcZdFxkkJM66qJMGSNRBxDzigJMRQ1jQ4EcQ+SgVKB+FtuL13EdJxNDq8Ev7Xu85' +
+             '797T51nwhqeAH5w6cAxWwDgReX7jwYfdaCIraroptB7NLlVQrOoiGEsL1G06GZyxuILicsMUH3VT' +
+             'lOqGKNUMUdTacj+j1Nng0NGAT2WxYosK1bbIVVoiW27J9V8G57WWKVSczMV5iK+Tudv1vVh5yXdl' +
+             'LQN+os4AFZss2Ob82CCgQmhYHSnmkzf2b6rIhTAaaT2aXZALIRdCLgRtkA1WfYG4iKcVYX52JIs7' +
+             'EYvFmJ8wGiEXQi6EXAhdyn2MxQaPcg68zIETTvzyLsPzWnwqixVbhFwI3RFykes+A9vkIBKX4jCo' +
+             'IxdCLrI4/0OcUXXK4/1dbbDBS088xGGCCzAJCsiF2lanT8xdKNhHXvRarLFBqmcwCrbAhL32+kP3' +
+             'lHguETKRsNlbqUFPeY2OoikW62DNM+jf2ibzQNN0g5ALC75AGiT59oIReQ+cDGyTB+TC4jaYGXiR' +
+             'XMTD3AFogVmnOjeDMRAC025duo7wH74BwZ8JlHrTPLcAAAAASUVORK5CYII=';
+
+         const mentionsIcon = 'data:image/png;base64,' +
+             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
+             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAITSURBVBgZpcHLThNhGIDh9/vn7/RApwc5' +
+             'VCmFWBPi1mvwAlx7BW69Afeu3bozcSE7E02ILjCRhRrds8AEbKVS2gIdSjvTmf+TYqLu+zyiqszD' +
+             'MCf75PnnnVwhuNcLpwsXk8Q4BYeSOsWpkqrinJI6JXVK6lSRdDq9PO+19vb37XK13Hj0YLMUTVVy' +
+             'WY//Cf8IVwQEGEeJN47S1YdPo4npDpNmnDh5udOh1YsZRcph39EaONpnjs65oxsqvZEyTaHdj3n2' +
+             'psPpKDLBcuOOGUWpZDOG+q0S7751ObuYUisJGQ98T/Ct4Fuo5IX+MGZr95jKjRKLlSxXxFxOEmaa' +
+             'N4us1Upsf+1yGk5ZKhp8C74H5ZwwCGO2drssLZZo1ouIcs2MJikz1oPmapHlaoFXH1oMwphyTghy' +
+             'Qj+MefG+RblcoLlaJG/5y4zGCTMikEwTctaxXq/w9kuXdm9Cuzfh9acujXqFwE8xmuBb/hCwl1GK' +
+             'AnGccDwIadQCfD9DZ5Dj494QA2w2qtQW84wmMZ1eyFI1QBVQwV5GiaZOpdsPaSwH5HMZULi9UmB9' +
+             'pYAAouBQbMHHrgQcnQwZV/KgTu1o8PMgipONu2t5KeaNiEkxgAiICDMCCFeEK5aNauAOfoXx8KR9' +
+             'ZOOLk8P7j7er2WBhwWY9sdbDeIJnwBjBWBBAhGsCmiZxPD4/7Z98b/0QVWUehjkZ5vQb/Un5e/DI' +
+             'sVsAAAAASUVORK5CYII=';
+
+         function setAttributes(aElem, aAttributes)
+         {
+             for (var key in aAttributes)
+             {
+                 aElem.setAttribute(key, aAttributes[key]);
+             }
+         }
+
+         const CONTAINER_ID      = "keysnail-twitter-client-container";
+         const UNREAD_STATUS_ID  = "keysnail-twitter-client-unread-status";
+         const UNREAD_MENTION_ID = "keysnail-twitter-client-unread-mention";
+
+
+         var statusbar           = document.getElementById("status-bar");
+         var statusbarPanel      = document.getElementById("keysnail-status");
+         var container           = document.getElementById(CONTAINER_ID);
+         var unreadStatusLabel   = document.getElementById(UNREAD_STATUS_ID);
+         var unreadMentionLabel  = document.getElementById(UNREAD_MENTION_ID);
+
+         var unreadStatusLabelStyle = getOption("unread_status_count_style");
+
+         if (!container)
+         {
+             // create a new one
+             container = document.createElement("statusbarpanel");
+             setAttributes(container,
+                           {
+                               align : "center",
+                               id    : CONTAINER_ID
+                           });
+
+             let box, icon;
+
+             // ================================================== //
+
+             box = document.createElement("hbox");
+             setAttributes(box,
+                           {
+                               align : "center",
+                               flex  : 1
+                           });
+             icon = document.createElement("image");
+             setAttributes(icon,
+                          {
+                              src : statusesIcon
+                          });
+             unreadStatusLabel = document.createElement("label");
+             setAttributes(unreadStatusLabel,
+                           {
+                               id    : UNREAD_STATUS_ID,
+                               flex  : 1,
+                               value : "-"
+                           });
+             box.appendChild(icon);
+             box.appendChild(unreadStatusLabel);
+             container.appendChild(box);
+
+             // ================================================== //
+
+             box = document.createElement("hbox");
+             setAttributes(box,
+                           {
+                               align : "center",
+                               flex  : 1
+                           });
+             icon = document.createElement("image");
+             setAttributes(icon,
+                          {
+                              src : mentionsIcon
+                          });
+             unreadMentionLabel = document.createElement("label");
+             setAttributes(unreadMentionLabel,
+                           {
+                               id    : UNREAD_MENTION_ID,
+                               flex  : 1,
+                               value : "-"
+                           });
+             box.appendChild(icon);
+             box.appendChild(unreadMentionLabel);
+             container.appendChild(box);
+
+             // ================================================== //
+
+             function insertAfter(parent, node, referenceNode) {
+	         parent.insertBefore(node, referenceNode.nextSibling);
+             }
+
+             insertAfter(statusbar, container, statusbarPanel);
+
+             // statusbar.appendChild(container);
+         }
+
+         unreadStatusLabel.setAttribute("style", unreadStatusLabelStyle);
+         unreadStatusLabel.parentNode.onclick = function () { self.showTimeline(); };
+
+         unreadMentionLabel.setAttribute("style", unreadStatusLabelStyle);
+         unreadMentionLabel.parentNode.onclick = function () { self.showMentions(); };
+
+         // ============================== Arrange services ============================== //
+
+         try {
+             var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
+         } catch (x) {
+             popUpStatusWhenUpdated = false;
+         }
+
+         var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
+
+         // ============================== Popup notifications {{ ============================== //
+
+         var unPopUppedStatuses;
+
+         function showPopup(arg) {
+             if (false /* plugins.lib.xulGrowl */)
+             {
+                 plugins.lib.xulGrowl.update(
+                     {
+                         title   : arg.title,
+                         message : arg.message,
+                         link    : arg.link,
+                         icon    : arg.icon
+                     }
+                 );
+
+                 setTimeout(function () {
+                                if (typeof arg.callback === "function")
+                                    arg.callback();
+                            }, 1000);
+             }
+             else
+             {
+                 alertsService.showAlertNotification(arg.icon,
+                                                     arg.title,
+                                                     arg.message,
+                                                     !!arg.link,
+                                                     arg.link,
+                                                     arg.observer);
+             }
+         }
+
+         function showOldestUnPopUppedStatus() {
+             var status = unPopUppedStatuses.pop();
+
+             if ((blockUsers &&
+                  blockUsers.some(function (username) username == status.user.screen_name))
+                 || status.user.screen_name == userInfo.screen_name)
+             {
+                 util.message("ignored :: " + html.unEscapeTag(status.text) + " " + status.user.screen_name);
+
+                 if (unPopUppedStatuses && unPopUppedStatuses.length)
+                 {
+                     showOldestUnPopUppedStatus();
+                 }
+
+                 return;
+             }
+
+             var browserWindow = wm.getMostRecentWindow("navigator:browser");
+             if (!browserWindow || browserWindow.KeySnail != KeySnail)
+             {
+                 util.message("other window");
+                 return;
+             }
+
+             function proc() {
+                 if (!unPopUppedStatuses || !unPopUppedStatuses.length)
+                     return;
+
+                 showOldestUnPopUppedStatus();
+             }
+
+             showPopup({
+                           icon     : status.user.profile_image_url,
+                           title    : status.user.name,
+                           message  : html.unEscapeTag(status.text),
+                           link     : "https://twitter.com/" + status.user.screen_name + "/status/" + status.id,
+                           callback : proc,
+                           observer : {
+                               observe: function (subject, topic, data) {
+                                   if (topic === "alertclickcallback")
+                                       gBrowser.loadOneTab(data, null, null, null, false);
+
+                                   proc();
+                               }
+                           }
+                       });
+         }
+
+         function popUpNewStatuses(statuses) {
+             if (unPopUppedStatuses && unPopUppedStatuses.length > 0)
+                 unPopUppedStatuses = statuses.concat(unPopUppedStatuses);
+             else
+                 unPopUppedStatuses = statuses;
+
+             showOldestUnPopUppedStatus();
+         }
+
+         // ============================== }} Popup notifications ============================== //
+
+         function suggest(aWord) {
+             var xhr = new XMLHttpRequest();
+             var endPoint = "http://www.google.co.jp/complete/search?output=toolbar&q=" + encodeURIComponent(aWord);
+
+             xhr.mozBackgroundRequest = true;
+             xhr.open("GET", endPoint, false);
+             xhr.send(null);
+
+             return XML(xhr.responseText.match("<toplevel>.*</toplevel>")[0]);
+         }
+
+         function shortenURL(aURL) {
+             const id  = "stillpedant";
+             const key = "R_168719821d1100c59352962dce863251";
+
+             var xhr = new XMLHttpRequest();
+             // bit.ly
+             var endPoint = "http://api.j.mp/shorten?" +
+                 util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s', id, key, encodeURIComponent(aURL));
+
+             xhr.mozBackgroundRequest = true;
+             xhr.open("GET", endPoint, false);
+             xhr.send(null);
+
+             var response = util.safeEval("(" + xhr.responseText + ")");
+
+             if (response && response.results && response.results[aURL])
+                 return response.results[aURL].shortUrl;
+
+             return aURL;
+         }
+
+         function getTinyURL(aURL) {
+             var xhr = new XMLHttpRequest();
+             var endPoint = "http://tinyurl.com/api-create.php?url=" + aURL;
+             xhr.mozBackgroundRequest = true;
+             xhr.open("GET", endPoint, false);
+             xhr.send(null);
+
+             return xhr.responseText;
+         }
+
+         function getElapsedTimeString(aMillisec) {
+             function format(num, str) {
+                 return Math.floor(num) + " " + str;
+             }
+
+             var sec = aMillisec / 1000;
+             if (sec < 1.0)
+                 return M({ja: "ついさっき", en: "just now"});
+             var min = sec / 60;
+             if (min < 1.0)
+                 return format(sec, M({ja: "秒前", en: "seconds ago"}));
+             var hour = min / 60;
+             if (hour < 1.0)
+                 return format(min, M({ja: "分前", en: "minutes ago"}));
+             var date = hour / 24;
+             if (date < 1.0)
+                 return format(hour, M({ja: "時間前", en: "hours ago"}));
+             return format(date, M({ja: "日前", en: "days ago"}));
+         }
+
+         function combineJSONCache(aNew, aOld) {
+             if (!aOld)
+                 return aNew;
+
+             if (immediatelyAddedStatuses.length)
+             {
+                 // remove immediately added statuses
+                 var removeCount = aOld.indexOf(immediatelyAddedStatuses[0]) + 1;
+
+                 if (removeCount > 0)
+                 {
+                     aOld.splice(0, removeCount);
+                 }
+             }
+
+             immediatelyAddedStatuses = [];
+
+             // search
+             var oldid = aOld[0].id;
+             var newStatusCount = aNew.map(function (status) status.id).indexOf(oldid);
+
+             var newStatuses;
+
+             if (newStatusCount == -1)
+             {
+                 // all statuses in aNew is updated status
+                 newStatuses = aNew;
+             }
+             else
+             {
+                 newStatuses = aNew.slice(0, newStatusCount);
+             }
+
+             var latestTimeline = newStatuses.concat(aOld);
+
+             if (popUpStatusWhenUpdated && newStatuses.length)
+                 popUpNewStatuses(newStatuses);
+
+             return latestTimeline;
+         }
+
+         // ============================== OAuth ============================== //
+
+         var oauthInfo = {
+             signatureMethod : "HMAC-SHA1",
+             consumerKey     : "q8bLrmPJJ54hv5VGSXUfvQ",
+             consumerSecret  : "34Xtbtmqikl093nzaXg6ePay5EJJMu0cm3qervD4",
+             requestToken    : "http://twitter.com/oauth/request_token",
+             accessToken     : "http://twitter.com/oauth/access_token",
+             authorizeURL    : "http://twitter.com/oauth/authorize"
+         };
+
+         var prefKeys = {
+             oauth_token        : "extensions.keysnail.plugins.twitter_client.oauth_token",
+             oauth_token_secret : "extensions.keysnail.plugins.twitter_client.oauth_token_secret"
+         };
+
+         var oauthTokens = {
+             oauth_token        : util.getUnicharPref(prefKeys.oauth_token, ""),
+             oauth_token_secret : util.getUnicharPref(prefKeys.oauth_token_secret, "")
+         };
+
+         var context = {};
+
+         if (!userscript.require("oauth.js", context)) {
+             display.notify(L(util.xmlGetLocaleString(PLUGIN_INFO.name)) + " :: " +
+                            M({ja: "このプラグインの動作には oauth.js が必要です。 oauth.js をプラグインディレクトリ内に配置した上でお試し下さい。",
+                               en: "This plugin requires oauth.js but not found. Please locate oauth.js to the plugin directory."}));
+         }
+
+         var OAuth = context.OAuth();
+
+         // ================================================================================ //
+         // Basic oauth request methods
+         // ================================================================================ //
+
+         function oauthSyncRequest(aOptions) {
+             var xhr = new XMLHttpRequest();
+
+             var accessor = {
+                 consumerSecret : oauthInfo.consumerSecret,
+                 tokenSecret    : oauthTokens.oauth_token_secret
+             };
+
+             var message = {
+                 action     : aOptions.action,
+                 method     : aOptions.method,
+                 parameters : [
+                     ["oauth_consumer_key"     , oauthInfo.consumerKey],
+                     ["oauth_token"            , oauthTokens.oauth_token],
+                     ["oauth_signature_method" , oauthInfo.signatureMethod],
+                     ["oauth_version"          , "1.0"]
+                 ]
+             };
+
+             if (aOptions.parameters) {
+                 message.parameters = message.parameters.concat(aOptions.parameters);
+             }
+
+             OAuth.setTimestampAndNonce(message);
+             OAuth.SignatureMethod.sign(message, accessor);
+
+             var oAuthArgs  = OAuth.getParameterMap(message.parameters);
+             var authHeader = OAuth.getAuthorizationHeader("https://twitter.com/", oAuthArgs);
+
+             xhr.mozBackgroundRequest = true;
+             xhr.open(message.method, message.action, false);
+             xhr.setRequestHeader("Authorization", authHeader);
+             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+             xhr.send(aOptions.send || null);
+
+             return xhr.responseText;
+         }
+
+         function oauthASyncRequest(aOptions, aCallBack) {
+             var xhr = new XMLHttpRequest();
+
+             xhr.onreadystatechange = function (aEvent) {
+                 aCallBack(aEvent, xhr);
+             };
+
+             var accessor = aOptions.accessor ||
+                 {
+                     consumerSecret : oauthInfo.consumerSecret,
+                     tokenSecret    : oauthTokens.oauth_token_secret
+                 };
+
+             var message = {
+                 action     : aOptions.action,
+                 method     : aOptions.method,
+                 parameters : [
+                     ["oauth_consumer_key"     , oauthInfo.consumerKey],
+                     ["oauth_signature_method" , oauthInfo.signatureMethod],
+                     ["oauth_version"          , "1.0"]
+                 ]
+             };
+
+             if (!aOptions.authorize)
+                 message.parameters.push(["oauth_token", oauthTokens.oauth_token]);
+
+             if (aOptions.parameters)
+             {
+                 outer:
+                 for each (var params in aOptions.parameters)
+                 {
+                     for (let i = 0; i < message.parameters; ++i)
+                     {
+
+                         if (params[0] == message.parameters[i][0])
+                         {
+                             // override
+                             message.parameters[i][1] = params[1];
+                             // process next params
+                             continue outer;
+                         }
+                     }
+
+                     // append
+                     message.parameters.push(params);
+                 }
+             }
+
+             OAuth.setTimestampAndNonce(message);
+             OAuth.SignatureMethod.sign(message, accessor);
+
+             var oAuthArgs  = OAuth.getParameterMap(message.parameters);
+             var authHeader = OAuth.getAuthorizationHeader(aOptions.host || "https://twitter.com/", oAuthArgs);
+
+             xhr.mozBackgroundRequest = true;
+             xhr.open(message.method, message.action, true);
+             xhr.setRequestHeader("Authorization", authHeader);
+             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+             xhr.send(aOptions.send || null);
+         }
+
+         // ================================================================================ //
+         // Authorization methods
+         // ================================================================================ //
+
+         function authorize() {
+             oauthASyncRequest(
+                 {
+                     action   : oauthInfo.requestToken,
+                     method   : "GET",
+                     accessor : {
+                         consumerSecret : oauthInfo.consumerSecret,
+                         tokenSecret    : ""
+                     },
+                     authorize : true
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4) {
+                         if (xhr.status == 200)
+                         {
+                             var parts = xhr.responseText.split("&");
+
+                             try {
+                                 oauthTokens.oauth_token        = parts[0].split("=")[1];
+                                 oauthTokens.oauth_token_secret = parts[1].split("=")[1];
+
+                                 gBrowser.loadOneTab("https://twitter.com/oauth/authorize?oauth_token=" + oauthTokens.oauth_token,
+                                                     null, null, null, false);
+                             } catch (e) {
+                                 display.notify(e + xhr.responseText);
+                             }
+                         }
+                         else if (xhr.status >= 500)
+                         {
+                             // whale error
+                             display.notify("Whale error :: " + xhr.responseText);
+                         }
+                         else
+                         {
+                             // unknow error
+                             display.notify("Unknown error :: " + xhr.responseText);
+                         }
+                     }
+                 }
+             );
+         }
+
+         function reAuthorize() {
+             util.setUnicharPref(prefKeys.oauth_token, "");
+             util.setUnicharPref(prefKeys.oauth_token_secret, "");
+             my.twitterJSONCache = null;
+             authorizationSequence();
+         }
+
+         function authorizationSequence() {
+             authorize();
+
+             prompt.read(M({ja: "認証が終了したら Enter キーを押してください",
+                            en: "Press Enter When Authorization Finished:"}),
+                         function (aReadStr) {
+                             if (aReadStr == null)
+                                 return;
+
+                             getAccessToken(function () {
+                                                showFollowersStatus();
+                                            });
+                         });
+         }
+
+         function getAccessToken(aCallBack) {
+             oauthASyncRequest(
+                 {
+                     action : oauthInfo.accessToken,
+                     method : "GET"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4) {
+                         if (xhr.status == 200)
+                         {
+                             try {
+                                 var parts = xhr.responseText.split("&");
+
+                                 oauthTokens.oauth_token = parts[0].split("=")[1];
+                                 oauthTokens.oauth_token_secret = parts[1].split("=")[1];
+                                 util.setUnicharPref(prefKeys.oauth_token, oauthTokens.oauth_token);
+                                 util.setUnicharPref(prefKeys.oauth_token_secret, oauthTokens.oauth_token_secret);
+
+                                 if (typeof aCallBack == "function")
+                                     aCallBack();
+                             } catch (e) {
+                                 display.notify(e +  xhr.responseText);
+                             }
+                         }
+                         else if (xhr.status >= 500)
+                         {
+                             // whale error
+                             util.message("whale error :: " + xhr.responseText);
+                         }
+                         else
+                         {
+                             // unknown error
+                             util.message("unknown error :: " + xhr.responseText);
+                         }
+                     }
+                 }
+             );
+         }
+
+         // ============================== Actions ============================== //
+
+         function showFavorites(aTargetID) {
+             oauthASyncRequest(
+                 {
+                     action: "https://twitter.com/favorites.json" + (aTargetID ? ("?id=" + aTargetID) : ""),
+                     method: "GET"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4) {
+                         if (xhr.status != 200) {
+                             display.echoStatusBar(M({en: "Failed to get favorites", ja: "お気に入り一覧の取得に失敗しました"}));
+                             return;
+                         }
+
+                         var statuses = util.safeEval(xhr.responseText);
+
+                         callSelector(statuses, M({ja: "お気に入り一覧", en: "Favorites"}));
+                     }
+                 });
+         }
+
+         function addFavorite(aStatusID, aDelete) {
+             oauthASyncRequest(
+                 {
+                     action: util.format("https://twitter.com/favorites/%s/%s.json", aDelete ? "destroy" : "create", aStatusID),
+                     method: "POST"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4) {
+                         var errorMsg = aDelete ? M({ja: "お気に入りから削除できませんでした", en: "Failed to remove status from favorites"})
+                         : M({ja: "お気に入りに追加できませんでした", en: "Failed to add status to favorites"});
+                         var successMsg = aDelete ? M({ja: "お気に入りから削除しました", en: "Removed status from favorites"})
+                         : M({ja: "お気に入りに追加しました", en: "Added status to favorites"});
+
+                         if (xhr.status != 200) {
+                             display.echoStatusBar(errorMsg, 2000);
+                             return;
+                         }
+
+                         var status = util.safeEval("(" + xhr.responseText + ")");
+                         if (!status)
+                             return;
+
+                         var icon_url  = status.user.profile_image_url;
+                         var user_name = status.user.name;
+                         var message   = html.unEscapeTag(status.text);
+
+                         showPopup({
+                                       icon     : icon_url,
+                                       title    : successMsg,
+                                       message  : user_name + ": " + message,
+                                       link     : null
+                                   });
+
+                         modifyCache(status.id, function (status) {
+                                         status.favorited = !aDelete;
+                                     });
+
+                         if (prompt.refresh)
+                             prompt.refresh();
+                     }
+                 }
+             );
+         }
+
+         function search() {
+             function doSearch(aWord) {
+                 if (!aWord)
+                     return;
+
+                 oauthASyncRequest(
+                     {
+                         action: "https://search.twitter.com/search.json?q=" + encodeURIComponent(aWord) + "&rpp=100",
+                         method: "POST"
+                     },
+                     function (aEvent, xhr) {
+                         if (xhr.readyState == 4) {
+                             if (xhr.status != 200) {
+                                 display.echoStatusBar(M({ja: "検索に失敗しました",
+                                                          en: "Failed to search word"}), 3000);
+                                 return;
+                             }
+
+                             var results = (util.safeEval("(" + xhr.responseText + ")") || {"results":[]}).results;
+
+                             if (!results || !results.length) {
+                                 display.echoStatusBar(M({ja: aWord + L(" に対する検索結果はありません"),
+                                                          en: "No results for " + aWord}), 3000);
+                                 return;
+                             }
+
+                             prompt.selector(
+                                 {
+                                     message: "regexp:",
+                                     collection: results.map(
+                                         function (result) [result.profile_image_url, result.from_user, html.unEscapeTag(result.text)]
+                                     ),
+                                     style: ["color:#003870;", null],
+                                     width: [15, 85],
+                                     header: ["From", 'Search result for "' + aWord + '"'],
+                                     flags: [ICON | IGNORE, 0, 0],
+                                     filter: function (aIndex) {
+                                         var result = results[aIndex];
+
+                                         return (aIndex < 0 ) ? [null] :
+                                             [{
+                                                  screen_name : result.from_user,
+                                                  id          : result.id,
+                                                  user_id     : result.from_user_id,
+                                                  text        : html.unEscapeTag(result.text),
+                                                  favorited   : result.favorited
+                                              }];
+                                     },
+                                     keymap: getOption("keymap"),
+                                     actions: twitterCommonActions
+                                 });
+                         }
+                     }
+                 );
+             }
+
+             prompt.read("search:", doSearch, null, null, null, 0, "twitter_search");
+         }
+
+         function retweet(aID) {
+             var parameters = [["source", "KeySnail"]];
+             var aQuery     = "source=KeySnail";
+
+             oauthASyncRequest(
+                 {
+                     action     : "https://api.twitter.com/1/statuses/retweet/" + aID + ".json",
+                     method     : "POST",
+                     parameters : parameters,
+                     send       : aQuery,
+                     host       : "https://api.twitter.com/"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4)
+                     {
+                         if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
+                         {
+                             // token expired
+                             reAuthorize();
+                         }
+                         else if (xhr.status != 200)
+                         {
+                             // misc error
+                             showPopup({
+                                           title    : M({ja: "ごめんなさい", en: "I'm sorry..."}),
+                                           message  : M({ja: "RT に失敗しました [Twitter のサイトへ行き、アカウントの言語環境を英語に変更した上でもう一度お試し下さい]",
+                                                         en: "Failed to ReTweet"}) + " (" + xhr.status + ")"
+                                       });
+                         }
+                         else
+                         {
+                             // succeeded
+                             var status    = util.safeEval("(" + xhr.responseText + ")");
+                             var icon_url  = status.user.profile_image_url;
+                             var user_name = status.user.name;
+                             var message   = html.unEscapeTag(status.text);
+
+                             showPopup({
+                                           icon    : icon_url,
+                                           title   : M({ja: "RT しました", en: "ReTweeted"}),
+                                           message : message
+                                       });
+                         }
+                     }
+                 }
+             );
+         }
+
+         function tweet(aInitialInput, aReplyID) {
+             var statusbar = document.getElementById('statusbar-display');
+             var limit = 140;
+
+             prompt.reader(
+                 {
+                     message: "tweet:",
+                     initialcount: 0,
+                     initialinput: aInitialInput,
+                     group: "twitter_tweet",
+                     onChange: function (arg) {
+                         var current = arg.textbox.value;
+                         var length  = current.length;
+                         var count   = limit - length;
+                         var msg     = M({ja: ("残り " + count + " 文字"), en: count});
+
+                         if (count < 0)
+                         {
+                             msg = M({ja: ((-count) + " 文字オーバー"), en: ("Over " + (-count) + " characters")});
+                         }
+
+                         statusbar.label = msg;
+                     },
+                     callback: function (aTweet) {
+                         statusbar.label = "";
+
+                         if (aTweet == null)
+                             return;
+
+                         var parameters = [["source", "KeySnail"], ["status" , aTweet]];
+                         if (aReplyID)
+                             parameters.push(["in_reply_to_status_id", aReplyID.toString()]);;
+
+                         var aQuery = "source=KeySnail&status=" + encodeURIComponent(aTweet);
+                         if (aReplyID)
+                             aQuery += "&in_reply_to_status_id=" + aReplyID;
+
+                         oauthASyncRequest(
+                             {
+                                 action     : "https://twitter.com/statuses/update.json",
+                                 method     : "POST",
+                                 send       : aQuery,
+                                 parameters : parameters
+                             },
+                             function (aEvent, xhr) {
+                                 if (xhr.readyState == 4)
+                                 {
+                                     if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
+                                     {
+                                         // token expired
+                                         reAuthorize();
+                                     }
+                                     else if (xhr.status != 200)
+                                     {
+                                         // misc error
+                                         showPopup({
+                                                       title   : M({ja: "ごめんなさい", en: "I'm sorry..."}),
+                                                       message : M({ja: "つぶやけませんでした",
+                                                                    en: "Failed to tweet"}) + " (" + xhr.status + ")"
+                                                   });
+                                     }
+                                     else
+                                     {
+                                         // succeeded
+                                         var status = util.safeEval("(" + xhr.responseText + ")");
+                                         // immediately add
+                                         my.twitterJSONCache.unshift(status);
+                                         immediatelyAddedStatuses.push(status);
+
+                                         var icon_url  = status.user.profile_image_url;
+                                         var user_name = status.user.name;
+                                         var message   = html.unEscapeTag(status.text);
+                                         showPopup({
+                                                       icon    : icon_url,
+                                                       title   : user_name,
+                                                       message : message
+                                                   });
+                                     }
+                                 }
+                             }
+                         );
+                     }
+                 }
+             );
+         }
+
+         function deleteStatus(aStatusID) {
+             oauthASyncRequest(
+                 {
+                     action : "https://twitter.com/statuses/destroy/" + aStatusID + ".json",
+                     method : "DELETE"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4) {
+                         if (xhr.status != 200) {
+
+
+                             display.echoStatusBar(M({ja: 'ステータスの削除に失敗しました。',
+                                                      en: "Failed to delete status"}), 2000);
+                             return;
+                         }
+
+                         // delete from cache
+                         for (var i = 0; i < my.twitterJSONCache.length; ++i) {
+                             if (my.twitterJSONCache[i].id == aStatusID) {
+                                 my.twitterJSONCache.splice(i, 1);
+                                 break;
+                             }
+                         }
+
+                         setLastStatus(my.twitterJSONCache);
+
+                         display.echoStatusBar(M({ja: 'ステータスが削除されました',
+                                                  en: "Status deleted"}), 2000);
+                     }
+                 });
+         }
+
+         function showListStatuses(aScreenName, aListName) {
+             // http://api.twitter.com/1/screenname/lists/js/statuses.json
+
+             oauthASyncRequest(
+                 {
+                     action : util.format("http://api.twitter.com/1/%s/lists/%s/statuses.json",
+                                          aScreenName, aListName),
+                     host   : "http://api.twitter.com/",
+                     method : "GET"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4)
+                     {
+                         if (xhr.status !== 200)
+                         {
+                             display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
+                                                      en: "Failed to get statuses"}), 2000);
+                             return;
+                         }
+
+                         var statuses = util.safeEval("(" + xhr.responseText + ")") || [];
+                         callSelector(
+                             statuses,
+                             M({ja: util.format("%s/%s のタイムライン", aScreenName, aListName),
+                                en: util.format("Timeline of %s/%s", aScreenName, aListName)})
+                         );
+                     }
+                 });
+         }
+
+         function showLists(aScreenName) {
+             if (!aScreenName)
+                 aScreenName = userInfo.screen_name;
+
+             // http://api.twitter.com/1/screenname/lists.json
+
+             oauthASyncRequest(
+                 {
+                     action : "http://api.twitter.com/1/" + aScreenName + "/lists.json",
+                     host   : "https://api.twitter.com/",
+                     method : "GET"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4)
+                     {
+                         if (xhr.status !== 200)
+                         {
+                             display.echoStatusBar(M({ja: 'リスト一覧の取得に失敗しました。',
+                                                      en: "Failed to get lists"}), 2000);
+                             return;
+                         }
+
+                         let result = util.safeEval("(" + xhr.responseText + ")");
+
+                         let collection = Array.slice((result || {lists:[]}).lists).map(
+                             function (list)
+                                 [
+                                     list.name,
+                                     list.description,
+                                     list.member_count,
+                                     list.subscriber_count
+                                 ]
+                         );
+
+                         prompt.selector(
+                             {
+                                 message    : "lists:",
+                                 collection : collection,
+                                 // name, description, member_count, subscriber_count
+                                 flags      : [0, 0, 0, 0],
+                                 header     : [M({ja: 'リスト名', en: "List name"}),
+                                               M({ja: '説明', en: "Description"}),
+                                               M({ja: 'フォロー中', en: "Following"}),
+                                               M({ja: 'リストをフォロー', en: "Follower"})],
+                                 callback   : function (i) {
+                                     if (i >= 0)
+                                         showListStatuses(aScreenName, collection[i][0]);
+                                 }
+                             });
+                     }
+                 });
+         }
+
+         function showMentions(aArg) {
+             var updateForced = (aArg != null);
+
+             if (updateForced || !my.twitterMentionsJSONCache)
+             {
+                 if (twitterStatusesPending)
+                 {
+                     display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
+                                              en: "Requesting to the Twitter ... Please wait."}), 2000);
+                 }
+                 else
+                 {
+                     self.updateMentionsCache(
+                         function () {
+                             callSelector(my.twitterMentionsJSONCache);
+                             setLastMention(my.twitterMentionsJSONCache);
+                         }, updateForced);
+                 }
+             }
+             else
+             {
+                 // use cache
+                 callSelector(my.twitterMentionsJSONCache);
+                 setLastMention(my.twitterMentionsJSONCache);
+             }
+
+         }
+
+         function showFollowersStatus(aArg) {
+             var updateForced = (aArg != null);
+
+             if (updateForced || !my.twitterJSONCache)
+             {
+                 if (twitterStatusesPending)
+                 {
+                     display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
+                                              en: "Requesting to the Twitter ... Please wait."}), 2000);
+                 }
+                 else
+                 {
+                     // rebuild cache
+                     self.updateStatusesCache(
+                         function () {
+                             if (my.twitterJSONCache)
+                             {
+                                 callSelector(my.twitterJSONCache);
+                                 setLastStatus(my.twitterJSONCache);
+                             }
+                         }, updateForced);
+                 }
+             }
+             else
+             {
+                 // use cache
+                 callSelector(my.twitterJSONCache);
+                 setLastStatus(my.twitterJSONCache);
+             }
+         }
+
+         function showTargetStatus(target) {
+             oauthASyncRequest(
+                 {
+                     action : "https://twitter.com/statuses/user_timeline/" + target + ".json?count=" + timelineCountEveryUpdates,
+                     method : "GET"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4) {
+                         if (xhr.status != 200) {
+                             display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
+                                                      en: "Failed to get statuses"}), 2000);
+                             return;
+                         }
+
+                         var statuses = util.safeEval(xhr.responseText) || [];
+                         callSelector(statuses, M({ja: target + " のつぶやき一覧", en: "Tweets from " + target}));
+                     }
+                 });
+         }
+
+         // ================================================================================ //
+         // Sub methods
+         // ================================================================================ //
+
+         const favoritedIcon = 'data:image/png;base64,' +
+             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
+             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIwSURBVDjLlZLNS5RRFMafe9/3vjPOjI1j' +
+             'aKKEVH40tGgRBWEibfoPQoKkVdtoEQQF4T/QqkVtWrSTFrVsF1FgJbWpIAh1k2PNh+PrfL4f95zT' +
+             'Qk0HHKkDD/cc7vP8uHCuEhF0q/KnmXNgGR248PZFN4/GISXMC8L89DBPV0Dp4/SsazJjrtfb9/vd' +
+             'xfn/BgjzY5M8Aq8nBya+V3h93vtnQHFxat4kszntJAAAxus1YvnZQV5V/jyTEZarwnwFLGeFZdT0' +
+             'ZFOJdD84qoCDOpQ7grZfRNj020JSEOKvwvxGiF+q0tL0N5PuO+Mk0nC0B0BDsYCCImyzAIktBBlo' +
+             'MwKJLSgKYcMAcdhC2KpVlIig+H5qxcv0n0xmj4Gbq+BwC2wtJLbgHUlMEFJwUpMIGpto16u+kJzS' +
+             'ACAk+WCzvNbe+AVljkOYIcQQou3TbvdOJo+g4aNdqzaF+PT43HJVA8DQpcVIiPPtaqlEUQzlDELs' +
+             'TpgYwgTAQIjQqlUCtpQfn1spdmxh+PJSQyw9CrbKgM7tvcISQAxlBhC3GuCYXk3cWP25m3M7dk88' +
+             'qbWBRDVApaATOSjPBdXXwYEP5QyCgvjE/kwHgInHtHYBnYA2owhrPiiuw0sOw3EZFEagIB7qChDi' +
+             'YaUcNIoFtP1KxCTPhWiDw7WbXk9vKpnOgsI4exjg6Mbq96YQPxm79uPOvqvbXx4O3KrF6w8osv2d' +
+             'f17kr5YXJq7vnw/S0v3k7Ie7xtud/wAaRnP+Cw8iKQAAAABJRU5ErkJggg==';
+
+         function focusContent() {
+             getBrowser().focus();
+             _content.focus();
+         }
+
+         function callSelector(aStatuses, aMessage, aNoFilter) {
+             if (!aStatuses)
+                 return;
+
+             var current = new Date();
+
+             // ignore black users
+             var statuses = aNoFilter ? aStatuses :
+                 aStatuses.filter(
+                     function (status) blackUsers.every(function (name) status.user.screen_name !== name)
+                 );
+
+             function favIconGetter(aRow) aRow[0].favorited ? favoritedIcon : "";
+
+             var collection = statuses.map(
+                 function (status) {
+                     var created = Date.parse(status.created_at);
+                     var matched = status.source.match(">(.*)</a>");
+
+                     return [status,
+                             status.user.profile_image_url,
+                             status.user.name,
+                             html.unEscapeTag(status.text),
+                             favIconGetter,
+                             util.format("%s %s",
+                                         getElapsedTimeString(current - created),
+                                         (matched ? matched[1] : "Web"),
+                                         (status.in_reply_to_screen_name ?
+                                          " to " + status.in_reply_to_screen_name : ""))];
+                 }
+             );
+
+             const ico = ICON | IGNORE;
+             const hid = HIDDEN | IGNORE;
+
+             var helpMessage = M({ja: ' : そのまま Enter でつぶやき画面へ。 Ctrl + i でアクションを選択。 Ctrl + Enter でクライアントを閉じずに連続アクション。',
+                                  en: " : Press Enter to tweet. Ctrl + i (or your defined one) to select the action!"});
+
+             if (!aMessage)
+                 aMessage = M({ja: "タイムライン", en: "Timeline"});
+
+             prompt.selector(
+                 {
+                     message    : "pattern:",
+                     collection : collection,
+                     // status, icon, name, message, fav-icon, info
+                     flags      : [hid, ico, 0, 0, ico, 0],
+                     header     : [M({ja: 'ユーザ', en: "User"}), aMessage + helpMessage, M({ja : "情報", en: 'Info'})],
+                     style      : ["color:#0e0067;", null, "color:#660025;"],
+                     width      : mainColumnWidth,
+                     filter     : function (aIndex) {
+                         var status = statuses[aIndex];
+
+                         return (aIndex < 0 ) ? [null] :
+                             [{
+                                  screen_name : status.user.screen_name,
+                                  id          : status.id,
+                                  user_id     : status.user.id,
+                                  text        : html.unEscapeTag(status.text),
+                                  favorited   : status.favorited
+                              }];
+                     },
+                     keymap              : getOption("keymap"),
+                     actions             : twitterCommonActions
+                 });
+         }
+
+         function modifyCache(aId, proc) {
+             for each (var status in my.twitterJSONCache)
+             {
+                 if (status.id === aId)
+                 {
+                     proc(status);
+                 }
+             }
+         }
+
+         function setLastStatus(aStatuses) {
+             if (aStatuses.length) {
+                 lastStatusID = aStatuses[0].id;
+                 util.setUnicharPref(LAST_STATUS_KEY, lastStatusID);
+                 self.updateStatusbar();
+             }
+         }
+
+         function setLastMention(aMentions) {
+             if (aMentions.length)
+             {
+                 lastMentionID = aMentions[0].id;
+                 util.setUnicharPref(LAST_MENTION_KEY, lastMentionID);
+                 self.updateStatusbar();
+             }
+         }
+
+         function getStatusPos(aJSON, aID) {
+             if (!aID)
+                 return aJSON.length;
+
+             for (var i = 0; i < aJSON.length; ++i) {
+                 if (aJSON[i].id == aID)
+                     return i;
+             }
+
+             return aJSON.length;
+         }
+
+         function setUserData() {
+             oauthASyncRequest(
+                 {
+                     action: "https://twitter.com/statuses/user_timeline.json?count=1",
+                     method: "GET"
+                 },
+                 function (aEvent, xhr) {
+                     if (xhr.readyState == 4)
+                     {
+                         if (xhr.status !== 200)
+                         {
+                             // retry
+                             util.message("retry");
+                             arguments.callee();
+                             return;
+                         }
+
+                         var statuses = util.safeEval('(' + xhr.responseText + ')');
+
+                         if (!statuses[0])
+                         {
+                             arguments.callee();
+                         }
+
+                         userInfo = statuses[0].user;
+                     }
+                 });
+         }
+
+         /**
+          * @public
+          */
+         var self = {
+             updateStatusesCache: function (aAfterWork, aNoRepeat) {
+                 twitterStatusesPending = true;
+
+                 oauthASyncRequest(
+                     {
+                         action : "https://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
+                         method : "GET"
+                     },
+                     function (aEvent, xhr) {
+                         if (xhr.readyState == 4)
+                         {
+                             twitterStatusesPending = false;
+
+                             if (xhr.status != 200)
+                             {
+                                 display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
+                                                          en: "Failed to get statuses"}), 2000);
+                             }
+                             else
+                             {
+                                 var statuses = util.safeEval(xhr.responseText) || [];
+
+                                 twitterLastUpdated = new Date();
+                                 my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
+
+                                 timelineCount = timelineCountEveryUpdates;
+
+                                 self.updateStatusbar();
+                             }
+
+                             if (!aNoRepeat)
+                             {
+                                 my.twitterStatusesCacheUpdater = setTimeout(self.updateStatusesCache, updateInterval);
+                             }
+
+                             if (typeof aAfterWork === "function")
+                                 aAfterWork();
+                         }
+                     });
+             },
+
+             updateMentionsCache: function (aAfterWork, aNoRepeat) {
+                 twitterMentionsPending = true;
+
+                 oauthASyncRequest(
+                     {
+                         action: "https://twitter.com/statuses/mentions.json",
+                         method: "GET"
+                     },
+                     function (aEvent, xhr) {
+                         if (xhr.readyState == 4)
+                         {
+                             twitterMentionsPending = false;
+
+                             if (xhr.status != 200)
+                             {
+                                 display.echoStatusBar(M({en: "Failed to get mentions", ja: "言及一覧の取得に失敗しました"}));
+                                 return;
+                             }
+
+                             var statuses = util.safeEval(xhr.responseText);
+
+                             my.twitterMentionsJSONCache = combineJSONCache(statuses, my.twitterMentionsJSONCache);
+                             self.updateStatusbar();
+
+                             if (!aNoRepeat)
+                             {
+                                 my.twitterMentionsCacheUpdater = setTimeout(self.updateMentionsCache, mentionsUpdateInterval);
+                             }
+
+                             if (typeof aAfterWork === "function")
+                                 aAfterWork();
+                         }
+                     });
+             },
+
+             togglePopupStatus: function () {
+                 popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
+                 display.echoStatusBar(M({ja: ("ポップアップ通知を" + (popUpStatusWhenUpdated ? "有効にしました" : "無効にしました")),
+                                          en: ("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"))}), 2000);
+             },
+
+             reAuthorize: function () {
+                 reAuthorize();
+             },
+
+             tweet: function () {
+                 tweet();
+             },
+
+             tweetWithTitleAndURL: function (ev, arg) {
+                 tweet((arg ? "" : '"' + content.document.title + '" - ') + shortenURL(window.content.location.href));
+             },
+
+             showMentions: function () {
+                 showMentions();
+             },
+
+             search: function () {
+                 search();
+             },
+
+             showTimeline: function (aEvent, aArg) {
+                 if (!oauthTokens.oauth_token || !oauthTokens.oauth_token_secret) {
+                     authorizationSequence();
+                 } else {
+                     showFollowersStatus(aArg);
+                 }
+             },
+
+             showFavorites: function () {
+                 showFavorites();
+             },
+
+             showUsersTimeline: function (ev, arg) {
+                 let count = arg || timelineCountBeginning;
+                 if (count < 0)
+                     count = timelineCountBeginning;
+
+                 oauthASyncRequest(
+                     {
+                         action: "https://twitter.com/statuses/user_timeline.json?count=" + Math.min(count, 200),
+                         method: "GET"
+                     },
+                     function (aEvent, xhr) {
+                         if (xhr.readyState == 4)
+                         {
+                             if (xhr.status != 200)
+                             {
+                                 display.echoStatusBar(M({en: "Failed to get your statuses", ja: "ステータスの取得に失敗しました"}));
+                                 return;
+                             }
+
+                             var statuses = util.safeEval('(' + xhr.responseText + ')');
+                             callSelector(statuses);
+                         }
+                     });
+             },
+
+             updateStatusbar: function () {
+                 // calc unread statuses count
+                 if (my.twitterJSONCache)
+                 {
+                     unreadStatusCount = getStatusPos(my.twitterJSONCache, lastStatusID);
+                     unreadStatusLabel.setAttribute("value", unreadStatusCount);
+                     unreadStatusLabel.parentNode.setAttribute("tooltiptext",
+                                                               unreadStatusCount + M({ja: " 個の未読ステータスがあります", en: " unread statuses"}));
+                 }
+
+                 if (my.twitterMentionsJSONCache)
+                 {
+                     unreadMentionCount = getStatusPos(my.twitterMentionsJSONCache, lastMentionID);
+                     unreadMentionLabel.setAttribute("value", unreadMentionCount);
+                     unreadMentionLabel.parentNode.setAttribute("tooltiptext",
+                                                                unreadMentionCount + M({ja: " 個のあなた宛メッセージがあります", en: " unread mentions"}));
+                 }
+             },
+
+             setUserData: setUserData
+         };
+
+         return self;
+     })();
+
+plugins.twitterClient = twitterClient;
+
+// Add exts {{ ============================================================== //
+
+ext.add("twitter-client-display-timeline", twitterClient.showTimeline,
+        M({ja: 'TL を表示',
+           en: "Display your timeline"}));
+
+ext.add("twitter-client-tweet", twitterClient.tweet,
+        M({ja: 'つぶやく',
+           en: "Tweet!"}));
+
+ext.add("twitter-client-tweet-this-page", twitterClient.tweetWithTitleAndURL,
+        M({ja: 'このページのタイトルと URL を使ってつぶやく',
+           en: "Tweet with the title and URL of this page"}));
+
+ext.add("twitter-client-search-word", twitterClient.search,
+        M({ja: 'Twitter 検索',
+           en: "Search word on Twitter"}));
+
+ext.add("twitter-client-show-mentions", twitterClient.showMentions,
+        M({ja: '@ 一覧表示 (自分への言及一覧)',
+           en: "Display @ (Show mentions)"}));
+
+ext.add("twitter-client-show-favorites", twitterClient.showFavorites,
+        M({ja: '自分のお気に入りを一覧表示',
+           en: "Display favorites"}));
+
+ext.add("twitter-client-show-my-statuses", twitterClient.showUsersTimeline,
+        M({ja: '自分のつぶやきを一覧表示',
+           en: "Display your statuses"}));
+
+ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
+        M({ja: 'ポップアップ通知の切り替え',
+           en: "Toggle popup status"}));
+
+ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
+        M({ja: '再認証',
+           en: "Reauthorize"}));
+
+// }} ======================================================================= //
+
+if (my.twitterStatusesCacheUpdater)
+    clearTimeout(my.twitterStatusesCacheUpdater);
+
+if (getOption("automatically_begin"))
+{
+    twitterClient.updateStatusesCache(
+        function () {
+            twitterClient.updateMentionsCache();
+        });
+}
+
 // PLUGIN_INFO {{ =========================================================== //
 
 var PLUGIN_INFO =
@@ -287,1573 +1976,3 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 </KeySnailPlugin>;
 
 // }} ======================================================================= //
-
-// ChangeLog {{ ============================================================= //
-//
-// ==== 1.4.6 (2009 12/24) ====
-//
-// * Due to inserted prompt.refresh in add favorite action, the star icon becomed to be applied immediately.
-//
-// ==== 1.4.5 (2009 12/22) ====
-//
-// * Added tsubuyaki-senyo settings (tweets only)
-//
-// ==== 1.4.4 (2009 12/17) ====
-//
-// * Fixed the problem that the , in the URL does not handled properly.
-// * Added mentions count and pretty icons.
-//
-// ==== 1.4.3 (2009 12/15) ====
-//
-// * Migrated from tinyurl to j.mp (bit.ly)
-//
-// ==== 1.4.2 (2009 12/15) ====
-//
-// * Added favorited icon and changed add-to-favorite action behavior.
-// * Made tweetWithTitleAndURL() recognize prefix argument.
-//
-// ==== 1.4.0 (2009 12/14) ====
-//
-// * Added local action system
-//
-// ==== 1.3.9 (2009 12/14) ====
-//
-// * Supported local keymap system
-//
-// ==== 1.3.8 (2009 12/05) ====
-//
-// * Supported % in the URL.
-// * xulGrowl prototype
-//
-// ==== 1.3.7 (2009 11/28) ====
-//
-// * Fixed the bug user can't cancel the action "search".
-//
-// ==== 1.3.6 (2009 11/24) ====
-//
-// * Added description for official RT
-//
-// ==== 1.3.5 (2009 11/24) ====
-//
-// * Supported official RT.
-//
-// ==== 1.3.4 (2009 11/23) ====
-//
-// * Supported multiple URL in the message.
-//
-// ==== 1.3.3 (2009 11/16) ====
-//
-// * Made all messages to be unescaped.
-//
-// ==== 1.3.2 (2009 11/13) ====
-//
-// * Added character count to the tweet phase.
-//
-// ==== 1.3.1 (2009 11/03) ====
-//
-// * Fixed the crucial bug in the combineJSONCache.
-//
-// ==== 1.3.0 (2009 11/03) ====
-//
-// * Refactored!
-// * Added action and ext manipulating favorites.
-//
-// ==== 1.2.8 (2009 11/01) ====
-//
-// * Fixed combineJSONCache again and again :(. I hope this fix the problem.
-//
-// ==== 1.2.8 (2009 11/01) ====
-//
-// * Fixed combineJSONCache again. (There were still bug ...)
-//
-// ==== 1.2.7 (2009 11/01) ====
-//
-// * Fixed combineJSONCache to avoid the status duplication which occured
-//   when user tweets and its status immediately added.
-//
-// ==== 1.2.6 (2009 10/31) ====
-//
-// * Cleaned up codes. (Mainly options default value handling.)
-// * Added "delete selected status" action.
-// * Made all actions use oauthASyncRequest() instead of oauthSyncRequest().
-//
-// }} ======================================================================= //
-
-var optionsDefaultValue = {
-    "update_interval"              : 60 * 1000, // 1 minute
-    "use_popup_notification"       : true,
-    "main_column_width"            : [11, 70, 19],
-    "timeline_count_beginning"     : 80,
-    "timeline_count_every_updates" : 20,
-    "unread_status_count_style"    : "color:#383838;font-weight:bold;",
-    "automatically_begin"          : true,
-    "keymap"                       : {},
-    "block_users"                  : [],
-    "black_users"                  : []
-};
-
-function getOption(aName) {
-    var fullName = "twitter_client." + aName;
-    if (typeof plugins.options[fullName] !== "undefined")
-    {
-        return plugins.options[fullName];
-    }
-    else
-    {
-        return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
-    }
-}
-
-var twitterClient =
-    (function () {
-         // ================================================================================ //
-
-         var twitterLastUpdated;
-         var twitterPending;
-         var immediatelyAddedStatuses = [];
-
-         var twitterActions = [
-             [function (status)
-              {
-                  if (status)
-                      tweet();
-              }, M({ja: "つぶやく : ", en: ""}) + "Tweet",
-              "tweet"],
-             [function (status)
-              {
-                  if (status)
-                      tweet("@" + status.screen_name + " ", status.id);
-              }, M({ja: "このつぶやきに返信 : ", en: ""}) + "Send reply message",
-             "reply"],
-             [function (status)
-              {
-                  if (status)
-                      tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
-              }, M({ja: "このつぶやきを => コメント付き ", en: ""}) + "RT (QT): Quote tweet",
-             "retweet"],
-             [function (status)
-              {
-                  if (status)
-                      retweet(status.id);
-              }, M({ja: "このつぶやきを => 公式 ", en: ""}) + "RT : Official Retweet",
-              "official-retweet"],
-             [function (status)
-              {
-                  if (status)
-                      deleteStatus(status.id);
-              }, M({ja: "このつぶやきを => 削除 : ", en: ""}) + "Delete this status",
-              "delete-tweet"],
-             [function (status)
-              {
-                  if (status)
-                      addFavorite(status.id, status.favorited);
-              }, M({ja: "このつぶやきを => お気に入りへ追加 / 削除 : ", en: ""}) + "Add / Remove this status to favorites",
-              "add-to-favorite,c"],
-             [function (status)
-              {
-                  if (status)
-                  {
-                      gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
-                                          + "/status/" + status.id, null, null, null, false);
-                  }
-              }, M({ja: "このつぶやきを => Twitter で見る : ", en: ""}) + "Show status in web page",
-              "view-in-twitter,c"],
-             [function (status)
-              {
-                  command.setClipboardText(html.unEscapeTag(status.text));
-                  display.echoStatusBar(M({ja: "コピーしました", en: "Copied"}), 1000);
-              }, M({ja: "このつぶやきを => クリップボードにコピー : ", en: ""}) + "Copy selected message",
-              "copy-tweet,c"],
-             [function (status)
-              {
-                  display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 300});
-              }, M({ja: "このつぶやきを => 全文表示 : ", en: ""}) + "Display entire message",
-              "display-entire-message,c"],
-             [function (status)
-              {
-                  if (status)
-                      showTargetStatus(status.screen_name);
-              }, M({ja: "このユーザのつぶやきを一覧表示 : ", en: ""}) + "Show Target status",
-              "show-target-status"],
-             [function (status)
-              {
-                  if (status)
-                      showFavorites(status.user_id);
-              }, M({ja: "このユーザのふぁぼり一覧を表示 : ", en: ""}) + "Show this users favorites",
-              "show-user-favorites"],
-             [function (status)
-              {
-                  if (status)
-                      showMentions();
-              }, M({ja: "自分の @ を一覧表示 : ", en: ""}) + "Show mentions",
-              "show-mentions"],
-             [function (status)
-              {
-                  if (status)
-                      self.tweetWithTitleAndURL();
-              }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL",
-              "tweet-current-page"],
-             [function (status)
-              {
-                  if (status)
-                      search();
-              }, M({ja: "単語を検索 : ", en: ""}) + "Search keyword",
-              "search-word"],
-             [function (status)
-              {
-                  command.setClipboardText(status.screen_name);
-              }, M({ja: "このユーザの id をコピー : ", en: ""}) + "Copy id of the selected user",
-              "copy-user-id,c"],
-             [function (status)
-              {
-                  if (status)
-                  {
-                      var matched;
-
-                      // "http://api.twitter.com/1/user/lists/list_id/statuses.format";
-
-                      while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?;#_*,.:/=&%\\-]+)")))
-                      {
-                          var prefix = (matched[1] == "ftp") ? "ftp" : "http";
-                          if (matched[1][matched[1].length - 1] == 's')
-                              prefix += "s";
-
-                          gBrowser.loadOneTab(prefix + matched[2], null, null, null, false);
-
-                          status.text = status.text.slice(status.text.indexOf(matched[2]) + matched[2].length);
-                      }
-                  }
-              }, M({ja: "メッセージ中の URL を開く : ", en: ""}) + "Visit URL in the message",
-              "open-url,c"]
-         ];
-
-         // ================================================================================ //
-
-         // Update interval in mili second
-         var updateInterval = getOption("update_interval");
-
-         // Show popup when timeline is updated
-         var popUpStatusWhenUpdated = getOption("use_popup_notification");
-
-         // [User name, Message, Information] in percentage
-         var mainColumnWidth = getOption("main_column_width");
-
-         var blockUsers = getOption("block_users");
-         var blackUsers = getOption("black_users");
-         var myScreenName;
-
-         // ================================================================================ //
-         // Timeline
-         // ================================================================================ //
-
-         var timelineCountBegining    = getOption("timeline_count_beginning");
-         var timelineCountEveryUpdates = getOption("timeline_count_every_updates");
-
-         function normalizeCount(n) {
-             if (n <= 0)
-                 n = 20;
-             if (n > 200)
-                 n = 200;
-
-             return n;
-         }
-
-         timelineCountBegining = normalizeCount(timelineCountBegining);
-         timelineCountEveryUpdates = normalizeCount(timelineCountEveryUpdates);
-
-         var timelineCount = timelineCountBegining;
-
-         // ================================================================================ //
-         // Unread handler
-         // ================================================================================ //
-
-         const LAST_STATUS_KEY  = "extensions.keysnail.plugins.twitter_client.last_status_id";
-         const LAST_MENTION_KEY = "extensions.keysnail.plugins.twitter_client.last_mention_id";
-
-         var lastStatusID  = util.getUnicharPref(LAST_STATUS_KEY);
-         var lastMentionID = util.getUnicharPref(LAST_MENTION_KEY);
-
-         var unreadStatusCount  = 0;
-         var unreadMentionCount = 0;
-
-         // ================================================================================ //
-         // Statusbar
-         // ================================================================================ //
-
-         const statusesIcon = 'data:image/png;base64,' +
-             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
-             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAG/SURBVDjLjZK9T8JQFMVZTUyc3IyJg4mD' +
-             'i87+GyYu6qB/gcZdFxkkJM66qJMGSNRBxDzigJMRQ1jQ4EcQ+SgVKB+FtuL13EdJxNDq8Ev7Xu85' +
-             '797T51nwhqeAH5w6cAxWwDgReX7jwYfdaCIraroptB7NLlVQrOoiGEsL1G06GZyxuILicsMUH3VT' +
-             'lOqGKNUMUdTacj+j1Nng0NGAT2WxYosK1bbIVVoiW27J9V8G57WWKVSczMV5iK+Tudv1vVh5yXdl' +
-             'LQN+os4AFZss2Ob82CCgQmhYHSnmkzf2b6rIhTAaaT2aXZALIRdCLgRtkA1WfYG4iKcVYX52JIs7' +
-             'EYvFmJ8wGiEXQi6EXAhdyn2MxQaPcg68zIETTvzyLsPzWnwqixVbhFwI3RFykes+A9vkIBKX4jCo' +
-             'IxdCLrI4/0OcUXXK4/1dbbDBS088xGGCCzAJCsiF2lanT8xdKNhHXvRarLFBqmcwCrbAhL32+kP3' +
-             'lHguETKRsNlbqUFPeY2OoikW62DNM+jf2ibzQNN0g5ALC75AGiT59oIReQ+cDGyTB+TC4jaYGXiR' +
-             'XMTD3AFogVmnOjeDMRAC025duo7wH74BwZ8JlHrTPLcAAAAASUVORK5CYII=';
-
-         const mentionsIcon = 'data:image/png;base64,' +
-             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
-             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAITSURBVBgZpcHLThNhGIDh9/vn7/RApwc5' +
-             'VCmFWBPi1mvwAlx7BW69Afeu3bozcSE7E02ILjCRhRrds8AEbKVS2gIdSjvTmf+TYqLu+zyiqszD' +
-             'MCf75PnnnVwhuNcLpwsXk8Q4BYeSOsWpkqrinJI6JXVK6lSRdDq9PO+19vb37XK13Hj0YLMUTVVy' +
-             'WY//Cf8IVwQEGEeJN47S1YdPo4npDpNmnDh5udOh1YsZRcph39EaONpnjs65oxsqvZEyTaHdj3n2' +
-             'psPpKDLBcuOOGUWpZDOG+q0S7751ObuYUisJGQ98T/Ct4Fuo5IX+MGZr95jKjRKLlSxXxFxOEmaa' +
-             'N4us1Upsf+1yGk5ZKhp8C74H5ZwwCGO2drssLZZo1ouIcs2MJikz1oPmapHlaoFXH1oMwphyTghy' +
-             'Qj+MefG+RblcoLlaJG/5y4zGCTMikEwTctaxXq/w9kuXdm9Cuzfh9acujXqFwE8xmuBb/hCwl1GK' +
-             'AnGccDwIadQCfD9DZ5Dj494QA2w2qtQW84wmMZ1eyFI1QBVQwV5GiaZOpdsPaSwH5HMZULi9UmB9' +
-             'pYAAouBQbMHHrgQcnQwZV/KgTu1o8PMgipONu2t5KeaNiEkxgAiICDMCCFeEK5aNauAOfoXx8KR9' +
-             'ZOOLk8P7j7er2WBhwWY9sdbDeIJnwBjBWBBAhGsCmiZxPD4/7Z98b/0QVWUehjkZ5vQb/Un5e/DI' +
-             'sVsAAAAASUVORK5CYII=';
-
-         function setAttributes(aElem, aAttributes)
-         {
-             for (var key in aAttributes)
-             {
-                 aElem.setAttribute(key, aAttributes[key]);
-             }
-         }
-
-         const CONTAINER_ID      = "keysnail-twitter-client-container";
-         const UNREAD_STATUS_ID  = "keysnail-twitter-client-unread-status";
-         const UNREAD_MENTION_ID = "keysnail-twitter-client-unread-mention";
-
-
-         var statusbar           = document.getElementById("status-bar");
-         var statusbarPanel      = document.getElementById("keysnail-status");
-         var container           = document.getElementById(CONTAINER_ID);
-         var unreadStatusLabel   = document.getElementById(UNREAD_STATUS_ID);
-         var unreadMentionLabel  = document.getElementById(UNREAD_MENTION_ID);
-
-         var unreadStatusLabelStyle = getOption("unread_status_count_style");
-
-         if (!container)
-         {
-             // create a new one
-             container = document.createElement("statusbarpanel");
-             setAttributes(container,
-                           {
-                               align: "center",
-                               id: CONTAINER_ID
-                           });
-
-             let box, icon;
-
-             // ================================================== //
-
-             box = document.createElement("hbox");
-             setAttributes(box,
-                           {
-                               align : "center",
-                               flex  : 1
-                           });
-             icon = document.createElement("image");
-             setAttributes(icon,
-                          {
-                              src : statusesIcon
-                          });
-             unreadStatusLabel = document.createElement("label");
-             setAttributes(unreadStatusLabel,
-                           {
-                               id    : UNREAD_STATUS_ID,
-                               flex  : 1,
-                               value : "-"
-                           });
-             box.appendChild(icon);
-             box.appendChild(unreadStatusLabel);
-             container.appendChild(box);
-
-             // ================================================== //
-
-             box = document.createElement("hbox");
-             setAttributes(box,
-                           {
-                               align : "center",
-                               flex  : 1
-                           });
-             icon = document.createElement("image");
-             setAttributes(icon,
-                          {
-                              src : mentionsIcon
-                          });
-             unreadMentionLabel = document.createElement("label");
-             setAttributes(unreadMentionLabel,
-                           {
-                               id    : UNREAD_MENTION_ID,
-                               flex  : 1,
-                               value : "-"
-                           });
-             box.appendChild(icon);
-             box.appendChild(unreadMentionLabel);
-             container.appendChild(box);
-
-             // ================================================== //
-
-             function insertAfter(parent, node, referenceNode) {
-	         parent.insertBefore(node, referenceNode.nextSibling);
-             }
-
-             insertAfter(statusbar, container, statusbarPanel);
-
-             // statusbar.appendChild(container);
-         }
-
-         unreadStatusLabel.setAttribute("style", unreadStatusLabelStyle);
-         unreadStatusLabel.parentNode.onclick = function () { self.showTimeline(); };
-
-         unreadMentionLabel.setAttribute("style", unreadStatusLabelStyle);
-         unreadMentionLabel.parentNode.onclick = function () { self.showMentions(); };
-
-         // ============================== Arrange services ============================== //
-
-         try {
-             var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
-         } catch (x) {
-             popUpStatusWhenUpdated = false;
-         }
-
-         var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-             .getService(Components.interfaces.nsIWindowMediator);
-
-         // ============================== Popup notifications {{ ============================== //
-
-         var unPopUppedStatuses;
-
-         function showPopup(arg) {
-             if (false /* plugins.lib.xulGrowl */)
-             {
-                 plugins.lib.xulGrowl.update(
-                     {
-                         title   : arg.title,
-                         message : arg.message,
-                         link    : arg.link,
-                         icon    : arg.icon
-                     }
-                 );
-
-                 setTimeout(function () {
-                                if (typeof arg.callback === "function")
-                                    arg.callback();
-                            }, 1000);
-             }
-             else
-             {
-                 alertsService.showAlertNotification(arg.icon,
-                                                     arg.title,
-                                                     arg.message,
-                                                     !!arg.link,
-                                                     arg.link,
-                                                     arg.observer);
-             }
-         }
-
-         function showOldestUnPopUppedStatus() {
-             var status = unPopUppedStatuses.pop();
-
-             if ((blockUsers &&
-                  blockUsers.some(function (username) username == status.user.screen_name))
-                 || status.user.screen_name == myScreenName)
-             {
-                 util.message("ignored :: " + html.unEscapeTag(status.text) + " " + status.user.screen_name);
-
-                 if (unPopUppedStatuses && unPopUppedStatuses.length)
-                 {
-                     showOldestUnPopUppedStatus();
-                 }
-
-                 return;
-             }
-
-             var browserWindow = wm.getMostRecentWindow("navigator:browser");
-             if (!browserWindow || browserWindow.KeySnail != KeySnail)
-             {
-                 util.message("other window");
-                 return;
-             }
-
-             function proc() {
-                 if (!unPopUppedStatuses || !unPopUppedStatuses.length)
-                     return;
-
-                 showOldestUnPopUppedStatus();
-             }
-
-             showPopup({
-                           icon     : status.user.profile_image_url,
-                           title    : status.user.name,
-                           message  : html.unEscapeTag(status.text),
-                           link     : "http://twitter.com/" + status.user.screen_name + "/status/" + status.id,
-                           callback : proc,
-                           observer : {
-                               observe: function (subject, topic, data) {
-                                   if (topic === "alertclickcallback")
-                                       gBrowser.loadOneTab(data, null, null, null, false);
-
-                                   proc();
-                               }
-                           }
-                       });
-         }
-
-         function popUpNewStatuses(statuses) {
-             if (unPopUppedStatuses && unPopUppedStatuses.length > 0)
-                 unPopUppedStatuses = statuses.concat(unPopUppedStatuses);
-             else
-                 unPopUppedStatuses = statuses;
-
-             showOldestUnPopUppedStatus();
-         }
-
-         // ============================== }} Popup notifications ============================== //
-
-         function suggest(aWord) {
-             var xhr = new XMLHttpRequest();
-             var endPoint = "http://www.google.co.jp/complete/search?output=toolbar&q=" + encodeURIComponent(aWord);
-
-             xhr.mozBackgroundRequest = true;
-             xhr.open("GET", endPoint, false);
-             xhr.send(null);
-
-             return XML(xhr.responseText.match("<toplevel>.*</toplevel>")[0]);
-         }
-
-         function shortenURL(aURL) {
-             const id  = "stillpedant";
-             const key = "R_168719821d1100c59352962dce863251";
-
-             var xhr = new XMLHttpRequest();
-             // bit.ly
-             var endPoint = "http://api.j.mp/shorten?" +
-                 util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s', id, key, encodeURIComponent(aURL));
-
-             xhr.mozBackgroundRequest = true;
-             xhr.open("GET", endPoint, false);
-             xhr.send(null);
-
-             var response = util.safeEval("(" + xhr.responseText + ")");
-
-             if (response && response.results && response.results[aURL])
-                 return response.results[aURL].shortUrl;
-
-             return aURL;
-         }
-
-         function getTinyURL(aURL) {
-             var xhr = new XMLHttpRequest();
-             var endPoint = "http://tinyurl.com/api-create.php?url=" + aURL;
-             xhr.mozBackgroundRequest = true;
-             xhr.open("GET", endPoint, false);
-             xhr.send(null);
-
-             return xhr.responseText;
-         }
-
-         function getElapsedTimeString(aMillisec) {
-             function format(num, str) {
-                 return Math.floor(num) + " " + str;
-             }
-
-             var sec = aMillisec / 1000;
-             if (sec < 1.0)
-                 return M({ja: "ついさっき", en: "just now"});
-             var min = sec / 60;
-             if (min < 1.0)
-                 return format(sec, M({ja: "秒前", en: "seconds ago"}));
-             var hour = min / 60;
-             if (hour < 1.0)
-                 return format(min, M({ja: "分前", en: "minutes ago"}));
-             var date = hour / 24;
-             if (date < 1.0)
-                 return format(hour, M({ja: "時間前", en: "hours ago"}));
-             return format(date, M({ja: "日前", en: "days ago"}));
-         }
-
-         function combineJSONCache(aNew, aOld) {
-             if (!aOld)
-                 return aNew;
-
-             if (immediatelyAddedStatuses.length)
-             {
-                 // remove immediately added statuses
-                 var removeCount = aOld.indexOf(immediatelyAddedStatuses[0]) + 1;
-
-                 if (removeCount > 0)
-                 {
-                     aOld.splice(0, removeCount);
-                 }
-             }
-
-             immediatelyAddedStatuses = [];
-
-             // search
-             var oldid = aOld[0].id;
-             var newStatusCount = aNew.map(function (status) status.id).indexOf(oldid);
-
-             var newStatuses;
-
-             if (newStatusCount == -1)
-             {
-                 // all statuses in aNew is updated status
-                 newStatuses = aNew;
-             }
-             else
-             {
-                 newStatuses = aNew.slice(0, newStatusCount);
-             }
-
-             var latestTimeline = newStatuses.concat(aOld);
-
-             if (popUpStatusWhenUpdated && newStatuses.length)
-                 popUpNewStatuses(newStatuses);
-
-             return latestTimeline;
-         }
-
-         // ============================== OAuth ============================== //
-
-         var oauthInfo = {
-             signatureMethod : "HMAC-SHA1",
-             consumerKey     : "q8bLrmPJJ54hv5VGSXUfvQ",
-             consumerSecret  : "34Xtbtmqikl093nzaXg6ePay5EJJMu0cm3qervD4",
-             requestToken    : "http://twitter.com/oauth/request_token",
-             accessToken     : "http://twitter.com/oauth/access_token",
-             authorizeURL    : "http://twitter.com/oauth/authorize"
-         };
-
-         var prefKeys = {
-             oauth_token        : "extensions.keysnail.plugins.twitter_client.oauth_token",
-             oauth_token_secret : "extensions.keysnail.plugins.twitter_client.oauth_token_secret"
-         };
-
-         var oauthTokens = {
-             oauth_token        : util.getUnicharPref(prefKeys.oauth_token, ""),
-             oauth_token_secret : util.getUnicharPref(prefKeys.oauth_token_secret, "")
-         };
-
-         var context = {};
-
-         if (!userscript.require("oauth.js", context)) {
-             display.notify(L(util.xmlGetLocaleString(PLUGIN_INFO.name)) + " :: " +
-                            M({ja: "このプラグインの動作には oauth.js が必要です。 oauth.js をプラグインディレクトリ内に配置した上でお試し下さい。",
-                               en: "This plugin requires oauth.js but not found. Please locate oauth.js to the plugin directory."}));
-         }
-
-         var OAuth = context.OAuth();
-
-         // ================================================================================ //
-         // Basic oauth request methods
-         // ================================================================================ //
-
-         function oauthSyncRequest(aOptions) {
-             var xhr = new XMLHttpRequest();
-
-             var accessor = {
-                 consumerSecret : oauthInfo.consumerSecret,
-                 tokenSecret    : oauthTokens.oauth_token_secret
-             };
-
-             var message = {
-                 action     : aOptions.action,
-                 method     : aOptions.method,
-                 parameters : [
-                     ["oauth_consumer_key"     , oauthInfo.consumerKey],
-                     ["oauth_token"            , oauthTokens.oauth_token],
-                     ["oauth_signature_method" , oauthInfo.signatureMethod],
-                     ["oauth_version"          , "1.0"]
-                 ]
-             };
-
-             if (aOptions.parameters) {
-                 message.parameters = message.parameters.concat(aOptions.parameters);
-             }
-
-             OAuth.setTimestampAndNonce(message);
-             OAuth.SignatureMethod.sign(message, accessor);
-
-             var oAuthArgs = OAuth.getParameterMap(message.parameters);
-             var authHeader = OAuth.getAuthorizationHeader("http://twitter.com/", oAuthArgs);
-
-             xhr.mozBackgroundRequest = true;
-             xhr.open(message.method, message.action, false);
-             xhr.setRequestHeader("Authorization", authHeader);
-             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-             xhr.send(aOptions.send || null);
-
-             return xhr.responseText;
-         }
-
-         function oauthASyncRequest(aOptions, aCallBack) {
-             var xhr = new XMLHttpRequest();
-
-             xhr.onreadystatechange = function (aEvent) {
-                 aCallBack(aEvent, xhr);
-             };
-
-             var accessor = aOptions.accessor ||
-                 {
-                     consumerSecret : oauthInfo.consumerSecret,
-                     tokenSecret    : oauthTokens.oauth_token_secret
-                 };
-
-             var message = {
-                 action     : aOptions.action,
-                 method     : aOptions.method,
-                 parameters : [
-                     ["oauth_consumer_key"     , oauthInfo.consumerKey],
-                     ["oauth_signature_method" , oauthInfo.signatureMethod],
-                     ["oauth_version"          , "1.0"]
-                 ]
-             };
-
-             if (!aOptions.authorize)
-                 message.parameters.push(["oauth_token", oauthTokens.oauth_token]);
-
-             if (aOptions.parameters)
-             {
-                 outer:
-                 for each (var params in aOptions.parameters)
-                 {
-                     for (let i = 0; i < message.parameters; ++i)
-                     {
-
-                         if (params[0] == message.parameters[i][0])
-                         {
-                             // override
-                             message.parameters[i][1] = params[1];
-                             // process next params
-                             continue outer;
-                         }
-                     }
-
-                     // append
-                     message.parameters.push(params);
-                 }
-             }
-
-             OAuth.setTimestampAndNonce(message);
-             OAuth.SignatureMethod.sign(message, accessor);
-
-             var oAuthArgs  = OAuth.getParameterMap(message.parameters);
-             var authHeader = OAuth.getAuthorizationHeader(aOptions.host || "http://twitter.com/", oAuthArgs);
-
-             xhr.mozBackgroundRequest = true;
-             xhr.open(message.method, message.action, true);
-             xhr.setRequestHeader("Authorization", authHeader);
-             xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-             xhr.send(aOptions.send || null);
-         }
-
-         // ================================================================================ //
-         // Authorization methods
-         // ================================================================================ //
-
-         function authorize() {
-             oauthASyncRequest(
-                 {
-                     action   : oauthInfo.requestToken,
-                     method   : "GET",
-                     accessor : {
-                         consumerSecret : oauthInfo.consumerSecret,
-                         tokenSecret    : ""
-                     },
-                     authorize : true
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status == 200)
-                         {
-                             var parts = xhr.responseText.split("&");
-
-                             try {
-                                 oauthTokens.oauth_token        = parts[0].split("=")[1];
-                                 oauthTokens.oauth_token_secret = parts[1].split("=")[1];
-
-                                 gBrowser.loadOneTab("http://twitter.com/oauth/authorize?oauth_token=" + oauthTokens.oauth_token,
-                                                     null, null, null, false);
-                             } catch (e) {
-                                 display.notify(e + xhr.responseText);
-                             }
-                         }
-                         else if (xhr.status >= 500)
-                         {
-                             // whale error
-                             display.notify("Whale error :: " + xhr.responseText);
-                         }
-                         else
-                         {
-                             // unknow error
-                             display.notify("Unknown error :: " + xhr.responseText);
-                         }
-                     }
-                 }
-             );
-         }
-
-         function reAuthorize() {
-             util.setUnicharPref(prefKeys.oauth_token, "");
-             util.setUnicharPref(prefKeys.oauth_token_secret, "");
-             my.twitterJSONCache = null;
-             authorizationSequence();
-         }
-
-         function authorizationSequence() {
-             authorize();
-
-             prompt.read(M({ja: "認証が終了したら Enter キーを押してください",
-                            en: "Press Enter When Authorization Finished:"}),
-                         function (aReadStr) {
-                             if (aReadStr == null)
-                                 return;
-
-                             getAccessToken(function () {
-                                                showFollowersStatus();
-                                            });
-                         });
-         }
-
-         function getAccessToken(aCallBack) {
-             oauthASyncRequest(
-                 {
-                     action : oauthInfo.accessToken,
-                     method : "GET"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status == 200)
-                         {
-                             try {
-                                 var parts = xhr.responseText.split("&");
-
-                                 oauthTokens.oauth_token = parts[0].split("=")[1];
-                                 oauthTokens.oauth_token_secret = parts[1].split("=")[1];
-                                 util.setUnicharPref(prefKeys.oauth_token, oauthTokens.oauth_token);
-                                 util.setUnicharPref(prefKeys.oauth_token_secret, oauthTokens.oauth_token_secret);
-
-                                 if (typeof aCallBack == "function")
-                                     aCallBack();
-                             } catch (e) {
-                                 display.notify(e +  xhr.responseText);
-                             }
-                         }
-                         else if (xhr.status >= 500)
-                         {
-                             // whale error
-                             util.message("whale error :: " + xhr.responseText);
-                         }
-                         else
-                         {
-                             // unknown error
-                             util.message("unknown error :: " + xhr.responseText);
-                         }
-                     }
-                 }
-             );
-         }
-
-         // ============================== Actions ============================== //
-
-         function showFavorites(aTargetID) {
-             oauthASyncRequest(
-                 {
-                     action: "http://twitter.com/favorites.json" + (aTargetID ? ("?id=" + aTargetID) : ""),
-                     method: "GET"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status != 200) {
-                             display.echoStatusBar(M({en: "Failed to get favorites", ja: "お気に入り一覧の取得に失敗しました"}));
-                             return;
-                         }
-
-                         var statuses = util.safeEval(xhr.responseText);
-
-                         callSelector(statuses, M({ja: "お気に入り一覧", en: "Favorites"}));
-                     }
-                 });
-         }
-
-         function addFavorite(aStatusID, aDelete) {
-             oauthASyncRequest(
-                 {
-                     action: util.format("http://twitter.com/favorites/%s/%s.json", aDelete ? "destroy" : "create", aStatusID),
-                     method: "POST"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         var errorMsg = aDelete ? M({ja: "お気に入りから削除できませんでした", en: "Failed to remove status from favorites"})
-                         : M({ja: "お気に入りに追加できませんでした", en: "Failed to add status to favorites"});
-                         var successMsg = aDelete ? M({ja: "お気に入りから削除しました", en: "Removed status from favorites"})
-                         : M({ja: "お気に入りに追加しました", en: "Added status to favorites"});
-
-                         if (xhr.status != 200) {
-                             display.echoStatusBar(errorMsg, 2000);
-                             return;
-                         }
-
-                         var status = util.safeEval("(" + xhr.responseText + ")");
-                         if (!status)
-                             return;
-
-                         var icon_url  = status.user.profile_image_url;
-                         var user_name = status.user.name;
-                         var message   = html.unEscapeTag(status.text);
-
-                         showPopup({
-                                       icon     : icon_url,
-                                       title    : successMsg,
-                                       message  : user_name + ": " + message,
-                                       link     : null
-                                   });
-
-                         modifyCache(status.id, function (status) {
-                                         status.favorited = !aDelete;
-                                     });
-
-                         if (prompt.refresh)
-                             prompt.refresh();
-                     }
-                 }
-             );
-         }
-
-         function search() {
-             function doSearch(aWord) {
-                 if (!aWord)
-                     return;
-
-                 oauthASyncRequest(
-                     {
-                         action: "http://search.twitter.com/search.json?q=" + encodeURIComponent(aWord) + "&rpp=100",
-                         method: "POST"
-                     },
-                     function (aEvent, xhr) {
-                         if (xhr.readyState == 4) {
-                             if (xhr.status != 200) {
-                                 display.echoStatusBar(M({ja: "検索に失敗しました",
-                                                          en: "Failed to search word"}), 3000);
-                                 return;
-                             }
-
-                             var results = (util.safeEval("(" + xhr.responseText + ")") || {"results":[]}).results;
-
-                             if (!results || !results.length) {
-                                 display.echoStatusBar(M({ja: aWord + L(" に対する検索結果はありません"),
-                                                          en: "No results for " + aWord}), 3000);
-                                 return;
-                             }
-
-                             prompt.selector(
-                                 {
-                                     message: "regexp:",
-                                     collection: results.map(
-                                         function (result) [result.profile_image_url, result.from_user, html.unEscapeTag(result.text)]
-                                     ),
-                                     style: ["color:#003870;", null],
-                                     width: [15, 85],
-                                     header: ["From", 'Search result for "' + aWord + '"'],
-                                     flags: [ICON | IGNORE, 0, 0],
-                                     filter: function (aIndex) {
-                                         var result = results[aIndex];
-
-                                         return (aIndex < 0 ) ? [null] :
-                                             [{
-                                                  screen_name : result.from_user,
-                                                  id          : result.id,
-                                                  user_id     : result.from_user_id,
-                                                  text        : html.unEscapeTag(result.text),
-                                                  favorited   : result.favorited
-                                              }];
-                                     },
-                                     keymap: getOption("keymap"),
-                                     actions: twitterActions
-                                 });
-                         }
-                     }
-                 );
-             }
-
-             prompt.read("search:", doSearch, null, null, null, 0, "twitter_search");
-         }
-
-         function retweet(aID) {
-             var parameters = [["source", "KeySnail"]];
-             var aQuery     = "source=KeySnail";
-
-             oauthASyncRequest(
-                 {
-                     action     : "http://api.twitter.com/1/statuses/retweet/" + aID + ".json",
-                     method     : "POST",
-                     parameters : parameters,
-                     send       : aQuery,
-                     host       : "http://api.twitter.com/"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4)
-                     {
-                         if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
-                         {
-                             // token expired
-                             reAuthorize();
-                         }
-                         else if (xhr.status != 200)
-                         {
-                             // misc error
-                             showPopup({
-                                           title    : M({ja: "ごめんなさい", en: "I'm sorry..."}),
-                                           message  : M({ja: "RT に失敗しました [Twitter のサイトへ行き、アカウントの言語環境を英語に変更した上でもう一度お試し下さい]",
-                                                         en: "Failed to ReTweet"}) + " (" + xhr.status + ")"
-                                       });
-                         }
-                         else
-                         {
-                             // succeeded
-                             var status    = util.safeEval("(" + xhr.responseText + ")");
-                             var icon_url  = status.user.profile_image_url;
-                             var user_name = status.user.name;
-                             var message   = html.unEscapeTag(status.text);
-
-                             showPopup({
-                                           icon    : icon_url,
-                                           title   : M({ja: "RT しました", en: "ReTweeted"}),
-                                           message : message
-                                       });
-                         }
-                     }
-                 }
-             );
-         }
-
-         function tweet(aInitialInput, aReplyID) {
-             var statusbar = document.getElementById('statusbar-display');
-             var limit = 140;
-
-             prompt.reader(
-                 {
-                     message: "tweet:",
-                     initialcount: 0,
-                     initialinput: aInitialInput,
-                     group: "twitter_tweet",
-                     onChange: function (arg) {
-                         var current = arg.textbox.value;
-                         var length  = current.length;
-                         var count   = limit - length;
-                         var msg     = M({ja: ("残り " + count + " 文字"), en: count});
-
-                         if (count < 0)
-                         {
-                             msg = M({ja: ((-count) + " 文字オーバー"), en: ("Over " + (-count) + " characters")});
-                         }
-
-                         statusbar.label = msg;
-                     },
-                     callback: function (aTweet) {
-                         statusbar.label = "";
-
-                         if (aTweet == null)
-                             return;
-
-                         var parameters = [["source", "KeySnail"], ["status" , aTweet]];
-                         if (aReplyID)
-                             parameters.push(["in_reply_to_status_id", aReplyID.toString()]);;
-
-                         var aQuery = "source=KeySnail&status=" + encodeURIComponent(aTweet);
-                         if (aReplyID)
-                             aQuery += "&in_reply_to_status_id=" + aReplyID;
-
-                         oauthASyncRequest(
-                             {
-                                 action     : "http://twitter.com/statuses/update.json",
-                                 method     : "POST",
-                                 send       : aQuery,
-                                 parameters : parameters
-                             },
-                             function (aEvent, xhr) {
-                                 if (xhr.readyState == 4)
-                                 {
-                                     if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
-                                     {
-                                         // token expired
-                                         reAuthorize();
-                                     }
-                                     else if (xhr.status != 200)
-                                     {
-                                         // misc error
-                                         showPopup({
-                                                       title   : M({ja: "ごめんなさい", en: "I'm sorry..."}),
-                                                       message : M({ja: "つぶやけませんでした",
-                                                                    en: "Failed to tweet"}) + " (" + xhr.status + ")"
-                                                   });
-                                     }
-                                     else
-                                     {
-                                         // succeeded
-                                         var status = util.safeEval("(" + xhr.responseText + ")");
-                                         // immediately add
-                                         my.twitterJSONCache.unshift(status);
-                                         immediatelyAddedStatuses.push(status);
-
-                                         myScreenName = status.user.screen_name;
-
-                                         var icon_url  = status.user.profile_image_url;
-                                         var user_name = status.user.name;
-                                         var message   = html.unEscapeTag(status.text);
-                                         showPopup({
-                                                       icon    : icon_url,
-                                                       title   : user_name,
-                                                       message : message
-                                                   });
-                                     }
-                                 }
-                             }
-                         );
-                     }
-                 }
-             );
-         }
-
-         function deleteStatus(aStatusID) {
-             oauthASyncRequest(
-                 {
-                     action : "http://twitter.com/statuses/destroy/" + aStatusID + ".json",
-                     method : "DELETE"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status != 200) {
-
-
-                             display.echoStatusBar(M({ja: 'ステータスの削除に失敗しました。',
-                                                      en: "Failed to delete status"}), 2000);
-                             return;
-                         }
-
-                         // delete from cache
-                         for (var i = 0; i < my.twitterJSONCache.length; ++i) {
-                             if (my.twitterJSONCache[i].id == aStatusID) {
-                                 my.twitterJSONCache.splice(i, 1);
-                                 break;
-                             }
-                         }
-
-                         setLastStatus(my.twitterJSONCache);
-
-                         display.echoStatusBar(M({ja: 'ステータスが削除されました',
-                                                  en: "Status deleted"}), 2000);
-                     }
-                 });
-         }
-
-         function showMentions(aArg) {
-             var updateForced = (aArg != null);
-
-             if (updateForced || !my.twitterMentionsJSONCache)
-             {
-                 if (twitterPending)
-                 {
-                     display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
-                                              en: "Requesting to the Twitter ... Please wait."}), 2000);
-                 }
-                 else
-                 {
-                     self.updateMentionsCache(
-                         function () {
-                             callSelector(my.twitterMentionsJSONCache);
-                             setLastMention(my.twitterMentionsJSONCache);
-                         }, updateForced);
-                 }
-             }
-             else
-             {
-                 // use cache
-                 callSelector(my.twitterMentionsJSONCache);
-                 setLastMention(my.twitterMentionsJSONCache);
-             }
-
-         }
-
-         function showFollowersStatus(aArg) {
-             var updateForced = (aArg != null);
-
-             if (updateForced || !my.twitterJSONCache)
-             {
-                 if (twitterPending)
-                 {
-                     display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
-                                              en: "Requesting to the Twitter ... Please wait."}), 2000);
-                 }
-                 else
-                 {
-                     // rebuild cache
-                     self.updateStatusesCache(
-                         function () {
-                             callSelector(my.twitterJSONCache);
-                             setLastStatus(my.twitterJSONCache);
-                         }, updateForced);
-                 }
-             }
-             else
-             {
-                 // use cache
-                 callSelector(my.twitterJSONCache);
-                 setLastStatus(my.twitterJSONCache);
-             }
-         }
-
-         function showTargetStatus(target) {
-             oauthASyncRequest(
-                 {
-                     action : "http://twitter.com/statuses/user_timeline/" + target + ".json?count=" + timelineCountEveryUpdates,
-                     method : "GET"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status != 200) {
-                             display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
-                                                      en: "Failed to get statuses"}), 2000);
-                             return;
-                         }
-
-                         var statuses = util.safeEval(xhr.responseText) || [];
-                         callSelector(statuses, M({ja: target + " のつぶやき一覧", en: "Tweets from " + target}));
-                     }
-                 });
-             return;
-         }
-
-         // ================================================================================ //
-         // Sub methods
-         // ================================================================================ //
-
-         const favoritedIcon = 'data:image/png;base64,' +
-             'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
-             'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIwSURBVDjLlZLNS5RRFMafe9/3vjPOjI1j' +
-             'aKKEVH40tGgRBWEibfoPQoKkVdtoEQQF4T/QqkVtWrSTFrVsF1FgJbWpIAh1k2PNh+PrfL4f95zT' +
-             'Qk0HHKkDD/cc7vP8uHCuEhF0q/KnmXNgGR248PZFN4/GISXMC8L89DBPV0Dp4/SsazJjrtfb9/vd' +
-             'xfn/BgjzY5M8Aq8nBya+V3h93vtnQHFxat4kszntJAAAxus1YvnZQV5V/jyTEZarwnwFLGeFZdT0' +
-             'ZFOJdD84qoCDOpQ7grZfRNj020JSEOKvwvxGiF+q0tL0N5PuO+Mk0nC0B0BDsYCCImyzAIktBBlo' +
-             'MwKJLSgKYcMAcdhC2KpVlIig+H5qxcv0n0xmj4Gbq+BwC2wtJLbgHUlMEFJwUpMIGpto16u+kJzS' +
-             'ACAk+WCzvNbe+AVljkOYIcQQou3TbvdOJo+g4aNdqzaF+PT43HJVA8DQpcVIiPPtaqlEUQzlDELs' +
-             'TpgYwgTAQIjQqlUCtpQfn1spdmxh+PJSQyw9CrbKgM7tvcISQAxlBhC3GuCYXk3cWP25m3M7dk88' +
-             'qbWBRDVApaATOSjPBdXXwYEP5QyCgvjE/kwHgInHtHYBnYA2owhrPiiuw0sOw3EZFEagIB7qChDi' +
-             'YaUcNIoFtP1KxCTPhWiDw7WbXk9vKpnOgsI4exjg6Mbq96YQPxm79uPOvqvbXx4O3KrF6w8osv2d' +
-             'f17kr5YXJq7vnw/S0v3k7Ie7xtud/wAaRnP+Cw8iKQAAAABJRU5ErkJggg==';
-
-         function callSelector(aStatuses, aMessage, aNoFilter) {
-             var current = new Date();
-
-             // ignore black users
-             var statuses = aNoFilter ? aStatuses :
-                 aStatuses.filter(
-                     function (status) blackUsers.every(function (name) status.user.screen_name !== name)
-                 );
-
-             function favIconGetter(aRow) aRow[0].favorited ? favoritedIcon : "";
-
-             var collection = statuses.map(
-                 function (status) {
-                     var created = Date.parse(status.created_at);
-                     var matched = status.source.match(">(.*)</a>");
-
-                     return [status,
-                             status.user.profile_image_url,
-                             status.user.name,
-                             html.unEscapeTag(status.text),
-                             favIconGetter,
-                             util.format("%s %s",
-                                         getElapsedTimeString(current - created),
-                                         (matched ? matched[1] : "Web"),
-                                         (status.in_reply_to_screen_name ?
-                                          " to " + status.in_reply_to_screen_name : ""))];
-                 }
-             );
-
-             const ico = ICON | IGNORE;
-             const hid = HIDDEN | IGNORE;
-
-             var helpMessage = M({ja: ' : そのまま Enter でつぶやき画面へ。 Ctrl + i でアクションを選択。 Ctrl + Enter でクライアントを閉じずに連続アクション。',
-                                  en: " : Press Enter to tweet. Ctrl + i (or your defined one) to select the action!"});
-
-             if (!aMessage)
-                 aMessage = M({ja: "タイムライン", en: "Timeline"});
-
-             prompt.selector(
-                 {
-                     message    : "pattern:",
-                     collection : collection,
-                     // status, icon, name, message, fav-icon, info
-                     flags      : [hid, ico, 0, 0, ico, 0],
-                     header     : [M({ja: 'ユーザ', en: "User"}), aMessage + helpMessage, M({ja : "情報", en: 'Info'})],
-                     style      : ["color:#0e0067;", null, "color:#660025;"],
-                     width      : mainColumnWidth,
-                     filter     : function (aIndex) {
-                         var status = statuses[aIndex];
-
-                         return (aIndex < 0 ) ? [null] :
-                             [{
-                                  screen_name : status.user.screen_name,
-                                  id          : status.id,
-                                  user_id     : status.user.id,
-                                  text        : html.unEscapeTag(status.text),
-                                  favorited   : status.favorited
-                              }];
-                     },
-                     keymap  : getOption("keymap"),
-                     actions : twitterActions
-                 });
-         }
-
-         function modifyCache(aId, proc) {
-             for each (var status in my.twitterJSONCache)
-             {
-                 if (status.id === aId)
-                 {
-                     proc(status);
-                 }
-             }
-         }
-
-         function setLastStatus(aStatuses) {
-             if (aStatuses.length) {
-                 lastStatusID = aStatuses[0].id;
-                 util.setUnicharPref(LAST_STATUS_KEY, lastStatusID);
-                 self.updateStatusbar();
-             }
-         }
-
-         function setLastMention(aMentions) {
-             if (aMentions.length)
-             {
-                 lastMentionID = aMentions[0].id;
-                 util.setUnicharPref(LAST_MENTION_KEY, lastMentionID);
-                 self.updateStatusbar();
-             }
-         }
-
-         function getStatusPos(aJSON, aID) {
-             if (!aID)
-                 return aJSON.length;
-
-             for (var i = 0; i < aJSON.length; ++i) {
-                 if (aJSON[i].id == aID)
-                     return i;
-             }
-
-             return aJSON.length;
-         }
-
-         /**
-          * @public
-          */
-         var self = {
-             updateStatusesCache: function (aAfterWork, aNoRepeat) {
-                 twitterPending = true;
-
-                 oauthASyncRequest(
-                     {
-                         action : "http://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
-                         method : "GET"
-                     },
-                     function (aEvent, xhr) {
-                         if (xhr.readyState == 4)
-                         {
-                             twitterPending = false;
-
-                             if (xhr.status != 200)
-                             {
-                                 display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
-                                                          en: "Failed to get statuses"}), 2000);
-                             }
-                             else
-                             {
-                                 var statuses = util.safeEval(xhr.responseText) || [];
-
-                                 twitterLastUpdated = new Date();
-                                 my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
-
-                                 timelineCount = timelineCountEveryUpdates;
-
-                                 self.updateStatusbar();
-                             }
-
-                             if (!aNoRepeat)
-                             {
-                                 my.twitterStatusesCacheUpdater = setTimeout(self.updateStatusesCache, updateInterval);
-                             }
-
-                             if (typeof aAfterWork === "function")
-                                 aAfterWork();
-                         }
-                     });
-             },
-
-             updateMentionsCache: function (aAfterWork, aNoRepeat) {
-                 twitterPending = true;
-
-                 oauthASyncRequest(
-                     {
-                         action: "http://twitter.com/statuses/mentions.json",
-                         method: "GET"
-                     },
-                     function (aEvent, xhr) {
-                         if (xhr.readyState == 4)
-                         {
-                             twitterPending = false;
-
-                             if (xhr.status != 200)
-                             {
-                                 display.echoStatusBar(M({en: "Failed to get mentions", ja: "言及一覧の取得に失敗しました"}));
-                                 return;
-                             }
-
-                             var statuses = util.safeEval(xhr.responseText);
-
-                             my.twitterMentionsJSONCache = combineJSONCache(statuses, my.twitterMentionsJSONCache);
-                             self.updateStatusbar();
-
-                             if (typeof aAfterWork === "function")
-                                 aAfterWork();
-                         }
-                     });
-
-                 oauthASyncRequest(
-                     {
-                         action : "http://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
-                         method : "GET"
-                     },
-                     function (aEvent, xhr) {
-                         if (xhr.readyState == 4) {
-                             twitterPending = false;
-
-                             if (xhr.status != 200) {
-                                 display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
-                                                          en: "Failed to get statuses"}), 2000);
-                             } else {
-                                 var statuses = util.safeEval(xhr.responseText) || [];
-
-                                 twitterLastUpdated = new Date();
-                                 my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
-
-                                 timelineCount = timelineCountEveryUpdates;
-
-                                 self.updateStatusbar();
-                             }
-
-                             if (!aNoRepeat) {
-                                 my.twitterStatusesCacheUpdater = setTimeout(self.updateStatusesCache, updateInterval);
-                             }
-
-                             if (typeof aAfterWork == "function")
-                                 aAfterWork();
-                         }
-                     });
-             },
-
-             togglePopupStatus: function () {
-                 popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
-                 display.echoStatusBar(M({ja: ("ポップアップ通知を" + (popUpStatusWhenUpdated ? "有効にしました" : "無効にしました")),
-                                          en: ("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"))}), 2000);
-             },
-
-             reAuthorize: function () {
-                 reAuthorize();
-             },
-
-             tweet: function () {
-                 tweet();
-             },
-
-             tweetWithTitleAndURL: function (ev, arg) {
-                 tweet((arg ? "" : '"' + content.document.title + '" - ') + shortenURL(window.content.location.href));
-             },
-
-             showMentions: function () {
-                 showMentions();
-             },
-
-             search: function () {
-                 search();
-             },
-
-             showTimeline: function (aEvent, aArg) {
-                 if (!oauthTokens.oauth_token || !oauthTokens.oauth_token_secret) {
-                     authorizationSequence();
-                 } else {
-                     showFollowersStatus(aArg);
-                 }
-             },
-
-             showFavorites: function () {
-                 showFavorites();
-             },
-
-             updateStatusbar: function () {
-                 // calc unread statuses count
-                 if (my.twitterJSONCache)
-                 {
-                     unreadStatusCount = getStatusPos(my.twitterJSONCache, lastStatusID);
-                     unreadStatusLabel.setAttribute("value", unreadStatusCount);
-                     unreadStatusLabel.parentNode.setAttribute("tooltiptext",
-                                                               unreadStatusCount + M({ja: " 個の未読ステータスがあります", en: " unread statuses"}));
-                 }
-
-                 if (my.twitterMentionsJSONCache)
-                 {
-                     unreadMentionCount = getStatusPos(my.twitterMentionsJSONCache, lastMentionID);
-                     unreadMentionLabel.setAttribute("value", unreadMentionCount);
-                     unreadMentionLabel.parentNode.setAttribute("tooltiptext",
-                                                                unreadMentionCount + M({ja: " 個のあなた宛メッセージがあります", en: " unread mentions"}));
-                 }
-             }
-         };
-
-         return self;
-     })();
-
-// Add exts {{ ============================================================== //
-
-ext.add("twitter-client-display-timeline", twitterClient.showTimeline,
-        M({ja: 'TL を表示',
-           en: "Display your timeline"}));
-
-ext.add("twitter-client-tweet", twitterClient.tweet,
-        M({ja: 'つぶやく',
-           en: "Tweet!"}));
-
-ext.add("twitter-client-tweet-this-page", twitterClient.tweetWithTitleAndURL,
-        M({ja: 'このページのタイトルと URL を使ってつぶやく',
-           en: "Tweet with the title and URL of this page"}));
-
-ext.add("twitter-client-search-word", twitterClient.search,
-        M({ja: 'Twitter 検索',
-           en: "Search word on Twitter"}));
-
-ext.add("twitter-client-show-mentions", twitterClient.showMentions,
-        M({ja: '@ 一覧表示 (言及一覧)',
-           en: "Display @ (Show mentions)"}));
-
-ext.add("twitter-client-show-favorites", twitterClient.showFavorites,
-        M({ja: 'ふぁぼり一覧表示',
-           en: "Display favorites"}));
-
-ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
-        M({ja: 'ポップアップ通知の切り替え',
-           en: "Toggle popup status"}));
-
-ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
-        M({ja: '再認証',
-           en: "Reauthorize"}));
-
-// }} ======================================================================= //
-
-if (my.twitterStatusesCacheUpdater)
-    clearTimeout(my.twitterStatusesCacheUpdater);
-
-if (getOption("automatically_begin"))
-{
-    twitterClient.updateStatusesCache(
-        function () {
-            twitterClient.updateMentionsCache();
-        });
-}
