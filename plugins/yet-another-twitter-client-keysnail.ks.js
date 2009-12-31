@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.5.0 (2009 12/31) ====
+//
+// * Refined codes. Cache updater become singleton. Less Twitter API consumption.
+//
 // ==== 1.4.6 (2009 12/24) ====
 //
 // * Due to inserted prompt.refresh in add favorite action, the star icon becomed to be applied immediately.
@@ -90,17 +94,33 @@
 // }} ======================================================================= //
 
 var optionsDefaultValue = {
-    "update_interval"              : 60 * 1000,      // 1 minute
-    "mentions_update_interval"     : 60 * 1000 * 20, // 20 minute
-    "use_popup_notification"       : false,
-    "main_column_width"            : [11, 70, 19],
-    "timeline_count_beginning"     : 80,
-    "timeline_count_every_updates" : 20,
-    "unread_status_count_style"    : "color:#383838;font-weight:bold;",
-    "automatically_begin"          : true,
-    "keymap"                       : {},
-    "block_users"                  : [],
-    "black_users"                  : []
+    "update_interval"               : 60 * 1000,      // 1 minute
+    "mentions_update_interval"      : 60 * 1000 * 20, // 20 minute
+    "use_popup_notification"        : true,
+    "main_column_width"             : [11, 70, 19],
+    "timeline_count_beginning"      : 80,
+    "timeline_count_every_updates"  : 20,
+    "unread_status_count_style"     : "color:#383838;font-weight:bold;",
+    "automatically_begin"           : true,
+    "keymap"                        : {},
+    "block_users"                   : [],
+    "black_users"                   : [],
+    // fancy mode settings
+    "fancy_mode" : true,
+    // foreground color
+    "normal_tweet_style"         : "color:black;",
+    "my_tweet_style"             : "color:#3a0086;",
+    "reply_to_me_style"          : "color:#870009;",
+    //
+    "selected_row_style"           : "background-color:#005cb1; color:white;",
+    "selected_user_style"          : "background-color:#d3e8ff; color:black;",
+    // 選択行の in_reply_to となるユーザのスタイル
+    "selected_user_reply_to_style" : "background-color:#ffd4ff; color:black;",
+    // 選択行の in_reply_to となるユーザへの in_reply_to のスタイル
+    "selected_user_reply_to_reply_to_style" : "background-color:#ffe9d4; color:black;",
+    // 奇数偶数
+    "odd_row_style"                : "background-color:#e6ebf0;",
+    "even_row_style"               : "background-color:#ffffff"
 };
 
 function getOption(aName) {
@@ -111,6 +131,32 @@ function getOption(aName) {
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
 }
 
+function getBrowserWindows() {
+    var windows = [];
+
+    var wm = Cc["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Ci.nsIWindowMediator);
+    var enumerator = wm.getEnumerator("navigator:browser");
+
+    while (enumerator.hasMoreElements())
+    {
+        windows.push(enumerator.getNext());
+    }
+
+    return windows;
+}
+
+function notifyWindows(aNotifier, aArg) {
+    getBrowserWindows().forEach(function (win) aNotifier(win, aArg));
+}
+
+function updateAllStatusbars() {
+    notifyWindows(function (win) {
+                      if (win.KeySnail && win.KeySnail.modules.plugins.twitterClient)
+                          win.KeySnail.modules.plugins.twitterClient.updateStatusbar();
+                  });
+}
+
 var twitterClient =
     (function () {
          // ================================================================================ //
@@ -118,11 +164,7 @@ var twitterClient =
          var twitterStatusesPending;
          var twitterMentionsPending;
 
-         var twitterLastUpdated;
-         var immediatelyAddedStatuses = [];
-         var userInfo;
-
-         var currentCollection;
+         share.twitterImmediatelyAddedStatuses = [];
 
          var twitterCommonActions = [
              [function (status) {
@@ -274,11 +316,23 @@ var twitterClient =
          const LAST_STATUS_KEY  = "extensions.keysnail.plugins.twitter_client.last_status_id";
          const LAST_MENTION_KEY = "extensions.keysnail.plugins.twitter_client.last_mention_id";
 
-         var lastStatusID  = util.getUnicharPref(LAST_STATUS_KEY);
-         var lastMentionID = util.getUnicharPref(LAST_MENTION_KEY);
+         var lastID = {
+             get status() {
+                 return util.getUnicharPref(LAST_STATUS_KEY);
+             },
 
-         var unreadStatusCount  = 0;
-         var unreadMentionCount = 0;
+             set status(val) {
+                 util.setUnicharPref(LAST_STATUS_KEY, val);
+             },
+
+             get mention() {
+                 return util.getUnicharPref(LAST_MENTION_KEY);
+             },
+
+             set mention(val) {
+                 util.setUnicharPref(LAST_MENTION_KEY, val);
+             }
+         };
 
          // ================================================================================ //
          // Statusbar
@@ -312,16 +366,36 @@ var twitterClient =
 
          function setAttributes(aElem, aAttributes)
          {
-             for (var key in aAttributes)
+             if (aAttributes)
              {
-                 aElem.setAttribute(key, aAttributes[key]);
+                 for (let [key, value] in Iterator(aAttributes))
+                 {
+                     aElem.setAttribute(key, value);
+                 }                 
              }
+         }
+
+         function genElem(aName, aAttributes)
+         {
+             let elem = document.createElement(aName);
+             setAttributes(elem, aAttributes);
+             return elem;
+         }
+
+         function set(elem, attr, value)
+         {
+             elem.setAttribute(attr, value);
+
+             return {
+                 set: function (attr, value) {
+                     return set(elem, attr, value);
+                 }
+             };
          }
 
          const CONTAINER_ID      = "keysnail-twitter-client-container";
          const UNREAD_STATUS_ID  = "keysnail-twitter-client-unread-status";
          const UNREAD_MENTION_ID = "keysnail-twitter-client-unread-mention";
-
 
          var statusbar           = document.getElementById("status-bar");
          var statusbarPanel      = document.getElementById("keysnail-status");
@@ -331,75 +405,40 @@ var twitterClient =
 
          var unreadStatusLabelStyle = getOption("unread_status_count_style");
 
+         function insertAfter(parent, node, referenceNode) {
+	     parent.insertBefore(node, referenceNode.nextSibling);
+         }
+
+         // create statusbar icon
          if (!container)
          {
              // create a new one
-             container = document.createElement("statusbarpanel");
-             setAttributes(container,
-                           {
-                               align : "center",
-                               id    : CONTAINER_ID
-                           });
-
+             container = genElem("statusbarpanel", { align : "center", id : CONTAINER_ID });
              let box, icon;
 
              // ================================================== //
 
-             box = document.createElement("hbox");
-             setAttributes(box,
-                           {
-                               align : "center",
-                               flex  : 1
-                           });
-             icon = document.createElement("image");
-             setAttributes(icon,
-                          {
-                              src : statusesIcon
-                          });
-             unreadStatusLabel = document.createElement("label");
-             setAttributes(unreadStatusLabel,
-                           {
-                               id    : UNREAD_STATUS_ID,
-                               flex  : 1,
-                               value : "-"
-                           });
+             box  = genElem("hbox", { align : "center", flex  : 1 });
+             icon = genElem("image", { src : statusesIcon });
+             unreadStatusLabel = genElem("label", { id : UNREAD_STATUS_ID, flex : 1, value : "-" });
              box.appendChild(icon);
              box.appendChild(unreadStatusLabel);
              container.appendChild(box);
 
              // ================================================== //
 
-             box = document.createElement("hbox");
-             setAttributes(box,
-                           {
-                               align : "center",
-                               flex  : 1
-                           });
-             icon = document.createElement("image");
-             setAttributes(icon,
-                          {
-                              src : mentionsIcon
-                          });
-             unreadMentionLabel = document.createElement("label");
-             setAttributes(unreadMentionLabel,
-                           {
-                               id    : UNREAD_MENTION_ID,
-                               flex  : 1,
-                               value : "-"
-                           });
-             box.appendChild(icon);
-             box.appendChild(unreadMentionLabel);
+             box = box.cloneNode(true);
+             box.childNodes[0].setAttribute("src", mentionsIcon);
+             unreadMentionLabel = box.childNodes[1];
+             unreadMentionLabel.setAttribute("id", UNREAD_MENTION_ID);
+
              container.appendChild(box);
 
              // ================================================== //
 
-             function insertAfter(parent, node, referenceNode) {
-	         parent.insertBefore(node, referenceNode.nextSibling);
-             }
-
              insertAfter(statusbar, container, statusbarPanel);
 
-             // statusbar.appendChild(container);
+             // ================================================== //
          }
 
          unreadStatusLabel.setAttribute("style", unreadStatusLabelStyle);
@@ -407,6 +446,54 @@ var twitterClient =
 
          unreadMentionLabel.setAttribute("style", unreadStatusLabelStyle);
          unreadMentionLabel.parentNode.onclick = function () { self.showMentions(); };
+
+         // Header {{ ================================================================ //
+
+         const HEAD_CONTAINER_ID  = "keysnail-twitter-client-head-container";
+
+         const HEAD_USER_ICON     = "keysnail-twitter-client-user-icon";
+         const HEAD_USER_INFO     = "keysnail-twitter-client-user-info";
+         const HEAD_USER_TWEET    = "keysnail-twitter-client-user-tweet";
+
+         let head = {
+             container : document.getElementById(HEAD_CONTAINER_ID),
+             userIcon  : document.getElementById(HEAD_USER_ICON),
+             userInfo  : document.getElementById(HEAD_USER_INFO),
+             userTweet : document.getElementById(HEAD_USER_TWEET),
+             userName  : null
+         };
+
+         head.container = genElem("hbox", { id : HEAD_CONTAINER_ID });
+
+         let userIconContainer = genElem("vbox", { align : "center" });
+         head.userIcon = genElem("image", { id     : HEAD_USER_ICON,
+                                            style  : "max-width:46px;max-height:46px;margin-left:4px;" });
+
+         userIconContainer.appendChild(genElem("spacer", {flex:1}));
+         userIconContainer.appendChild(head.userIcon);
+         userIconContainer.appendChild(genElem("spacer", {flex:1}));
+
+         head.userInfo  = genElem("vbox");
+         head.userName  = genElem("description", { style : "font-weight:bold; text-align:center;" });
+         head.userInfo.appendChild(head.userName);
+         let userInfoBottom = genElem("hbox");
+         userInfoBottom.appendChild(genElem("button", { label : "Web" }));
+         userInfoBottom.appendChild(genElem("button", { label : "Home" }));
+         head.userInfo.appendChild(userInfoBottom);
+
+         head.userTweet = genElem("textbox", { id        : HEAD_USER_TWEET,
+                                               multiline : true, flex : 1 });
+
+         head.container.appendChild(userIconContainer);
+         head.container.appendChild(head.userInfo);
+         head.container.appendChild(head.userTweet);
+
+         head.container.setAttribute("hidden", true);
+
+         document.getElementById("browser-bottombox")
+             .insertBefore(head.container, document.getElementById("keysnail-completion-list"));
+
+         // }} ======================================================================= //
 
          // ============================== Arrange services ============================== //
 
@@ -453,12 +540,9 @@ var twitterClient =
          function showOldestUnPopUppedStatus() {
              var status = unPopUppedStatuses.pop();
 
-             if ((blockUsers &&
-                  blockUsers.some(function (username) username == status.user.screen_name))
-                 || status.user.screen_name == userInfo.screen_name)
+             if ((blockUsers && blockUsers.some(function (username) username == status.user.screen_name))
+                 || (share.userInfo && status.user.screen_name == share.userInfo.screen_name))
              {
-                 util.message("ignored :: " + html.unEscapeTag(status.text) + " " + status.user.screen_name);
-
                  if (unPopUppedStatuses && unPopUppedStatuses.length)
                  {
                      showOldestUnPopUppedStatus();
@@ -468,9 +552,8 @@ var twitterClient =
              }
 
              var browserWindow = wm.getMostRecentWindow("navigator:browser");
-             if (!browserWindow || browserWindow.KeySnail != KeySnail)
+             if (!browserWindow || browserWindow !== window)
              {
-                 util.message("other window");
                  return;
              }
 
@@ -575,10 +658,10 @@ var twitterClient =
              if (!aOld)
                  return aNew;
 
-             if (immediatelyAddedStatuses.length)
+             if (share.twitterImmediatelyAddedStatuses.length)
              {
                  // remove immediately added statuses
-                 var removeCount = aOld.indexOf(immediatelyAddedStatuses[0]) + 1;
+                 var removeCount = aOld.indexOf(share.twitterImmediatelyAddedStatuses[0]) + 1;
 
                  if (removeCount > 0)
                  {
@@ -586,7 +669,7 @@ var twitterClient =
                  }
              }
 
-             immediatelyAddedStatuses = [];
+             share.twitterImmediatelyAddedStatuses = [];
 
              // search
              var oldid = aOld[0].id;
@@ -797,7 +880,7 @@ var twitterClient =
          function reAuthorize() {
              util.setUnicharPref(prefKeys.oauth_token, "");
              util.setUnicharPref(prefKeys.oauth_token_secret, "");
-             my.twitterJSONCache = null;
+             share.twitterStatusesJSONCache = null;
              authorizationSequence();
          }
 
@@ -1094,8 +1177,8 @@ var twitterClient =
                                          // succeeded
                                          var status = util.safeEval("(" + xhr.responseText + ")");
                                          // immediately add
-                                         my.twitterJSONCache.unshift(status);
-                                         immediatelyAddedStatuses.push(status);
+                                         share.twitterStatusesJSONCache.unshift(status);
+                                         share.twitterImmediatelyAddedStatuses.push(status);
 
                                          var icon_url  = status.user.profile_image_url;
                                          var user_name = status.user.name;
@@ -1121,24 +1204,26 @@ var twitterClient =
                      method : "DELETE"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status != 200) {
-
-
+                     if (xhr.readyState === 4)
+                     {
+                         if (xhr.status !== 200)
+                         {
                              display.echoStatusBar(M({ja: 'ステータスの削除に失敗しました。',
                                                       en: "Failed to delete status"}), 2000);
                              return;
                          }
 
                          // delete from cache
-                         for (var i = 0; i < my.twitterJSONCache.length; ++i) {
-                             if (my.twitterJSONCache[i].id == aStatusID) {
-                                 my.twitterJSONCache.splice(i, 1);
+                         for (var i = 0; i < share.twitterStatusesJSONCache.length; ++i)
+                         {
+                             if (share.twitterStatusesJSONCache[i].id == aStatusID)
+                             {
+                                 share.twitterStatusesJSONCache.splice(i, 1);
                                  break;
                              }
                          }
 
-                         setLastStatus(my.twitterJSONCache);
+                         setLastStatus(share.twitterStatusesJSONCache);
 
                          display.echoStatusBar(M({ja: 'ステータスが削除されました',
                                                   en: "Status deleted"}), 2000);
@@ -1147,8 +1232,6 @@ var twitterClient =
          }
 
          function showListStatuses(aScreenName, aListName) {
-             // http://api.twitter.com/1/screenname/lists/js/statuses.json
-
              oauthASyncRequest(
                  {
                      action : util.format("http://api.twitter.com/1/%s/lists/%s/statuses.json",
@@ -1178,9 +1261,7 @@ var twitterClient =
 
          function showLists(aScreenName) {
              if (!aScreenName)
-                 aScreenName = userInfo.screen_name;
-
-             // http://api.twitter.com/1/screenname/lists.json
+                 aScreenName = share.userInfo.screen_name;
 
              oauthASyncRequest(
                  {
@@ -1189,7 +1270,7 @@ var twitterClient =
                      method : "GET"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4)
+                     if (xhr.readyState === 4)
                      {
                          if (xhr.status !== 200)
                          {
@@ -1232,7 +1313,7 @@ var twitterClient =
          function showMentions(aArg) {
              var updateForced = (aArg != null);
 
-             if (updateForced || !my.twitterMentionsJSONCache)
+             if (updateForced || !share.twitterMentionsJSONCache)
              {
                  if (twitterStatusesPending)
                  {
@@ -1243,16 +1324,16 @@ var twitterClient =
                  {
                      self.updateMentionsCache(
                          function () {
-                             callSelector(my.twitterMentionsJSONCache);
-                             setLastMention(my.twitterMentionsJSONCache);
+                             callSelector(share.twitterMentionsJSONCache);
+                             setLastMention(share.twitterMentionsJSONCache);
                          }, updateForced);
                  }
              }
              else
              {
                  // use cache
-                 callSelector(my.twitterMentionsJSONCache);
-                 setLastMention(my.twitterMentionsJSONCache);
+                 callSelector(share.twitterMentionsJSONCache);
+                 setLastMention(share.twitterMentionsJSONCache);
              }
 
          }
@@ -1260,7 +1341,7 @@ var twitterClient =
          function showFollowersStatus(aArg) {
              var updateForced = (aArg != null);
 
-             if (updateForced || !my.twitterJSONCache)
+             if (updateForced || !share.twitterStatusesJSONCache)
              {
                  if (twitterStatusesPending)
                  {
@@ -1272,10 +1353,10 @@ var twitterClient =
                      // rebuild cache
                      self.updateStatusesCache(
                          function () {
-                             if (my.twitterJSONCache)
+                             if (share.twitterStatusesJSONCache)
                              {
-                                 callSelector(my.twitterJSONCache);
-                                 setLastStatus(my.twitterJSONCache);
+                                 callSelector(share.twitterStatusesJSONCache);
+                                 setLastStatus(share.twitterStatusesJSONCache);
                              }
                          }, updateForced);
                  }
@@ -1283,8 +1364,8 @@ var twitterClient =
              else
              {
                  // use cache
-                 callSelector(my.twitterJSONCache);
-                 setLastStatus(my.twitterJSONCache);
+                 callSelector(share.twitterStatusesJSONCache);
+                 setLastStatus(share.twitterStatusesJSONCache);
              }
          }
 
@@ -1332,6 +1413,12 @@ var twitterClient =
          }
 
          function callSelector(aStatuses, aMessage, aNoFilter) {
+             head.container.setAttribute("hidden", false);
+
+             function onFinish() {
+                 head.container.setAttribute("hidden", true);
+             }
+
              if (!aStatuses)
                  return;
 
@@ -1372,6 +1459,12 @@ var twitterClient =
              if (!aMessage)
                  aMessage = M({ja: "タイムライン", en: "Timeline"});
 
+             let currentID               = statuses[0].id;
+             let selectedUserID          = statuses[0].user.screen_name;
+             let selectedUserInReplyToID = statuses[0].in_reply_to_screen_name;
+
+             window.inspectObject(statuses[0]);
+
              prompt.selector(
                  {
                      message    : "pattern:",
@@ -1379,9 +1472,64 @@ var twitterClient =
                      // status, icon, name, message, fav-icon, info
                      flags      : [hid, ico, 0, 0, ico, 0],
                      header     : [M({ja: 'ユーザ', en: "User"}), aMessage + helpMessage, M({ja : "情報", en: 'Info'})],
-                     style      : ["color:#0e0067;", null, "color:#660025;"],
+                     // style      : ["color:#0e0067;", "", "color:#660025;"],
                      width      : mainColumnWidth,
-                     filter     : function (aIndex) {
+                     beforeSelection : function (arg) {
+                         let status = arg.row[0];
+
+                         selectedUserID          = status.user.screen_name;
+                         currentID               = status.id;
+                         selectedUserInReplyToID = status.in_reply_to_screen_name;
+
+                         head.userIcon.setAttribute("src", arg.row[1]);
+                         head.userTweet.setAttribute("value", arg.row[3]);
+                         head.userName.setAttribute("value", util.format("%s / %s",
+                                                                         status.user.screen_name,
+                                                                         status.user.name));
+                     },
+                     onFinish : onFinish,
+                     stylist  : getOption("fancy_mode") ?
+                         function (row, n, current) {
+                             if (current !== collection)
+                                 return null;
+
+                             let status = row[0];
+
+                             let style = "";
+
+                             if (share.userInfo)
+                             {
+                                 if (status.user.screen_name === share.userInfo.screen_name)
+                                     style += getOption("my_tweet_style");
+
+                                 if (status.in_reply_to_screen_name === share.userInfo.screen_name)
+                                     style += getOption("reply_to_me_style");
+                             }
+
+                             if (status.user.screen_name === selectedUserID)
+                             {
+                                 if (status.id === currentID)
+                                 {
+                                     // selected row
+                                     style += getOption("selected_row_style");
+                                 }
+                                 else
+                                 {
+                                     style += getOption("selected_user_style");
+                                 }
+                             }
+                             else if (status.user.screen_name === selectedUserInReplyToID)
+                             {
+                                 style += getOption("selected_user_reply_to_style");
+                             }
+                             else if (status.user.in_reply_to_screen_name === selectedUserInReplyToID)
+                             {
+                                 style += getOption("selected_user_reply_to_reply_to_style");
+                             }
+
+                             return style;
+                         } : null,
+                     filter : function (aIndex) {
                          var status = statuses[aIndex];
 
                          return (aIndex < 0 ) ? [null] :
@@ -1393,13 +1541,13 @@ var twitterClient =
                                   favorited   : status.favorited
                               }];
                      },
-                     keymap              : getOption("keymap"),
-                     actions             : twitterCommonActions
+                     keymap  : getOption("keymap"),
+                     actions : twitterCommonActions
                  });
          }
 
          function modifyCache(aId, proc) {
-             for each (var status in my.twitterJSONCache)
+             for each (var status in share.twitterStatusesJSONCache)
              {
                  if (status.id === aId)
                  {
@@ -1410,18 +1558,16 @@ var twitterClient =
 
          function setLastStatus(aStatuses) {
              if (aStatuses.length) {
-                 lastStatusID = aStatuses[0].id;
-                 util.setUnicharPref(LAST_STATUS_KEY, lastStatusID);
-                 self.updateStatusbar();
+                 lastID.status = aStatuses[0].id;
+                 updateAllStatusbars();
              }
          }
 
-         function setLastMention(aMentions) {
-             if (aMentions.length)
+         function setLastMention(aStatuses) {
+             if (aStatuses.length)
              {
-                 lastMentionID = aMentions[0].id;
-                 util.setUnicharPref(LAST_MENTION_KEY, lastMentionID);
-                 self.updateStatusbar();
+                 lastID.mention = aStatuses[0].id;
+                 updateAllStatusbars();
              }
          }
 
@@ -1437,19 +1583,18 @@ var twitterClient =
              return aJSON.length;
          }
 
-         function setUserData() {
+         function setUserInfo() {
              oauthASyncRequest(
                  {
                      action: "https://twitter.com/statuses/user_timeline.json?count=1",
                      method: "GET"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4)
+                     if (xhr.readyState === 4)
                      {
                          if (xhr.status !== 200)
                          {
                              // retry
-                             util.message("retry");
                              arguments.callee();
                              return;
                          }
@@ -1461,7 +1606,7 @@ var twitterClient =
                              arguments.callee();
                          }
 
-                         userInfo = statuses[0].user;
+                         share.userInfo = statuses[0].user;
                      }
                  });
          }
@@ -1491,18 +1636,34 @@ var twitterClient =
                              else
                              {
                                  var statuses = util.safeEval(xhr.responseText) || [];
-
-                                 twitterLastUpdated = new Date();
-                                 my.twitterJSONCache = combineJSONCache(statuses, my.twitterJSONCache);
-
+                                 share.twitterStatusesJSONCache = combineJSONCache(statuses, share.twitterStatusesJSONCache);
                                  timelineCount = timelineCountEveryUpdates;
-
-                                 self.updateStatusbar();
+                                 updateAllStatusbars();
                              }
 
-                             if (!aNoRepeat)
+                             if (!aNoRepeat && !share.twitterStatusesCacheUpdater)
                              {
-                                 my.twitterStatusesCacheUpdater = setTimeout(self.updateStatusesCache, updateInterval);
+                                 share.twitterStatusesCacheUpdater = setTimeout(self.updateStatusesCache, updateInterval);
+
+                                 if (!my.twitterDelegateStatusesUpdater)
+                                 {
+                                     my.twitterDelegateStatusesUpdater =
+                                         window.addEventListener("unload", function () {
+                                                                     share.twitterStatusesCacheUpdater = null;
+                                                                     getBrowserWindows().some(
+                                                                         function (win) {
+                                                                             if (win !== window &&
+                                                                                 win.KeySnail &&
+                                                                                 win.KeySnail.modules.plugins.twitterClient)
+                                                                                 {
+                                                                                     win.KeySnail.modules.plugins.twitterClient.updateStatusesCache();
+                                                                                     return true;
+                                                                                 }
+
+                                                                             return false;
+                                                                         });
+                                                                 }, false);
+                                 }
                              }
 
                              if (typeof aAfterWork === "function")
@@ -1520,24 +1681,44 @@ var twitterClient =
                          method: "GET"
                      },
                      function (aEvent, xhr) {
-                         if (xhr.readyState == 4)
+                         if (xhr.readyState === 4)
                          {
                              twitterMentionsPending = false;
 
-                             if (xhr.status != 200)
+                             if (xhr.status !== 200)
                              {
                                  display.echoStatusBar(M({en: "Failed to get mentions", ja: "言及一覧の取得に失敗しました"}));
-                                 return;
+                             }
+                             else
+                             {
+                                 var statuses = util.safeEval(xhr.responseText);
+                                 share.twitterMentionsJSONCache = combineJSONCache(statuses, share.twitterMentionsJSONCache);
+                                 updateAllStatusbars();
                              }
 
-                             var statuses = util.safeEval(xhr.responseText);
-
-                             my.twitterMentionsJSONCache = combineJSONCache(statuses, my.twitterMentionsJSONCache);
-                             self.updateStatusbar();
-
-                             if (!aNoRepeat)
+                             if (!aNoRepeat && !share.twitterMentionsCacheUpdater)
                              {
-                                 my.twitterMentionsCacheUpdater = setTimeout(self.updateMentionsCache, mentionsUpdateInterval);
+                                 share.twitterMentionsCacheUpdater = setTimeout(self.updateMentionsCache, mentionsUpdateInterval);
+
+                                 if (!my.twitterDelegateMentionsUpdater)
+                                 {
+                                     my.twitterDelegateMentionsUpdater =
+                                         window.addEventListener("unload", function () {
+                                                                     share.twitterMentionsCacheUpdater = null;
+                                                                     getBrowserWindows().some(
+                                                                         function (win) {
+                                                                             if (win !== window &&
+                                                                                 win.KeySnail &&
+                                                                                 win.KeySnail.modules.plugins.twitterClient)
+                                                                             {
+                                                                                 win.KeySnail.modules.plugins.twitterClient.updateMentionsCache();
+                                                                                 return true;
+                                                                             }
+
+                                                                             return false;
+                                                                         });
+                                                                 }, false);
+                                 }
                              }
 
                              if (typeof aAfterWork === "function")
@@ -1611,24 +1792,24 @@ var twitterClient =
 
              updateStatusbar: function () {
                  // calc unread statuses count
-                 if (my.twitterJSONCache)
+                 if (share.twitterStatusesJSONCache)
                  {
-                     unreadStatusCount = getStatusPos(my.twitterJSONCache, lastStatusID);
+                     let unreadStatusCount = getStatusPos(share.twitterStatusesJSONCache, lastID.status);
                      unreadStatusLabel.setAttribute("value", unreadStatusCount);
                      unreadStatusLabel.parentNode.setAttribute("tooltiptext",
                                                                unreadStatusCount + M({ja: " 個の未読ステータスがあります", en: " unread statuses"}));
                  }
 
-                 if (my.twitterMentionsJSONCache)
+                 if (share.twitterMentionsJSONCache)
                  {
-                     unreadMentionCount = getStatusPos(my.twitterMentionsJSONCache, lastMentionID);
+                     let unreadMentionCount = getStatusPos(share.twitterMentionsJSONCache, lastID.mention);
                      unreadMentionLabel.setAttribute("value", unreadMentionCount);
                      unreadMentionLabel.parentNode.setAttribute("tooltiptext",
                                                                 unreadMentionCount + M({ja: " 個のあなた宛メッセージがあります", en: " unread mentions"}));
                  }
              },
 
-             setUserData: setUserData
+             setUserInfo: setUserInfo
          };
 
          return self;
@@ -1676,15 +1857,22 @@ ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
 
 // }} ======================================================================= //
 
-if (my.twitterStatusesCacheUpdater)
-    clearTimeout(my.twitterStatusesCacheUpdater);
-
-if (getOption("automatically_begin"))
+if (share.twitterStatusesJSONCache || share.twitterMentionsJSONCache)
 {
-    twitterClient.updateStatusesCache(
-        function () {
-            twitterClient.updateMentionsCache();
-        });
+    twitterClient.updateStatusbar();
+}
+else
+{
+    if (getOption("automatically_begin"))
+    {
+        twitterClient.updateStatusesCache();
+        twitterClient.updateMentionsCache();
+    }
+}
+
+if (!share.userInfo)
+{
+    twitterClient.setUserInfo();
 }
 
 // PLUGIN_INFO {{ =========================================================== //
@@ -1694,7 +1882,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.4.6</version>
+    <version>1.5.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
