@@ -22,6 +22,11 @@ KeySnail.Command = {
             .getService(Components.interfaces.nsIAutoCompleteController);
     },
 
+    seed: [
+        [KeySnail.modules, "",       3, [KeySnail]],
+        [window,           "window", 1, [KeySnail]]
+    ],
+
     init: function () {
         // load kill-ring
         try {
@@ -56,28 +61,28 @@ KeySnail.Command = {
         return aFunc.toString().split('\n')[0].match(/\(.*\)/);
     },
 
-    createCommandList: function () {
-        if (this.commandList)
-            return this.commandList;
-
-        var commandList = [];
+    createCommandList: function (aSeed, aSort) {
+        let commandList = [];
 
         let self = this;
 
-        [
-            [KeySnail.modules, "", 3, [KeySnail]],
-            [window, "window.", 1, [KeySnail]]
-        ].forEach(
+        aSeed.forEach(
              function ([o, p, d, ignore]) {
                  (function (obj, prefix, depth) {
                       if (depth <= 0 || !obj)
                           return;
 
-                      for ([prop, cand] in Iterator(obj))
+                      for (let prop in obj)
                       {
                           try {
-                              let type       = typeof cand;
-                              let nextPrefix = prefix + prop;
+                              let cand = obj[prop];
+                              let type = typeof cand;
+                              let nextPrefix;
+
+                              if (prop.match(/^[a-zA-Z_$]+[0-9a-zA-Z$_]*$/))
+                                  nextPrefix = prefix ? prefix + "." + prop : prop;
+                              else
+                                  nextPrefix = prefix + "['" + prop.replace(/'/g, "\\'") + "']";
 
                               if (type === "function")
                               {
@@ -86,10 +91,10 @@ KeySnail.Command = {
                               }
                               else if (type === "object" &&
                                        cand !== obj &&
-                                       ignore.every(function (ig) cand !== ig) &&
+                                       (!ignore || ignore.every(function (ig) cand !== ig)) &&
                                        !(cand instanceof Array))
                               {
-                                  arguments.callee(cand, nextPrefix + ".", depth - 1);
+                                  arguments.callee(cand, nextPrefix, depth - 1);
                               }
                               else
                               {
@@ -101,7 +106,7 @@ KeySnail.Command = {
              }
          );
 
-        return commandList.sort();
+        return aSort ? commandList.sort() : commandList;
     },
 
     interpreter: function (ev, arg) {
@@ -113,16 +118,26 @@ KeySnail.Command = {
 
         let inspect = ('inspectObject' in window) && arg;
 
+        let seed = this.seed;
+
+        let localSeed = [
+            [content.wrappedJSObject, "content.wrappedJSObject", 1],
+            [content.document.wrappedJSObject, "content.document.wrappedJSObject", 1]
+        ];
+
+        let collection = this.commandList || (this.commandList = this.createCommandList(seed, true));
+
+        collection = collection.concat(this.createCommandList(localSeed, true));
+
         with (this.modules)
         {
             prompt.substrMatch = false;
             prompt.reader(
                 {
                     message    : "Eval: ",
-                    collection : this.createCommandList(),
+                    collection : collection,
                     group      : "eval-expression",
                     style      : ["", "color:#003d72;font-weight:bold;"],
-                    width      : [50, 50],
                     onFinish   : onFinish,
                     callback   : function (code) {
                         try
