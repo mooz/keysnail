@@ -55,14 +55,14 @@ var preventKeyUpDown = (
 
         var self = {
             start: function () {
-                for ([, type] in Iterator(eventType))
+                for (let [, type] in Iterator(eventType))
                 {
                     window.addEventListener(type, preventEvent, true);
                 }
             },
 
             stop: function () {
-                for ([, type] in Iterator(eventType))
+                for (let [, type] in Iterator(eventType))
                 {
                     window.removeEventListener(type, preventEvent, true);
                 }

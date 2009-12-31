@@ -37,15 +37,19 @@ KeySnail.Prompt = function () {
     var currentCallback;
     var currentUserArg;
 
-    // function which is called in the beggining of the handleKeyPres*()
+    // function which is called in the beginning of the handleKeyPres*()
     var userOnChange;
     var userOnFinish;
+    var beforeSelection;
+    var afterSelection;
 
     // event listener remover
     var eventListenerRemover;
 
     // Saved last user focsed element
     var savedFocusedElement;
+
+    var cellStylist;
 
     // ==================== Constants ==================== //
 
@@ -156,10 +160,10 @@ KeySnail.Prompt = function () {
         var newObject = {};
         var key;
 
-        for ([key, value] in Iterator(a))
+        for (let [key, value] in Iterator(a))
             newObject[key] = value;
 
-        for ([key, value] in Iterator(b))
+        for (let [key, value] in Iterator(b))
         {
             newObject[key] = value;
         }
@@ -267,24 +271,27 @@ KeySnail.Prompt = function () {
         return i;
     }
 
-    function getCellValue(aCells, i) {
+    function getCellValue(aRowData, i) {
         // this function *MUST* return string
         // null, undefined, integer and other object may cause exception
 
-        if (typeof aCells[i] === "function")
-            return aCells[i].call(null, aCells) || "";
+        if (typeof aRowData[i] === "function")
+            return aRowData[i].call(null, aRowData) || "";
         else
-            return aCells[i] || "";
+            return aRowData[i] || "";
     }
 
-    function createRow(aCells) {
+    function createRow(aRowData) {
         var row = document.createElement("listitem");
 
-        if (aCells.length > 1)
+        if (aRowData.length > 1)
         {
             var cell;
 
-            for (var i = 0, j = 0; i < aCells.length; ++i)
+            // i: actual column's index
+            // j: visible column's index 
+            let i, j;
+            for (i = 0, j = 0; i < aRowData.length; ++i)
             {
                 if (isFlagOn(i, modules.HIDDEN))
                     continue;
@@ -294,18 +301,26 @@ KeySnail.Prompt = function () {
                 if (isFlagOn(i, modules.ICON))
                 {
                     cell.setAttribute("class", "listcell-iconic");
-                    cell.setAttribute("image", getCellValue(aCells, i));
+                    cell.setAttribute("image", getCellValue(aRowData, i));
                     i = getNextVisibleRowIndex(i);
                 }
 
                 var style = "";
-                if (i < aCells.length)
+                if (i < aRowData.length)
                 {
-                    setLabel(cell, getCellValue(aCells, i));
+                    setLabel(cell, getCellValue(aRowData, i));
 
                     // column specific style
                     if (listStyle && j < listStyle.length && listStyle[j])
                         style += listStyle[j];
+
+                    if (cellStylist)
+                    {
+                        // cell specific style
+                        let cellStyle = cellStylist(aRowData, i, wholeList);
+                        if (cellStyle)
+                            style += cellStyle;
+                    }
                 }
 
                 if (style)
@@ -317,41 +332,83 @@ KeySnail.Prompt = function () {
         }
         else
         {
-            setLabel(row, getCellValue(aCells, 0));
+            setLabel(row, getCellValue(aRowData, 0));
         }
 
         return row;
     }
 
-    function applyRow(aRow, aCells) {
-        if (aCells.length > 1)
+    function applyRow(aRow, aRowData) {
+        if (aRowData.length > 1)
         {
             var cell = aRow.firstChild;
 
-            for (var i = 0; i < aCells.length; ++i)
+            // i: actual column's index
+            // j: visible column's index 
+            let i, j;
+            for (i = 0, j = 0; i < aRowData.length; ++i)
             {
                 if (isFlagOn(i, modules.HIDDEN))
                     continue;
 
                 if (isFlagOn(i, modules.ICON))
                 {
-                    cell.setAttribute("image", getCellValue(aCells, i));
+                    cell.setAttribute("image", getCellValue(aRowData, i));
                     i = getNextVisibleRowIndex(i);
                 }
 
-                if (i < aCells.length)
-                    setLabel(cell, getCellValue(aCells, i));
+                var style = "";
+                if (i < aRowData.length)
+                {
+                    setLabel(cell, getCellValue(aRowData, i));
+
+                    // column specific style
+                    if (listStyle && j < listStyle.length && listStyle[j])
+                        style += listStyle[j];
+
+                    if (cellStylist)
+                    {
+                        // cell specific style
+                        let cellStyle = cellStylist(aRowData, i, wholeList);
+                        if (cellStyle)
+                            style += cellStyle;
+                    }
+                }
+
+                // if (style) <= we have to clear the style
+                cell.setAttribute("style", style);
 
                 cell = cell.nextSibling;
+                ++j;
             }
         }
         else
         {
-            setLabel(cell, getCellValue(aCells, 0));
+            setLabel(cell, getCellValue(aRowData, 0));
         }
     }
 
     function setListBoxSelection(aIndex) {
+        let currentIndex;
+        let currentRow;
+
+        if (beforeSelection || afterSelection)
+        {
+            if (selectorStatus === SELECTOR_STATE_CANDIDATES)
+            {
+                currentIndex = wholeListIndex;                   
+                currentRow   = wholeList[currentIndex];
+            }
+            else
+            {
+                currentIndex = selectorContext[SELECTOR_STATE_CANDIDATES].wholeListIndex;
+                currentRow   = selectorContext[SELECTOR_STATE_CANDIDATES].wholeList[currentIndex];
+            }
+        }
+
+        if (beforeSelection)
+            beforeSelection({row: currentRow, i: currentIndex});
+
         var center = Math.round(listboxRows / 2);
         var pos;
         var listLen = currentIndexList ? currentIndexList.length : currentList.length;
@@ -370,6 +427,9 @@ KeySnail.Prompt = function () {
             setupList(listLen - listboxRows, listboxRows - (listLen - aIndex));
         else
             setupList(aIndex - center, center);
+
+        if (afterSelection)
+            afterSelection({row: currentRow, i: currentIndex});
     }
 
     function setupList(aOffset, aPos) {
@@ -512,10 +572,26 @@ KeySnail.Prompt = function () {
 
         if (typeof userOnChange === "function")
         {
+            let currentIndex;
+            let currentRow;
+
+            if (selectorStatus === SELECTOR_STATE_CANDIDATES)
+            {
+                currentIndex = wholeListIndex;                   
+                currentRow   = wholeList[currentIndex];
+            }
+            else
+            {
+                currentIndex = selectorContext[SELECTOR_STATE_CANDIDATES].wholeListIndex;
+                currentRow   = selectorContext[SELECTOR_STATE_CANDIDATES].wholeList[currentIndex];
+            }
+
             let arg = {
-                textbox          : textbox,
-                event            : aEvent,
-                finish           : self.finish
+                textbox : textbox,
+                event   : aEvent,
+                finish  : self.finish,
+                index   : currentIndex,
+                row     : currentRow
             };
 
             userOnChange(arg);
@@ -538,7 +614,7 @@ KeySnail.Prompt = function () {
         var key = modules.key.keyEventToString(aEvent);
 
         var stopEventPropagation = true;
-        var keymap = selectorKeymap;
+        var keymap  = selectorKeymap;
         var command = keymap[key] || "";
         var flags;
 
@@ -585,7 +661,7 @@ KeySnail.Prompt = function () {
         var next = 0;
 
         var continuousMode = false;
-        for ([, flag] in Iterator(uniq(flags)))
+        for (let [, flag] in Iterator(uniq(flags)))
         {
             switch (flag)
             {
@@ -825,7 +901,7 @@ KeySnail.Prompt = function () {
         if (typeof aActions === "function")
             aActions = [aActions, "Default callback"];
 
-        for ([i, action] in Iterator(aActions))
+        for (let [i, action] in Iterator(aActions))
         {
             var item = document.createElement("menuitem");
             item.setAttribute("label", action[1]);
@@ -855,14 +931,14 @@ KeySnail.Prompt = function () {
         var list = [];
 
         // create action list and local command
-        for ([i, action] in Iterator(aActions))
+        for (let [i, action] in Iterator(aActions))
         {
             let index = i + 1;
             list.push([action[0], index.toString() + ". " + action[1]]);
 
             if (action[2])
             {
-                [command, flag] = action[2].split(",");
+                let [command, flag] = action[2].split(",");
                 selectorTranslator[command] = "prompt-nth-action-" + index + (flag ? ("," + flag) : "");
             }
         }
@@ -1662,8 +1738,12 @@ KeySnail.Prompt = function () {
             currentCallback    = null;
             currentUserArg     = null;
 
-            userOnChange  = null;
-            userOnFinish  = null;
+            userOnChange    = null;
+            userOnFinish    = null;
+            beforeSelection = null;
+            afterSelection  = null;
+
+            cellStylist = null;
 
             // -------------------- prompt.selector (and prompt.reader) -------------------- //
 
@@ -1816,6 +1896,9 @@ KeySnail.Prompt = function () {
             currentCallback = aContext.callback;
             currentUserArg  = aContext.userarg;
 
+            // set up stylist
+            cellStylist = aContext.stylist;
+
             userOnChange = aContext.onChange;
             userOnFinish = aContext.onFinish;
 
@@ -1887,8 +1970,13 @@ KeySnail.Prompt = function () {
             // set up callbacks
             currentCallback = true;
 
-            userOnChange = aContext.onChange;
-            userOnFinish = aContext.onFinish;
+            userOnChange    = aContext.onChange;
+            userOnFinish    = aContext.onFinish;
+            beforeSelection = aContext.beforeSelection;
+            afterSelection  = aContext.afterSelection;
+
+            // set up stylist
+            cellStylist = aContext.stylist;
 
             // display prompt box
             label.value = aContext.message;

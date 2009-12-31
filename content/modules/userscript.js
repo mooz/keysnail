@@ -1241,7 +1241,7 @@ KeySnail.UserScript = {
 
         for each (var setting in aScheme.hooks)
         {
-            [name, body] = setting;
+            let [name, body] = setting;
             if (!name || !body)
                 continue;
 
@@ -1329,7 +1329,7 @@ KeySnail.UserScript = {
                 if (!setting)
                     continue;
 
-                [keys, command, ksNoRepeat] = setting;
+                let [keys, command, ksNoRepeat] = setting;
 
                 var keyStr = (typeof keys === "string") ?
                     this.modules.util.toStringForm(keys) :
