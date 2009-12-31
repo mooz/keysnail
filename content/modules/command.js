@@ -41,7 +41,8 @@ KeySnail.Command = {
                         top.document.commandDispatcher.getControllerForCommand(aCommand);
                     if (controller && controller.isCommandEnabled(aCommand))
                         controller.doCommand(aCommand);
-                } catch(e)
+                }
+                catch(e)
                 {
                     this.message("An error " + e + " occurred executing the " + aCommand + " command\n");
                 }
@@ -55,90 +56,100 @@ KeySnail.Command = {
         return aFunc.toString().split('\n')[0].match(/\(.*\)/);
     },
 
-    createMethodsList: function (aObjectName) {
-        var commandList = [];
-        var global = document.defaultView;
-
-        try {
-            for (var property in global[aObjectName])
-            {
-                var cand = global[aModuleName][property];
-
-                if (typeof cand === 'function')
-                {
-                    var arg = this.getArgList(cand);
-                    commandList.push(aModuleName + "." + property + arg + ";");
-                }
-            }
-        } catch (x) {}
-
-        return commandList;
-    },
-
     createCommandList: function () {
         if (this.commandList)
             return this.commandList;
 
-        var moduleList  = [module for (module in KeySnail.modules)];
         var commandList = [];
 
-        for (var property in document.defaultView)
-        {
-            try
-            {
-                var cand = document.defaultView[property];
-            }
-            catch (x)
-            {
-                continue;
-            }
+        let self = this;
 
-            if (typeof cand === 'function')
-            {
-                var arg = this.getArgList(cand);
-                commandList.push("window" + "." + property + arg + ";");
-            }
-        }
+        [
+            [KeySnail.modules, "", 3, [KeySnail]],
+            [window, "window.", 1, [KeySnail]]
+        ].forEach(
+             function ([o, p, d, ignore]) {
+                 (function (obj, prefix, depth) {
+                      if (depth <= 0 || !obj)
+                          return;
 
-        moduleList.forEach(
-            function (aModuleName) {
-                for (var property in this.modules[aModuleName])
-                {
-                    var cand = this.modules[aModuleName][property];
+                      for ([prop, cand] in Iterator(obj))
+                      {
+                          try {
+                              let type       = typeof cand;
+                              let nextPrefix = prefix + prop;
 
-                    if (typeof cand === 'function')
-                    {
-                        var arg = this.getArgList(cand);
-                        commandList.push(aModuleName + "." + property + arg + ";");
-                    }
-                }
-            }, this);
+                              if (type === "function")
+                              {
+                                  var arg = self.getArgList(cand);
+                                  commandList.push([nextPrefix + "();", "function " + arg]);
+                              }
+                              else if (type === "object" &&
+                                       cand !== obj &&
+                                       ignore.every(function (ig) cand !== ig) &&
+                                       !(cand instanceof Array))
+                              {
+                                  arguments.callee(cand, nextPrefix + ".", depth - 1);
+                              }
+                              else
+                              {
+                                  commandList.push([nextPrefix + ";", cand.toString()]);
+                              }
+                          } catch (x) {}
+                      }
+                  })(o, p, d);
+             }
+         );
 
         return commandList.sort();
     },
 
-    interpreter: function () {
+    interpreter: function (ev, arg) {
         var savedSubstrMatch = this.modules.prompt.substrMatch;
+
+        function onFinish() {
+            KeySnail.modules.prompt.substrMatch = savedSubstrMatch;
+        }
+
+        let inspect = ('inspectObject' in window) && arg;
 
         with (this.modules)
         {
             prompt.substrMatch = false;
-            prompt.read("Eval:",
-                        function (code) {
-                            try
-                            {
-                                eval("with (KeySnail.modules) {" +
-                                     code +
-                                     " } ");
-                            }
-                            catch (x)
-                            {
-                                display.echoStatusBar(x);
-                                util.message(x);
-                            }
-
-                            prompt.substrMatch = savedSubstrMatch;
-                        }, null, this.createCommandList(), null, 0, "command");
+            prompt.reader(
+                {
+                    message    : "Eval: ",
+                    collection : this.createCommandList(),
+                    group      : "eval-expression",
+                    style      : ["", "color:#003d72;font-weight:bold;"],
+                    width      : [50, 50],
+                    onFinish   : onFinish,
+                    callback   : function (code) {
+                        try
+                        {
+                            eval("with (KeySnail.modules) {"
+                                 + "    let result = " + code + ";"
+                                 + "    if (result) {"
+                                 + (inspect ?
+                                    (
+                                        "window.inspectObject(result);"
+                                    )
+                                    :
+                                    (
+                                        "display.echoStatusBar(result); util.message(result);"
+                                    )
+                                   )
+                                 + "    }"
+                                 + "}");
+                        }
+                        catch (x)
+                        {
+                            display.echoStatusBar(x);
+                            util.message(x);
+                        }
+                    }
+                }
+            );
         }
     },
 
