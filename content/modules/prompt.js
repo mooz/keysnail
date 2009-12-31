@@ -303,6 +303,7 @@ KeySnail.Prompt = function () {
                 {
                     setLabel(cell, getCellValue(aCells, i));
 
+                    // column specific style
                     if (listStyle && j < listStyle.length && listStyle[j])
                         style += listStyle[j];
                 }
@@ -821,18 +822,19 @@ KeySnail.Prompt = function () {
         var contextMenu = document.getElementById("keysnail-prompt-menu");
         removeAllChilds(contextMenu);
 
-        var descriptions;
-
         if (typeof aActions === "function")
-            descriptions = ["Default callback"];
-        else
-            descriptions = [row[1] for each (row in aActions)];
+            aActions = [aActions, "Default callback"];
 
-        for (var i = 0; i < descriptions.length; ++i)
+        for ([i, action] in Iterator(aActions))
         {
             var item = document.createElement("menuitem");
-            item.setAttribute("label", descriptions[i]);
-            item.setAttribute("oncommand", "KeySnail.modules.prompt.doNthAction(" + i + ");");
+            item.setAttribute("label", action[1]);
+
+            if (action[2] && (action[2].split(",")[1] || "").indexOf("c") !== -1)
+                item.setAttribute("oncommand", "KeySnail.modules.prompt.doNthAction(" + i + ", true);");
+            else
+                item.setAttribute("oncommand", "KeySnail.modules.prompt.doNthAction(" + i + ");");
+
             contextMenu.appendChild(item);
         }
     }
@@ -1061,8 +1063,8 @@ KeySnail.Prompt = function () {
         // Some KeyPress event is grabbed by KeySnail and stopped.
         // So we need to listen the keyup event for resetting the misc values.
 
-        if (textbox.value.indexOf(currentHead)
-            || (textbox.selectionStart !== oldSelectionStart && currentHead !== textbox.value))
+        if (textbox.value.indexOf(currentHead) ||
+            (textbox.selectionStart !== oldSelectionStart && currentHead !== textbox.value))
         {
             resetReadState();
         }
@@ -1198,9 +1200,7 @@ KeySnail.Prompt = function () {
                     }
 
                     if (history.state)
-                    {
                         readerComplete(history, delta);
-                    }
                     else
                     {
                         readerComplete(history, 0);
@@ -1289,9 +1289,7 @@ KeySnail.Prompt = function () {
                 {
                     var foundIndex = getListText(aType.list, i).indexOf(header);
                     if (foundIndex === 0 || (aSubstrMatch && foundIndex !== -1))
-                    {
                         compIndexList.push(i);
-                    }
                 }
 
                 if (compIndexList.length === 0)
@@ -1323,9 +1321,7 @@ KeySnail.Prompt = function () {
         }
 
         if (inNormalCompletion)
-        {
-            modules.display.echoStatusBar(aType.name + " (" + (index + 1) +  " / " + aType.list.length + ")");
-        }
+            modules.display.echoStatusBar(modules.util.format("%s (%s / %s)", aType.name, index + 1, aType.list.length));
         else
         {
             modules.display.echoStatusBar(modules.util.format("%s Match for [%s] (%s / %s)",
@@ -1550,10 +1546,10 @@ KeySnail.Prompt = function () {
                 options.actionsListStyle = style;
         },
 
-        doNthAction: function (aNumber) {
+        doNthAction: function (aNumber, aContinuous) {
             var action = selectorContext[SELECTOR_STATE_ACTION];
             action.wholeListIndex = aNumber;
-            self.finish();
+            self.finish(false, aContinuous);
         },
 
         refresh: function (aSelectIndex) {
