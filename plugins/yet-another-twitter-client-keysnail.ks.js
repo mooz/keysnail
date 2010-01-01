@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.5.1 (2009 01/02) ====
+//
+// * Added fancy mode, gorgeous header. Annoying?
+// 
 // ==== 1.5.0 (2009 12/31) ====
 //
 // * Refined codes. Cache updater become singleton. Less Twitter API consumption.
@@ -94,6 +98,7 @@
 // }} ======================================================================= //
 
 var optionsDefaultValue = {
+    "log_level"                     : LOG_LEVEL_MESSAGE,
     "update_interval"               : 60 * 1000,      // 1 minute
     "mentions_update_interval"      : 60 * 1000 * 20, // 20 minute
     "use_popup_notification"        : true,
@@ -109,18 +114,15 @@ var optionsDefaultValue = {
     "fancy_mode" : true,
     // foreground color
     "normal_tweet_style"         : "color:black;",
-    "my_tweet_style"             : "color:#3a0086;",
-    "reply_to_me_style"          : "color:#870009;",
+    "my_tweet_style"             : "color:#0a00d5;",
+    "reply_to_me_style"          : "color:#930c00;font-weight:bold;",
     //
-    "selected_row_style"           : "background-color:#005cb1; color:white;",
-    "selected_user_style"          : "background-color:#d3e8ff; color:black;",
+    "selected_row_style"           : "background-color:#93c6ff; color:black;",
+    "selected_user_style"          : "background-color:#ddedff; color:black;",
     // 選択行の in_reply_to となるユーザのスタイル
     "selected_user_reply_to_style" : "background-color:#ffd4ff; color:black;",
     // 選択行の in_reply_to となるユーザへの in_reply_to のスタイル
-    "selected_user_reply_to_reply_to_style" : "background-color:#ffe9d4; color:black;",
-    // 奇数偶数
-    "odd_row_style"                : "background-color:#e6ebf0;",
-    "even_row_style"               : "background-color:#ffffff"
+    "selected_user_reply_to_reply_to_style" : "background-color:#ffe9d4; color:black;"
 };
 
 function getOption(aName) {
@@ -152,14 +154,54 @@ function notifyWindows(aNotifier, aArg) {
 
 function updateAllStatusbars() {
     notifyWindows(function (win) {
-                      if (win.KeySnail && win.KeySnail.modules.plugins.twitterClient)
+                      try
+                      {
                           win.KeySnail.modules.plugins.twitterClient.updateStatusbar();
+                      }
+                      catch (x) {}
                   });
 }
+
+// Log {{ =================================================================== //
+
+const LOG_LEVEL_DEBUG   = 0;
+const LOG_LEVEL_MESSAGE = 10;
+const LOG_LEVEL_WARNING = 20;
+const LOG_LEVEL_ERROR   = 30;
+
+let currentLogLevel = getOption("log_level");
+
+function log() {
+    let level = arguments[0];
+
+    if (currentLogLevel >= level)
+        util.message.apply(util, Array.slice(arguments, 1));
+}
+
+// }} ======================================================================= //
 
 var twitterClient =
     (function () {
          // ================================================================================ //
+
+         const root = "KeySnail.modules.plugins.twitterClient";
+         const linkClass = "ks-text-link";
+
+         if (!share.ksTextLinkStyleRegistered)
+         {
+             style.register(<><![CDATA[
+                                     description.ks-text-link {
+                                         color: #0800ab;
+                                         text-decoration: underline;
+                                     }
+
+                                     description.ks-text-link:hover {
+                                         color: #5e58cc;
+                                     }
+                                 ]]></>.toString());
+
+             share.ksTextLinkStyleRegistered = true;
+         }
 
          var twitterStatusesPending;
          var twitterMentionsPending;
@@ -173,12 +215,12 @@ var twitterClient =
               "tweet"],
              // ======================================== //
              [function (status) {
-                  if (status) tweet("@" + status.screen_name + " ", status.id);
+                  if (status) reply(status.screen_name, status.id);
               }, M({ja: "このつぶやきに返信 : ", en: ""}) + "Send reply message",
              "reply"],
              // ======================================== //
              [function (status) {
-                  if (status) tweet("RT @" + status.screen_name + ": " + html.unEscapeTag(status.text));
+                  if (status) quoteTweet(status.screen_name, html.unEscapeTag(status.text));
               }, M({ja: "このつぶやきを => コメント付き ", en: ""}) + "RT (QT): Quote tweet",
              "retweet"],
              // ======================================== //
@@ -204,14 +246,12 @@ var twitterClient =
               "view-in-twitter,c"],
              // ======================================== //
              [function (status) {
-                  let msg = html.unEscapeTag(status.text);
-                  command.setClipboardText(msg);
-                  display.echoStatusBar(M({ja: "コピーしました", en: "Copied"} + " : " + msg), 1000);
+                  if (status) copy(html.unEscapeTag(status.text));
               }, M({ja: "このつぶやきを => クリップボードにコピー : ", en: ""}) + "Copy selected message",
               "copy-tweet,c"],
              // ======================================== //
              [function (status) {
-                  display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 200});
+                  if (status) display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 200});
               }, M({ja: "このつぶやきを => 全文表示 : ", en: ""}) + "Display entire message",
               "display-entire-message,c"],
              // ======================================== //
@@ -382,15 +422,19 @@ var twitterClient =
              return elem;
          }
 
-         function set(elem, attr, value)
-         {
-             elem.setAttribute(attr, value);
+         function applyMenu(aMenu, aMenuSeed) {
+             aMenuSeed.forEach(
+                 function ([label, command]) {
+                     aMenu.appendChild(
+                         genElem("menuitem", { "label" : label, "oncommand" : command })
+                     );
+                 });
 
-             return {
-                 set: function (attr, value) {
-                     return set(elem, attr, value);
-                 }
-             };
+             return aMenu;
+         }
+
+         function createMenu(aMenuSeed) {
+             return applyMenu(genElem("menupopup"), aMenuSeed);
          }
 
          const CONTAINER_ID      = "keysnail-twitter-client-container";
@@ -439,33 +483,49 @@ var twitterClient =
              insertAfter(statusbar, container, statusbarPanel);
 
              // ================================================== //
+
+             let menu = my.twitterClientStatusBarMenu = createMenu(
+                 [
+                     [M({ja: "お気に入り一覧", en: "Display favorites"}),
+                      "KeySnail.modules.ext.exec('twitter-client-show-favorites')"],
+                     [M({ja: "自分のステータス一覧", en: "Display my statuses"}),
+                      "KeySnail.modules.ext.exec('twitter-client-show-my-statuses')"],
+                     [M({ja: "再認証", en: "Reauthorize"}),
+                      "KeySnail.modules.ext.exec('twitter-client-reauthorize')"]
+                 ]
+             );
+
+             container.appendChild(menu);
          }
 
          unreadStatusLabel.setAttribute("style", unreadStatusLabelStyle);
-         unreadStatusLabel.parentNode.onclick = function () { self.showTimeline(); };
+         unreadStatusLabel.parentNode.onclick = function (ev) {
+             if (ev.button === 2)
+                 my.twitterClientStatusBarMenu.openPopupAtScreen(ev.screenX, ev.screenY, true);
+             else
+                 self.showTimeline();
+         };
 
          unreadMentionLabel.setAttribute("style", unreadStatusLabelStyle);
-         unreadMentionLabel.parentNode.onclick = function () { self.showMentions(); };
+         unreadMentionLabel.parentNode.onclick = function (ev) {
+             if (ev.button === 2)
+                 my.twitterClientStatusBarMenu.openPopupAtScreen(ev.screenX, ev.screenY, true);
+             else
+                 self.showMentions();
+         };
 
          // Header {{ ================================================================ //
 
          if (!my.twitterClientHeader)
          {
              const HOME_ICON = 'data:image/png;base64,' +
-                 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAArhJREFU' +
-                 'OMuNk+tPUmEcx8+r80f4rq3LZuElyzDNRraFMxoSYKxmZa5RTQdC4BURYcyAKcvLbI6GI4oizQvT' +
-                 'wHJeBpvVNNE2U7tQvDKVM5n2Iv12OJWt0uaL75tnv8/nOc/3eQ4BgNgq3UX7STpxHhkrzqNIJLeb' +
-                 '2xbukbHCHkXCWp86ac1bfjDs1RwidyToKT5A0mBk2MTFhPM6XruK4b+dC5/uSMSnZ5P/FXjkCWSf' +
-                 'KikyYsnB5EMZHTkm3UoEO8sx2iJGny4t4qlOI7cUeJSJZH9ZMjXawEPwkQL+RgG8tel4asjAcJMY' +
-                 '4+4qDFhFcJexqfuKVPIPQb86mfSWp1B+Kx/Bxyr4m4QYqONgemqSSW8tBz6LCIF7anTr+bBJU6jm' +
-                 'S8mMhKALIumCKP9tAYIdZfSniuA1nsDLF2NYXFzE8vIy5mZn4FQdQ4eWh2d3bqD95imYhCxKfzqe' +
-                 'JHzVqQF/09mf58yj4SxMjL/C0tISA//K7NsZtBSycVd2El3mC2gszEA5Z2+AoJvlevVp68PNeejR' +
-                 'Zm58eDe3ufPf+fTxPWpyWGi4eBRlmXvW6XB/FFidxn2iYY9Y6y0bq6urzLBSqYRKpYJarUZpaSmz' +
-                 'Fo1GYTHdgpoTPxWD/7lGk8m0QlEUMxwDW1tb0dbWhsrKyk1BTCqRSPZt+Q4MBsNKJBJhhisqKmCz' +
-                 '2WC321FTU7MpkMvlEAqFvwVFzy8nFHSdOy+28wbEFv43x1A7YhKNRgOHwwGn0wlazKw9eGNHQacE' +
-                 'YhtvOtvK0aZrD/MJGv4s672KqsESFPUWoMCaj3A4DJ1OB5fLBbfbjbq6OoRCIWgGVKgf00M7pES+' +
-                 'Q4REWXyUoHcepG0h2hY4LkuneNdyFqRS6bzRaGRAuheYzWYIBIL53JIzC9m1WV/TNaljNPxl95Vd' +
-                 'g8R2v+lO8x2NfayH7nb9VAAAAABJRU5ErkJggg==';
+                 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAY1BMVEUAAAB7QylRU1AsbCZAcDxR' +
+                 'bUuVYDQ+gDhub221by56fHmmdkO4dy5OlUJcj1WwfTi7gTOKioi6hT5XplK3jlrGkU7ElVaanJlw' +
+                 'tWOkpqOqrKnSq3ODxHany6HJy8ja2tfu8O0sQw6vAAAAAXRSTlMAQObYZgAAAAFiS0dEAIgFHUgA' +
+                 'AAAJcEhZcwAACxMAAAsTAQCanBgAAACLSURBVBjTbc/bDoMgEEVRLBXtACJXL2CZ///KjvWhNO15' +
+                 'WzsTEhj7v4dSqrWKOcf52zkn1zg6l3IyjWt1IQdxeo50/ESsUgYpPqYiZBAdlWQqvle704wZizgC' +
+                 'AKLtrlcpwLJQANaEjcJ42U8HwrZZPLzWxLWsE8K+21pK8Zx5Pdz70dJu/TBw/vPvFwypDHUFCMVW' +
+                 'AAAAAElFTkSuQmCC';
 
              const TWITTER_ICON = 'data:image/png;base64,' +
                  'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAG1BMVEUgAAAAgbgRlsghrN4ove9V' +
@@ -483,7 +543,11 @@ var twitterClient =
              const HEAD_USER_BUTTON_HOME    = "keysnail-twitter-client-user-button-home";
              const HEAD_USER_BUTTON_TWITTER = "keysnail-twitter-client-user-button-twitter";
 
-             const HEAD_MENU = "keysnail-twitter-client-header-menu";
+             const HEAD_MENU         = "keysnail-twitter-client-header-menu";
+             const HEAD_DYNAMIC_MENU = "keysnail-twitter-client-header-dynamic-menu";
+
+             let tooltipTextTwitter = M({ja: "このユーザの Twitter ページへ", en: "Visit this user's page on twitter"});
+             let tooltipTextHome    = M({ja: "このユーザのホームページへ", en: "Visit this user's homepage"});
 
              let containerXML =
                  <vbox style="margin-left:4px;margin-right:4px;">
@@ -494,49 +558,19 @@ var twitterClient =
                          </vbox>
                          <vbox align="center" id={HEAD_USER_INFO} >
                              <vbox align="center">
-                                 <toolbarbutton tooltiptext="Twitter" id={HEAD_USER_BUTTON_TWITTER} image={TWITTER_ICON} />
-                                 <toolbarbutton tooltiptext="Home" id={HEAD_USER_BUTTON_HOME} image={HOME_ICON} />
+                                 <toolbarbutton tooltiptext={tooltipTextTwitter} id={HEAD_USER_BUTTON_TWITTER} image={TWITTER_ICON} />
+                                 <toolbarbutton tooltiptext={tooltipTextHome} id={HEAD_USER_BUTTON_HOME} image={HOME_ICON} />
                              </vbox>
                          </vbox>
                          <vbox flex="1" style="background-color:white;height:50px;margin:4px;overflow:auto;"
-                               context="keysnail" >
+                               onclick={root + ".tweetBoxClicked(event);"}
+                               id={HEAD_USER_TWEET} >
                              <description />
                          </vbox>
                      </hbox>
+                     <menupopup id={HEAD_MENU} />
+                     <menupopup id={HEAD_DYNAMIC_MENU} />
                  </vbox>;
-
-// <menupopup id="keysnail-menu"
-//                    onpopupshowing="KeySnail.Key.updateMenu();">
-// 	    <menuitem id="keysnail-menu-reload-userscript"
-// 		      label="&keySnail.statusbar.reloadUserScript;"
-//                       accesskey="r"
-// 		      oncommand="KeySnail.UserScript.reload();"
-//                       class="menuitem-iconic"
-//                       src="chrome://keysnail/skin/icon/reload.png"/>
-//             <menuseparator/>
-// 	    <menuitem id="keysnail-menu-list-keybinds"
-// 		      label="&keySnail.statusbar.listKeyBindings;"
-//                       accesskey="v"
-// 		      oncommand="KeySnail.Key.listKeyBindings();"/>
-//             <!-- init file -->
-//             <menu id="keysnail-menu-init-file" label="&keySnail.statusbar.initFile;"
-//                   accesskey="i">
-//                 <menupopup id="keysnail-menu-settings-submenu">
-// 	            <menuitem id="keysnail-menu-edit-init-file"
-// 	                      label="&keySnail.statusbar.editInitFile;"
-// 	                      accesskey="e"
-// 	                      oncommand="KeySnail.UserScript.editInitFile();"
-// 	                      class="menuitem-iconic"
-// 	                      src="chrome://keysnail/skin/icon/edit.png"/>
-// 	                      <menuitem id="keysnail-menu-open-wizard"
-// 	                      label="&keySnail.statusbar.wizard;"
-// 	                      accesskey="w"
-// 	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"
-// 	                      class="menuitem-iconic"
-// 	                      src="chrome://keysnail/skin/icon/create.png"/>
-//                 </menupopup>
-//             </menu>
-//         </menupopup>
 
              let container = util.xmlToDom(containerXML);
 
@@ -553,9 +587,37 @@ var twitterClient =
                  userName  : document.getElementById(HEAD_USER_NAME),
                  userTweet : document.getElementById(HEAD_USER_TWEET),
                  //
-                 buttonTwitter  : document.getElementById(HEAD_USER_BUTTON_TWITTER),
-                 buttonHome : document.getElementById(HEAD_USER_BUTTON_HOME)
+                 buttonTwitter : document.getElementById(HEAD_USER_BUTTON_TWITTER),
+                 buttonHome    : document.getElementById(HEAD_USER_BUTTON_HOME),
+                 //
+                 normalMenu  : document.getElementById(HEAD_MENU),
+                 dynamicMenu : document.getElementById(HEAD_DYNAMIC_MENU)
              };
+
+             // set up normal menu
+             applyMenu(my.twitterClientHeader.normalMenu,
+                       [
+                           [M({ja: "コピー", en: "Copy"}), root + ".copyCurrentStatus();"],
+                           // ================================================== //
+                           [M({ja: "返信", en: "Reply"}), root + ".replyToCurrentStatus();"],
+                           // ================================================== //
+                           ["Retweet (Quote tweet)", root + ".retweetCurrentStatus();"],
+                           // ================================================== //
+                           [M({ja: "このユーザのステータス一覧", en: "Display this user's statuses"}),
+                            root + ".showCurrentTargetStatus();"]
+                       ]);
+         }
+
+         function showDynamicMenu(aEvent, aMenuSeed) {
+             let menu = createMenu(aMenuSeed);
+             menu.setAttribute("id", HEAD_DYNAMIC_MENU);
+
+             my.twitterClientHeader.container
+                 .replaceChild(menu, my.twitterClientHeader.dynamicMenu);
+
+             my.twitterClientHeader.dynamicMenu = menu;
+
+             menu.openPopupAtScreen(aEvent.screenX, aEvent.screenY, true);
          }
 
          function setIconStatus(elem, status) {
@@ -563,7 +625,7 @@ var twitterClient =
              if (status)
                  elem.removeAttribute("style");
              else
-                 elem.setAttribute("style", "opacity:0.45;");
+                 elem.setAttribute("style", "opacity:0.25;");
          }
 
          // }} ======================================================================= //
@@ -665,17 +727,6 @@ var twitterClient =
 
          // ============================== }} Popup notifications ============================== //
 
-         function suggest(aWord) {
-             var xhr = new XMLHttpRequest();
-             var endPoint = "http://www.google.co.jp/complete/search?output=toolbar&q=" + encodeURIComponent(aWord);
-
-             xhr.mozBackgroundRequest = true;
-             xhr.open("GET", endPoint, false);
-             xhr.send(null);
-
-             return XML(xhr.responseText.match("<toplevel>.*</toplevel>")[0]);
-         }
-
          function shortenURL(aURL) {
              const id  = "stillpedant";
              const key = "R_168719821d1100c59352962dce863251";
@@ -695,16 +746,6 @@ var twitterClient =
                  return response.results[aURL].shortUrl;
 
              return aURL;
-         }
-
-         function getTinyURL(aURL) {
-             var xhr = new XMLHttpRequest();
-             var endPoint = "http://tinyurl.com/api-create.php?url=" + aURL;
-             xhr.mozBackgroundRequest = true;
-             xhr.open("GET", endPoint, false);
-             xhr.send(null);
-
-             return xhr.responseText;
          }
 
          function getElapsedTimeString(aMillisec) {
@@ -999,12 +1040,12 @@ var twitterClient =
                          else if (xhr.status >= 500)
                          {
                              // whale error
-                             util.message("whale error :: " + xhr.responseText);
+                             log(LOG_LEVEL_ERROR, "whale error :: " + xhr.responseText);
                          }
                          else
                          {
                              // unknown error
-                             util.message("unknown error :: " + xhr.responseText);
+                             log(LOG_LEVEL_ERROR, "unknown error :: " + xhr.responseText);
                          }
                      }
                  }
@@ -1134,6 +1175,19 @@ var twitterClient =
              }
 
              prompt.read("search:", doSearch, null, null, null, 0, "twitter_search");
+         }
+
+         function copy(aMsg) {
+             command.setClipboardText(aMsg);
+             display.echoStatusBar(M({ja: "コピーしました", en: "Copied"} + " : " + aMsg), 1000);
+         }
+
+         function reply(aUserID, aStatusID) {
+             tweet("@" + aUserID + " ", aStatusID);
+         }
+
+         function quoteTweet(aUserID, aMsg) {
+             tweet("RT @" + aUserID + ": " + aMsg);
          }
 
          function retweet(aID) {
@@ -1501,8 +1555,9 @@ var twitterClient =
                      let right = msg.slice(pos + matched[i].length);
 
                      let url;
+                     let type = matched[i][0] === '@' ? "user" : "url";
 
-                     if (matched[i][0] === '@')
+                     if (type === "user")
                      {
                          url = "http:twitter.com/" + matched[i].slice(1);
                      }
@@ -1512,10 +1567,9 @@ var twitterClient =
                      }
 
                      message.appendChild(document.createTextNode(left));
-                     message.appendChild(genElem("description", {"class"       : "text-link",
-                                                                 "tooltiptext" : url,
-                                                                 "onclick"     : 'openUILinkIn("' + url + '", "tab");',
-                                                                 "value"       : matched[i]}));
+                     message.appendChild(genElem("description", {"class"         : linkClass,
+                                                                 "tooltiptext"   : url,
+                                                                 "value"         : matched[i]}));
 
                      msg = right;
                  }
@@ -1536,8 +1590,12 @@ var twitterClient =
 
              header.container.setAttribute("hidden", false);
 
+             // let savedPromptRows = prompt.rows;
+             // prompt.rows = 10;
+
              function onFinish() {
                  header.container.setAttribute("hidden", true);
+                 // prompt.rows = savedPromptRows;
              }
 
              if (!aStatuses)
@@ -1590,7 +1648,7 @@ var twitterClient =
                      collection : collection,
                      // status, icon, name, message, fav-icon, info
                      flags      : [hid, ico, 0, 0, ico, 0],
-                     header     : [M({ja: 'ユーザ', en: "User"}), aMessage + helpMessage, M({ja : "情報", en: 'Info'})],
+                     header     : [M({ja: 'ユーザ', en: "User"}), aMessage, M({ja : "情報", en: 'Info'})],
                      // style      : ["color:#0e0067;", "", "color:#660025;"],
                      width      : mainColumnWidth,
                      beforeSelection : function (arg) {
@@ -1603,6 +1661,10 @@ var twitterClient =
                          header.userIcon.setAttribute("src", arg.row[1]);
                          header.userIcon.setAttribute("tooltiptext", status.user.description);
                          header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
+                         header.userName.setAttribute("tooltiptext", status.user.description);
+
+                         // accessible from out of this closure
+                         my.twitterSelectedStatus = status;
 
                          setIconStatus(header.buttonHome, !!status.user.url);
                          if (status.user.url)
@@ -1618,7 +1680,9 @@ var twitterClient =
                      stylist  : getOption("fancy_mode") ?
                          function (row, n, current) {
                              if (current !== collection)
-                                 return null;
+                             {
+                                 return null;                                 
+                             }
 
                              let status = row[0];
 
@@ -1734,6 +1798,8 @@ var twitterClient =
                          }
 
                          share.userInfo = statuses[0].user;
+
+                         log(LOG_LEVEL_DEBUG, "user info successfully set");
                      }
                  });
          }
@@ -1742,12 +1808,107 @@ var twitterClient =
           * @public
           */
          var self = {
+             // Context menu {{ ========================================================== //
+
              tweetBoxClicked: function (aEvent) {
-                 util.message("target => " + aEvent.target.localName);
-                 util.message("original => " + aEvent.originalTarget.localName);
+                 let elem   = aEvent.target;
+                 let text   = elem.value || "";
+                 let isLink = elem.getAttribute("class") === linkClass;
+                 let status = my.twitterSelectedStatus;
+
+                 // window.inspectObject(elem);
+
+                 if (aEvent.button === 2)
+                 {
+                     // right click
+                     if (isLink)
+                     {
+                         function openLink(url) {
+                             return 'openUILinkIn("' + url + '", "tab")';
+                         }
+
+                         if (text[0] == '@')
+                         {
+                             let userName = text.slice(1);
+                             showDynamicMenu(aEvent,
+                                             [
+                                                 [util.format(M({ja: "%s のステータスを一覧表示", en: "Display %s's status"}), userName),
+                                                  root + util.format(".showTargetStatus('%s');", userName)],
+                                                 [util.format(M({ja: "%s の Twitter ホームへ", en: "%s in twitter"}), userName),
+                                                  openLink("http://twitter.com/" + userName)]
+                                             ]);
+                         }
+                         else
+                         {
+                             let url = text;
+                             let actions = [
+                                 [M({ja: "開く", en: "Open URL"}), openLink(url)],
+                                 [M({ja: "URL をコピー",
+                                     en: "Copy URL"}),
+                                  'KeySnail.modules.command.setClipboardText("' + url + '")']
+                             ];
+
+                             if (url.match("^http://(j\\.mp|bit\\.ly)/"))
+                             {
+                                 actions.push([M({ja: "この URL が何回クリックされたか調査", en: "Inspect this link"}),
+                                               openLink(url + "+")]);
+                             }
+
+                             showDynamicMenu(aEvent, actions);
+                         }
+                     }
+                     else
+                     {
+                         my.twitterClientHeader.normalMenu
+                             .openPopupAtScreen(aEvent.screenX, aEvent.screenY, true);
+                     }
+                 }
+                 else
+                 {
+                     // left click
+                     if (isLink)
+                     {
+                         let url = elem.getAttribute("tooltiptext");
+                         openUILinkIn(url, "tab");
+                     }
+                 }
              },
 
-             updateStatusesCache: function (aAfterWork, aNoRepeat) {
+             showTargetStatus: function (aUserID) {
+                 prompt.finish(true);
+                 showTargetStatus(aUserID);
+             },
+
+             replyToCurrentStatus: function () {
+                 prompt.finish(true);
+                 let status = my.twitterSelectedStatus;
+                 if (status)
+                     reply(status.user.screen_name, status.id);
+             },
+
+             retweetCurrentStatus: function () {
+                 prompt.finish(true);
+                 let status = my.twitterSelectedStatus;
+                 if (status)
+                     quoteTweet(status.user.screen_name, html.unEscapeTag(status.text));
+             },
+
+             showCurrentTargetStatus: function () {
+                 prompt.finish(true);
+                 let status = my.twitterSelectedStatus;
+                 if (status)
+                     showTargetStatus(status.user.screen_name);
+             },
+
+             copyCurrentStatus: function () {
+                 let status = my.twitterSelectedStatus;
+                 if (status)
+                     copy(html.unEscapeTag(status.text));
+             },
+
+             // }} ======================================================================= //
+
+             updateStatusesCache: function (aAfterWork, aNoRepeat, aCalledFromTimer) {
                  twitterStatusesPending = true;
 
                  oauthASyncRequest(
@@ -1773,28 +1934,43 @@ var twitterClient =
                                  updateAllStatusbars();
                              }
 
-                             if (!aNoRepeat && !share.twitterStatusesCacheUpdater)
+                             log(LOG_LEVEL_DEBUG, "(%s) update status cache from '%s' %s",
+                                 aCalledFromTimer, window.document.title, new Date());
+
+                             if ((!aNoRepeat && !share.twitterStatusesCacheUpdater) || aCalledFromTimer)
                              {
-                                 share.twitterStatusesCacheUpdater = setTimeout(self.updateStatusesCache, updateInterval);
+                                 share.twitterStatusesCacheUpdater = setTimeout(
+                                     function () {
+                                         self.updateStatusesCache(null, false, true);
+                                     }, updateInterval);
 
                                  if (!my.twitterDelegateStatusesUpdater)
                                  {
                                      my.twitterDelegateStatusesUpdater =
-                                         window.addEventListener("unload", function () {
-                                                                     share.twitterStatusesCacheUpdater = null;
-                                                                     getBrowserWindows().some(
-                                                                         function (win) {
-                                                                             if (win !== window &&
-                                                                                 win.KeySnail &&
-                                                                                 win.KeySnail.modules.plugins.twitterClient)
-                                                                                 {
-                                                                                     win.KeySnail.modules.plugins.twitterClient.updateStatusesCache();
-                                                                                     return true;
-                                                                                 }
+                                         window.addEventListener(
+                                             "unload", function () {
+                                                 share.twitterStatusesCacheUpdater = null;
 
-                                                                             return false;
-                                                                         });
-                                                                 }, false);
+                                                 for (let [, win] in Iterator(getBrowserWindows()))
+                                                 {
+                                                     try
+                                                     {
+                                                         log(LOG_LEVEL_DEBUG, "delegated to %s", win.document.title);
+
+                                                         if (win !== window &&
+                                                             win.KeySnail   &&
+                                                             win.KeySnail.modules.plugins.twitterClient)
+                                                         {
+                                                             win.KeySnail.modules.plugins.twitterClient.updateStatusesCache();
+                                                             break;
+                                                         }
+                                                     }
+                                                     catch (x)
+                                                     {
+                                                         log(LOG_LEVEL_WARNING, x);
+                                                     }
+                                                 }
+                                             }, false);
                                  }
                              }
 
@@ -1804,7 +1980,7 @@ var twitterClient =
                      });
              },
 
-             updateMentionsCache: function (aAfterWork, aNoRepeat) {
+             updateMentionsCache: function (aAfterWork, aNoRepeat, aCalledFromTimer) {
                  twitterMentionsPending = true;
 
                  oauthASyncRequest(
@@ -1828,28 +2004,39 @@ var twitterClient =
                                  updateAllStatusbars();
                              }
 
-                             if (!aNoRepeat && !share.twitterMentionsCacheUpdater)
+                             if ((!aNoRepeat && !share.twitterMentionsCacheUpdater) || aCalledFromTimer)
                              {
-                                 share.twitterMentionsCacheUpdater = setTimeout(self.updateMentionsCache, mentionsUpdateInterval);
+                                 share.twitterMentionsCacheUpdater = setTimeout(
+                                     function () {
+                                         self.updateMentionsCache(null, false, true);
+                                     }, mentionsUpdateInterval);
 
                                  if (!my.twitterDelegateMentionsUpdater)
                                  {
                                      my.twitterDelegateMentionsUpdater =
-                                         window.addEventListener("unload", function () {
-                                                                     share.twitterMentionsCacheUpdater = null;
-                                                                     getBrowserWindows().some(
-                                                                         function (win) {
-                                                                             if (win !== window &&
-                                                                                 win.KeySnail &&
-                                                                                 win.KeySnail.modules.plugins.twitterClient)
-                                                                             {
-                                                                                 win.KeySnail.modules.plugins.twitterClient.updateMentionsCache();
-                                                                                 return true;
-                                                                             }
+                                         window.addEventListener(
+                                             "unload",
+                                             function () {
+                                                 share.twitterMentionsCacheUpdater = null;
 
-                                                                             return false;
-                                                                         });
-                                                                 }, false);
+                                                 for (let [, win] in Iterator(getBrowserWindows()))
+                                                 {
+                                                     try
+                                                     {
+                                                         if (win !== window &&
+                                                             win.KeySnail   &&
+                                                             win.KeySnail.modules.plugins.twitterClient)
+                                                         {
+                                                             win.KeySnail.modules.plugins.twitterClient.updateMentionsCache();
+                                                             break;
+                                                         }
+                                                     }
+                                                     catch (x)
+                                                     {
+                                                         log(LOG_LEVEL_WARNING, x);
+                                                     }
+                                                 }
+                                             }, false);
                                  }
                              }
 
@@ -1930,6 +2117,8 @@ var twitterClient =
                      unreadStatusLabel.setAttribute("value", unreadStatusCount);
                      unreadStatusLabel.parentNode.setAttribute("tooltiptext",
                                                                unreadStatusCount + M({ja: " 個の未読ステータスがあります", en: " unread statuses"}));
+
+                     log(1000, "statusbar count updated (statuses)");
                  }
 
                  if (share.twitterMentionsJSONCache)
@@ -1938,6 +2127,8 @@ var twitterClient =
                      unreadMentionLabel.setAttribute("value", unreadMentionCount);
                      unreadMentionLabel.parentNode.setAttribute("tooltiptext",
                                                                 unreadMentionCount + M({ja: " 個のあなた宛メッセージがあります", en: " unread mentions"}));
+
+                     log(1000, "statusbar count updated (mentinos)");
                  }
              },
 
@@ -1989,16 +2180,20 @@ ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
 
 // }} ======================================================================= //
 
-if (share.twitterStatusesJSONCache || share.twitterMentionsJSONCache)
+if (share.twitterStatusesJSONCache && share.twitterMentionsJSONCache)
 {
+    log(LOG_LEVEL_DEBUG, "cache updaters are already arranged");
     twitterClient.updateStatusbar();
 }
 else
 {
     if (getOption("automatically_begin"))
     {
-        twitterClient.updateStatusesCache();
-        twitterClient.updateMentionsCache();
+        if (!share.twitterStatusesJSONCache)
+            twitterClient.updateStatusesCache();
+
+        if (!share.twitterMentionsJSONCache)
+            twitterClient.updateMentionsCache();
     }
 }
 
@@ -2014,18 +2209,19 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.2.3</minVersion>
+    <minVersion>1.2.8</minVersion>
     <include>main</include>
     <provides>
         <ext>twitter-client-display-timeline</ext>
         <ext>twitter-client-tweet</ext>
         <ext>twitter-client-tweet-this-page</ext>
+        <ext>twitter-client-show-my-statuses</ext>
         <ext>twitter-client-show-mentions</ext>
         <ext>twitter-client-show-favorites</ext>
         <ext>twitter-client-search-word</ext>
