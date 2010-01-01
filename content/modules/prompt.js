@@ -289,7 +289,7 @@ KeySnail.Prompt = function () {
             var cell;
 
             // i: actual column's index
-            // j: visible column's index 
+            // j: visible column's index
             let i, j;
             for (i = 0, j = 0; i < aRowData.length; ++i)
             {
@@ -344,7 +344,7 @@ KeySnail.Prompt = function () {
             var cell = aRow.firstChild;
 
             // i: actual column's index
-            // j: visible column's index 
+            // j: visible column's index
             let i, j;
             for (i = 0, j = 0; i < aRowData.length; ++i)
             {
@@ -396,7 +396,7 @@ KeySnail.Prompt = function () {
         {
             if (selectorStatus === SELECTOR_STATE_CANDIDATES)
             {
-                currentIndex = wholeListIndex;                   
+                currentIndex = wholeListIndex;
                 currentRow   = wholeList[currentIndex];
             }
             else
@@ -417,6 +417,12 @@ KeySnail.Prompt = function () {
         {
             // just change the selected index of the listbox
             listbox.currentIndex = listbox.selectedIndex = aIndex;
+
+            if (cellStylist)
+            {
+                // we have to refresh the styles
+                setupList(0, aIndex);
+            }
 
             return;
         }
@@ -577,7 +583,7 @@ KeySnail.Prompt = function () {
 
             if (selectorStatus === SELECTOR_STATE_CANDIDATES)
             {
-                currentIndex = wholeListIndex;                   
+                currentIndex = wholeListIndex;
                 currentRow   = wholeList[currentIndex];
             }
             else
