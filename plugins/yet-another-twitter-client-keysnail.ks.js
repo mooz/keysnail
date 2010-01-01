@@ -371,7 +371,7 @@ var twitterClient =
                  for (let [key, value] in Iterator(aAttributes))
                  {
                      aElem.setAttribute(key, value);
-                 }                 
+                 }
              }
          }
 
@@ -418,7 +418,7 @@ var twitterClient =
 
              // ================================================== //
 
-             box  = genElem("hbox", { align : "center", flex  : 1 });
+             box  = genElem("hbox", { align : "center", flex : 1 });
              icon = genElem("image", { src : statusesIcon });
              unreadStatusLabel = genElem("label", { id : UNREAD_STATUS_ID, flex : 1, value : "-" });
              box.appendChild(icon);
@@ -449,49 +449,122 @@ var twitterClient =
 
          // Header {{ ================================================================ //
 
-         const HEAD_CONTAINER_ID  = "keysnail-twitter-client-head-container";
+         if (!my.twitterClientHeader)
+         {
+             const HOME_ICON = 'data:image/png;base64,' +
+                 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAArhJREFU' +
+                 'OMuNk+tPUmEcx8+r80f4rq3LZuElyzDNRraFMxoSYKxmZa5RTQdC4BURYcyAKcvLbI6GI4oizQvT' +
+                 'wHJeBpvVNNE2U7tQvDKVM5n2Iv12OJWt0uaL75tnv8/nOc/3eQ4BgNgq3UX7STpxHhkrzqNIJLeb' +
+                 '2xbukbHCHkXCWp86ac1bfjDs1RwidyToKT5A0mBk2MTFhPM6XruK4b+dC5/uSMSnZ5P/FXjkCWSf' +
+                 'KikyYsnB5EMZHTkm3UoEO8sx2iJGny4t4qlOI7cUeJSJZH9ZMjXawEPwkQL+RgG8tel4asjAcJMY' +
+                 '4+4qDFhFcJexqfuKVPIPQb86mfSWp1B+Kx/Bxyr4m4QYqONgemqSSW8tBz6LCIF7anTr+bBJU6jm' +
+                 'S8mMhKALIumCKP9tAYIdZfSniuA1nsDLF2NYXFzE8vIy5mZn4FQdQ4eWh2d3bqD95imYhCxKfzqe' +
+                 'JHzVqQF/09mf58yj4SxMjL/C0tISA//K7NsZtBSycVd2El3mC2gszEA5Z2+AoJvlevVp68PNeejR' +
+                 'Zm58eDe3ufPf+fTxPWpyWGi4eBRlmXvW6XB/FFidxn2iYY9Y6y0bq6urzLBSqYRKpYJarUZpaSmz' +
+                 'Fo1GYTHdgpoTPxWD/7lGk8m0QlEUMxwDW1tb0dbWhsrKyk1BTCqRSPZt+Q4MBsNKJBJhhisqKmCz' +
+                 '2WC321FTU7MpkMvlEAqFvwVFzy8nFHSdOy+28wbEFv43x1A7YhKNRgOHwwGn0wlazKw9eGNHQacE' +
+                 'YhtvOtvK0aZrD/MJGv4s672KqsESFPUWoMCaj3A4DJ1OB5fLBbfbjbq6OoRCIWgGVKgf00M7pES+' +
+                 'Q4REWXyUoHcepG0h2hY4LkuneNdyFqRS6bzRaGRAuheYzWYIBIL53JIzC9m1WV/TNaljNPxl95Vd' +
+                 'g8R2v+lO8x2NfayH7nb9VAAAAABJRU5ErkJggg==';
 
-         const HEAD_USER_ICON     = "keysnail-twitter-client-user-icon";
-         const HEAD_USER_INFO     = "keysnail-twitter-client-user-info";
-         const HEAD_USER_TWEET    = "keysnail-twitter-client-user-tweet";
+             const TWITTER_ICON = 'data:image/png;base64,' +
+                 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQBAMAAADt3eJSAAAAG1BMVEUgAAAAgbgRlsghrN4ove9V' +
+                 '0vyg2OvX8vz9//ye2HpLAAAAAXRSTlMAQObYZgAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxMAAAsT' +
+                 'AQCanBgAAABhSURBVAjXY2Dg6GCAgI70Bgij1aUCxsjo6AAJtrikl1d0gBnGxsYZIAaQNvYAMpqN' +
+                 'oSLNxkDFIDXNShlgGsiwgGhvUgICkJltQkCGBsguQ0FBQQsgg6M9LS0NrBqoGagYAPOBHbWsz4eA' +
+                 'AAAAAElFTkSuQmCC';
 
-         let head = {
-             container : document.getElementById(HEAD_CONTAINER_ID),
-             userIcon  : document.getElementById(HEAD_USER_ICON),
-             userInfo  : document.getElementById(HEAD_USER_INFO),
-             userTweet : document.getElementById(HEAD_USER_TWEET),
-             userName  : null
-         };
+             const HEAD_CONTAINER_ID  = "keysnail-twitter-client-head-container";
+             const HEAD_USER_ICON     = "keysnail-twitter-client-user-icon";
+             const HEAD_USER_INFO     = "keysnail-twitter-client-user-info";
+             const HEAD_USER_NAME     = "keysnail-twitter-client-user-name";
+             const HEAD_USER_TWEET    = "keysnail-twitter-client-user-tweet";
 
-         head.container = genElem("hbox", { id : HEAD_CONTAINER_ID });
+             const HEAD_USER_BUTTON_HOME    = "keysnail-twitter-client-user-button-home";
+             const HEAD_USER_BUTTON_TWITTER = "keysnail-twitter-client-user-button-twitter";
 
-         let userIconContainer = genElem("vbox", { align : "center" });
-         head.userIcon = genElem("image", { id     : HEAD_USER_ICON,
-                                            style  : "max-width:46px;max-height:46px;margin-left:4px;" });
+             const HEAD_MENU = "keysnail-twitter-client-header-menu";
 
-         userIconContainer.appendChild(genElem("spacer", {flex:1}));
-         userIconContainer.appendChild(head.userIcon);
-         userIconContainer.appendChild(genElem("spacer", {flex:1}));
+             let containerXML =
+                 <vbox style="margin-left:4px;margin-right:4px;">
+                     <description flex="1" width="100%" style="font-weight:bold;" id={HEAD_USER_NAME} />
+                     <hbox align="center" flex="1">
+                         <vbox align="center">
+                             <image style="max-width:46px;max-height:46px;margin-left:4px;margin-right:4px" id={HEAD_USER_ICON} />
+                         </vbox>
+                         <vbox align="center" id={HEAD_USER_INFO} >
+                             <vbox align="center">
+                                 <toolbarbutton tooltiptext="Twitter" id={HEAD_USER_BUTTON_TWITTER} image={TWITTER_ICON} />
+                                 <toolbarbutton tooltiptext="Home" id={HEAD_USER_BUTTON_HOME} image={HOME_ICON} />
+                             </vbox>
+                         </vbox>
+                         <vbox flex="1" style="background-color:white;height:50px;margin:4px;overflow:auto;"
+                               context="keysnail" >
+                             <description />
+                         </vbox>
+                     </hbox>
+                 </vbox>;
 
-         head.userInfo  = genElem("vbox");
-         head.userName  = genElem("description", { style : "font-weight:bold; text-align:center;" });
-         head.userInfo.appendChild(head.userName);
-         let userInfoBottom = genElem("hbox");
-         userInfoBottom.appendChild(genElem("button", { label : "Web" }));
-         userInfoBottom.appendChild(genElem("button", { label : "Home" }));
-         head.userInfo.appendChild(userInfoBottom);
+// <menupopup id="keysnail-menu"
+//                    onpopupshowing="KeySnail.Key.updateMenu();">
+// 	    <menuitem id="keysnail-menu-reload-userscript"
+// 		      label="&keySnail.statusbar.reloadUserScript;"
+//                       accesskey="r"
+// 		      oncommand="KeySnail.UserScript.reload();"
+//                       class="menuitem-iconic"
+//                       src="chrome://keysnail/skin/icon/reload.png"/>
+//             <menuseparator/>
+// 	    <menuitem id="keysnail-menu-list-keybinds"
+// 		      label="&keySnail.statusbar.listKeyBindings;"
+//                       accesskey="v"
+// 		      oncommand="KeySnail.Key.listKeyBindings();"/>
+//             <!-- init file -->
+//             <menu id="keysnail-menu-init-file" label="&keySnail.statusbar.initFile;"
+//                   accesskey="i">
+//                 <menupopup id="keysnail-menu-settings-submenu">
+// 	            <menuitem id="keysnail-menu-edit-init-file"
+// 	                      label="&keySnail.statusbar.editInitFile;"
+// 	                      accesskey="e"
+// 	                      oncommand="KeySnail.UserScript.editInitFile();"
+// 	                      class="menuitem-iconic"
+// 	                      src="chrome://keysnail/skin/icon/edit.png"/>
+// 	                      <menuitem id="keysnail-menu-open-wizard"
+// 	                      label="&keySnail.statusbar.wizard;"
+// 	                      accesskey="w"
+// 	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"
+// 	                      class="menuitem-iconic"
+// 	                      src="chrome://keysnail/skin/icon/create.png"/>
+//                 </menupopup>
+//             </menu>
+//         </menupopup>
 
-         head.userTweet = genElem("textbox", { id        : HEAD_USER_TWEET,
-                                               multiline : true, flex : 1 });
+             let container = util.xmlToDom(containerXML);
 
-         head.container.appendChild(userIconContainer);
-         head.container.appendChild(head.userInfo);
-         head.container.appendChild(head.userTweet);
+             container.setAttribute("hidden", true);
 
-         head.container.setAttribute("hidden", true);
+             document.getElementById("browser-bottombox").insertBefore(
+                 container, document.getElementById("keysnail-completion-list")
+             );
 
-         document.getElementById("browser-bottombox")
-             .insertBefore(head.container, document.getElementById("keysnail-completion-list"));
+             my.twitterClientHeader = {
+                 container : container,
+                 userIcon  : document.getElementById(HEAD_USER_ICON),
+                 userInfo  : document.getElementById(HEAD_USER_INFO),
+                 userName  : document.getElementById(HEAD_USER_NAME),
+                 userTweet : document.getElementById(HEAD_USER_TWEET),
+                 //
+                 buttonTwitter  : document.getElementById(HEAD_USER_BUTTON_TWITTER),
+                 buttonHome : document.getElementById(HEAD_USER_BUTTON_HOME)
+             };
+         }
+
+         function setIconStatus(elem, status) {
+             elem.setAttribute("disabled", !status);
+             if (status)
+                 elem.removeAttribute("style");
+             else
+                 elem.setAttribute("style", "opacity:0.45;");
+         }
 
          // }} ======================================================================= //
 
@@ -1412,11 +1485,59 @@ var twitterClient =
              _content.focus();
          }
 
+         function createMessage(msg) {
+             let userNamePattern = /(@[a-zA-Z0-9_]+|((https?\:\/\/|www\.)[^\s]+)([^\w\s\d]*))/g;
+
+             let matched = msg.match(userNamePattern);
+
+             let message = genElem("description");
+
+             if (matched)
+             {
+                 for (let i = 0; i < matched.length; ++i)
+                 {
+                     let pos   = msg.indexOf(matched[i]);
+                     let left  = msg.slice(0, pos);
+                     let right = msg.slice(pos + matched[i].length);
+
+                     let url;
+
+                     if (matched[i][0] === '@')
+                     {
+                         url = "http:twitter.com/" + matched[i].slice(1);
+                     }
+                     else
+                     {
+                         url = matched[i];
+                     }
+
+                     message.appendChild(document.createTextNode(left));
+                     message.appendChild(genElem("description", {"class"       : "text-link",
+                                                                 "tooltiptext" : url,
+                                                                 "onclick"     : 'openUILinkIn("' + url + '", "tab");',
+                                                                 "value"       : matched[i]}));
+
+                     msg = right;
+                 }
+
+                 if (msg.length)
+                     message.appendChild(document.createTextNode(msg));
+             }
+             else
+             {
+                 message.appendChild(document.createTextNode(msg));
+             }
+
+             return message;
+         }
+
          function callSelector(aStatuses, aMessage, aNoFilter) {
-             head.container.setAttribute("hidden", false);
+             let header = my.twitterClientHeader;
+
+             header.container.setAttribute("hidden", false);
 
              function onFinish() {
-                 head.container.setAttribute("hidden", true);
+                 header.container.setAttribute("hidden", true);
              }
 
              if (!aStatuses)
@@ -1463,8 +1584,6 @@ var twitterClient =
              let selectedUserID          = statuses[0].user.screen_name;
              let selectedUserInReplyToID = statuses[0].in_reply_to_screen_name;
 
-             window.inspectObject(statuses[0]);
-
              prompt.selector(
                  {
                      message    : "pattern:",
@@ -1481,11 +1600,19 @@ var twitterClient =
                          currentID               = status.id;
                          selectedUserInReplyToID = status.in_reply_to_screen_name;
 
-                         head.userIcon.setAttribute("src", arg.row[1]);
-                         head.userTweet.setAttribute("value", arg.row[3]);
-                         head.userName.setAttribute("value", util.format("%s / %s",
-                                                                         status.user.screen_name,
-                                                                         status.user.name));
+                         header.userIcon.setAttribute("src", arg.row[1]);
+                         header.userIcon.setAttribute("tooltiptext", status.user.description);
+                         header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
+
+                         setIconStatus(header.buttonHome, !!status.user.url);
+                         if (status.user.url)
+                             header.buttonHome.setAttribute("onclick", "openUILinkIn('" + status.user.url + "', 'tab');");
+                         else
+                             header.buttonHome.removeAttribute("onclick");
+
+                         header.buttonTwitter.setAttribute("onclick", "openUILinkIn('http://twitter.com/" + status.user.screen_name + "', 'tab');");
+
+                         header.userTweet.replaceChild(createMessage(status.text), header.userTweet.firstChild);
                      },
                      onFinish : onFinish,
                      stylist  : getOption("fancy_mode") ?
@@ -1595,7 +1722,7 @@ var twitterClient =
                          if (xhr.status !== 200)
                          {
                              // retry
-                             arguments.callee();
+                             setUserInfo();
                              return;
                          }
 
@@ -1603,7 +1730,7 @@ var twitterClient =
 
                          if (!statuses[0])
                          {
-                             arguments.callee();
+                             setUserInfo();
                          }
 
                          share.userInfo = statuses[0].user;
@@ -1615,6 +1742,11 @@ var twitterClient =
           * @public
           */
          var self = {
+             tweetBoxClicked: function (aEvent) {
+                 util.message("target => " + aEvent.target.localName);
+                 util.message("original => " + aEvent.originalTarget.localName);
+             },
+
              updateStatusesCache: function (aAfterWork, aNoRepeat) {
                  twitterStatusesPending = true;
 
