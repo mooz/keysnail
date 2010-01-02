@@ -106,7 +106,7 @@
 
 var optionsDefaultValue = {
     "log_level"                     : LOG_LEVEL_MESSAGE,
-    "update_interval"               : 60 * 1000,      // 1 minute
+    "update_interval"               : 10 * 1000,      // 1 minute
     "mentions_update_interval"      : 60 * 1000 * 20, // 20 minute
     "use_popup_notification"        : true,
     "main_column_width"             : [11, 70, 19],
@@ -2065,7 +2065,7 @@ var twitterClient =
                                  if (isRetryable(xhr))
                                  {
                                      log(LOG_LEVEL_DEBUG, "updateStatusesCache: retry %s", new Date());
-                                     self.updateStatusesCache();
+                                     self.updateStatusesCache(aAfterWork, aNoRepeat, aCalledFromTimer);
                                      return;
                                  }
 
@@ -2144,7 +2144,7 @@ var twitterClient =
                                  if (isRetryable(xhr))
                                  {
                                      log(LOG_LEVEL_DEBUG, "updateMentionsCache: retry %s", new Date());
-                                     self.updateMentionsCache();
+                                     self.updateMentionsCache(aAfterWork, aNoRepeat, aCalledFromTimer);
                                      return;
                                  }
                                  display.echoStatusBar(M({en: "Failed to get mentions", ja: "言及一覧の取得に失敗しました"}));
