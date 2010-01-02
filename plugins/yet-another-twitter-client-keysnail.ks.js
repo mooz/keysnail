@@ -1,7 +1,11 @@
 // ChangeLog {{ ============================================================= //
-// 
+//
+// ==== 1.5.3 (2009 01/02) ====
+//
+// * Made unpopUppedStatuses global
+//
 // ==== 1.5.2 (2009 01/02) ====
-// 
+//
 // * Now user can select whether display header or not.
 // * Automatically retry when request fails.
 // * A lot of context menus are added.
@@ -701,8 +705,6 @@ var twitterClient =
 
          // ============================== Popup notifications {{ ============================== //
 
-         var unPopUppedStatuses;
-
          function showPopup(arg) {
              if (false /* plugins.lib.xulGrowl */)
              {
@@ -732,12 +734,12 @@ var twitterClient =
          }
 
          function showOldestUnPopUppedStatus() {
-             var status = unPopUppedStatuses.pop();
+             var status = share.unPopUppedStatuses.pop();
 
              if ((blockUsers && blockUsers.some(function (username) username == status.user.screen_name))
                  || (share.userInfo && status.user.screen_name == share.userInfo.screen_name))
              {
-                 if (unPopUppedStatuses && unPopUppedStatuses.length)
+                 if (share.unPopUppedStatuses && share.unPopUppedStatuses.length)
                  {
                      showOldestUnPopUppedStatus();
                  }
@@ -745,14 +747,16 @@ var twitterClient =
                  return;
              }
 
-             var browserWindow = wm.getMostRecentWindow("navigator:browser");
-             if (!browserWindow || browserWindow !== window)
-             {
-                 return;
-             }
+             // Codes below are no longer need because cache updater became singleton
+
+             // var browserWindow = wm.getMostRecentWindow("navigator:browser");
+             // if (!browserWindow || browserWindow !== window)
+             // {
+             //     return;
+             // }
 
              function proc() {
-                 if (!unPopUppedStatuses || !unPopUppedStatuses.length)
+                 if (!share.unPopUppedStatuses || !share.unPopUppedStatuses.length)
                      return;
 
                  showOldestUnPopUppedStatus();
@@ -776,10 +780,10 @@ var twitterClient =
          }
 
          function popUpNewStatuses(statuses) {
-             if (unPopUppedStatuses && unPopUppedStatuses.length > 0)
-                 unPopUppedStatuses = statuses.concat(unPopUppedStatuses);
+             if (share.unPopUppedStatuses && share.unPopUppedStatuses.length > 0)
+                 share.unPopUppedStatuses = statuses.concat(share.unPopUppedStatuses);
              else
-                 unPopUppedStatuses = statuses;
+                 share.unPopUppedStatuses = statuses;
 
              showOldestUnPopUppedStatus();
          }
@@ -2022,7 +2026,7 @@ var twitterClient =
                  if (status)
                  {
                      prompt.finish(true);
-                     showTargetStatus(status.user.screen_name);    
+                     showTargetStatus(status.user.screen_name);
                  }
              },
 
@@ -2365,7 +2369,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
