@@ -1,9 +1,16 @@
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.5.2 (2009 01/02) ====
+// 
+// * Now user can select whether display header or not.
+// * Automatically retry when request fails.
+// * A lot of context menus are added.
+//   Right click on the icon in the statusbar and @foo, http:://* in the message.
 //
 // ==== 1.5.1 (2009 01/02) ====
 //
 // * Added fancy mode, gorgeous header. Annoying?
-// 
+//
 // ==== 1.5.0 (2009 12/31) ====
 //
 // * Refined codes. Cache updater become singleton. Less Twitter API consumption.
@@ -110,14 +117,16 @@ var optionsDefaultValue = {
     "keymap"                        : {},
     "block_users"                   : [],
     "black_users"                   : [],
+    // header
+    "enable_header" : true,
     // fancy mode settings
     "fancy_mode" : true,
     // foreground color
     "normal_tweet_style"         : "color:black;",
     "my_tweet_style"             : "color:#0a00d5;",
-    "reply_to_me_style"          : "color:#930c00;font-weight:bold;",
+    "reply_to_me_style"          : "color:#930c00;",
     //
-    "selected_row_style"           : "background-color:#93c6ff; color:black;",
+    "selected_row_style"           : "background-color:#93c6ff; color:black; outline: 1px solid #93c6ff !important;",
     "selected_user_style"          : "background-color:#ddedff; color:black;",
     // 選択行の in_reply_to となるユーザのスタイル
     "selected_user_reply_to_style" : "background-color:#ffd4ff; color:black;",
@@ -160,6 +169,10 @@ function updateAllStatusbars() {
                       }
                       catch (x) {}
                   });
+}
+
+function openLink(url) {
+    return 'openUILinkIn("' + url + '", "tab")';
 }
 
 // Log {{ =================================================================== //
@@ -490,6 +503,8 @@ var twitterClient =
                       "KeySnail.modules.ext.exec('twitter-client-show-favorites')"],
                      [M({ja: "自分のステータス一覧", en: "Display my statuses"}),
                       "KeySnail.modules.ext.exec('twitter-client-show-my-statuses')"],
+                     [M({ja: "自分のリスト一覧", en: "Display my lists"}),
+                      "KeySnail.modules.ext.exec('twitter-client-show-my-lists')"],
                      [M({ja: "再認証", en: "Reauthorize"}),
                       "KeySnail.modules.ext.exec('twitter-client-reauthorize')"]
                  ]
@@ -516,7 +531,7 @@ var twitterClient =
 
          // Header {{ ================================================================ //
 
-         if (!my.twitterClientHeader)
+         if (getOption("enable_header") && !my.twitterClientHeader)
          {
              const HOME_ICON = 'data:image/png;base64,' +
                  'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAY1BMVEUAAAB7QylRU1AsbCZAcDxR' +
@@ -534,6 +549,20 @@ var twitterClient =
                  'oSLNxkDFIDXNShlgGsiwgGhvUgICkJltQkCGBsguQ0FBQQsgg6M9LS0NrBqoGagYAPOBHbWsz4eA' +
                  'AAAAAElFTkSuQmCC';
 
+             const REFRESH_ICON = 'data:image/png;base64,' +
+                 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAj9JRE'+
+                 'FUOMuNk9tL02Ecxgf7M2J20JJCurBC1jnLZC1PZAatNl/XdOShgWXOxZr+3NyhHdxJzbFhSUYl'+
+                 '/MBohGW1jQ3XYfkj6No7EbwN756+G104/WG7eG/ew/M87/PhKwEg+d+68bxxsGVaIRU7k5Qi0D'+
+                 'RVLyjGL0R2Fej7rJXdXdQYdG9Vcc182/rNF824FlWiIVwH/ct2dDxT4aT5uE9UoHepQ65/r+a5'+
+                 'pBH+rAORn0FEV0KYyvkQ/PoE3uUxjKUsaA01oqq3crRIoOdDu6zr3S3es2zF7K9pTP7w4mnOj9'+
+                 'A3N3xZO1xpDtaUGY+/GHHVXY+DugPOIgGKbDB/eoAZYRKRXBDujA26OTXO2+T5yDg2cBRNPgWu'+
+                 'uOpQod0X2PEF9evWuCNpKTg6Uxwuuc6snuVq3FsvVXaWC+Vsb0y0xOszDWvU8ia1/KfWfmrjtO'+
+                 'UEt/3Sfk2ZqUy1R0pmjJAyQsqUgYuMzJiEWmaXPecYRWYUmVFk1p/ukhoSd0zbhciMI7ONf2ab'+
+                 'ZLYmyp2QxgipsHWPkLrJbNWTthEVOwYW7uX7ie94TEgD1owJw4mHoMigyKDI6H6jhSvJFZA60i'+
+                 'Nom2jOIzUUPSakTi5lxNzvaAFpTJgoQjqSGCog1c7expHuQzwhlRUJENLRRx/7EVsJF5CGv3sx'+
+                 'nnXClbFieGkIPfM6tPiVOKyv4AmpXHQWKLKvj++E/hXLIwUhRY2pGtX3q9YpcpyQGgipbNdhyg'+
+                 '8OtSyUMmiim4RUSkgHSxH4C4SsiJno6owoAAAAAElFTkSuQmCC';
+
              const HEAD_CONTAINER_ID  = "keysnail-twitter-client-head-container";
              const HEAD_USER_ICON     = "keysnail-twitter-client-user-icon";
              const HEAD_USER_INFO     = "keysnail-twitter-client-user-info";
@@ -548,13 +577,31 @@ var twitterClient =
 
              let tooltipTextTwitter = M({ja: "このユーザの Twitter ページへ", en: "Visit this user's page on twitter"});
              let tooltipTextHome    = M({ja: "このユーザのホームページへ", en: "Visit this user's homepage"});
+             let tooltipTextReflesh = M({ja: "更新", en: "Refresh"});
+             let tooltipTextClose   = M({ja: "閉じる", en: "Close"});
 
              let containerXML =
-                 <vbox style="margin-left:4px;margin-right:4px;">
-                     <description flex="1" width="100%" style="font-weight:bold;" id={HEAD_USER_NAME} />
+                 <vbox style="margin-left  : 4px;
+                              margin-right : 4px;">
+                     <hbox align="center">
+                         <description flex="1" width="100%" style="font-weight:bold;" id={HEAD_USER_NAME} />
+                         <spacer flex="1" />
+                         <toolbarbutton tooltiptext={tooltipTextReflesh} image={REFRESH_ICON}
+                                        oncommand={"KeySnail.modules.prompt.finish(true);" + root + ".showTimeline();"} />
+                         <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
+                                        oncommand="KeySnail.modules.prompt.finish(true);" />
+                     </hbox>
                      <hbox align="center" flex="1">
                          <vbox align="center">
-                             <image style="max-width:46px;max-height:46px;margin-left:4px;margin-right:4px" id={HEAD_USER_ICON} />
+                             <image style="border-left   : 1px solid ThreeDShadow;
+                                           border-top    : 1px solid ThreeDShadow;
+                                           border-right  : 1px solid ThreeDHighlight;
+                                           border-bottom : 1px solid ThreeDHighlight;
+                                           max-width     : 46px;
+                                           max-height    : 46px;
+                                           margin-left   : 4px;
+                                           margin-right  : 4px"
+                                    id={HEAD_USER_ICON} />
                          </vbox>
                          <vbox align="center" id={HEAD_USER_INFO} >
                              <vbox align="center">
@@ -562,9 +609,18 @@ var twitterClient =
                                  <toolbarbutton tooltiptext={tooltipTextHome} id={HEAD_USER_BUTTON_HOME} image={HOME_ICON} />
                              </vbox>
                          </vbox>
-                         <vbox flex="1" style="background-color:white;height:50px;margin:4px;overflow:auto;"
+                         <vbox flex="1"
                                onclick={root + ".tweetBoxClicked(event);"}
-                               id={HEAD_USER_TWEET} >
+                               id={HEAD_USER_TWEET}
+                               style="background-color : white;
+                                      height           : 50px;
+                                      margin           : 4px;
+                                      border-left      : 1px solid ThreeDShadow;
+                                      border-top       : 1px solid ThreeDShadow;
+                                      border-right     : 1px solid ThreeDHighlight;
+                                      border-bottom    : 1px solid ThreeDHighlight;
+                                      overflow         : auto;"
+                               >
                              <description />
                          </vbox>
                      </hbox>
@@ -581,17 +637,17 @@ var twitterClient =
              );
 
              my.twitterClientHeader = {
-                 container : container,
-                 userIcon  : document.getElementById(HEAD_USER_ICON),
-                 userInfo  : document.getElementById(HEAD_USER_INFO),
-                 userName  : document.getElementById(HEAD_USER_NAME),
-                 userTweet : document.getElementById(HEAD_USER_TWEET),
+                 container     : container,
+                 userIcon      : document.getElementById(HEAD_USER_ICON),
+                 userInfo      : document.getElementById(HEAD_USER_INFO),
+                 userName      : document.getElementById(HEAD_USER_NAME),
+                 userTweet     : document.getElementById(HEAD_USER_TWEET),
                  //
                  buttonTwitter : document.getElementById(HEAD_USER_BUTTON_TWITTER),
                  buttonHome    : document.getElementById(HEAD_USER_BUTTON_HOME),
                  //
-                 normalMenu  : document.getElementById(HEAD_MENU),
-                 dynamicMenu : document.getElementById(HEAD_DYNAMIC_MENU)
+                 normalMenu    : document.getElementById(HEAD_MENU),
+                 dynamicMenu   : document.getElementById(HEAD_DYNAMIC_MENU)
              };
 
              // set up normal menu
@@ -604,7 +660,10 @@ var twitterClient =
                            ["Retweet (Quote tweet)", root + ".retweetCurrentStatus();"],
                            // ================================================== //
                            [M({ja: "このユーザのステータス一覧", en: "Display this user's statuses"}),
-                            root + ".showCurrentTargetStatus();"]
+                            root + ".showCurrentTargetStatus();"],
+                           // ================================================== //
+                           [M({ja: "このユーザのリスト一覧", en: "Display this user's lists"}),
+                            root + ".showCurrentTargetLists();"]
                        ]);
          }
 
@@ -703,7 +762,7 @@ var twitterClient =
                            icon     : status.user.profile_image_url,
                            title    : status.user.name,
                            message  : html.unEscapeTag(status.text),
-                           link     : "https://twitter.com/" + status.user.screen_name + "/status/" + status.id,
+                           link     : "http://twitter.com/" + status.user.screen_name + "/status/" + status.id,
                            callback : proc,
                            observer : {
                                observe: function (subject, topic, data) {
@@ -726,6 +785,11 @@ var twitterClient =
          }
 
          // ============================== }} Popup notifications ============================== //
+
+         function isRetryable(xhr) {
+             return (xhr.status === 401)
+                 && (xhr.responseText.indexOf("Could not authenticate you") !== -1);
+         }
 
          function shortenURL(aURL) {
              const id  = "stillpedant";
@@ -871,7 +935,7 @@ var twitterClient =
              OAuth.SignatureMethod.sign(message, accessor);
 
              var oAuthArgs  = OAuth.getParameterMap(message.parameters);
-             var authHeader = OAuth.getAuthorizationHeader("https://twitter.com/", oAuthArgs);
+             var authHeader = OAuth.getAuthorizationHeader("http://twitter.com/", oAuthArgs);
 
              xhr.mozBackgroundRequest = true;
              xhr.open(message.method, message.action, false);
@@ -935,7 +999,7 @@ var twitterClient =
              OAuth.SignatureMethod.sign(message, accessor);
 
              var oAuthArgs  = OAuth.getParameterMap(message.parameters);
-             var authHeader = OAuth.getAuthorizationHeader(aOptions.host || "https://twitter.com/", oAuthArgs);
+             var authHeader = OAuth.getAuthorizationHeader(aOptions.host || "http://twitter.com/", oAuthArgs);
 
              xhr.mozBackgroundRequest = true;
              xhr.open(message.method, message.action, true);
@@ -970,7 +1034,7 @@ var twitterClient =
                                  oauthTokens.oauth_token        = parts[0].split("=")[1];
                                  oauthTokens.oauth_token_secret = parts[1].split("=")[1];
 
-                                 gBrowser.loadOneTab("https://twitter.com/oauth/authorize?oauth_token=" + oauthTokens.oauth_token,
+                                 gBrowser.loadOneTab("http://twitter.com/oauth/authorize?oauth_token=" + oauthTokens.oauth_token,
                                                      null, null, null, false);
                              } catch (e) {
                                  display.notify(e + xhr.responseText);
@@ -1057,12 +1121,19 @@ var twitterClient =
          function showFavorites(aTargetID) {
              oauthASyncRequest(
                  {
-                     action: "https://twitter.com/favorites.json" + (aTargetID ? ("?id=" + aTargetID) : ""),
+                     action: "http://twitter.com/favorites.json" + (aTargetID ? ("?id=" + aTargetID) : ""),
                      method: "GET"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status != 200) {
+                     if (xhr.readyState === 4)
+                     {
+                         if (isRetryable(xhr))
+                         {
+                             showFavorites(aTargetID);
+                             return;
+                         }
+                         if (xhr.status !== 200)
+                         {
                              display.echoStatusBar(M({en: "Failed to get favorites", ja: "お気に入り一覧の取得に失敗しました"}));
                              return;
                          }
@@ -1077,17 +1148,26 @@ var twitterClient =
          function addFavorite(aStatusID, aDelete) {
              oauthASyncRequest(
                  {
-                     action: util.format("https://twitter.com/favorites/%s/%s.json", aDelete ? "destroy" : "create", aStatusID),
+                     action: util.format("http://twitter.com/favorites/%s/%s.json", aDelete ? "destroy" : "create", aStatusID),
                      method: "POST"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
+                     if (xhr.readyState == 4)
+                     {
+                         if (isRetryable(xhr))
+                         {
+                             addFavorite(aStatusID, aDelete);
+                             return;
+                         }
+
                          var errorMsg = aDelete ? M({ja: "お気に入りから削除できませんでした", en: "Failed to remove status from favorites"})
                          : M({ja: "お気に入りに追加できませんでした", en: "Failed to add status to favorites"});
                          var successMsg = aDelete ? M({ja: "お気に入りから削除しました", en: "Removed status from favorites"})
                          : M({ja: "お気に入りに追加しました", en: "Added status to favorites"});
 
-                         if (xhr.status != 200) {
+
+                         if (xhr.status != 200)
+                         {
                              display.echoStatusBar(errorMsg, 2000);
                              return;
                          }
@@ -1125,12 +1205,20 @@ var twitterClient =
 
                  oauthASyncRequest(
                      {
-                         action: "https://search.twitter.com/search.json?q=" + encodeURIComponent(aWord) + "&rpp=100",
+                         action: "http://search.twitter.com/search.json?q=" + encodeURIComponent(aWord) + "&rpp=100",
                          method: "POST"
                      },
                      function (aEvent, xhr) {
-                         if (xhr.readyState == 4) {
-                             if (xhr.status != 200) {
+                         if (xhr.readyState == 4)
+                         {
+                             if (isRetryable(xhr))
+                             {
+                                 doSearch(aWord);
+                                 return;
+                             }
+
+                             if (xhr.status != 200)
+                             {
                                  display.echoStatusBar(M({ja: "検索に失敗しました",
                                                           en: "Failed to search word"}), 3000);
                                  return;
@@ -1179,7 +1267,7 @@ var twitterClient =
 
          function copy(aMsg) {
              command.setClipboardText(aMsg);
-             display.echoStatusBar(M({ja: "コピーしました", en: "Copied"} + " : " + aMsg), 1000);
+             display.echoStatusBar(M({ja: "コピーしました", en: "Copied"}) + " : " + aMsg, 2000);
          }
 
          function reply(aUserID, aStatusID) {
@@ -1196,11 +1284,11 @@ var twitterClient =
 
              oauthASyncRequest(
                  {
-                     action     : "https://api.twitter.com/1/statuses/retweet/" + aID + ".json",
+                     action     : "http://api.twitter.com/1/statuses/retweet/" + aID + ".json",
                      method     : "POST",
                      parameters : parameters,
                      send       : aQuery,
-                     host       : "https://api.twitter.com/"
+                     host       : "http://api.twitter.com/"
                  },
                  function (aEvent, xhr) {
                      if (xhr.readyState == 4)
@@ -1210,7 +1298,11 @@ var twitterClient =
                              // token expired
                              reAuthorize();
                          }
-                         else if (xhr.status != 200)
+                         else if (isRetryable(xhr))
+                         {
+                             retweet(aID);
+                         }
+                         else if (xhr.status !== 200)
                          {
                              // misc error
                              showPopup({
@@ -1261,7 +1353,7 @@ var twitterClient =
 
                          statusbar.label = msg;
                      },
-                     callback: function (aTweet) {
+                     callback: function postTweet(aTweet) {
                          statusbar.label = "";
 
                          if (aTweet == null)
@@ -1277,7 +1369,7 @@ var twitterClient =
 
                          oauthASyncRequest(
                              {
-                                 action     : "https://twitter.com/statuses/update.json",
+                                 action     : "http://twitter.com/statuses/update.json",
                                  method     : "POST",
                                  send       : aQuery,
                                  parameters : parameters
@@ -1285,10 +1377,16 @@ var twitterClient =
                              function (aEvent, xhr) {
                                  if (xhr.readyState == 4)
                                  {
-                                     if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
+                                     if (xhr.status === 401 && xhr.responseText.indexOf("expired") != -1)
                                      {
                                          // token expired
                                          reAuthorize();
+                                     }
+                                     else if (isRetryable(xhr))
+                                     {
+                                         // retry
+                                         log(LOG_LEVEL_DEBUG, "Failed to tweet. Retry");
+                                         postTweet(aTweet);
                                      }
                                      else if (xhr.status != 200)
                                      {
@@ -1327,12 +1425,18 @@ var twitterClient =
          function deleteStatus(aStatusID) {
              oauthASyncRequest(
                  {
-                     action : "https://twitter.com/statuses/destroy/" + aStatusID + ".json",
+                     action : "http://twitter.com/statuses/destroy/" + aStatusID + ".json",
                      method : "DELETE"
                  },
                  function (aEvent, xhr) {
                      if (xhr.readyState === 4)
                      {
+                         if (isRetryable(xhr))
+                         {
+                             deleteStatus(aStatusID);
+                             return;
+                         }
+
                          if (xhr.status !== 200)
                          {
                              display.echoStatusBar(M({ja: 'ステータスの削除に失敗しました。',
@@ -1369,6 +1473,12 @@ var twitterClient =
                  function (aEvent, xhr) {
                      if (xhr.readyState == 4)
                      {
+                         if (isRetryable(xhr))
+                         {
+                             showListStatuses(aScreenName, aListName);
+                             return;
+                         }
+
                          if (xhr.status !== 200)
                          {
                              display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
@@ -1393,12 +1503,18 @@ var twitterClient =
              oauthASyncRequest(
                  {
                      action : "http://api.twitter.com/1/" + aScreenName + "/lists.json",
-                     host   : "https://api.twitter.com/",
+                     host   : "http://api.twitter.com/",
                      method : "GET"
                  },
                  function (aEvent, xhr) {
                      if (xhr.readyState === 4)
                      {
+                         if (isRetryable(xhr))
+                         {
+                             showLists(aScreenName);
+                             return;
+                         }
+
                          if (xhr.status !== 200)
                          {
                              display.echoStatusBar(M({ja: 'リスト一覧の取得に失敗しました。',
@@ -1499,12 +1615,20 @@ var twitterClient =
          function showTargetStatus(target) {
              oauthASyncRequest(
                  {
-                     action : "https://twitter.com/statuses/user_timeline/" + target + ".json?count=" + timelineCountEveryUpdates,
+                     action : "http://twitter.com/statuses/user_timeline/" + target + ".json?count=" + timelineCountEveryUpdates,
                      method : "GET"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status != 200) {
+                     if (xhr.readyState == 4)
+                     {
+                         if (isRetryable(xhr))
+                         {
+                             showTargetStatus(target);
+                             return;
+                         }
+
+                         if (xhr.status != 200)
+                         {
                              display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
                                                       en: "Failed to get statuses"}), 2000);
                              return;
@@ -1564,12 +1688,14 @@ var twitterClient =
                      else
                      {
                          url = matched[i];
+                         if (url.indexOf("www") === 0)
+                             url = "http://" + url;
                      }
 
                      message.appendChild(document.createTextNode(left));
-                     message.appendChild(genElem("description", {"class"         : linkClass,
-                                                                 "tooltiptext"   : url,
-                                                                 "value"         : matched[i]}));
+                     message.appendChild(genElem("description", {"class"       : linkClass,
+                                                                 "tooltiptext" : url,
+                                                                 "value"       : matched[i]}));
 
                      msg = right;
                  }
@@ -1586,18 +1712,6 @@ var twitterClient =
          }
 
          function callSelector(aStatuses, aMessage, aNoFilter) {
-             let header = my.twitterClientHeader;
-
-             header.container.setAttribute("hidden", false);
-
-             // let savedPromptRows = prompt.rows;
-             // prompt.rows = 10;
-
-             function onFinish() {
-                 header.container.setAttribute("hidden", true);
-                 // prompt.rows = savedPromptRows;
-             }
-
              if (!aStatuses)
                  return;
 
@@ -1632,15 +1746,22 @@ var twitterClient =
              const ico = ICON | IGNORE;
              const hid = HIDDEN | IGNORE;
 
-             var helpMessage = M({ja: ' : そのまま Enter でつぶやき画面へ。 Ctrl + i でアクションを選択。 Ctrl + Enter でクライアントを閉じずに連続アクション。',
-                                  en: " : Press Enter to tweet. Ctrl + i (or your defined one) to select the action!"});
-
-             if (!aMessage)
-                 aMessage = M({ja: "タイムライン", en: "Timeline"});
+             if (!aMessage) aMessage = M({ja: "タイムライン", en: "Timeline"});
 
              let currentID               = statuses[0].id;
              let selectedUserID          = statuses[0].user.screen_name;
              let selectedUserInReplyToID = statuses[0].in_reply_to_screen_name;
+
+             let header = my.twitterClientHeader;
+             let headerEnabled = getOption("enable_header");
+
+             function onFinish() {
+                 if (headerEnabled)
+                     header.container.setAttribute("hidden", true);
+             }
+
+             if (headerEnabled)
+                 header.container.setAttribute("hidden", false);
 
              prompt.selector(
                  {
@@ -1649,39 +1770,44 @@ var twitterClient =
                      // status, icon, name, message, fav-icon, info
                      flags      : [hid, ico, 0, 0, ico, 0],
                      header     : [M({ja: 'ユーザ', en: "User"}), aMessage, M({ja : "情報", en: 'Info'})],
-                     // style      : ["color:#0e0067;", "", "color:#660025;"],
+                     style      : getOption("fancy_mode") ? null : ["color:#0e0067;", "", "color:#660025;"],
                      width      : mainColumnWidth,
                      beforeSelection : function (arg) {
                          let status = arg.row[0];
+
+                         // accessible from out of this closure
+                         my.twitterSelectedStatus = status;
 
                          selectedUserID          = status.user.screen_name;
                          currentID               = status.id;
                          selectedUserInReplyToID = status.in_reply_to_screen_name;
 
-                         header.userIcon.setAttribute("src", arg.row[1]);
-                         header.userIcon.setAttribute("tooltiptext", status.user.description);
-                         header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
-                         header.userName.setAttribute("tooltiptext", status.user.description);
+                         if (headerEnabled)
+                         {
 
-                         // accessible from out of this closure
-                         my.twitterSelectedStatus = status;
+                             header.userIcon.setAttribute("src", arg.row[1]);
+                             header.userIcon.setAttribute("tooltiptext", status.user.description);
+                             header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
+                             header.userName.setAttribute("tooltiptext", status.user.description);
 
-                         setIconStatus(header.buttonHome, !!status.user.url);
-                         if (status.user.url)
-                             header.buttonHome.setAttribute("onclick", "openUILinkIn('" + status.user.url + "', 'tab');");
-                         else
-                             header.buttonHome.removeAttribute("onclick");
+                             setIconStatus(header.buttonHome, !!status.user.url);
+                             if (status.user.url)
+                                 header.buttonHome.setAttribute("onclick", openLink(status.user.url));
+                             else
+                                 header.buttonHome.removeAttribute("onclick");
 
-                         header.buttonTwitter.setAttribute("onclick", "openUILinkIn('http://twitter.com/" + status.user.screen_name + "', 'tab');");
+                             header.buttonTwitter.setAttribute("onclick", openLink('http://twitter.com/' + status.user.screen_name));
 
-                         header.userTweet.replaceChild(createMessage(status.text), header.userTweet.firstChild);
+                             header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text)), header.userTweet.firstChild);
+                         }
                      },
                      onFinish : onFinish,
                      stylist  : getOption("fancy_mode") ?
                          function (row, n, current) {
                              if (current !== collection)
                              {
-                                 return null;                                 
+                                 // nothing to do in action mode
+                                 return null;
                              }
 
                              let status = row[0];
@@ -1748,7 +1874,8 @@ var twitterClient =
          }
 
          function setLastStatus(aStatuses) {
-             if (aStatuses.length) {
+             if (aStatuses.length)
+             {
                  lastID.status = aStatuses[0].id;
                  updateAllStatusbars();
              }
@@ -1766,7 +1893,8 @@ var twitterClient =
              if (!aID)
                  return aJSON.length;
 
-             for (var i = 0; i < aJSON.length; ++i) {
+             for (var i = 0; i < aJSON.length; ++i)
+             {
                  if (aJSON[i].id == aID)
                      return i;
              }
@@ -1777,27 +1905,25 @@ var twitterClient =
          function setUserInfo() {
              oauthASyncRequest(
                  {
-                     action: "https://twitter.com/statuses/user_timeline.json?count=1",
+                     action: "http://twitter.com/account/verify_credentials.json",
                      method: "GET"
                  },
                  function (aEvent, xhr) {
                      if (xhr.readyState === 4)
                      {
-                         if (xhr.status !== 200)
+                         if (isRetryable(xhr))
                          {
-                             // retry
+                             log(LOG_LEVEL_DEBUG, "setUserInfo: retry");
                              setUserInfo();
                              return;
                          }
 
-                         var statuses = util.safeEval('(' + xhr.responseText + ')');
+                         if (xhr.status !== 200)
+                             return;
 
-                         if (!statuses[0])
-                         {
-                             setUserInfo();
-                         }
+                         var account = util.safeEval('(' + xhr.responseText + ')');
 
-                         share.userInfo = statuses[0].user;
+                         share.userInfo = account;
 
                          log(LOG_LEVEL_DEBUG, "user info successfully set");
                      }
@@ -1816,17 +1942,11 @@ var twitterClient =
                  let isLink = elem.getAttribute("class") === linkClass;
                  let status = my.twitterSelectedStatus;
 
-                 // window.inspectObject(elem);
-
                  if (aEvent.button === 2)
                  {
                      // right click
                      if (isLink)
                      {
-                         function openLink(url) {
-                             return 'openUILinkIn("' + url + '", "tab")';
-                         }
-
                          if (text[0] == '@')
                          {
                              let userName = text.slice(1);
@@ -1880,24 +2000,43 @@ var twitterClient =
              },
 
              replyToCurrentStatus: function () {
-                 prompt.finish(true);
                  let status = my.twitterSelectedStatus;
                  if (status)
+                 {
+                     prompt.finish(true);
                      reply(status.user.screen_name, status.id);
+                 }
              },
 
              retweetCurrentStatus: function () {
-                 prompt.finish(true);
                  let status = my.twitterSelectedStatus;
                  if (status)
+                 {
+                     prompt.finish(true);
                      quoteTweet(status.user.screen_name, html.unEscapeTag(status.text));
+                 }
              },
 
              showCurrentTargetStatus: function () {
-                 prompt.finish(true);
                  let status = my.twitterSelectedStatus;
                  if (status)
-                     showTargetStatus(status.user.screen_name);
+                 {
+                     prompt.finish(true);
+                     showTargetStatus(status.user.screen_name);    
+                 }
+             },
+
+             showCurrentTargetLists: function () {
+                 let status = my.twitterSelectedStatus;
+                 if (status)
+                 {
+                     prompt.finish(true);
+                     showLists(status.user.screen_name);
+                 }
+             },
+
+             showMyLists: function () {
+                 showLists();
              },
 
              copyCurrentStatus: function () {
@@ -1913,16 +2052,23 @@ var twitterClient =
 
                  oauthASyncRequest(
                      {
-                         action : "https://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
+                         action : "http://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
                          method : "GET"
                      },
                      function (aEvent, xhr) {
-                         if (xhr.readyState == 4)
+                         if (xhr.readyState === 4)
                          {
                              twitterStatusesPending = false;
 
-                             if (xhr.status != 200)
+                             if (xhr.status !== 200)
                              {
+                                 if (isRetryable(xhr))
+                                 {
+                                     log(LOG_LEVEL_DEBUG, "updateStatusesCache: retry %s", new Date());
+                                     self.updateStatusesCache();
+                                     return;
+                                 }
+
                                  display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
                                                           en: "Failed to get statuses"}), 2000);
                              }
@@ -1934,8 +2080,8 @@ var twitterClient =
                                  updateAllStatusbars();
                              }
 
-                             log(LOG_LEVEL_DEBUG, "(%s) update status cache from '%s' %s",
-                                 aCalledFromTimer, window.document.title, new Date());
+                             log(LOG_LEVEL_DEBUG, "[%s] (%s) update status cache from '%s' %s",
+                                 xhr.status, !!aCalledFromTimer, window.document.title, new Date());
 
                              if ((!aNoRepeat && !share.twitterStatusesCacheUpdater) || aCalledFromTimer)
                              {
@@ -1985,7 +2131,7 @@ var twitterClient =
 
                  oauthASyncRequest(
                      {
-                         action: "https://twitter.com/statuses/mentions.json",
+                         action: "http://twitter.com/statuses/mentions.json",
                          method: "GET"
                      },
                      function (aEvent, xhr) {
@@ -1993,8 +2139,14 @@ var twitterClient =
                          {
                              twitterMentionsPending = false;
 
-                             if (xhr.status !== 200)
+                             if (xhr.status != 200)
                              {
+                                 if (isRetryable(xhr))
+                                 {
+                                     log(LOG_LEVEL_DEBUG, "updateMentionsCache: retry %s", new Date());
+                                     self.updateMentionsCache();
+                                     return;
+                                 }
                                  display.echoStatusBar(M({en: "Failed to get mentions", ja: "言及一覧の取得に失敗しました"}));
                              }
                              else
@@ -2091,7 +2243,7 @@ var twitterClient =
 
                  oauthASyncRequest(
                      {
-                         action: "https://twitter.com/statuses/user_timeline.json?count=" + Math.min(count, 200),
+                         action: "http://twitter.com/statuses/user_timeline.json?count=" + Math.min(count, 200),
                          method: "GET"
                      },
                      function (aEvent, xhr) {
@@ -2168,7 +2320,11 @@ ext.add("twitter-client-show-favorites", twitterClient.showFavorites,
 
 ext.add("twitter-client-show-my-statuses", twitterClient.showUsersTimeline,
         M({ja: '自分のつぶやきを一覧表示',
-           en: "Display your statuses"}));
+           en: "Display my statuses"}));
+
+ext.add("twitter-client-show-my-lists", twitterClient.showMyLists,
+        M({ja: '自分のリストを一覧表示',
+           en: "Display my lists"}));
 
 ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
         M({ja: 'ポップアップ通知の切り替え',
@@ -2179,6 +2335,11 @@ ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
            en: "Reauthorize"}));
 
 // }} ======================================================================= //
+
+if (!share.userInfo)
+{
+    twitterClient.setUserInfo();
+}
 
 if (share.twitterStatusesJSONCache && share.twitterMentionsJSONCache)
 {
@@ -2197,11 +2358,6 @@ else
     }
 }
 
-if (!share.userInfo)
-{
-    twitterClient.setUserInfo();
-}
-
 // PLUGIN_INFO {{ =========================================================== //
 
 var PLUGIN_INFO =
@@ -2209,7 +2365,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -2222,6 +2378,7 @@ var PLUGIN_INFO =
         <ext>twitter-client-tweet</ext>
         <ext>twitter-client-tweet-this-page</ext>
         <ext>twitter-client-show-my-statuses</ext>
+        <ext>twitter-client-show-my-lists</ext>
         <ext>twitter-client-show-mentions</ext>
         <ext>twitter-client-show-favorites</ext>
         <ext>twitter-client-search-word</ext>
@@ -2233,6 +2390,12 @@ var PLUGIN_INFO =
     </require>
     <options>
         <option>
+            <name>twitter_client.automatically_begin</name>
+            <type>boolean</type>
+            <description>Automatically begin fetching the statuses</description>
+            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか (初回起動時間の短縮につながる)</description>
+        </option>
+        <option>
             <name>twitter_client.timeline_count_beginning</name>
             <type>integer</type>
             <description>Number of timelines this client fetches in the beginning (default 80)</description>
@@ -2243,12 +2406,6 @@ var PLUGIN_INFO =
             <type>integer</type>
             <description>Number of timelines this client fetches at once (default 20)</description>
             <description lang="ja">初回以降の更新で一度に取得するステータス数 (デフォルトは 20)</description>
-        </option>
-        <option>
-            <name>twitter_client.automatically_begin</name>
-            <type>boolean</type>
-            <description>Automatically begin fetching the statuses</description>
-            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか (初回起動時間の短縮につながる)</description>
         </option>
         <option>
             <name>twitter_client.use_popup_notification</name>
@@ -2290,7 +2447,19 @@ var PLUGIN_INFO =
             <name>twitter_client.keymap</name>
             <type>object</type>
             <description>Local keymap</description>
-            <description lang="ja">ローカルキーマップ。</description>
+            <description lang="ja">ローカルキーマップ</description>
+        </option>
+        <option>
+            <name>twitter_client.fancy_mode</name>
+            <type>boolean</type>
+            <description>Enable fancy mode</description>
+            <description lang="ja">TL に色付けを行うかどうか</description>
+        </option>
+        <option>
+            <name>twitter_client.enable_header</name>
+            <type>boolean</type>
+            <description>Enable header</description>
+            <description lang="ja">ヘッダを表示するかどうか</description>
         </option>
     </options>
     <detail><![CDATA[
@@ -2382,7 +2551,10 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
     <detail lang="ja"><![CDATA[
 === 使い方 ===
 ==== 起動 ====
-M-x などのキーから ext.select() を呼び出し twitter-client-display-timeline を選ぶと Twitter のタイムラインが表示されます。
+
+ステータスバーの吹き出しアイコンを左クリックすることで Twitter の TL を表示させることができます。
+
+これは M-x などのキーから ext.select() を呼び出し twitter-client-display-timeline を選ぶのと同じことです。
 
 次のようにして任意のキーへコマンドを割り当てておくことも可能です。
 
@@ -2449,14 +2621,36 @@ plugins.options["twitter_client.keymap"] = {
 
 どのようなキーバインドとなっているかは、設定を見ていただければ分かるかと思います。気に入らなければ変更してしまってください。
 
-このままではアルファベットが入力できないので、もし絞り込み健作などでアルファベットを入力したくなった場合は C-z を入力するか「閉じる」ボタン左の「地球マーク」をクリックし、編集モードへと切り替えてください。
+このままではアルファベットが入力できないので、もし絞り込み健作などでアルファベットを入力したくなった場合は C-z を入力するか 「閉じる」 ボタン左の 「地球マーク」 をクリックし、編集モードへと切り替えてください。
+
+==== ヘッダ ====
+
+TL 上部の 「ヘッダ」 部分には、選択中ユーザのアイコンやメッセージなどが表示されます。ユーザ名やアイコンの上へマウスカーソルを持っていくことで、そのユーザの自己紹介を見ることが可能です。
+
+また、メッセージ中に @username といった表記や http:// といった URL があった場合は自動的にリンクが貼られます。
+
+このリンクをそのまま左クリックするとそのページへジャンプします。また、右クリックにより様々な処理を選ぶことも可能となっています。
+
+例えば j.mp や bit.ly のリンク上で右クリックをすれば、その URL が何回クリックされたかを調査することができます。自分の紹介した URL が全然クリックされていなくても、気にしないようにしましょう。
+
+ヘッダ右上の 「更新」 ボタンと 「閉じる」 ボタンは見落とされがちですが、有事の際には必ず役に立ってくれることでしょう。
+
+==== ステータスバーアイコン ====
+
+ステータスバーには二種類のアイコンが追加されます。
+
+「吹き出し」 アイコンを左クリックすると自分の TL が、 「封筒」 アイコンを左クリックすると自分宛のメッセージ (Mentions) が一覧表示されます。
+
+また、それぞれのアイコンを右クリックすることで、それ以外にも様々なコマンドを実行することが可能です。
 
 ==== アクションの選択 ====
+
 タイムライン一覧でそのまま Enter キーを入力すると、つぶやき画面へ移行することができます。
 
 Enter ではなく Ctrl + i キーを押すことにより、様々なアクションを選ぶことも可能となっています。
 
 ==== ちょっと便利な使い方 ====
+
 例えばみんながつぶやいているページを順番に見ていきたいというときは、次のようにします。
 
 + Ctrl + i を押して 「メッセージ中の URL を開く」にカーソルを合わせる
@@ -2467,16 +2661,19 @@ Enter ではなく Ctrl + i キーを押すことにより、様々なアクシ�
 ね、簡単でしょう？
 
 ==== 自動更新  ====
+
 このクライアントは起動時にタイマーをセットし Twitter のタイムラインを定期的に更新します。
 
 twitter_client.update_interval に値を設定することにより、この間隔を変更することが可能となっています。
 
 ==== ポップアップ通知  ====
+
 twitter_client.use_popup_notification オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
 
 また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
 
 === つぶやき専用 ===
+
 つぶやき専用で TL の表示はしない、自動更新とかもいらないよ、という方向けの設定を以下に示します。
 
 >||
