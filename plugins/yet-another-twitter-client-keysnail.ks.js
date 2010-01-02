@@ -106,7 +106,7 @@
 
 var optionsDefaultValue = {
     "log_level"                     : LOG_LEVEL_MESSAGE,
-    "update_interval"               : 10 * 1000,      // 1 minute
+    "update_interval"               : 60 * 1000,      // 1 minute
     "mentions_update_interval"      : 60 * 1000 * 20, // 20 minute
     "use_popup_notification"        : true,
     "main_column_width"             : [11, 70, 19],
