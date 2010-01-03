@@ -108,33 +108,31 @@
 //
 // }} ======================================================================= //
 
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+
 var optionsDefaultValue = {
-    "log_level"                     : LOG_LEVEL_MESSAGE,
-    "update_interval"               : 60 * 1000,      // 1 minute
-    "mentions_update_interval"      : 60 * 1000 * 20, // 20 minute
-    "use_popup_notification"        : true,
-    "main_column_width"             : [11, 70, 19],
-    "timeline_count_beginning"      : 80,
-    "timeline_count_every_updates"  : 20,
-    "unread_status_count_style"     : "color:#383838;font-weight:bold;",
-    "automatically_begin"           : true,
-    "keymap"                        : {},
-    "block_users"                   : [],
-    "black_users"                   : [],
-    // header
-    "enable_header" : true,
+    "log_level"                             : LOG_LEVEL_MESSAGE,
+    "update_interval"                       : 60 * 1000,      // 1 minute
+    "mentions_update_interval"              : 60 * 1000 * 20, // 20 minute
+    "use_popup_notification"                : true,
+    "main_column_width"                     : [11, 70, 19],
+    "timeline_count_beginning"              : 80,
+    "timeline_count_every_updates"          : 20,
+    "unread_status_count_style"             : "color:#383838;font-weight:bold;",
+    "automatically_begin"                   : true,
+    "keymap"                                : {},
+    "block_users"                           : [],
+    "black_users"                           : [],
+    "enable_header"                         : true,
     // fancy mode settings
-    "fancy_mode" : true,
-    // foreground color
-    "normal_tweet_style"         : "color:black;",
-    "my_tweet_style"             : "color:#0a00d5;",
-    "reply_to_me_style"          : "color:#930c00;",
-    //
-    "selected_row_style"           : "background-color:#93c6ff; color:black; outline: 1px solid #93c6ff !important;",
-    "selected_user_style"          : "background-color:#ddedff; color:black;",
-    // 選択行の in_reply_to となるユーザのスタイル
-    "selected_user_reply_to_style" : "background-color:#ffd4ff; color:black;",
-    // 選択行の in_reply_to となるユーザへの in_reply_to のスタイル
+    "fancy_mode"                            : true,
+    "normal_tweet_style"                    : "color:black;",
+    "my_tweet_style"                        : "color:#0a00d5;",
+    "reply_to_me_style"                     : "color:#930c00;",
+    "selected_row_style"                    : "background-color:#93c6ff; color:black; outline: 1px solid #93c6ff !important;",
+    "selected_user_style"                   : "background-color:#ddedff; color:black;",
+    "selected_user_reply_to_style"          : "background-color:#ffd4ff; color:black;",
     "selected_user_reply_to_reply_to_style" : "background-color:#ffe9d4; color:black;"
 };
 
@@ -197,23 +195,93 @@ function log() {
 
 // }} ======================================================================= //
 
+// Persistent object {{ ===================================================== //
+
+var json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+
+function getExtensionDir(aName) {
+    if (typeof util.getExtensionLocalDirectory === 'function')
+        return util.getExtensionLocalDirectory(aName); // 1.2.9 later
+    else
+        return util.getExtentionLocalDirectory(aName); // 1.2.8 (typo)
+}
+
+function getPersistentObjFile(aName) {
+    let dir = getExtensionDir('yatck');
+    dir.append(aName.replace(/-/g, "_") + ".json");
+
+    return dir;
+}
+
+function saveObj(aName, aObj) {
+    let file    = getPersistentObjFile(aName);
+    let encoded = json.encode(aObj);
+
+    util.writeTextFile(encoded, file.path, true);
+}
+
+function restoreObj(aName) {
+    let file = getPersistentObjFile(aName);
+    let str;
+
+    try {
+        str = util.readTextFile(file.path);
+    } catch (x) {
+        return null;
+    }
+
+    return json.decode(str);
+}
+
+// }} ======================================================================= //
+
+function Widget(xml) {
+    this.initialize(xml);
+}
+
+Widget.prototype = {
+    root  : document.documentElement,
+    panel : util.xmlToDom(<panel noautohide="true" />),
+    child : null,
+
+    initialize: function (xml) {
+        this.child = util.xmlToDom(xml);
+        this.panel.appendChild(this.child);
+        this.root.appendChild(this.panel);
+    },
+
+    show: function () {
+        let cb = getBrowser().mCurrentBrowser;
+        this.panel.openPopup(cb, "overlay",
+                             (cb.boxObject.width - this.panel.boxObject.width) / 2,
+                             (cb.boxObject.height - this.panel.boxObject.height) / 2,
+                             false, true);
+    },
+
+    hide: function () {
+        this.panel.hidePopup();
+    }
+};
+
 var twitterClient =
     (function () {
          // ================================================================================ //
 
          const root = "KeySnail.modules.plugins.twitterClient";
+
          const linkClass = "ks-text-link";
 
          if (!share.ksTextLinkStyleRegistered)
          {
              style.register(<><![CDATA[
                                      description.ks-text-link {
-                                         color: #0800ab;
-                                         text-decoration: underline;
+                                         color           : #0800ab;
+                                         text-decoration : underline;
+                                         cursor          : pointer !important;
                                      }
 
                                      description.ks-text-link:hover {
-                                         color: #5e58cc;
+                                         color           : #616161;
                                      }
                                  ]]></>.toString());
 
@@ -279,7 +347,7 @@ var twitterClient =
              // ======================================== //
              [function (status) {
                   if (status) showFavorites(status.user_id);
-              }, M({ja: "このユーザのふぁぼり一覧を表示 : ", en: ""}) + "Show this users favorites",
+              }, M({ja: "このユーザのふぁぼり一覧を表示 : ", en: ""}) + "Show this user's favorites",
               "show-user-favorites"],
              // ======================================== //
              [function (status) {
@@ -330,6 +398,35 @@ var twitterClient =
 
          // ================================================================================ //
 
+
+         // Prompt handling {{ ======================================================= //
+
+         let tPrompt = {
+             forced  : false,
+             get visible() {
+                 return !document.getElementById("keysnail-prompt").hidden;
+             },
+             close   : function () {
+                 if (tPrompt.forced)
+                 {
+                     tPrompt.forced = false;
+
+                     if (tPrompt.visible)
+                     {
+                         prompt.finish(true);
+                     }
+                 }
+             }
+         };
+
+         // }} ======================================================================= //
+
+         if (!share.twitterClientSettings)
+         {
+             share.twitterClientSettings = {};
+             share.twitterClientSettings.blackUsers = restoreObj("blackusers") || [];
+         }
+
          // Update interval in mili second
          var updateInterval = getOption("update_interval");
 
@@ -343,7 +440,7 @@ var twitterClient =
          var mainColumnWidth = getOption("main_column_width");
 
          var blockUsers = getOption("block_users");
-         var blackUsers = getOption("black_users");
+         var blackUsers = share.twitterClientSettings.blackUsers;
 
          // ================================================================================ //
          // Timeline
@@ -440,12 +537,30 @@ var twitterClient =
          }
 
          function applyMenu(aMenu, aMenuSeed) {
-             aMenuSeed.forEach(
-                 function ([label, command]) {
-                     aMenu.appendChild(
-                         genElem("menuitem", { "label" : label, "oncommand" : command })
-                     );
-                 });
+             function genMenuItem([label, command]) {
+                 let item;
+
+                 if (command instanceof Array)
+                 {
+                     item = genElem("menu", { "label" : label });
+
+                     let popup = genElem("menupopup");
+                     command.forEach(function (r) { popup.appendChild(genMenuItem(r)); });
+                     item.appendChild(popup);
+                 }
+                 else if (label && command)
+                 {
+                     item = genElem("menuitem", { "label" : label, "oncommand" : command });
+                 }
+                 else
+                 {
+                     item = genElem("menuseparator");
+                 }
+
+                 return item;   // menu, menuitem, menuseparator
+             }
+
+             aMenuSeed.forEach(function (r) { aMenu.appendChild(genMenuItem(r)); });
 
              return aMenu;
          }
@@ -663,11 +778,20 @@ var twitterClient =
                            // ================================================== //
                            ["Retweet (Quote tweet)", root + ".retweetCurrentStatus();"],
                            // ================================================== //
-                           [M({ja: "このユーザのステータス一覧", en: "Display this user's statuses"}),
-                            root + ".showCurrentTargetStatus();"],
+                           [null, null],
                            // ================================================== //
-                           [M({ja: "このユーザのリスト一覧", en: "Display this user's lists"}),
-                            root + ".showCurrentTargetLists();"]
+                           [M({ja: "このユーザの操作", en: "This user"}),
+                            [
+                                [M({ja: "ステータス一覧", en: "Display this user's statuses"}),
+                                 root + ".showCurrentTargetStatus();"],
+                                // ================================================== //
+                                [M({ja: "リスト一覧", en: "Display this user's lists"}),
+                                 root + ".showCurrentTargetLists();"],
+                                // ================================================== //
+                                [M({ja: "ブラックリストへ追加", en: "Add this user to the black list"}),
+                                 root + ".addCurrentTargetToBlacklist();"]
+                            ]
+                           ]
                        ]);
          }
 
@@ -703,7 +827,7 @@ var twitterClient =
 
          var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
-         // ============================== Popup notifications {{ ============================== //
+         // Popup notifications {{ =================================================== //
 
          function showPopup(arg) {
              if (false /* plugins.lib.xulGrowl */)
@@ -788,7 +912,43 @@ var twitterClient =
              showOldestUnPopUppedStatus();
          }
 
-         // ============================== }} Popup notifications ============================== //
+         // }} ======================================================================= //
+
+         // Hook application quit {{ ================================================= //
+
+         // if (!share.twitterClientQuitObserver)
+         // {
+         //     const topicId = 'quit-application-granted';
+
+         //     function quitObserver() {
+         //         this.register();
+         //     }
+
+         //     quitObserver.prototype = {
+         //         observe: function(subject, topic, data) {
+
+         //             this.unregister();
+         //         },
+
+         //         register: function() {
+         //             var observerService = Cc["@mozilla.org/observer-service;1"]
+         //                 .getService(Ci.nsIObserverService);
+         //             observerService.addObserver(this, topicId, false);
+         //         },
+
+         //         unregister: function() {
+         //             var observerService = Cc["@mozilla.org/observer-service;1"]
+         //                 .getService(Ci.nsIObserverService);
+         //             observerService.removeObserver(this, topicId);
+         //         }
+         //     };
+
+         //     share.twitterClientQuitObserver = new quitObserver();
+         // }
+
+         // }} ======================================================================= //
+
+         // Utils {{ ================================================================= //
 
          function isRetryable(xhr) {
              return (xhr.status === 401)
@@ -877,7 +1037,9 @@ var twitterClient =
              return latestTimeline;
          }
 
-         // ============================== OAuth ============================== //
+         // }} ======================================================================= //
+
+         // OAuth {{ ================================================================= //
 
          var oauthInfo = {
              signatureMethod : "HMAC-SHA1",
@@ -955,6 +1117,29 @@ var twitterClient =
              var xhr = new XMLHttpRequest();
 
              xhr.onreadystatechange = function (aEvent) {
+                 // try
+                 // {
+                 //     let headers = {};
+
+                 //     xhr.getAllResponseHeaders()
+                 //         .split(/\r?\n/).forEach(
+                 //             function (h) {
+                 //                 var pair = h.split(': ');
+                 //                 if (pair && pair.length > 1)
+                 //                 {
+                 //                     headers[pair.shift()] = pair.join('');
+                 //                 }
+                 //             });
+
+                 //     if ("X-RateLimit-Remaining" in headers)
+                 //     {
+                 //         util.message("remains => %s / %s",
+                 //                      headers["X-RateLimit-Remaining"],
+                 //                      headers["X-RateLimit-Limit"]);
+                 //     }
+                 // }
+                 // catch (x) {}
+
                  aCallBack(aEvent, xhr);
              };
 
@@ -1120,7 +1305,9 @@ var twitterClient =
              );
          }
 
-         // ============================== Actions ============================== //
+         // }} ======================================================================= //
+
+         // Actions {{ =============================================================== //
 
          function showFavorites(aTargetID) {
              oauthASyncRequest(
@@ -1469,8 +1656,8 @@ var twitterClient =
          function showListStatuses(aScreenName, aListName) {
              oauthASyncRequest(
                  {
-                     action : util.format("http://api.twitter.com/1/%s/lists/%s/statuses.json",
-                                          aScreenName, aListName),
+                     action : util.format("http://api.twitter.com/1/%s/lists/%s/statuses.json?per_page=%s",
+                                          aScreenName, aListName, timelineCountBeginning),
                      host   : "http://api.twitter.com/",
                      method : "GET"
                  },
@@ -1537,6 +1724,8 @@ var twitterClient =
                                      list.subscriber_count
                                  ]
                          );
+
+                         tPrompt.close();
 
                          prompt.selector(
                              {
@@ -1623,7 +1812,7 @@ var twitterClient =
                      method : "GET"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4)
+                     if (xhr.readyState === 4)
                      {
                          if (isRetryable(xhr))
                          {
@@ -1631,7 +1820,7 @@ var twitterClient =
                              return;
                          }
 
-                         if (xhr.status != 200)
+                         if (xhr.status !== 200)
                          {
                              display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
                                                       en: "Failed to get statuses"}), 2000);
@@ -1672,7 +1861,9 @@ var twitterClient =
 
              let matched = msg.match(userNamePattern);
 
-             let message = genElem("description");
+             let message = genElem("description", {
+                                       style   : "-moz-user-select : text !important;"
+                                   });
 
              if (matched)
              {
@@ -1758,6 +1949,8 @@ var twitterClient =
 
              let header = my.twitterClientHeader;
              let headerEnabled = getOption("enable_header");
+
+             tPrompt.close();
 
              function onFinish() {
                  if (headerEnabled)
@@ -1999,7 +2192,7 @@ var twitterClient =
              },
 
              showTargetStatus: function (aUserID) {
-                 prompt.finish(true);
+                 tPrompt.forced = true;
                  showTargetStatus(aUserID);
              },
 
@@ -2007,7 +2200,7 @@ var twitterClient =
                  let status = my.twitterSelectedStatus;
                  if (status)
                  {
-                     prompt.finish(true);
+                     tPrompt.forced = true;
                      reply(status.user.screen_name, status.id);
                  }
              },
@@ -2016,7 +2209,7 @@ var twitterClient =
                  let status = my.twitterSelectedStatus;
                  if (status)
                  {
-                     prompt.finish(true);
+                     tPrompt.forced = true;
                      quoteTweet(status.user.screen_name, html.unEscapeTag(status.text));
                  }
              },
@@ -2025,7 +2218,7 @@ var twitterClient =
                  let status = my.twitterSelectedStatus;
                  if (status)
                  {
-                     prompt.finish(true);
+                     tPrompt.forced = true;
                      showTargetStatus(status.user.screen_name);
                  }
              },
@@ -2034,8 +2227,34 @@ var twitterClient =
                  let status = my.twitterSelectedStatus;
                  if (status)
                  {
-                     prompt.finish(true);
+                     tPrompt.forced = true;
                      showLists(status.user.screen_name);
+                 }
+             },
+
+             addCurrentTargetToBlacklist: function () {
+                 let status = my.twitterSelectedStatus;
+                 if (status)
+                 {
+                     let id = status.user.screen_name;
+
+                     for (let [, user] in Iterator(blackUsers))
+                     {
+                         if (user === id)
+                         {
+                             log(LOG_LEVEL_DEBUG, "%s is already in the black list");
+                             return;
+                         }
+                     }
+
+                     blackUsers.push(id);
+
+                     let msg = util.format("added %s to the black list", id);
+
+                     log(LOG_LEVEL_DEBUG, msg);
+                     display.echoStatusBar(msg);
+
+                     saveObj("blackusers", blackUsers);
                  }
              },
 
