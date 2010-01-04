@@ -461,7 +461,7 @@ var twitterClient =
              [function (status) {
                   selectFilter(
                       function (filterName) {
-                          self.addUserToFilter(status.screen_name, filterName);                                 
+                          self.addUserToFilter(status.screen_name, filterName);
                       }, util.format(M({ja: "%s の追加先:", en: "Add %s to:"}), status.screen_name));
               }, M({ja: "このユーザをフィルタへ追加 : ", en: ""}) + "Add this user to the filter",
               "select-filter"]
@@ -495,12 +495,7 @@ var twitterClient =
          {
              share.twitterClientSettings = {};
              share.twitterClientSettings.blackUsers = restoreObj("blackusers") || [];
-             share.twitterClientSettings.filters = restoreObj("filters") || {
-                 "JavaScripter": [
-                     "teramako",
-                     "repeatedly"
-                 ]
-             };
+             share.twitterClientSettings.filters = restoreObj("filters") || {};
          }
 
          // Update interval in mili second
@@ -912,7 +907,8 @@ var twitterClient =
 
              let containerXML =
                  <vbox style="margin-left  : 4px;
-                              margin-right : 4px;">
+                              margin-right : 4px;"
+                       >
                      <hbox align="center" flex="1">
                          <description style="font-weight : bold;
                                              margin      : 0px 4px;"
@@ -936,6 +932,7 @@ var twitterClient =
                          <!-- misc -->
                          <toolbarbutton tooltiptext={tooltipTextReflesh} image={REFRESH_ICON}
                                         id={HEAD_REFLESH_BUTTON}
+                                        style="margin-top:auto;margin-bottom:auto;"
                                         oncommand={"KeySnail.modules.prompt.finish(true);" + root + ".showTimeline();"} />
                          <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
                                         oncommand="KeySnail.modules.prompt.finish(true);" />
@@ -963,7 +960,7 @@ var twitterClient =
                                id={HEAD_USER_TWEET}
                                style="background-color : white;
                                       height           : 50px;
-                                      margin           : 4px;
+                                      margin           : 0 4px;
                                       border-left      : 1px solid ThreeDShadow;
                                       border-top       : 1px solid ThreeDShadow;
                                       border-right     : 1px solid ThreeDHighlight;
@@ -1966,7 +1963,7 @@ var twitterClient =
                  filterNames.unshift(self.filterNameTimeline);
 
                  let index = filterNames.indexOf(currentFilter);
-                 
+
                  if (aPrevious)
                      index--;
                  else
@@ -1976,7 +1973,7 @@ var twitterClient =
                      index = filterNames.length - 1;
                  else if (index >= filterNames.length)
                      index = 0;
-                 
+
                  tPrompt.forced = true;
 
                  if (index === 0)
@@ -2651,7 +2648,7 @@ var twitterClient =
                  ];
 
                  for (let [name, filter] in Iterator(filters))
-                 {                     
+                 {
                      submenu[2].push([name, null,
                                       (filter.indexOf(userID) < 0) ?
                                       root + util.format(".addCurrentTargetToFilter('%s')", name)
@@ -2679,7 +2676,7 @@ var twitterClient =
                  {
                      seed.push([name, null,
                                 (filter.length >= 0) ? root + util.format(".showFilteredStatuses('%s')", name)
-                                : null]);                         
+                                : null]);
                  }
 
                  seed.push([null, null, null]);
