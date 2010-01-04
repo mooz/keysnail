@@ -905,7 +905,7 @@ KeySnail.Prompt = function () {
         removeAllChilds(contextMenu);
 
         if (typeof aActions === "function")
-            aActions = [aActions, "Default callback"];
+            aActions = [[aActions, "Default callback"]];
 
         for (let [i, action] in Iterator(aActions))
         {

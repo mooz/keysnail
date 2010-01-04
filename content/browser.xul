@@ -86,7 +86,7 @@
 	                      oncommand="KeySnail.UserScript.editInitFile();"
 	                      class="menuitem-iconic"
 	                      src="chrome://keysnail/skin/icon/edit.png"/>
-	                      <menuitem id="keysnail-menu-open-wizard"
+	            <menuitem id="keysnail-menu-open-wizard"
 	                      label="&keySnail.statusbar.wizard;"
 	                      accesskey="w"
 	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"

@@ -312,7 +312,7 @@ KeySnail.UserScript = {
     // ============================== Plugin ============================== //
 
     setDefaultPluginDirectory: function () {
-        var pluginDir  = this.modules.util.getExtentionLocalDirectory("plugins");
+        var pluginDir  = this.modules.util.getExtensionLocalDirectory("plugins");
         this.pluginDir = pluginDir.path;
     },
 

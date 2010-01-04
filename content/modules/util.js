@@ -699,7 +699,7 @@ KeySnail.Util = {
         return aLocalFile;
     },
 
-    getExtentionLocalDirectoryRoot: function () {
+    getExtensionLocalDirectoryRoot: function () {
         const extName = "keysnail";
 
         var extDir  = this.getSpecialDir("ProfD");
@@ -708,8 +708,8 @@ KeySnail.Util = {
         return this.createDirectory(extDir);
     },
 
-    getExtentionLocalDirectory: function (aDirName) {
-        var localDir = this.getExtentionLocalDirectoryRoot();
+    getExtensionLocalDirectory: function (aDirName) {
+        var localDir = this.getExtensionLocalDirectoryRoot();
         localDir.append(aDirName);
 
         return this.createDirectory(localDir);
