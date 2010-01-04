@@ -960,7 +960,7 @@ var twitterClient =
                                id={HEAD_USER_TWEET}
                                style="background-color : white;
                                       height           : 50px;
-                                      margin           : 0 4px;
+                                      margin           : 0 4px 4px 4px;
                                       border-left      : 1px solid ThreeDShadow;
                                       border-top       : 1px solid ThreeDShadow;
                                       border-right     : 1px solid ThreeDHighlight;
@@ -3104,6 +3104,19 @@ var twitterClient =
                  if (status)
                  {
                      self.addUserToFilter(status.user.screen_name, aFilterName);
+                 }
+             },
+
+             addCurrentTargetToFilterWithMenu: function () {
+                 let status = my.twitterSelectedStatus;
+
+                 if (status)
+                 {
+                     tPrompt.forced = true;
+                     selectFilter(
+                         function (filterName) {
+                             self.addUserToFilter(status.user.screen_name, filterName);
+                         }, util.format(M({ja: "%s の追加先:", en: "Add %s to:"}), status.user.screen_name));
                  }
              },
 
