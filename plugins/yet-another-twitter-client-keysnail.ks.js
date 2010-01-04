@@ -111,6 +111,8 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
+// Options {{ =============================================================== //
+
 var optionsDefaultValue = {
     "log_level"                             : LOG_LEVEL_MESSAGE,
     "update_interval"                       : 60 * 1000,      // 1 minute
@@ -144,6 +146,10 @@ function getOption(aName) {
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
 }
 
+// }} ======================================================================= //
+
+// Notifier {{ ============================================================== //
+
 function getBrowserWindows() {
     var windows = [];
 
@@ -165,17 +171,23 @@ function notifyWindows(aNotifier, aArg) {
 
 function updateAllStatusbars() {
     notifyWindows(function (win) {
-                      try
-                      {
+                      try {
                           win.KeySnail.modules.plugins.twitterClient.updateStatusbar();
-                      }
-                      catch (x) {}
+                      } catch (x) {}
                   });
 }
 
-function openLink(url) {
-    return 'openUILinkIn("' + url + '", "tab")';
-}
+// }} ======================================================================= //
+
+var genCommand = {
+    openLink: function (url) {
+        return 'openUILinkIn("' + url + '", "tab")';
+    },
+
+    execExt: function (extName) {
+        return util.format('KeySnail.modules.ext.exec("%s")', extName);
+    }
+};
 
 // Log {{ =================================================================== //
 
@@ -217,7 +229,8 @@ function saveObj(aName, aObj) {
     let file    = getPersistentObjFile(aName);
     let encoded = json.encode(aObj);
 
-    util.writeTextFile(encoded, file.path, true);
+    util.writeTextFile(util.convertCharCodeFrom(encoded, "UTF-8"), file.path, true);
+    // util.writeTextFile(encoded, file.path, true);
 }
 
 function restoreObj(aName) {
@@ -244,7 +257,11 @@ Widget.prototype = {
     panel : util.xmlToDom(<panel noautohide="true" />),
     child : null,
 
-    initialize: function (xml) {
+    initialize: function (xml, options) {
+        let head =
+<toolbarbutton class="tab-close-button"
+               tooltiptext={closeText} />;
+
         this.child = util.xmlToDom(xml);
         this.panel.appendChild(this.child);
         this.root.appendChild(this.panel);
@@ -256,6 +273,15 @@ Widget.prototype = {
                              (cb.boxObject.width - this.panel.boxObject.width) / 2,
                              (cb.boxObject.height - this.panel.boxObject.height) / 2,
                              false, true);
+
+        let self = this;
+        this.panel.addEventListener("click", function (ev) {
+                                        if (ev.button === 2)
+                                        {
+                                            self.hide.call(self);
+                                            self.panel.removeEventListener("click", arguments.callee, false);
+                                        }
+                              }, false);
     },
 
     hide: function () {
@@ -263,11 +289,33 @@ Widget.prototype = {
     }
 };
 
+// let wid = new Widget(
+// <vbox style=""
+//       minwidth="400px"
+//       minheight="400px"
+//       >
+//     <description>hogehoge</description>
+//     <textbox type="autocomplete" autocompletesearch="history"/>
+// </vbox>
+// );
+
+// wid.show();
+
 var twitterClient =
     (function () {
-         // ================================================================================ //
+         // Global variables {{ ====================================================== //
 
          const root = "KeySnail.modules.plugins.twitterClient";
+
+         var twitterStatusesPending;
+         var twitterMentionsPending;
+
+         if (!share.twitterImmediatelyAddedStatuses)
+             share.twitterImmediatelyAddedStatuses = [];
+
+         // }} ======================================================================= //
+
+         // Styles {{ ================================================================ //
 
          const linkClass = "ks-text-link";
 
@@ -288,10 +336,9 @@ var twitterClient =
              share.ksTextLinkStyleRegistered = true;
          }
 
-         var twitterStatusesPending;
-         var twitterMentionsPending;
+         // }} ======================================================================= //
 
-         share.twitterImmediatelyAddedStatuses = [];
+         // Actions {{ =============================================================== //
 
          var twitterCommonActions = [
              [function (status) {
@@ -341,9 +388,12 @@ var twitterClient =
               "display-entire-message,c"],
              // ======================================== //
              [function (status) {
-                  if (status) showTargetStatus(status.screen_name);
+                  if (status) {
+                      tPrompt.forced = true;
+                      showTargetStatus(status.screen_name);
+                  }
               }, M({ja: "このユーザのつぶやきを一覧表示 : ", en: ""}) + "Show Target status",
-              "show-target-status"],
+              "show-target-status,c"],
              // ======================================== //
              [function (status) {
                   if (status) showFavorites(status.user_id);
@@ -366,9 +416,9 @@ var twitterClient =
               "search-word"],
              // ======================================== //
              [function (status) {
-                  command.setClipboardText(status.screen_name);
-              }, M({ja: "このユーザの id をコピー : ", en: ""}) + "Copy id of the selected user",
-              "copy-user-id,c"],
+                  if (status) addUserToBlacklist(status.screen_name);
+              }, M({ja: "このユーザをブラックリストへ追加 : ", en: ""}) + "Add this user to the blacklist",
+              "add-user-to-blacklist,c"],
              // ======================================== //
              [function (status) {
                   if (status)
@@ -393,11 +443,31 @@ var twitterClient =
                   if (!status) return;
                   showLists(status.screen_name);
               }, M({ja: "このユーザのリストを一覧表示 : ", en: ""}) + "Show selected user's lists",
-              "show-selected-users-lists"]
+              "show-selected-users-lists"],
+             // ======================================== //
+             [function (status) {
+                  nextFilter();
+              }, M({ja: "次のフィルタへ : ", en: ""}) + "Next filter",
+              "select-next-filter,c"],
+             // ======================================== //
+             [function (status) {
+                  nextFilter(true);
+              }, M({ja: "前のフィルタへ : ", en: ""}) + "Previous filter",
+              "select-previous-filter,c"],
+             [function (status) {
+                  selectFilter(showFilteredStatuses);
+              }, M({ja: "フィルタを選択 : ", en: ""}) + "Select filter",
+              "select-filter"],
+             [function (status) {
+                  selectFilter(
+                      function (filterName) {
+                          self.addUserToFilter(status.screen_name, filterName);                                 
+                      }, util.format(M({ja: "%s の追加先:", en: "Add %s to:"}), status.screen_name));
+              }, M({ja: "このユーザをフィルタへ追加 : ", en: ""}) + "Add this user to the filter",
+              "select-filter"]
          ];
 
-         // ================================================================================ //
-
+         // }} ======================================================================= //
 
          // Prompt handling {{ ======================================================= //
 
@@ -425,6 +495,12 @@ var twitterClient =
          {
              share.twitterClientSettings = {};
              share.twitterClientSettings.blackUsers = restoreObj("blackusers") || [];
+             share.twitterClientSettings.filters = restoreObj("filters") || {
+                 "JavaScripter": [
+                     "teramako",
+                     "repeatedly"
+                 ]
+             };
          }
 
          // Update interval in mili second
@@ -440,7 +516,89 @@ var twitterClient =
          var mainColumnWidth = getOption("main_column_width");
 
          var blockUsers = getOption("block_users");
+
+         // Black user handling {{ =================================================== //
+
          var blackUsers = share.twitterClientSettings.blackUsers;
+
+         function addUserToBlacklist(id) {
+             let found = blackUsers.indexOf(id);
+
+             if (found >= 0)
+             {
+                 display.echoStatusBar("%s is already in the blacklist", id);
+                 return;
+             }
+
+             let confirmed = util.confirm("Add user to the blacklist",
+                                          util.format("Are you sure to add \"%s\" to blacklist?", id));
+
+             if (!confirmed)
+                 return;
+
+             blackUsers.push(id);
+
+             let msg = util.format("added %s to the black list", id);
+             log(LOG_LEVEL_DEBUG, msg);
+             display.echoStatusBar(msg);
+
+             saveObj("blackusers", blackUsers);
+         }
+
+         function blackUsersManager() {
+             if (!blackUsers.length)
+                 return;
+
+             let collection = blackUsers;
+             let modified   = false;
+
+             prompt.selector(
+                 {
+                     message    : M({ja: "ユーザの管理", en: "Manage users"}) +
+                         " [ j/k: scroll | d: delete from blacklist | q: quit manager ] :",
+                     collection : collection,
+                     onFinish   : function () {
+                         if (modified)
+                             saveObj("blackusers", blackUsers);
+                     },
+                     keymap     : {
+                         "C-z"   : "prompt-toggle-edit-mode",
+                         "SPC"   : "prompt-next-page",
+                         "b"     : "prompt-previous-page",
+                         "j"     : "prompt-next-completion",
+                         "k"     : "prompt-previous-completion",
+                         "g"     : "prompt-beginning-of-candidates",
+                         "G"     : "prompt-end-of-candidates",
+                         "q"     : "prompt-cancel",
+                         // local
+                         "d"    : "delete-this-user-from-blacklist"
+                     },
+                     actions : [
+                         [function (i) {
+                              if (i >= 0)
+                              {
+                                  let name = collection[i];
+
+                                  let confirmed = util.confirm("Delete user from blacklist",
+                                                               util.format("Are you sure to delete \"%s\" from blacklist?", name));
+
+                                  if (confirmed)
+                                  {
+                                      collection.splice(i, 1);
+                                      prompt.refresh();
+                                      modified = true;
+
+                                      display.echoStatusBar(util.format("%s is deleted from the blacklist", name));
+                                  }
+                              }
+                          },
+                          "Delete this user from blacklist",
+                          "delete-this-user-from-blacklist,c"]
+                     ]
+                 });
+         }
+
+         // }} ======================================================================= //
 
          // ================================================================================ //
          // Timeline
@@ -488,9 +646,72 @@ var twitterClient =
              }
          };
 
-         // ================================================================================ //
-         // Statusbar
-         // ================================================================================ //
+         // Element / Menu {{ ======================================================== //
+
+         function setAttributes(aElem, aAttributes)
+         {
+             if (aAttributes)
+             {
+                 for (let [key, value] in Iterator(aAttributes))
+                 {
+                     if (key && value)
+                         aElem.setAttribute(key, value);
+                 }
+             }
+         }
+
+         function genElem(aName, aAttributes)
+         {
+             let elem = document.createElement(aName);
+             setAttributes(elem, aAttributes);
+             return elem;
+         }
+
+         function applyMenu(aMenu, aMenuSeed) {
+             function genMenuItem([label, accessKey, command]) {
+                 let item;
+
+                 if (command instanceof Array)
+                 {
+                     item = genElem("menu", { "label" : label, "accesskey" : accessKey });
+
+                     let popup = genElem("menupopup");
+                     command.forEach(function (r) { popup.appendChild(genMenuItem(r)); });
+                     item.appendChild(popup);
+                 }
+                 else if (label)
+                 {
+                     item = genElem("menuitem", { "label" : label, "accesskey" : accessKey });
+
+                     if (command)
+                         item.setAttribute("oncommand", command);
+                     else
+                         item.setAttribute("disabled", true);
+                 }
+                 else
+                 {
+                     item = genElem("menuseparator");
+                 }
+
+                 return item;   // menu, menuitem, menuseparator
+             }
+
+             aMenuSeed.forEach(function (r) { aMenu.appendChild(genMenuItem(r)); });
+
+             return aMenu;
+         }
+
+         function createMenu(aMenuSeed) {
+             return applyMenu(genElem("menupopup"), aMenuSeed);
+         }
+
+         function insertAfter(parent, node, referenceNode) {
+	     parent.insertBefore(node, referenceNode.nextSibling);
+         }
+
+         // }} ======================================================================= //
+
+         // Statusbar {{ ============================================================= //
 
          const statusesIcon = 'data:image/png;base64,' +
              'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
@@ -518,57 +739,6 @@ var twitterClient =
              'ZOOLk8P7j7er2WBhwWY9sdbDeIJnwBjBWBBAhGsCmiZxPD4/7Z98b/0QVWUehjkZ5vQb/Un5e/DI' +
              'sVsAAAAASUVORK5CYII=';
 
-         function setAttributes(aElem, aAttributes)
-         {
-             if (aAttributes)
-             {
-                 for (let [key, value] in Iterator(aAttributes))
-                 {
-                     aElem.setAttribute(key, value);
-                 }
-             }
-         }
-
-         function genElem(aName, aAttributes)
-         {
-             let elem = document.createElement(aName);
-             setAttributes(elem, aAttributes);
-             return elem;
-         }
-
-         function applyMenu(aMenu, aMenuSeed) {
-             function genMenuItem([label, command]) {
-                 let item;
-
-                 if (command instanceof Array)
-                 {
-                     item = genElem("menu", { "label" : label });
-
-                     let popup = genElem("menupopup");
-                     command.forEach(function (r) { popup.appendChild(genMenuItem(r)); });
-                     item.appendChild(popup);
-                 }
-                 else if (label && command)
-                 {
-                     item = genElem("menuitem", { "label" : label, "oncommand" : command });
-                 }
-                 else
-                 {
-                     item = genElem("menuseparator");
-                 }
-
-                 return item;   // menu, menuitem, menuseparator
-             }
-
-             aMenuSeed.forEach(function (r) { aMenu.appendChild(genMenuItem(r)); });
-
-             return aMenu;
-         }
-
-         function createMenu(aMenuSeed) {
-             return applyMenu(genElem("menupopup"), aMenuSeed);
-         }
-
          const CONTAINER_ID      = "keysnail-twitter-client-container";
          const UNREAD_STATUS_ID  = "keysnail-twitter-client-unread-status";
          const UNREAD_MENTION_ID = "keysnail-twitter-client-unread-mention";
@@ -581,16 +751,24 @@ var twitterClient =
 
          var unreadStatusLabelStyle = getOption("unread_status_count_style");
 
-         function insertAfter(parent, node, referenceNode) {
-	     parent.insertBefore(node, referenceNode.nextSibling);
-         }
-
          // create statusbar icon
          if (!container)
          {
              // create a new one
              container = genElem("statusbarpanel", { align : "center", id : CONTAINER_ID });
              let box, icon;
+
+             // let panel =
+             // <statusbarpanel align="center" id={CONTAINER_ID}>
+             //     <hbox align="center" flex="1">
+             //         <image src={statusesIcon} />
+             //         <label id={UNREAD_STATUS_ID} flex="1" value="-" />
+             //     </hbox>
+             //     <hbox align="center" flex="1">
+             //         <image src={mentionsIcon} />
+             //         <label id={UNREAD_MENTION_ID} flex="1" value="-" />
+             //     </hbox>
+             // </statusbarpanel>;
 
              // ================================================== //
 
@@ -610,22 +788,20 @@ var twitterClient =
 
              container.appendChild(box);
 
-             // ================================================== //
-
              insertAfter(statusbar, container, statusbarPanel);
-
-             // ================================================== //
 
              let menu = my.twitterClientStatusBarMenu = createMenu(
                  [
-                     [M({ja: "お気に入り一覧", en: "Display favorites"}),
-                      "KeySnail.modules.ext.exec('twitter-client-show-favorites')"],
-                     [M({ja: "自分のステータス一覧", en: "Display my statuses"}),
-                      "KeySnail.modules.ext.exec('twitter-client-show-my-statuses')"],
-                     [M({ja: "自分のリスト一覧", en: "Display my lists"}),
-                      "KeySnail.modules.ext.exec('twitter-client-show-my-lists')"],
-                     [M({ja: "再認証", en: "Reauthorize"}),
-                      "KeySnail.modules.ext.exec('twitter-client-reauthorize')"]
+                     [M({ja: "お気に入り一覧", en: "Display favorites"}), "f",
+                      genCommand.execExt("twitter-client-show-favorites")],
+                     [M({ja: "自分のステータス一覧", en: "Display my statuses"}), "m",
+                      genCommand.execExt("twitter-client-show-my-statuses")],
+                     [M({ja: "自分のリスト一覧", en: "Display my lists"}), "l",
+                      genCommand.execExt("twitter-client-show-my-lists")],
+                     [M({ja: "ブラックリストの管理", en: "Launch blacklist manager"}), "b",
+                      genCommand.execExt("twitter-client-blacklist-manager")],
+                     [M({ja: "再認証", en: "Reauthorize"}), "r",
+                      genCommand.execExt("twitter-client-reauthorize")]
                  ]
              );
 
@@ -647,6 +823,8 @@ var twitterClient =
              else
                  self.showMentions();
          };
+
+         // }} ======================================================================= //
 
          // Header {{ ================================================================ //
 
@@ -682,11 +860,42 @@ var twitterClient =
                  'nnXClbFieGkIPfM6tPiVOKyv4AmpXHQWKLKvj++E/hXLIwUhRY2pGtX3q9YpcpyQGgipbNdhyg'+
                  '8OtSyUMmiim4RUSkgHSxH4C4SsiJno6owoAAAAAElFTkSuQmCC';
 
+             const TAG_ICON = 'data:image/png;base64,' +
+                 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAdxJREFU' +
+                 'OMuFk9mKGkEUhusl5jbBtxCaPF0gZJJMLjNDEvIArijuKCgqbtM9bj0uiJiOosbcNalmbHv+1Cmx' +
+                 'HXHJxbmpOv/3/6f6NNN1Hd1uF+12G61WC81mE5qmQVVVNBqNKwDsUrFOpwPHcY5qOp1KSLVavQhh' +
+                 '5EwCwzCk82QycSF0JlKgVCqdhTCKTM3kRgf1el01TRO2bctzAlYqFeTz+ZMQRq67RiF+EpENy7Kw' +
+                 'MG3kfm2TjMdjFItF5HK5Iwgj513kzWYDEv/+6+DDwzPe3gNZY3s3Go0oBdLp9AGEiRn5arWSTev1' +
+                 'GnPhfK0940sX+KoDHx/2kOFwSCkQj8ddCKvVam/EjHy5XMqmzsqWzncC8KMHfHs8hAwGA0qBSCQi' +
+                 'IZJSLpcVMSNfLBay6fGPjfeqgzt9D7nWgMzPLaTX61EKhEKhK3eWQqGgiBn5fD4/gnwXgM9N4Obe' +
+                 'gr3ZpkgmkwgEAq8PXlTMp2SzWT6bzVzIOwH5JEa4ba1hWk8vxR53hJeVyWSUVCrFaRMJogvIbduB' +
+                 'Ze+d/X6/x33EU8uRSCSUWCzGaRN3n5jE4vxAfBZAFY1GveKlOS1Yv98/Kb4IoAqHw95gMMhJ7PP5' +
+                 'PCdX+X+/q3D1CvGrc/f/AFrMOuy09HspAAAAAElFTkSuQmCC';
+
+             const LIMIT_ICON = 'data:image/png;base64,' +
+                 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAAn9JREFU' +
+                 'OMttUkFrE0EYfZukSRObGLU1NEpNm2hBQcRbPQiCPYjiQb15U1CEQE7tsQdz7K/wkCIeevYHiAWp' +
+                 'WtBGE5uWNCiUFJMmpkl2dmZ9s2vatTrwMTPffN+b996MYds2vGNpaWlEKTUnpZxhnGSA8ZOxYlnW' +
+                 'Yi6X++WtN7wAhULhCpuXk8nkZCwWg8/nA/fo9Xqo1+vY4iDQvfn5+bV/ANg8wsOP6XQ6Y5omarUa' +
+                 'Op2Ovh2BQACJRMKpKxaLG8xdXlhY6Oq9b4DE5LPx8fGMEALlcnmz3W6nuA7q0OtSqfRDA5NdhlKy' +
+                 'g77AYMHkTCQSQaVSAZvuZLPZqkdqNZ/P36xWq8VUKuXU/g9gTGvmbXq9hSND5zQ7XUO2Y395sP3m' +
+                 'kb1SmcbOXtjRfPfSKvy2gC0t2JYbQki8WLvqmJoYbuD2mVVMP/lguAwI8uD+DRi0xPCHOd8ClEF+' +
+                 'w/qQBglIq43nsx3mhdOy8fLtoQR9ky60dl8hEBqFYYywcAgIx5lWwP4eZOsbzO53KGsf4cksbLPv' +
+                 'ASBFKH2Tieb6e+o8hvjFa6i9XmT/aUxcn0Xz6zoBGoimTpCwhC1ML4BwZNikGp++AF9wlO4oyL7E' +
+                 'p90wJmAinp5ErxNi7b7DagDg/AOb7mpUrbXxeY0s3vHEguop9LukapNZ6Qua5W1XrlJOzyEDvdGo' +
+                 'lBA/n4I/cooAJqYePsWUYENrB8fTSQRbQy4Dyj0CYDqoytIerBMgCgzTyECQeQ3QRLdRh+i0EZ2I' +
+                 '0W7lyvYCaAmhs48RPueHEQy5T+jjSyhKM7uIdttU2CdR6fqljT8A4JNsLs+5XjgfR/wJ62DmD3M/' +
+                 'lpTuWgNx/AZysrLNh2/BRQAAAABJRU5ErkJggg==';
+
              const HEAD_CONTAINER_ID  = "keysnail-twitter-client-head-container";
              const HEAD_USER_ICON     = "keysnail-twitter-client-user-icon";
              const HEAD_USER_INFO     = "keysnail-twitter-client-user-info";
              const HEAD_USER_NAME     = "keysnail-twitter-client-user-name";
              const HEAD_USER_TWEET    = "keysnail-twitter-client-user-tweet";
+
+             const HEAD_API_USAGE = "keysnail-twitter-client-api-usage";
+             const HEAD_REFLESH_BUTTON = "keysnail-twitter-client-reflesh-button";
+             const HEAD_FILTER_BUTTON = "keysnail-twitter-client-filter-button";
 
              const HEAD_USER_BUTTON_HOME    = "keysnail-twitter-client-user-button-home";
              const HEAD_USER_BUTTON_TWITTER = "keysnail-twitter-client-user-button-twitter";
@@ -699,13 +908,34 @@ var twitterClient =
              let tooltipTextReflesh = M({ja: "更新", en: "Refresh"});
              let tooltipTextClose   = M({ja: "閉じる", en: "Close"});
 
+             let labelTimeline = M({ja: "タイムライン", en: "Timeline"});
+
              let containerXML =
                  <vbox style="margin-left  : 4px;
                               margin-right : 4px;">
-                     <hbox align="center">
-                         <description flex="1" width="100%" style="font-weight:bold;" id={HEAD_USER_NAME} />
+                     <hbox align="center" flex="1">
+                         <description style="font-weight : bold;
+                                             margin      : 0px 4px;"
+                                      id={HEAD_USER_NAME} />
                          <spacer flex="1" />
+                         <!-- filters -->
+                         <toolbarbutton label={labelTimeline}
+                                        image={TAG_ICON}
+                                        id={HEAD_FILTER_BUTTON}
+                                        onclick={root + ".filterButtonClicked(event);"}
+                                        />
+                         <toolbarseparator style="height  : 16px;
+                                                  margin  : 0 4px;
+                                                  padding : 0;" />
+                         <!-- limit -->
+                         <image src={LIMIT_ICON} style="margin-right: 4px;"/>
+                         <description style="margin:auto 4px;" id={HEAD_API_USAGE} />
+                         <toolbarseparator style="height  : 16px;
+                                                  margin  : 0 4px;
+                                                  padding : 0;" />
+                         <!-- misc -->
                          <toolbarbutton tooltiptext={tooltipTextReflesh} image={REFRESH_ICON}
+                                        id={HEAD_REFLESH_BUTTON}
                                         oncommand={"KeySnail.modules.prompt.finish(true);" + root + ".showTimeline();"} />
                          <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
                                         oncommand="KeySnail.modules.prompt.finish(true);" />
@@ -762,6 +992,9 @@ var twitterClient =
                  userName      : document.getElementById(HEAD_USER_NAME),
                  userTweet     : document.getElementById(HEAD_USER_TWEET),
                  //
+                 buttonFilter  : document.getElementById(HEAD_FILTER_BUTTON),
+                 buttonReflesh : document.getElementById(HEAD_REFLESH_BUTTON),
+                 //
                  buttonTwitter : document.getElementById(HEAD_USER_BUTTON_TWITTER),
                  buttonHome    : document.getElementById(HEAD_USER_BUTTON_HOME),
                  //
@@ -772,30 +1005,32 @@ var twitterClient =
              // set up normal menu
              applyMenu(my.twitterClientHeader.normalMenu,
                        [
-                           [M({ja: "コピー", en: "Copy"}), root + ".copyCurrentStatus();"],
+                           [M({ja: "コピー", en: "Copy"}), "c", root + ".copyCurrentStatus();"],
                            // ================================================== //
-                           [M({ja: "返信", en: "Reply"}), root + ".replyToCurrentStatus();"],
+                           [M({ja: "返信", en: "Reply"}), "r", root + ".replyToCurrentStatus();"],
                            // ================================================== //
-                           ["Retweet (Quote tweet)", root + ".retweetCurrentStatus();"],
+                           ["Retweet (Quote tweet)", "q", root + ".retweetCurrentStatus();"],
                            // ================================================== //
-                           [null, null],
+                           [null, null, null],
                            // ================================================== //
-                           [M({ja: "このユーザの操作", en: "This user"}),
+                           [M({ja: "このユーザ", en: "This user"}), "u",
                             [
-                                [M({ja: "ステータス一覧", en: "Display this user's statuses"}),
+                                [M({ja: "最近のつぶやき", en: "Display this user's statuses"}), "s",
                                  root + ".showCurrentTargetStatus();"],
                                 // ================================================== //
-                                [M({ja: "リスト一覧", en: "Display this user's lists"}),
+                                [M({ja: "リスト一覧", en: "Display this user's lists"}), "l",
                                  root + ".showCurrentTargetLists();"],
                                 // ================================================== //
-                                [M({ja: "ブラックリストへ追加", en: "Add this user to the black list"}),
-                                 root + ".addCurrentTargetToBlacklist();"]
+                                [M({ja: "ブラックリストへ追加", en: "Add this user to the black list"}), "b",
+                                 root + ".addCurrentTargetToBlacklist();"],
+                                [M({ja: "フィルタへ追加", en: "Add this user to filter"}), "f",
+                                 root + ".addCurrentTargetToFilterWithMenu();"]
                             ]
                            ]
                        ]);
          }
 
-         function showDynamicMenu(aEvent, aMenuSeed) {
+         function showDynamicMenu(aEvent, aMenuSeed, aOption) {
              let menu = createMenu(aMenuSeed);
              menu.setAttribute("id", HEAD_DYNAMIC_MENU);
 
@@ -804,7 +1039,10 @@ var twitterClient =
 
              my.twitterClientHeader.dynamicMenu = menu;
 
-             menu.openPopupAtScreen(aEvent.screenX, aEvent.screenY, true);
+             if (aOption)
+                 menu.openPopup(aEvent.target, "overlap", 0, 0, true);
+             else
+                 menu.openPopupAtScreen(aEvent.screenX, aEvent.screenY, true);
          }
 
          function setIconStatus(elem, status) {
@@ -813,6 +1051,55 @@ var twitterClient =
                  elem.removeAttribute("style");
              else
                  elem.setAttribute("style", "opacity:0.25;");
+         }
+
+         if (share.twitterAPIUsage)
+         {
+             share.twitterAPIUsage.update();
+         }
+         else
+         {
+             share.twitterAPIUsage = {
+                 remain : null,
+                 limit  : null,
+                 reset  : null,
+
+                 set: function (remain, limit, reset) {
+                     if (this.remain != remain ||
+                         this.limit  != limit)
+                     {
+                         this.remain = remain;
+                         this.limit  = limit;
+                         this.reset  = reset;
+
+                         this.update();
+                     }
+                 },
+
+                 update: function () {
+                     let resetDate = new Date();
+                     resetDate.setTime(this.reset);
+
+                     let hour = resetDate.getHours();
+                     let min  = resetDate.getMinutes();
+
+                     let remainStr = util.format("%s / %s", this.remain, this.limit);
+                     let toolTip   = "    Twitter API Usage / Limit    \n" +
+                         "    " + M({ja: "制限リセット日時", en: "Limit reset in "}) + "   " + util.format("%s:%s", hour, min);
+
+                     notifyWindows(
+                         function (win) {
+                             let description = win.document.getElementById(HEAD_API_USAGE);
+
+                             if (description)
+                             {
+                                 description.setAttribute("value", remainStr);
+                                 description.setAttribute("tooltiptext", toolTip);
+                             }
+                         }
+                     );
+                 }
+             };
          }
 
          // }} ======================================================================= //
@@ -916,6 +1203,9 @@ var twitterClient =
 
          // Hook application quit {{ ================================================= //
 
+         // at the time quit-application-granted, objects in share.* becomes undefined
+         // so the codes below doesn't effective.
+
          // if (!share.twitterClientQuitObserver)
          // {
          //     const topicId = 'quit-application-granted';
@@ -968,7 +1258,7 @@ var twitterClient =
              xhr.open("GET", endPoint, false);
              xhr.send(null);
 
-             var response = util.safeEval("(" + xhr.responseText + ")");
+             var response = json.decode(xhr.responseText);
 
              if (response && response.results && response.results[aURL])
                  return response.results[aURL].shortUrl;
@@ -1113,35 +1403,44 @@ var twitterClient =
              return xhr.responseText;
          }
 
-         function oauthASyncRequest(aOptions, aCallBack) {
+         function oauthASyncRequest(aOptions, aCallBack, aOnProgress) {
              var xhr = new XMLHttpRequest();
 
              xhr.onreadystatechange = function (aEvent) {
-                 // try
-                 // {
-                 //     let headers = {};
+                 if (xhr.readyState === 4)
+                 {
+                     try
+                     {
+                         let headers = {};
 
-                 //     xhr.getAllResponseHeaders()
-                 //         .split(/\r?\n/).forEach(
-                 //             function (h) {
-                 //                 var pair = h.split(': ');
-                 //                 if (pair && pair.length > 1)
-                 //                 {
-                 //                     headers[pair.shift()] = pair.join('');
-                 //                 }
-                 //             });
+                         xhr.getAllResponseHeaders().split(/\r?\n/).forEach(
+                             function (h) {
+                                 var pair = h.split(': ');
+                                 if (pair && pair.length > 1)
+                                 {
+                                     headers[pair.shift()] = pair.join('');
+                                 }
+                             });
 
-                 //     if ("X-RateLimit-Remaining" in headers)
-                 //     {
-                 //         util.message("remains => %s / %s",
-                 //                      headers["X-RateLimit-Remaining"],
-                 //                      headers["X-RateLimit-Limit"]);
-                 //     }
-                 // }
-                 // catch (x) {}
+                         if ("X-RateLimit-Remaining" in headers)
+                         {
+                             let remain = +headers["X-RateLimit-Remaining"];
+                             let limit  = +headers["X-RateLimit-Limit"];
+                             let reset  = +headers["X-RateLimit-Reset"];
+
+                             share.twitterAPIUsage.set(remain, limit, reset * 1000);
+                         }
+                     }
+                     catch (x) {}
+                 }
 
                  aCallBack(aEvent, xhr);
              };
+
+             if (aOnProgress)
+             {
+                 xhr.onprogress = aOnProgress;
+             }
 
              var accessor = aOptions.accessor ||
                  {
@@ -1254,6 +1553,7 @@ var twitterClient =
          function authorizationSequence() {
              authorize();
 
+             tPrompt.close();
              prompt.read(M({ja: "認証が終了したら Enter キーを押してください",
                             en: "Press Enter When Authorization Finished:"}),
                          function (aReadStr) {
@@ -1329,7 +1629,7 @@ var twitterClient =
                              return;
                          }
 
-                         var statuses = util.safeEval(xhr.responseText);
+                         var statuses = json.decode(xhr.responseText);
 
                          callSelector(statuses, M({ja: "お気に入り一覧", en: "Favorites"}));
                      }
@@ -1363,7 +1663,7 @@ var twitterClient =
                              return;
                          }
 
-                         var status = util.safeEval("(" + xhr.responseText + ")");
+                         var status = json.decode(xhr.responseText);
                          if (!status)
                              return;
 
@@ -1415,7 +1715,7 @@ var twitterClient =
                                  return;
                              }
 
-                             var results = (util.safeEval("(" + xhr.responseText + ")") || {"results":[]}).results;
+                             var results = (json.decode( xhr.responseText) || {"results":[]}).results;
 
                              if (!results || !results.length) {
                                  display.echoStatusBar(M({ja: aWord + L(" に対する検索結果はありません"),
@@ -1423,6 +1723,7 @@ var twitterClient =
                                  return;
                              }
 
+                             tPrompt.close();
                              prompt.selector(
                                  {
                                      message: "regexp:",
@@ -1453,6 +1754,7 @@ var twitterClient =
                  );
              }
 
+             tPrompt.close();
              prompt.read("search:", doSearch, null, null, null, 0, "twitter_search");
          }
 
@@ -1505,7 +1807,7 @@ var twitterClient =
                          else
                          {
                              // succeeded
-                             var status    = util.safeEval("(" + xhr.responseText + ")");
+                             var status    = json.decode(xhr.responseText);
                              var icon_url  = status.user.profile_image_url;
                              var user_name = status.user.name;
                              var message   = html.unEscapeTag(status.text);
@@ -1525,6 +1827,7 @@ var twitterClient =
              var statusbar = document.getElementById('statusbar-display');
              var limit = 140;
 
+             tPrompt.close();
              prompt.reader(
                  {
                      message: "tweet:",
@@ -1591,7 +1894,7 @@ var twitterClient =
                                      else
                                      {
                                          // succeeded
-                                         var status = util.safeEval("(" + xhr.responseText + ")");
+                                         var status = json.decode(xhr.responseText);
                                          // immediately add
                                          share.twitterStatusesJSONCache.unshift(status);
                                          share.twitterImmediatelyAddedStatuses.push(status);
@@ -1653,6 +1956,198 @@ var twitterClient =
                  });
          }
 
+         function nextFilter(aPrevious) {
+             let filters       = share.twitterClientSettings.filters;
+             let currentFilter = self.currentFilter;
+
+             if (currentFilter in filters || currentFilter === self.filterNameTimeline)
+             {
+                 let filterNames = [name for (name in filters)];
+                 filterNames.unshift(self.filterNameTimeline);
+
+                 let index = filterNames.indexOf(currentFilter);
+                 
+                 if (aPrevious)
+                     index--;
+                 else
+                     index++;
+
+                 if (index < 0)
+                     index = filterNames.length - 1;
+                 else if (index >= filterNames.length)
+                     index = 0;
+                 
+                 tPrompt.forced = true;
+
+                 if (index === 0)
+                     showFollowersStatus();
+                 else
+                     showFilteredStatuses(filterNames[index]);
+             }
+             else
+             {
+                 display.echoStatusBar("No filter found", 2000);
+             }
+         }
+
+         function showFilteredStatuses(aFilterName) {
+             let filters = share.twitterClientSettings.filters[aFilterName];
+
+             if (!filters)
+                 return 0;
+
+             let filtered = share.twitterStatusesJSONCache.filter(
+                 function (status) filters.indexOf(status.user.screen_name) >= 0
+             );
+
+             // if (filtered.length)
+             // {
+                 self.currentFilter = aFilterName;
+                 callSelector(filtered, aFilterName, true);
+             // }
+             // else
+             // {
+             //     display.echoStatusBar(M({ja: "表示するステータスがありませんでした", en: "No statuses to display"}), 3000);
+             // }
+
+             return filtered.length;
+         }
+
+         function selectFilter(aCallBack, aMsg) {
+             let filters = share.twitterClientSettings.filters;
+
+             function createCollection(aFilters) {
+                 return [[name, (users || { length : 0 }).length, users || ""] for ([name, users] in Iterator(aFilters))];
+             }
+
+             let collection = createCollection(filters);
+             let modified   = false;
+
+             if (!collection.length)
+             {
+                 display.echoStatusBar("No filter found");
+                 return;
+             }
+
+             tPrompt.close();
+             prompt.selector(
+                 {
+                     message    : aMsg || M({ja: "フィルタを選択", en: "Select filter"}) +
+                         " [ j/k: scroll | RET/o: show filtered timeline ] :",
+                     collection : collection,
+                     header : ["Name", "Count", "Peoples"],
+                     width  : [20, 5, 75],
+                     keymap : {
+                         "C-z" : "prompt-toggle-edit-mode",
+                         "SPC" : "prompt-next-page",
+                         "b"   : "prompt-previous-page",
+                         "j"   : "prompt-next-completion",
+                         "k"   : "prompt-previous-completion",
+                         "g"   : "prompt-beginning-of-candidates",
+                         "G"   : "prompt-end-of-candidates",
+                         "q"   : "prompt-cancel",
+                         // local
+                         "o"   : "prompt-decide"
+                     },
+                     callback: function (i) {
+                         if (i >= 0)
+                         {
+                             let filterName = collection[i][0];
+
+                             aCallBack(filterName);
+                         }
+                     }
+                 });
+         }
+
+         function filterManager() {
+             let filters = share.twitterClientSettings.filters;
+
+             function createCollection(aFilters) {
+                 return [[name, (users || { length : 0 }).length, users || ""] for ([name, users] in Iterator(aFilters))];
+             }
+
+             function countProperty(aObj) {
+                 let count = 0;
+
+                 for (let prop in aObj)
+                     count++;
+
+                 return count;
+             }
+
+             let collection = createCollection(filters);
+             let modified   = false;
+
+             if (!collection.length)
+             {
+                 display.echoStatusBar("No filter found");
+                 return;
+             }
+
+             tPrompt.close();
+             prompt.selector(
+                 {
+                     message    : M({ja: "フィルタの管理", en: "Manage filters"}) +
+                         " [ j/k: scroll | c: create filter | d: delete filter | q: quit manager ] :",
+                     collection : collection,
+                     onFinish   : function () {
+                         if (modified)
+                             saveObj("filters", filters);
+                     },
+                     header : ["Name", "Count", "Peoples"],
+                     width : [20, 5, 75],
+                     keymap : {
+                         "C-z" : "prompt-toggle-edit-mode",
+                         "SPC" : "prompt-next-page",
+                         "b"   : "prompt-previous-page",
+                         "j"   : "prompt-next-completion",
+                         "k"   : "prompt-previous-completion",
+                         "g"   : "prompt-beginning-of-candidates",
+                         "G"   : "prompt-end-of-candidates",
+                         "q"   : "prompt-cancel",
+                         // local
+                         "c"   : "create-filter",
+                         "d"   : "delete-filter"
+                     },
+                     actions : [
+                         [function (i) {
+                              let filterName = self.createNewFilter();
+
+                              if (filterName)
+                              {
+                                  collection.push([filterName, 0, ""]);
+                                  prompt.refresh();
+                                  modified = true;
+                              }
+                          },
+                          "Create filter",
+                          "create-filter,c"],
+                         [function (i) {
+                              if (i >= 0)
+                              {
+                                  let filtername = collection[i][0];
+                                  let confirmed = util.confirm("Delete filter",
+                                                               util.format("Are you sure to delete filter \"%s\"?", filtername));
+
+                                  if (confirmed)
+                                  {
+                                      collection.splice(i, 1);
+                                      delete filters[filtername];
+
+                                      prompt.refresh();
+                                      modified = true;
+
+                                      display.echoStatusBar(util.format("filter %s deleted", filtername));
+                                  }
+                              }
+                          },
+                          "Delete this filter",
+                          "delete-filter,c"]
+                     ]
+                 });
+         }
+
          function showListStatuses(aScreenName, aListName) {
              oauthASyncRequest(
                  {
@@ -1677,7 +2172,7 @@ var twitterClient =
                              return;
                          }
 
-                         var statuses = util.safeEval("(" + xhr.responseText + ")") || [];
+                         var statuses = json.decode(xhr.responseText) || [];
                          callSelector(
                              statuses,
                              M({ja: util.format("%s/%s のタイムライン", aScreenName, aListName),
@@ -1713,7 +2208,7 @@ var twitterClient =
                              return;
                          }
 
-                         let result = util.safeEval("(" + xhr.responseText + ")");
+                         let result = json.decode(xhr.responseText);
 
                          let collection = Array.slice((result || {lists:[]}).lists).map(
                              function (list)
@@ -1726,10 +2221,9 @@ var twitterClient =
                          );
 
                          tPrompt.close();
-
                          prompt.selector(
                              {
-                                 message    : "lists:",
+                                 message    : M({ja: "リスト", en: "lists"}),
                                  collection : collection,
                                  // name, description, member_count, subscriber_count
                                  flags      : [0, 0, 0, 0],
@@ -1737,10 +2231,11 @@ var twitterClient =
                                                M({ja: '説明', en: "Description"}),
                                                M({ja: 'フォロー中', en: "Following"}),
                                                M({ja: 'リストをフォロー', en: "Follower"})],
-                                 callback   : function (i) {
-                                     if (i >= 0)
-                                         showListStatuses(aScreenName, collection[i][0]);
-                                 }
+                                 actions    : [
+                                     [function (i) {
+                                          if (i >= 0) showListStatuses(aScreenName, collection[i][0]);
+                                      }, M({ja: "リストの TL を表示", en: "Show list statuses"})]
+                                 ]
                              });
                      }
                  });
@@ -1775,6 +2270,8 @@ var twitterClient =
          }
 
          function showFollowersStatus(aArg) {
+             self.currentFilter = self.filterNameTimeline;
+
              var updateForced = (aArg != null);
 
              if (updateForced || !share.twitterStatusesJSONCache)
@@ -1827,10 +2324,11 @@ var twitterClient =
                              return;
                          }
 
-                         var statuses = util.safeEval(xhr.responseText) || [];
+                         var statuses = json.decode(xhr.responseText) || [];
                          callSelector(statuses, M({ja: target + " のつぶやき一覧", en: "Tweets from " + target}));
                      }
-                 });
+                 }
+             );
          }
 
          // ================================================================================ //
@@ -1989,11 +2487,11 @@ var twitterClient =
 
                              setIconStatus(header.buttonHome, !!status.user.url);
                              if (status.user.url)
-                                 header.buttonHome.setAttribute("onclick", openLink(status.user.url));
+                                 header.buttonHome.setAttribute("onclick", genCommand.openLink(status.user.url));
                              else
                                  header.buttonHome.removeAttribute("onclick");
 
-                             header.buttonTwitter.setAttribute("onclick", openLink('http://twitter.com/' + status.user.screen_name));
+                             header.buttonTwitter.setAttribute("onclick", genCommand.openLink('http://twitter.com/' + status.user.screen_name));
 
                              header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text)), header.userTweet.firstChild);
                          }
@@ -2118,7 +2616,7 @@ var twitterClient =
                          if (xhr.status !== 200)
                              return;
 
-                         var account = util.safeEval('(' + xhr.responseText + ')');
+                         var account = json.decode(xhr.responseText);
 
                          share.userInfo = account;
 
@@ -2132,6 +2630,65 @@ var twitterClient =
           */
          var self = {
              // Context menu {{ ========================================================== //
+
+             filterButtonClicked: function (aEvent) {
+                 let elem   = aEvent.target;
+
+                 if (aEvent.button === 2)
+                     return;
+
+                 let filters = share.twitterClientSettings.filters;
+
+                 let seed = [];
+
+                 let status = my.twitterSelectedStatus;
+                 let userID = status.user.screen_name;
+
+                 // ============================================================ //
+
+                 let submenu = [
+                     M({ja: "このユーザをフィルタへ追加", en: "Add this user to filter"}), "a", []
+                 ];
+
+                 for (let [name, filter] in Iterator(filters))
+                 {                     
+                     submenu[2].push([name, null,
+                                      (filter.indexOf(userID) < 0) ?
+                                      root + util.format(".addCurrentTargetToFilter('%s')", name)
+                                      : null
+                                     ]);
+                 }
+
+                 submenu[2].push([null, null, null]);
+
+                 submenu[2].push([M({ja: "新しいフィルタ", en: "Create the filter"}), "c",
+                                  root + ".addCurrentTargetToFilter(" + root + ".createNewFilter());"]);
+
+                 seed.push(submenu);
+
+                 // ============================================================ //
+
+                 seed.push([null, null, null]);
+
+                 seed.push([M({ja: "タイムラインを表示", en: "Display timeline"}), "t",
+                            "KeySnail.modules.prompt.finish(true);" + root + ".showTimeline();"]);
+
+                 seed.push([null, null, null]);
+
+                 for (let [name, filter] in Iterator(filters))
+                 {
+                     seed.push([name, null,
+                                (filter.length >= 0) ? root + util.format(".showFilteredStatuses('%s')", name)
+                                : null]);                         
+                 }
+
+                 seed.push([null, null, null]);
+
+                 seed.push([M({ja: "フィルタの管理", en: "Open filter manager"}), "m",
+                            root + ".filterManager();"]);
+
+                 showDynamicMenu(aEvent, seed, true);
+             },
 
              tweetBoxClicked: function (aEvent) {
                  let elem   = aEvent.target;
@@ -2149,26 +2706,25 @@ var twitterClient =
                              let userName = text.slice(1);
                              showDynamicMenu(aEvent,
                                              [
-                                                 [util.format(M({ja: "%s のステータスを一覧表示", en: "Display %s's status"}), userName),
+                                                 [util.format(M({ja: "%s のステータスを一覧表示", en: "Display %s's status"}), userName), "s",
                                                   root + util.format(".showTargetStatus('%s');", userName)],
-                                                 [util.format(M({ja: "%s の Twitter ホームへ", en: "%s in twitter"}), userName),
-                                                  openLink("http://twitter.com/" + userName)]
+                                                 [util.format(M({ja: "%s の Twitter ホームへ", en: "%s in twitter"}), userName), "h",
+                                                  genCommand.openLink("http://twitter.com/" + userName)]
                                              ]);
                          }
                          else
                          {
                              let url = text;
                              let actions = [
-                                 [M({ja: "開く", en: "Open URL"}), openLink(url)],
-                                 [M({ja: "URL をコピー",
-                                     en: "Copy URL"}),
+                                 [M({ja: "開く", en: "Open URL"}), "o", genCommand.openLink(url)],
+                                 [M({ja: "URL をコピー", en: "Copy URL"}), "c",
                                   'KeySnail.modules.command.setClipboardText("' + url + '")']
                              ];
 
                              if (url.match("^http://(j\\.mp|bit\\.ly)/"))
                              {
-                                 actions.push([M({ja: "この URL が何回クリックされたか調査", en: "Inspect this link"}),
-                                               openLink(url + "+")]);
+                                 actions.push([M({ja: "URL がクリックされた回数を表示", en: "Inspect this link"}), "i",
+                                               genCommand.openLink(url + "+")]);
                              }
 
                              showDynamicMenu(aEvent, actions);
@@ -2237,24 +2793,7 @@ var twitterClient =
                  if (status)
                  {
                      let id = status.user.screen_name;
-
-                     for (let [, user] in Iterator(blackUsers))
-                     {
-                         if (user === id)
-                         {
-                             log(LOG_LEVEL_DEBUG, "%s is already in the black list");
-                             return;
-                         }
-                     }
-
-                     blackUsers.push(id);
-
-                     let msg = util.format("added %s to the black list", id);
-
-                     log(LOG_LEVEL_DEBUG, msg);
-                     display.echoStatusBar(msg);
-
-                     saveObj("blackusers", blackUsers);
+                     addUserToBlacklist(id);
                  }
              },
 
@@ -2266,6 +2805,34 @@ var twitterClient =
                  let status = my.twitterSelectedStatus;
                  if (status)
                      copy(html.unEscapeTag(status.text));
+             },
+
+             listRelationShips: function () {
+                 oauthASyncRequest(
+                     {
+                         action : "http://twitter.com/statuses/friends.json",
+                         method : "GET"
+                     },
+                     function (aEvent, xhr) {
+                         if (xhr.readyState === 4)
+                         {
+                             if (xhr.status !== 200)
+                             {
+                                 if (isRetryable(xhr))
+                                 {
+                                     log(LOG_LEVEL_DEBUG, "listRelationShips: retry %s", new Date());
+                                     self.listRelationShips();
+                                     return;
+                                 }
+
+                             }
+
+                             let relationships = json.decode(xhr.responseText);
+
+                             window.inspectObject(relationships);
+                         }
+                     }
+                 );
              },
 
              // }} ======================================================================= //
@@ -2297,7 +2864,7 @@ var twitterClient =
                              }
                              else
                              {
-                                 var statuses = util.safeEval(xhr.responseText) || [];
+                                 var statuses = json.decode(xhr.responseText) || [];
                                  share.twitterStatusesJSONCache = combineJSONCache(statuses, share.twitterStatusesJSONCache);
                                  timelineCount = timelineCountEveryUpdates;
                                  updateAllStatusbars();
@@ -2310,36 +2877,41 @@ var twitterClient =
                              {
                                  share.twitterStatusesCacheUpdater = setTimeout(
                                      function () {
-                                         self.updateStatusesCache(null, false, true);
+                                         self.updateStatusesCache(null, false, true); // set true to aCalledFromTimer
                                      }, updateInterval);
 
                                  if (!my.twitterDelegateStatusesUpdater)
                                  {
-                                     my.twitterDelegateStatusesUpdater =
-                                         window.addEventListener(
-                                             "unload", function () {
-                                                 share.twitterStatusesCacheUpdater = null;
+                                     my.twitterDelegateStatusesUpdater = true;
 
-                                                 for (let [, win] in Iterator(getBrowserWindows()))
+                                     window.addEventListener(
+                                         "unload", function () {
+                                             share.twitterStatusesCacheUpdater = null;
+
+                                             for (let [i, win] in Iterator(getBrowserWindows()))
+                                             {
+                                                 log(LOG_LEVEL_DEBUG, "loop [%s]", i);
+
+                                                 try
                                                  {
-                                                     try
+                                                     if (win != window  &&
+                                                         win.KeySnail   &&
+                                                         win.KeySnail.modules.plugins.twitterClient)
                                                      {
-                                                         log(LOG_LEVEL_DEBUG, "delegated to %s", win.document.title);
+                                                         log(LOG_LEVEL_DEBUG, "[%s] delegated to %s", i, win.document.title);
 
-                                                         if (win !== window &&
-                                                             win.KeySnail   &&
-                                                             win.KeySnail.modules.plugins.twitterClient)
-                                                         {
-                                                             win.KeySnail.modules.plugins.twitterClient.updateStatusesCache();
-                                                             break;
-                                                         }
-                                                     }
-                                                     catch (x)
-                                                     {
-                                                         log(LOG_LEVEL_WARNING, x);
+                                                         win.KeySnail.modules.plugins.twitterClient.updateStatusesCache();
+                                                         break;
                                                      }
                                                  }
-                                             }, false);
+                                                 catch (x)
+                                                 {
+                                                     log(LOG_LEVEL_WARNING, x);
+                                                 }
+                                             }
+
+                                             window.removeEventListener("unload", arguments.callee, false);
+                                         }, false);
                                  }
                              }
 
@@ -2374,7 +2946,7 @@ var twitterClient =
                              }
                              else
                              {
-                                 var statuses = util.safeEval(xhr.responseText);
+                                 var statuses = json.decode(xhr.responseText);
                                  share.twitterMentionsJSONCache = combineJSONCache(statuses, share.twitterMentionsJSONCache);
                                  updateAllStatusbars();
                              }
@@ -2388,30 +2960,32 @@ var twitterClient =
 
                                  if (!my.twitterDelegateMentionsUpdater)
                                  {
-                                     my.twitterDelegateMentionsUpdater =
-                                         window.addEventListener(
-                                             "unload",
-                                             function () {
-                                                 share.twitterMentionsCacheUpdater = null;
+                                     my.twitterDelegateMentionsUpdater = true;
+                                     window.addEventListener(
+                                         "unload",
+                                         function () {
+                                             share.twitterMentionsCacheUpdater = null;
 
-                                                 for (let [, win] in Iterator(getBrowserWindows()))
+                                             for (let [, win] in Iterator(getBrowserWindows()))
+                                             {
+                                                 try
                                                  {
-                                                     try
+                                                     if (win !== window &&
+                                                         win.KeySnail   &&
+                                                         win.KeySnail.modules.plugins.twitterClient)
                                                      {
-                                                         if (win !== window &&
-                                                             win.KeySnail   &&
-                                                             win.KeySnail.modules.plugins.twitterClient)
-                                                         {
-                                                             win.KeySnail.modules.plugins.twitterClient.updateMentionsCache();
-                                                             break;
-                                                         }
-                                                     }
-                                                     catch (x)
-                                                     {
-                                                         log(LOG_LEVEL_WARNING, x);
+                                                         win.KeySnail.modules.plugins.twitterClient.updateMentionsCache();
+                                                         break;
                                                      }
                                                  }
-                                             }, false);
+                                                 catch (x)
+                                                 {
+                                                     log(LOG_LEVEL_WARNING, x);
+                                                 }
+                                             }
+
+                                             window.removeEventListener("unload", arguments.callee, false);
+                                         }, false);
                                  }
                              }
 
@@ -2448,11 +3022,10 @@ var twitterClient =
              },
 
              showTimeline: function (aEvent, aArg) {
-                 if (!oauthTokens.oauth_token || !oauthTokens.oauth_token_secret) {
+                 if (!oauthTokens.oauth_token || !oauthTokens.oauth_token_secret)
                      authorizationSequence();
-                 } else {
+                 else
                      showFollowersStatus(aArg);
-                 }
              },
 
              showFavorites: function () {
@@ -2478,7 +3051,7 @@ var twitterClient =
                                  return;
                              }
 
-                             var statuses = util.safeEval('(' + xhr.responseText + ')');
+                             var statuses = json.decode(xhr.responseText);
                              callSelector(statuses);
                          }
                      });
@@ -2507,7 +3080,78 @@ var twitterClient =
                  }
              },
 
-             setUserInfo: setUserInfo
+             setUserInfo: setUserInfo,
+
+             blackUsersManager: blackUsersManager,
+
+             // Filter {{ ================================================================ //
+
+             get filterNameTimeline() {
+                 return "Timeline";
+             },
+
+             set currentFilter(aFilterName) {
+                 if (my.twitterClientHeader.buttonFilter)
+                     my.twitterClientHeader.buttonFilter.setAttribute("label", aFilterName);
+
+                 my.twitterCurrentFilterName = aFilterName;
+             },
+
+             get currentFilter() {
+                 return my.twitterCurrentFilterName;
+             },
+
+             addCurrentTargetToFilter: function (aFilterName) {
+                 let status = my.twitterSelectedStatus;
+
+                 if (status)
+                 {
+                     self.addUserToFilter(status.user.screen_name, aFilterName);
+                 }
+             },
+
+             addUserToFilter: function (aUserID, aFilterName) {
+                 let filters = share.twitterClientSettings.filters;
+                 let filter  = filters[aFilterName];
+
+                 if (!filter)
+                     return;
+
+                 if (filter.indexOf(aUserID) >= 0)
+                     return;
+
+                 filter.push(aUserID);
+                 saveObj("filters", filters);
+
+                 display.echoStatusBar(M({ja: "ユーザがフィルタに追加されました", en: "Added selected user to the filter"}));
+             },
+
+             showFilteredStatuses: function (aFilterName) {
+                 tPrompt.forced = true;
+                 showFilteredStatuses(aFilterName);
+             },
+
+             createNewFilter: function () {
+                 let filterName = window.prompt(M({ja: "フィルタ名を入力してください", en: "Enter the filter name"}));
+
+                 if (!filterName || filterName === self.filterNameTimeline)
+                     return null;
+
+                 if (filterName in share.twitterClientSettings.filters)
+                     return null;
+
+                 share.twitterClientSettings.filters[filterName] = [];
+                 saveObj("filters", share.twitterClientSettings.filters);
+
+                 display.echoStatusBar(M({ja: "新しいフィルタが作成されました", en: "New filter created"}), 2000);
+
+                 return filterName;
+             },
+
+             filterManager: function () {
+                 tPrompt.forced = true;
+                 filterManager();
+             }
          };
 
          return self;
@@ -2548,6 +3192,10 @@ ext.add("twitter-client-show-my-statuses", twitterClient.showUsersTimeline,
 ext.add("twitter-client-show-my-lists", twitterClient.showMyLists,
         M({ja: '自分のリストを一覧表示',
            en: "Display my lists"}));
+
+ext.add("twitter-client-blacklist-manager", twitterClient.blackUsersManager,
+        M({ja: 'ブラックリストの管理',
+           en: "Launch blacklist manager"}));
 
 ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
         M({ja: 'ポップアップ通知の切り替え',
@@ -2605,6 +3253,7 @@ var PLUGIN_INFO =
         <ext>twitter-client-show-mentions</ext>
         <ext>twitter-client-show-favorites</ext>
         <ext>twitter-client-search-word</ext>
+        <ext>twitter-client-blacklist-manager</ext>
         <ext>twitter-client-toggle-popup-status</ext>
         <ext>twitter-client-reauthorize</ext>
     </provides>
