@@ -1,17 +1,17 @@
 // ChangeLog {{ ============================================================= //
 //
-// ==== 1.5.3 (2009 01/02) ====
+// ==== 1.5.3 (2010 01/02) ====
 //
 // * Made unpopUppedStatuses global
 //
-// ==== 1.5.2 (2009 01/02) ====
+// ==== 1.5.2 (2010 01/02) ====
 //
 // * Now user can select whether display header or not.
 // * Automatically retry when request fails.
 // * A lot of context menus are added.
 //   Right click on the icon in the statusbar and @foo, http:://* in the message.
 //
-// ==== 1.5.1 (2009 01/02) ====
+// ==== 1.5.1 (2010 01/02) ====
 //
 // * Added fancy mode, gorgeous header. Annoying?
 //
@@ -2433,14 +2433,14 @@ var twitterClient =
                  }
              );
 
-             const ico = ICON | IGNORE;
+             const ico = ICON   | IGNORE;
              const hid = HIDDEN | IGNORE;
 
              if (!aMessage) aMessage = M({ja: "タイムライン", en: "Timeline"});
 
-             let currentID               = statuses[0].id;
-             let selectedUserID          = statuses[0].user.screen_name;
-             let selectedUserInReplyToID = statuses[0].in_reply_to_screen_name;
+             let currentID               = statuses[0] ? statuses[0].id : null;
+             let selectedUserID          = statuses[0] ? statuses[0].user.screen_name : null;
+             let selectedUserInReplyToID = statuses[0] ? statuses[0].in_reply_to_screen_name : null;
 
              let header = my.twitterClientHeader;
              let headerEnabled = getOption("enable_header");
@@ -2465,6 +2465,9 @@ var twitterClient =
                      style      : getOption("fancy_mode") ? null : ["color:#0e0067;", "", "color:#660025;"],
                      width      : mainColumnWidth,
                      beforeSelection : function (arg) {
+                         if (!arg.row)
+                             return;
+
                          let status = arg.row[0];
 
                          // accessible from out of this closure
@@ -2476,21 +2479,30 @@ var twitterClient =
 
                          if (headerEnabled)
                          {
+                             if (my.twitterClientHeaderUpdater)
+                                 clearTimeout(my.twitterClientHeaderUpdater);
 
-                             header.userIcon.setAttribute("src", arg.row[1]);
-                             header.userIcon.setAttribute("tooltiptext", status.user.description);
-                             header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
-                             header.userName.setAttribute("tooltiptext", status.user.description);
+                             function updateHeader() {
+                                 header.userIcon.setAttribute("src", arg.row[1]);
+                                 header.userIcon.setAttribute("tooltiptext", status.user.description);
+                                 header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
+                                 header.userName.setAttribute("tooltiptext", status.user.description);
 
-                             setIconStatus(header.buttonHome, !!status.user.url);
-                             if (status.user.url)
-                                 header.buttonHome.setAttribute("onclick", genCommand.openLink(status.user.url));
-                             else
-                                 header.buttonHome.removeAttribute("onclick");
+                                 setIconStatus(header.buttonHome, !!status.user.url);
+                                 if (status.user.url)
+                                     header.buttonHome.setAttribute("onclick", genCommand.openLink(status.user.url));
+                                 else
+                                     header.buttonHome.removeAttribute("onclick");
 
-                             header.buttonTwitter.setAttribute("onclick", genCommand.openLink('http://twitter.com/' + status.user.screen_name));
+                                 header.buttonTwitter.setAttribute("onclick", genCommand.openLink('http://twitter.com/' + status.user.screen_name));
 
-                             header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text)), header.userTweet.firstChild);
+                                 header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text)), header.userTweet.firstChild);
+
+                                 my.twitterClientHeaderUpdater = null;
+                             }
+
+                             // add delay
+                             my.twitterClientHeaderUpdater = setTimeout(updateHeader, 90);
                          }
                      },
                      onFinish : onFinish,
