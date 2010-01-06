@@ -109,6 +109,15 @@ KeySnail.Command = {
         return aSort ? commandList.sort() : commandList;
     },
 
+    /**
+     * Evaluate strings in user context and display it's result like `eval-expression' in Emacs
+     * If prefix argument `arg' is given ::
+     *  - inspect result object with DOM Inspector (arg > 0)
+     *  - refresh the cache of completion (arg < 0)
+     * @param {} ev
+     * @param {} arg
+     * @returns {} 
+     */
     interpreter: function (ev, arg) {
         let savedSubstrMatch = this.modules.prompt.substrMatch;
 
@@ -116,16 +125,16 @@ KeySnail.Command = {
             KeySnail.modules.prompt.substrMatch = savedSubstrMatch;
         }
 
-        let inspect = ('inspectObject' in window) && arg;
+        let inspect = ('inspectObject' in window) && (arg > 0);
 
         let seed = this.seed;
-        let collection = this.commandList || (this.commandList = this.createCommandList(seed, true));
+        let collection = !(arg < 0) && this.commandList || (this.commandList = this.createCommandList(seed, true));
 
         let localSeed = [
             [content.wrappedJSObject, "content.wrappedJSObject", 1],
             [content.document.wrappedJSObject, "content.document.wrappedJSObject", 1]
         ];
-        let localCollection = content.document.__ksCommandCollection__ ||
+        let localCollection = !(arg < 0) && content.document.__ksCommandCollection__ ||
             (content.document.__ksCommandCollection__ = this.createCommandList(localSeed, true));
 
         collection = collection.concat(localCollection);
@@ -157,39 +166,22 @@ KeySnail.Command = {
                     callback   : function (code) {
                         try
                         {
-                            eval("with (KeySnail.modules) {"
-                                 + "let result = " + code + ";"
-                                 + "if (result) {"
-                                 + (inspect ?
-                                    "window.inspectObject(result);"
-                                    :
-                                    "display.echoStatusBar(result); util.message(result);"
-                                   )
-                                 + "}"
-                                 + "}");
+                            let result = util.evalInContext(code);
+                            if (typeof result !== 'undefined')
+                            {
+                                if (inspect)
+                                    window.inspectObject(result);
+                                else
+                                {
+                                    display.echoStatusBar(result);
+                                    util.message(result);
+                                }
+                            }
                         }
                         catch (x)
                         {
-                            let errMsg = x.message;
-
-                            if (errMsg === "syntax error")
-                            {
-                                try
-                                {
-                                    eval("with (KeySnail.modules) { "+ code + "; }");
-                                    errMsg = null;
-                                }
-                                catch (x)
-                                {
-                                    errMsg = x.message;
-                                }
-                            }
-
-                            if (errMsg)
-                            {
-                                display.echoStatusBar(errMsg);
-                                util.message(errMsg);
-                            }
+                            display.echoStatusBar(x);
+                            util.message(x);
                         }
                     }
                 }

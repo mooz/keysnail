@@ -12,6 +12,9 @@ KeySnail.Util = {
 
     init: function () {
         this.sandboxForSafeEval = new Components.utils.Sandbox("about:blank");
+        this.userContext = {
+            __proto__: this.parent.modules
+        };
     },
 
     get userLocale() {
@@ -816,6 +819,36 @@ KeySnail.Util = {
     // }} ======================================================================= //
 
     // Eval / Voodoo {{ ========================================================= //
+
+    // Inspired by liberator.js
+    evalInContext: function (aCode, aContext) {
+        const EVAL_ERROR  = "__ks_eval_error";
+        const EVAL_RESULT = "__ks_eval_result";
+        const EVAL_STRING = "__ks_eval_string";
+
+        try
+        {
+            if (!aContext)
+                aContext = this.userContext;
+
+            aContext[EVAL_ERROR]  = null;
+            aContext[EVAL_STRING] = aCode;
+            aContext[EVAL_RESULT] = null;
+
+            this.modules.userscript.loadSubScript("chrome://keysnail/content/eval.js", aContext);
+
+            if (aContext[EVAL_ERROR])
+                throw aContext[EVAL_ERROR];
+
+            return aContext[EVAL_RESULT];
+        }
+        finally
+        {
+            delete aContext[EVAL_ERROR];
+            delete aContext[EVAL_RESULT];
+            delete aContext[EVAL_STRING];
+        }  
+    },
 
     /**
      * Eval in sandbox. This method is useful to parse JSON object.
