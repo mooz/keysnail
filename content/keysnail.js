@@ -95,6 +95,21 @@ var KeySnail = {
             this.modules.hook.addToHook("Unload", function () { gBrowser.removeProgressListener(KeySnail.urlBarListener); });
             this.workAroundPopup();
             this.modules.key.inExternalFile = false;
+
+            // hook location bar copy / cut event
+            try
+            {
+                let controller        = document.getElementById("urlbar")._copyCutController;
+                let originalDoCommand = controller.doCommand;
+                controller.doCommand = function (aCommand) {
+                    originalDoCommand.apply(this, arguments);
+                    KeySnail.modules.command.clipboardChanged();
+                };   
+            }
+            catch (x)
+            {
+                this.message(x);
+            }
         }
 
         this.modules.key.updateStatusBar();
