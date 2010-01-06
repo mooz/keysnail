@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Prefer LDRize</name>
     <description>Prefer LDRize keyboard shortcut</description>
     <description lang="ja">LDRize と KeySnail を共存</description>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/prefer-ldrize.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/prefer-ldrize.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -189,6 +189,11 @@ LDRize と KeySnail で快適なブラウジングを！
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.0.5 (2010 01/06) ====
+// 
+// * Fixed the bug when this plugin reloaded, the evalInSandbox of GM
+//   sometimes becomes strange and cause odd behavior.
 // 
 // ==== 1.0.4 (2009 11/14) ====
 // 
@@ -414,10 +419,11 @@ var preferLDRize =
 
          gmService = gmService.getService().wrappedJSObject;
 
-         var savedEvalInSandbox = gmService.evalInSandbox.__original__ || gmService.evalInSandbox;
+         if (!my.savedEvalInSandbox)
+             my.savedEvalInSandbox = gmService.evalInSandbox;
 
          gmService.evalInSandbox = function (code, codebase, sandbox) {
-             savedEvalInSandbox.apply(gmService, arguments);
+             my.savedEvalInSandbox.apply(this, arguments);
 
              try
              {
@@ -440,8 +446,6 @@ var preferLDRize =
              {
              }
          };
-
-         gmService.evalInSandbox.__original__ = savedEvalInSandbox;
 
          // }} ======================================================================= //
 
