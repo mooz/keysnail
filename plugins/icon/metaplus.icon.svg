@@ -13,7 +13,7 @@
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="mplus.icon.svg"
+   sodipodi:docname="metaplus.icon.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape">
   <defs
      id="defs4">
@@ -89,9 +89,19 @@
        y="665.36218"
        rx="7.6132975"
        ry="7.6132975"
-       inkscape:export-filename="/home/masa/keysnail/plugins/icon/mplus.icon.png"
+       inkscape:export-filename="/home/masa/keysnail/plugins/icon/metaplus.icon.png"
        inkscape:export-xdpi="22.5"
        inkscape:export-ydpi="22.5" />
+    <text
+       xml:space="preserve"
+       style="font-size:148.55802917px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#d3d7cf;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial;-inkscape-font-specification:Arial"
+       x="167.35445"
+       y="765.30505"
+       id="text2423"><tspan
+         sodipodi:role="line"
+         id="tspan2425"
+         x="167.35445"
+         y="765.30505">+</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:62.34025955px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#204a87;fill-opacity:1;stroke:#204a87;stroke-width:1.19092524px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:LVDC Bloody Valentine;-inkscape-font-specification:LVDC Bloody Valentine"
@@ -103,7 +113,7 @@
          id="tspan2409"
          x="130.15019"
          y="789.90723"
-         style="stroke-width:1.19092524">5]2or</tspan></text>
+         style="stroke-width:1.19092524">/q2or</tspan></text>
     <path
        sodipodi:type="arc"
        style="opacity:1;fill:none;fill-opacity:1;stroke:#204a87;stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
@@ -126,22 +136,12 @@
     <text
        xml:space="preserve"
        style="font-size:102.06060791px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#babdb6;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial;-inkscape-font-specification:Arial"
-       x="120.48485"
-       y="715.6955"
+       x="120.19196"
+       y="726.86707"
        id="text2419"><tspan
          sodipodi:role="line"
          id="tspan2421"
-         x="120.48485"
-         y="715.6955">+</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-size:148.55802917px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#d3d7cf;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Arial;-inkscape-font-specification:Arial"
-       x="173.62221"
-       y="755.69843"
-       id="text2423"><tspan
-         sodipodi:role="line"
-         id="tspan2425"
-         x="173.62221"
-         y="755.69843">+</tspan></text>
+         x="120.19196"
+         y="726.86707">+</tspan></text>
   </g>
 </svg>
