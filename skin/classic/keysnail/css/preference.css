@@ -25,6 +25,10 @@ textbox.keysnail-specialkey-textbox {
     width: 7em;
 }
 
+textbox.keysnail-code-editor {
+    font-family: monospace !important;
+}
+
 button.keysnail-specialkey-button {
     width: 4em;
 }
