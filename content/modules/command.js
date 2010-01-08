@@ -116,7 +116,7 @@ KeySnail.Command = {
      *  - refresh the cache of completion (arg < 0)
      * @param {} ev
      * @param {} arg
-     * @returns {} 
+     * @returns {}
      */
     interpreter: function (ev, arg) {
         let savedSubstrMatch = this.modules.prompt.substrMatch;
