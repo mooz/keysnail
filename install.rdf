@@ -13,6 +13,8 @@
         <em:homepageURL>http://wiki.github.com/mooz/keysnail/</em:homepageURL>
         <em:optionsURL>chrome://keysnail/content/preference.xul</em:optionsURL>
 	<em:iconURL>chrome://keysnail/skin/icon.png</em:iconURL>
+        <em:updateURL>http://github.com/mooz/keysnail/raw/master/update.rdf</em:updateURL>
+        <em:updateKey="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTIIo3r67JK6DJIBYyczbI/NrGurO0k5Cwn5rvXlNsRrA0LgAuCnofEdlicwxpmItBuwfdRJdZlKnaupJZPKrLoZz3t3BR4O4rBDKlY5rZM6Doqd5lBHAOXiZ35KsV4se7NKWvAZSqcpt6SLoL/YnjJ/o3Rz86i7E6BePcvutxoQIDAQAB">
         <!-- en-US -->
         <em:description>Bind function to the key sequence!</em:description>
         <!-- ja -->
