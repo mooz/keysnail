@@ -15,9 +15,9 @@
                    em:maxVersion="3.7a1pre"
                    em:updateLink="http://github.com/mooz/keysnail/raw/master/keysnail.xpi"
                    em:updateInfoURL="http://github.com/mooz/keysnail/raw/master/updateinfo/updateinfo2.2.xhtml"
-                   em:updateHash="sha1:1f15104760bde88178a5ce81e9399644d05b3ac4" />
+                   em:updateHash="sha1:753e68a2a3195a5d0e3c30ef6155722a3d5b98a5" />
   <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAH6gT4lPFMlxjQa9jP+wLK+IXRtymTaqOmfPTy8WwuAta9iewBD7M3lGJ25wVIAJ+sdvfqD7F1fHJspmbXnXD5V+TmV1VKlhBEL7DhNGa2SaTuTdIC86dr2t/QAZmborOIKSBNyK35CiRCVQe8HDba3ButsINC4spezZ6EZ2MVi6">
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAKdn1C8nuZdES7KPUbNWxQuXaQY/UdqngyQ1LDOZ+Sd6ErH1Zsu0BxrpZQmh07YsJu5SnKE63T8TR7yCGuicL6obxY00vZ2gHT6K4nhVSH+UniTVsXYxIKTi0wrLNzxpCTX/LnVEuOa2SsFv3yhhf4/m/EB1qlVPpiGmsX+EV7Ue">
     <em:updates RDF:resource="rdf:#$mtJrB"/>
   </RDF:Description>
 </RDF:RDF>
