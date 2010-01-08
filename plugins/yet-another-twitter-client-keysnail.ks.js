@@ -116,7 +116,7 @@ const Ci = Components.interfaces;
 var optionsDefaultValue = {
     "log_level"                             : LOG_LEVEL_MESSAGE,
     "update_interval"                       : 60 * 1000,      // 1 minute
-    "mentions_update_interval"              : 60 * 1000 * 20, // 20 minute
+    "mentions_update_interval"              : 60 * 1000 * 10, // 10 minute
     "use_popup_notification"                : true,
     "main_column_width"                     : [11, 70, 19],
     "timeline_count_beginning"              : 80,
