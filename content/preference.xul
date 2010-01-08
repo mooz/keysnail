@@ -188,6 +188,7 @@
                                   collapsed="true">
                                 <description>&keySnail.preference.edit.function;:</description>
                                 <textbox id="keybind-function-body"
+                                         class="keysnail-code-editor"
                                          onblur="ksPreference.handleFunctionTextarea(event);"
                                          onkeypress="ksPreference.handleFunctionTextarea(event);"
                                          multiline="true" flex="3">
@@ -446,7 +447,9 @@
                             <description class="long-description">&keySnail.preference.key.preserved.description2;</description>
                             <textbox flex="1"
                                      multiline="true"
+                                     class="keysnail-code-editor"
                                      id="preserved-code"
+                                     onblur="ksPreference.handlePreservedCodeEditorEvent(event);"
                                      >
                             </textbox>
                         </vbox>

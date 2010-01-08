@@ -335,6 +335,10 @@ var ksPreference = {
         }
     },
 
+    handlePreservedCodeEditorEvent: function (aEvent) {
+        //
+    },
+
     insertKey: function (aKey) {
         var row = ksKeybindTreeView.data[ksKeybindTreeView.currentIndex];
 
