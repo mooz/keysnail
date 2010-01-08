@@ -16,7 +16,7 @@ KeySnail.UserScript = {
         var code = this.modules.util.readTextFile(aScriptPath);
         if (this.parent.windowType === "navigator:browser" && aPreserve)
             this.preserveCode(code);
-        Function("with (KeySnail.modules) {" + code + " }")();
+        this.modules.util.evalInContext(code);
     },
 
     // ==== user configuration file name ====
@@ -800,7 +800,9 @@ KeySnail.UserScript = {
 
         try
         {
-            this.loadSubScript(filePath, context);
+            let code = this.modules.util.readTextFile(filePath);
+            this.modules.util.evalInContext(code, context);
+            // this.loadSubScript(filePath, context);
             context.__ksLoaded__ = true;
         }
         catch (e)
@@ -816,7 +818,7 @@ KeySnail.UserScript = {
     },
 
     /**
-     * Load plugins which file name is beggining with _
+     * Load plugins which file name is beginning with _ (underscore)
      */
     loadSpecialPlugins: function () {
         var aPath = this.pluginDir;
@@ -824,7 +826,15 @@ KeySnail.UserScript = {
         if (!aPath)
             return;
 
-        var files = this.modules.util.readDirectory(aPath, true);
+        try
+        {
+            var files = this.modules.util.readDirectory(aPath, true);
+        }
+        catch (x)
+        {
+            this.message(x);
+            return;
+        }
 
         files.forEach(
             function (aFile) {
@@ -848,7 +858,15 @@ KeySnail.UserScript = {
             return;
 
         // load plugins in sorted order
-        var files = this.modules.util.readDirectory(aPath, true);
+        try
+        {
+            var files = this.modules.util.readDirectory(aPath, true);
+        }
+        catch (x)
+        {
+            this.message(x);
+            return;
+        }
 
         files.forEach(
             function (aFile) {
