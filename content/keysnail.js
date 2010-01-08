@@ -104,7 +104,7 @@ var KeySnail = {
                 controller.doCommand = function (aCommand) {
                     originalDoCommand.apply(this, arguments);
                     KeySnail.modules.command.clipboardChanged();
-                };   
+                };
             }
             catch (x)
             {
