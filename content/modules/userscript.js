@@ -72,17 +72,13 @@ KeySnail.UserScript = {
         this.modules.key.inExternalFile = false;
         try
         {
-            var start = new Date();
+            var start = Date.now();
             this.jsFileLoader(aInitFilePath, true);
-            var end = new Date();
+            var end = Date.now();
         }
         catch (e)
         {
-            if (!e.fileName || e.fileName == "chrome://keysnail/content/modules/userscript.js")
-            {
-                e.fileName = aInitFilePath;
-                e.lineNumber -= (this.userScriptOffset - 1);
-            }
+            e.fileName = aInitFilePath;
 
             this.modules.key.inExternalFile = savedStatus;
             throw e;
@@ -801,17 +797,23 @@ KeySnail.UserScript = {
         try
         {
             let code = this.modules.util.readTextFile(filePath);
-            this.modules.util.evalInContext(code, context);
-            // this.loadSubScript(filePath, context);
+            // this.modules.util.evalInContext(code, context);
+            this.loadSubScript(filePath, context);
             context.__ksLoaded__ = true;
         }
         catch (e)
         {
             context.__ksLoaded__ = false;
-            // delete KeySnail.modules.plugins.context[filePath];
-            var msgstr = this.modules.util
+
+            // e.stack = e.stack.replace('@chrome://keysnail/content/modules/userscript.js -> ', "@");
+            // e.fileName = this.modules.util.pathToURL(filePath);
+
+            let msgstr = this.modules.util
                 .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
+
             this.message(msgstr + e + " (in " + filePath + ")");
+
+            // Components.utils.reportError(e);
         }
 
         this.modules.key.inExternalFile = false;
