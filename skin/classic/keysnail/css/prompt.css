@@ -17,7 +17,3 @@ listbox#keysnail-completion-list * image.listcell-icon {
     width  : 16px;
     height : 16px;
 }
-
-#keysnail-prompt-selector-help-popup {
-    background-color : transparent;
-}
