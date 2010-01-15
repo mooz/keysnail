@@ -113,6 +113,8 @@ var KeySnail = {
         }
 
         this.modules.key.updateStatusBar();
+
+        this.modules.hook.callHook("KeySnailInitialized");
     },
 
     /**

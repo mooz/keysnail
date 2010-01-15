@@ -1,19 +1,23 @@
 #keysnail-prompt-textbox {
-    -moz-appearance: none !important;
-    min-height: 18px !important;
-    border: none !important;
+    -moz-appearance : none !important;
+    min-height      : 18px !important;
+    border          : none !important;
 }
 
 #keysnail-prompt-label {
-    -moz-appearance: none !important;
-    font-weight: bold;
+    -moz-appearance : none !important;
+    font-weight     : bold;
 }
 
 #keysnail-prompt {
-    -moz-appearance: none !important;
+    -moz-appearance : none !important;
 }
 
 listbox#keysnail-completion-list * image.listcell-icon {
-    width: 16px;
-    height: 16px;
+    width  : 16px;
+    height : 16px;
+}
+
+#keysnail-prompt-selector-help-popup {
+    background-color : transparent;
 }

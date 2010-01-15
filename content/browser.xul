@@ -129,6 +129,10 @@
               align="center">
             <label class="keysnail-prompt-label" id="keysnail-prompt-label" />
             <textbox id="keysnail-prompt-textbox" flex="1" />
+            <toolbarbutton id="keysnail-prompt-display-selector-help-button"
+                           image="chrome://keysnail/skin/icon/help.png"
+                           hidden="true"
+                           oncommand="KeySnail.modules.prompt.toggleSelectorHelpDisplay();" />
             <toolbarbutton id="keysnail-prompt-toggle-edit-mode-button"
                            oncommand="KeySnail.modules.prompt.toggleEditMode();" />
             <toolbarbutton id="keysnail-prompt-close-button"
@@ -137,5 +141,24 @@
                            oncommand="KeySnail.modules.prompt.finish(true);" />
         </hbox>
     </vbox>
+
+    <popupset id="mainPopupSet">
+        <panel id="keysnail-prompt-selector-help-popup"
+               noautofocus="true" >
+            <vbox flex="1" style="overflow:auto;"
+                  minwidth="700px;"
+                  minheight="500px;"
+                  >
+                <hbox align="center">
+                    <vbox align="center">
+                        <image style="margin-left: 10px;margin-right:5px;"
+                               src="chrome://keysnail/skin/icon/help.png" />
+                    </vbox>
+                    <description id="keysnail-prompt-selector-help-title" />
+                </hbox>
+                <listbox id="keysnail-prompt-selector-help-list" flex="1" />
+            </vbox>
+        </panel>
+    </popupset>
 
 </overlay>

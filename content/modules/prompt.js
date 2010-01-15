@@ -156,6 +156,10 @@ KeySnail.Prompt = function () {
 
     // ============================== prompt common functions ============================== //
 
+    function $(aId) {
+        return document.getElementById(aId);
+    }
+
     function combineObject(a, b) {
         var newObject = {};
         var key;
@@ -773,6 +777,9 @@ KeySnail.Prompt = function () {
 
             updateSelector(selectorContext[to]);
             break;
+        case "prompt-display-keymap-help":
+            self.toggleSelectorHelpDisplay();
+            break;
         default:
             stopEventPropagation = false;
             break;
@@ -805,8 +812,7 @@ KeySnail.Prompt = function () {
 
                 if (aEvent.button === 2)
                 {
-                    document.getElementById("keysnail-prompt-menu")
-                        .openPopupAtScreen(aEvent.screenX, aEvent.screenY, true);
+                    $("keysnail-prompt-menu").openPopupAtScreen(aEvent.screenX, aEvent.screenY, true);
                 }
             }, 0);
     }
@@ -901,7 +907,7 @@ KeySnail.Prompt = function () {
     function setSelectorContextMenu(aActions) {
         var context = selectorContext[SELECTOR_STATE_ACTION];
 
-        var contextMenu = document.getElementById("keysnail-prompt-menu");
+        var contextMenu = $("keysnail-prompt-menu");
         removeAllChilds(contextMenu);
 
         if (typeof aActions === "function")
@@ -918,6 +924,51 @@ KeySnail.Prompt = function () {
                 item.setAttribute("oncommand", "KeySnail.modules.prompt.doNthAction(" + i + ");");
 
             contextMenu.appendChild(item);
+        }
+    }
+
+    function setSelectorKeymapHelp(actions, localKeymap) {
+        let listbox = $("keysnail-prompt-selector-help-list");
+
+        let actionDescriptionMap = {};
+        actions.forEach(function ([func, desc, act]) { if (act) actionDescriptionMap[act.split(",")[0]] = desc; });
+
+        removeAllChilds(listbox);
+
+        listbox.appendChild(
+            modules.util.xmlToDom(<listcols>
+                                  <listcol flex="1" width="10%" />
+                                  <listcol flex="4" width="40%" />
+                                  <listcol flex="5" width="50%" />
+                                  </listcols>)
+        );
+
+        function stick(keymap) {
+            for (let [k, a] in Iterator(keymap))
+            {
+                let act  = a.split(",")[0];
+                let desc = actionDescriptionMap[act] || "";
+                let item = document.createElement("listitem");
+
+                [k, act, desc].forEach(
+                    function (label) {
+                        let cell = document.createElement("listcell");
+                        cell.setAttribute("label", label);
+                        item.appendChild(cell);
+                    });
+
+                listbox.appendChild(item);
+            }
+        }
+
+        if (localKeymap)
+            stick(localKeymap);
+
+        stick(actionKeys.selector);
+
+        if (localKeymap)
+        {
+            $("keysnail-prompt-display-selector-help-button").setAttribute("hidden", false);
         }
     }
 
@@ -1520,12 +1571,12 @@ KeySnail.Prompt = function () {
 
             modules = this.modules;
 
-            promptbox = document.getElementById("keysnail-prompt");
-            label     = document.getElementById("keysnail-prompt-label");
-            textbox   = document.getElementById("keysnail-prompt-textbox");
-            container = document.getElementById("browser-bottombox");
+            promptbox = $("keysnail-prompt");
+            label     = $("keysnail-prompt-label");
+            textbox   = $("keysnail-prompt-textbox");
+            container = $("browser-bottombox");
 
-            listbox   = document.getElementById("keysnail-completion-list");
+            listbox   = $("keysnail-completion-list");
 
             // this holds all history and
             historyHolder            = {};
@@ -1556,6 +1607,23 @@ KeySnail.Prompt = function () {
             self.setActionKey("selector", "<home>" , "prompt-beginning-of-candidates");
             self.setActionKey("selector", "<end>"  , "prompt-end-of-candidates");
             self.setActionKey("selector", "C-i"    , "prompt-select-action");
+            self.setActionKey("selector", "C-?"    , "prompt-display-keymap-help");
+
+            modules.hook.addToHook(
+                'KeySnailInitialized',
+                function () {
+                    modules.hook.removeHook('KeySnailInitialized', arguments.callee);
+                    let displayHelpKey = [];
+
+                    for (let [k, act] in Iterator(actionKeys.selector))
+                    {
+                        if (act === "prompt-display-keymap-help")
+                            displayHelpKey.push(k);
+                    }
+
+                    $("keysnail-prompt-selector-help-title")
+                        .setAttribute("value", modules.util.getLocaleString("promptSelectorKeymapHelpTitle", [displayHelpKey.join(", ")]));
+                });
 
             // }} ======================================================================= //
         },
@@ -1567,12 +1635,33 @@ KeySnail.Prompt = function () {
         set editModeEnabled (value) {
             promptEditMode = value;
 
-            var button      = document.getElementById("keysnail-prompt-toggle-edit-mode-button");
+            var button      = $("keysnail-prompt-toggle-edit-mode-button");
             var iconURL     = "chrome://keysnail/skin/icon/prompt-" + (value ? "edit" : "view") + "-mode.png";
             var tooltipText = modules.util.getLocaleString("promptEditMode" + (value ? "Enabled" : "Disabled"));
             button.setAttribute("image", iconURL);
             button.setAttribute("tooltiptext", tooltipText);
             modules.display.echoStatusBar(tooltipText, 2000);
+        },
+
+        toggleSelectorHelpDisplay: function () {
+            let panel = $("keysnail-prompt-selector-help-popup");
+
+            if (panel.state === "open")
+            {
+                panel.hidePopup();
+            }
+            else if (!$("keysnail-prompt-display-selector-help-button").hidden)
+            {
+                let box   = panel.firstChild;
+
+                let width  = box.width  || 700;
+                let height = box.height || 500;
+
+                let x = screen.availLeft + (screen.availWidth - width) / 2;
+                let y = screen.availTop + (screen.availHeight - height) / 2;
+
+                panel.openPopupAtScreen(x, y, false);
+            }
         },
 
         toggleEditMode: function () {
@@ -1782,6 +1871,8 @@ KeySnail.Prompt = function () {
 
             textbox.value      = "";
             label.value        = "";
+
+            $("keysnail-prompt-display-selector-help-button").setAttribute("hidden", true);
 
             // ==================== execute callback ==================== //
 
@@ -2033,8 +2124,18 @@ KeySnail.Prompt = function () {
 
             selectorKeymap = combineObject(actionKeys["selector"], aContext.keymap || {});
 
+            if (aContext.actions)
+            {
+                try {
+                    setSelectorKeymapHelp(aContext.actions, aContext.keymap);
+                } catch (x) {
+                    self.message("prompt.js setSelectorKeymapHelp : " + x);
+                }
+            }
+
             setSelectorActions(aContext.actions || aContext.callback);
             setSelectorContextMenu(aContext.actions || aContext.callback);
+
             selectorContext[SELECTOR_STATE_ACTION].wholeListIndex = aContext.initialAction || 0;
 
             createCompletionList();
