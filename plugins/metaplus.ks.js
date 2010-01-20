@@ -3,13 +3,21 @@ var PLUGIN_INFO =
     <name>MetaPlus</name>
     <description>Make ESC behave as Meta</description>
     <description lang="ja">ESC キーを Meta キーとして</description>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/metaplus.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/metaplus.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.2.0</minVersion>
+    <options>
+        <option>
+            <name>metaplus.metakeys</name>
+            <type>array</type>
+            <description>Array of keys expected to behave as metakey. (Default: ["ESC"])</description>
+            <description lang="ja">メタキーとさせたいキーの配列 (デフォルト値: ["ESC"])</description>
+        </option>
+    </options>
     <detail><![CDATA[
 === Description ===
 
@@ -18,6 +26,22 @@ var PLUGIN_INFO =
 By installing this plugin, you can call your keybind beginning with Meta with ESC key.
 
 You can dispatch ESC key event by repeating ESC twice like ESC ESC.
+
+==== Make other keys behave as Meta key ====
+
+If you want other keys behave as Meta key, change value of the plugins.optioins["metaplus.metakeys"].
+
+For example, by inserting the setting below to PRESERVE area of your .keysnail.js, you can use C-{ as the another meta key.
+
+>||
+plugins.options["metaplus.metakeys"] = ["C-{"];
+||<
+
+The settings below makes both ESC and C-{ behave as meta key.
+
+>||
+plugins.options["metaplus.metakeys"] = ["ESC", "C-{"];
+||<
 
     ]]></detail>
     <detail lang="ja"><![CDATA[
@@ -31,6 +55,22 @@ Emacs では M-f などに割り当てられたコマンドは ESC f として�
 
 ESC キー自体を入力したい場合は ESC ESC というように ESC を二度続けて入力してください。
 
+==== ESC キー以外を Meta キーとして使う ====
+
+ESC キー以外を Meta キーとして利用したい場合は metaplus.metakeys の値を変更してください。
+
+例えば .keysnail.js の PRESERVE エリアへ次のような設定を行っておくと、 C-{　を Meta キーとして振る舞わせることが可能となります。
+
+>||
+plugins.options["metaplus.metakeys"] = ["C-{"];
+||<
+
+ESC キーと C-{ の両方を Meta キーとして使いたい場合は、以下のようにします。
+
+>||
+plugins.options["metaplus.metakeys"] = ["ESC", "C-{"];
+||<
+
 === 注意 ===
 
 このプラグインは Meta キーを含むキーバインドを検出し、そこから ESC キーを使ったキーバインドを新たに定義します。
@@ -41,12 +81,28 @@ ESC キー自体を入力したい場合は ESC ESC というように ESC を�
 </KeySnailPlugin>;
 
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 0.0.2 (2010 01/20) ====
+//
+// * Added option metaplus.metakeys which allows user to use any keys as meta.
 //
 // ==== 0.0.1 (2010 01/06) ====
 //
 // * Released
 //
 // }} ======================================================================= //
+
+var optionsDefaultValue = {
+    "metakeys" : ["ESC"]
+};
+
+function getOption(aName) {
+    var fullName = "metaplus." + aName;
+    if (typeof plugins.options[fullName] !== "undefined")
+        return plugins.options[fullName];
+    else
+        return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
+}
 
 for (let [mode, keymap] in Iterator(key.keyMapHolder))
 {
@@ -58,19 +114,22 @@ for (let [mode, keymap] in Iterator(key.keyMapHolder))
         let matched = k.match(/^(C-)?M-(.+)/);
         if (matched)
         {
-            if (!keymap["ESC"])
-                keymap["ESC"] = {};
+            getOption("metakeys").forEach(
+                function (meta) {
+                    if (typeof keymap[meta] !== "object")
+                        keymap[meta] = {};
 
-            let prefix = matched[2];
+                    let prefix = matched[2];
 
-            if (prefix === "C-")
-                prefix = prefix + matched[2];
+                    if (prefix === "C-")
+                        prefix = prefix + matched[2];
 
-            keymap["ESC"][prefix] = keymap[k];
+                    keymap[meta][prefix] = keymap[k];
+                });
         }
     }
 
-    if (keymap["ESC"])
+    if (typeof keymap["ESC"] === "object")
     {
         let esc = function(ev, arg) {
             ev.originalTarget.dispatchEvent(key.stringToKeyEvent("ESC", true));
