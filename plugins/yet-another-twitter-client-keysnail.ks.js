@@ -1,4 +1,13 @@
 // ChangeLog {{ ============================================================= //
+// 
+// ==== 1.5.5 (2010 01/16) ====
+// 
+// * Added popup_new_replies option.
+//   This option is only effective when the user set false to popup_new_statuses.
+//
+// ==== 1.5.4 (2010 01/03) ====
+//
+// * Set local keymap by default
 //
 // ==== 1.5.3 (2010 01/02) ====
 //
@@ -114,16 +123,17 @@ const Ci = Components.interfaces;
 // Options {{ =============================================================== //
 
 var optionsDefaultValue = {
-    "log_level"                             : LOG_LEVEL_MESSAGE,
-    "update_interval"                       : 60 * 1000,      // 1 minute
-    "mentions_update_interval"              : 60 * 1000 * 10, // 10 minute
-    "use_popup_notification"                : true,
-    "main_column_width"                     : [11, 70, 19],
-    "timeline_count_beginning"              : 80,
-    "timeline_count_every_updates"          : 20,
-    "unread_status_count_style"             : "color:#383838;font-weight:bold;",
-    "automatically_begin"                   : true,
-    "keymap"                                : {},
+    "log_level"                    : LOG_LEVEL_MESSAGE,
+    "update_interval"              : 60 * 1000,      // 1 minute
+    "mentions_update_interval"     : 60 * 1000 * 5, // 10 minute
+    "popup_new_statuses"           : false,
+    "popup_new_replies"            : true,
+    "main_column_width"            : [11, 70, 19],
+    "timeline_count_beginning"     : 80,
+    "timeline_count_every_updates" : 20,
+    "unread_status_count_style"    : "color:#383838;font-weight:bold;",
+    "automatically_begin"          : true,
+    "keymap"                       : null,
     "block_users"                           : [],
     "black_users"                           : [],
     "enable_header"                         : true,
@@ -144,6 +154,10 @@ function getOption(aName) {
         return plugins.options[fullName];
     else
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
+}
+
+function setOption(aName, aValue) {
+    plugins.options["twitter_client." + aName] = aValue;
 }
 
 // }} ======================================================================= //
@@ -348,43 +362,43 @@ var twitterClient =
              // ======================================== //
              [function (status) {
                   if (status) reply(status.screen_name, status.id);
-              }, M({ja: "このつぶやきに返信 : ", en: ""}) + "Send reply message",
+              }, M({ja: "このつぶやき => 信 : ", en: ""}) + "Send reply message",
              "reply"],
              // ======================================== //
              [function (status) {
                   if (status) quoteTweet(status.screen_name, html.unEscapeTag(status.text));
-              }, M({ja: "このつぶやきを => コメント付き ", en: ""}) + "RT (QT): Quote tweet",
+              }, M({ja: "このつぶやき => コメント付き ", en: ""}) + "RT (QT): Quote tweet",
              "retweet"],
              // ======================================== //
              [function (status) {
                   if (status) retweet(status.id);
-              }, M({ja: "このつぶやきを => 公式 ", en: ""}) + "RT : Official Retweet",
+              }, M({ja: "このつぶやき => 公式 ", en: ""}) + "RT : Official Retweet",
               "official-retweet"],
              // ======================================== //
              [function (status) {
                   if (status) deleteStatus(status.id);
-              }, M({ja: "このつぶやきを => 削除 : ", en: ""}) + "Delete this status",
+              }, M({ja: "このつぶやき => 削除 : ", en: ""}) + "Delete this status",
               "delete-tweet"],
              // ======================================== //
              [function (status) {
                   if (status) addFavorite(status.id, status.favorited);
-              }, M({ja: "このつぶやきを => お気に入りへ追加 / 削除 : ", en: ""}) + "Add / Remove this status to favorites",
+              }, M({ja: "このつぶやき => お気に入りへ追加 / 削除 : ", en: ""}) + "Add / Remove this status to favorites",
               "add-to-favorite,c"],
              // ======================================== //
              [function (status) {
                   if (status) gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
                                                   + "/status/" + status.id, null, null, null, false);
-              }, M({ja: "このつぶやきを => Twitter で見る : ", en: ""}) + "Show status in web page",
+              }, M({ja: "このつぶやき => Twitter で見る : ", en: ""}) + "Show status in web page",
               "view-in-twitter,c"],
              // ======================================== //
              [function (status) {
                   if (status) copy(html.unEscapeTag(status.text));
-              }, M({ja: "このつぶやきを => クリップボードにコピー : ", en: ""}) + "Copy selected message",
+              }, M({ja: "このつぶやき => クリップボードにコピー : ", en: ""}) + "Copy selected message",
               "copy-tweet,c"],
              // ======================================== //
              [function (status) {
                   if (status) display.prettyPrint(html.unEscapeTag(status.text), {timeout: 6000, fade: 200});
-              }, M({ja: "このつぶやきを => 全文表示 : ", en: ""}) + "Display entire message",
+              }, M({ja: "このつぶやき => 全文表示 : ", en: ""}) + "Display entire message",
               "display-entire-message,c"],
              // ======================================== //
              [function (status) {
@@ -392,17 +406,36 @@ var twitterClient =
                       tPrompt.forced = true;
                       showTargetStatus(status.screen_name);
                   }
-              }, M({ja: "このユーザのつぶやきを一覧表示 : ", en: ""}) + "Show Target status",
+              }, M({ja: "このユーザ => 最近のつぶやき : ", en: ""}) + "Show Target status",
               "show-target-status,c"],
              // ======================================== //
              [function (status) {
                   if (status) showFavorites(status.user_id);
-              }, M({ja: "このユーザのふぁぼり一覧を表示 : ", en: ""}) + "Show this user's favorites",
+              }, M({ja: "このユーザ => ふぁぼり一覧を表示 : ", en: ""}) + "Show this user's favorites",
               "show-user-favorites"],
              // ======================================== //
              [function (status) {
+                  if (!status) return;
+                  showLists(status.screen_name);
+              }, M({ja: "このユーザ => リストを一覧表示 : ", en: ""}) + "Show selected user's lists",
+              "show-selected-users-lists"],
+             // ======================================== //
+             [function (status) {
+                  selectFilter(
+                      function (filterName) {
+                          self.addUserToFilter(status.screen_name, filterName);
+                      }, util.format(M({ja: "%s の追加先:", en: "Add %s to:"}), status.screen_name));
+              }, M({ja: "このユーザ => フィルタへ追加 : ", en: ""}) + "Add this user to the filter",
+              "select-filter"],
+             // ======================================== //
+             [function (status) {
+                  if (status) addUserToBlacklist(status.screen_name);
+              }, M({ja: "このユーザ => ブラックリストへ追加 : ", en: ""}) + "Add this user to the blacklist",
+              "add-user-to-blacklist,c"],
+             // ======================================== //
+             [function (status) {
                   if (status) showMentions();
-              }, M({ja: "自分の @ を一覧表示 : ", en: ""}) + "Show mentions",
+              }, M({ja: "自分に関連したつぶやき @ を一覧表示 : ", en: ""}) + "Show mentions",
               "show-mentions"],
              // ======================================== //
              [function (status) {
@@ -414,11 +447,6 @@ var twitterClient =
                   if (status) search();
               }, M({ja: "単語を検索 : ", en: ""}) + "Search keyword",
               "search-word"],
-             // ======================================== //
-             [function (status) {
-                  if (status) addUserToBlacklist(status.screen_name);
-              }, M({ja: "このユーザをブラックリストへ追加 : ", en: ""}) + "Add this user to the blacklist",
-              "add-user-to-blacklist,c"],
              // ======================================== //
              [function (status) {
                   if (status)
@@ -440,12 +468,6 @@ var twitterClient =
               "open-url,c"],
              // ======================================== //
              [function (status) {
-                  if (!status) return;
-                  showLists(status.screen_name);
-              }, M({ja: "このユーザのリストを一覧表示 : ", en: ""}) + "Show selected user's lists",
-              "show-selected-users-lists"],
-             // ======================================== //
-             [function (status) {
                   nextFilter();
               }, M({ja: "次のフィルタへ : ", en: ""}) + "Next filter",
               "select-next-filter,c"],
@@ -457,13 +479,6 @@ var twitterClient =
              [function (status) {
                   selectFilter(showFilteredStatuses);
               }, M({ja: "フィルタを選択 : ", en: ""}) + "Select filter",
-              "select-filter"],
-             [function (status) {
-                  selectFilter(
-                      function (filterName) {
-                          self.addUserToFilter(status.screen_name, filterName);
-                      }, util.format(M({ja: "%s の追加先:", en: "Add %s to:"}), status.screen_name));
-              }, M({ja: "このユーザをフィルタへ追加 : ", en: ""}) + "Add this user to the filter",
               "select-filter"]
          ];
 
@@ -495,7 +510,7 @@ var twitterClient =
          {
              share.twitterClientSettings = {};
              share.twitterClientSettings.blackUsers = restoreObj("blackusers") || [];
-             share.twitterClientSettings.filters = restoreObj("filters") || {};
+             share.twitterClientSettings.filters    = restoreObj("filters") || {};
          }
 
          // Update interval in mili second
@@ -503,9 +518,6 @@ var twitterClient =
 
          // Update interval in mili second
          var mentionsUpdateInterval = getOption("mentions_update_interval");
-
-         // Show popup when timeline is updated
-         var popUpStatusWhenUpdated = getOption("use_popup_notification");
 
          // [User name, Message, Information] in percentage
          var mainColumnWidth = getOption("main_column_width");
@@ -1106,7 +1118,7 @@ var twitterClient =
          try {
              var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
          } catch (x) {
-             popUpStatusWhenUpdated = false;
+             setOption("popup_new_statuses", false);
          }
 
          var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
@@ -1142,32 +1154,35 @@ var twitterClient =
          }
 
          function showOldestUnPopUppedStatus() {
-             var status = share.unPopUppedStatuses.pop();
+             let status = share.unPopUppedStatuses.pop();
+             let popupStatus = false;
 
-             if ((blockUsers && blockUsers.some(function (username) username == status.user.screen_name))
-                 || (share.userInfo && status.user.screen_name == share.userInfo.screen_name))
+             if (getOption("popup_new_statuses"))
              {
+                 if (!(blockUsers && blockUsers.some(function (id) id === status.user.screen_name)) && /* blocked user */
+                     !(blackUsers && blackUsers.some(function (id) id === status.user.screen_name)) && /* user in blacklist */
+                     !(share.userInfo && status.user.screen_name === share.userInfo.screen_name))      /* your status*/
+                     popupStatus = true;
+             }
+             else if (getOption("popup_new_replies"))
+             {
+                 if (status.in_reply_to_screen_name && share.userInfo &&
+                     status.in_reply_to_screen_name === share.userInfo.screen_name)
+                     popupStatus = true;
+             }
+
+             if (!popupStatus)
+             {
+                 // ignore this status and go to next step
                  if (share.unPopUppedStatuses && share.unPopUppedStatuses.length)
-                 {
                      showOldestUnPopUppedStatus();
-                 }
 
                  return;
              }
 
-             // Codes below are no longer need because cache updater became singleton
-
-             // var browserWindow = wm.getMostRecentWindow("navigator:browser");
-             // if (!browserWindow || browserWindow !== window)
-             // {
-             //     return;
-             // }
-
              function proc() {
-                 if (!share.unPopUppedStatuses || !share.unPopUppedStatuses.length)
-                     return;
-
-                 showOldestUnPopUppedStatus();
+                 if (share.unPopUppedStatuses && share.unPopUppedStatuses.length)
+                     showOldestUnPopUppedStatus();
              }
 
              showPopup({
@@ -1283,7 +1298,7 @@ var twitterClient =
              return format(date, M({ja: "日前", en: "days ago"}));
          }
 
-         function combineJSONCache(aNew, aOld) {
+         function combineJSONCache(aNew, aOld, aNoPopup) {
              if (!aOld)
                  return aNew;
 
@@ -1318,8 +1333,13 @@ var twitterClient =
 
              var latestTimeline = newStatuses.concat(aOld);
 
-             if (popUpStatusWhenUpdated && newStatuses.length)
-                 popUpNewStatuses(newStatuses);
+             if (newStatuses.length && !aNoPopup)
+             {
+                 if (getOption("popup_new_statuses") || getOption("popup_new_replies"))
+                 {
+                     popUpNewStatuses(newStatuses);
+                 }
+             }
 
              return latestTimeline;
          }
@@ -1743,8 +1763,8 @@ var twitterClient =
                                                   favorited   : result.favorited
                                               }];
                                      },
-                                     keymap: getOption("keymap"),
-                                     actions: twitterCommonActions
+                                     keymap  : getOption("keymap"),
+                                     actions : twitterCommonActions
                                  });
                          }
                      }
@@ -2507,14 +2527,14 @@ var twitterClient =
                      },
                      onFinish : onFinish,
                      stylist  : getOption("fancy_mode") ?
-                         function (row, n, current) {
+                         function (args, n, current) {
                              if (current !== collection)
                              {
                                  // nothing to do in action mode
                                  return null;
                              }
 
-                             let status = row[0];
+                             let status = args[0];
 
                              let style = "";
 
@@ -2956,7 +2976,7 @@ var twitterClient =
                              else
                              {
                                  var statuses = json.decode(xhr.responseText);
-                                 share.twitterMentionsJSONCache = combineJSONCache(statuses, share.twitterMentionsJSONCache);
+                                 share.twitterMentionsJSONCache = combineJSONCache(statuses, share.twitterMentionsJSONCache, true);
                                  updateAllStatusbars();
                              }
 
@@ -3005,9 +3025,11 @@ var twitterClient =
              },
 
              togglePopupStatus: function () {
-                 popUpStatusWhenUpdated = !popUpStatusWhenUpdated;
-                 display.echoStatusBar(M({ja: ("ポップアップ通知を" + (popUpStatusWhenUpdated ? "有効にしました" : "無効にしました")),
-                                          en: ("Pop up " + (popUpStatusWhenUpdated ? "enabled" : "disabled"))}), 2000);
+                 let toggled = !getOption("popup_new_statuses");
+
+                 setOption("popup_new_statuses", toggled);
+                 display.echoStatusBar(M({ja: ("ポップアップ通知を" + (toggled ? "有効にしました" : "無効にしました")),
+                                          en: ("Pop up " + (toggled ? "enabled" : "disabled"))}), 2000);
              },
 
              reAuthorize: function () {
@@ -3258,7 +3280,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.3</version>
+    <version>1.5.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3287,26 +3309,33 @@ var PLUGIN_INFO =
             <name>twitter_client.automatically_begin</name>
             <type>boolean</type>
             <description>Automatically begin fetching the statuses</description>
-            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか (初回起動時間の短縮につながる)</description>
+            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか</description>
         </option>
         <option>
             <name>twitter_client.timeline_count_beginning</name>
             <type>integer</type>
             <description>Number of timelines this client fetches in the beginning (default 80)</description>
-            <description lang="ja">起動時に取得するステータス数 (デフォルトは 80)</description>
+            <description lang="ja">起動時に取得するステータス数 (デフォルト: 80)</description>
         </option>
         <option>
             <name>twitter_client.timeline_count_every_updates</name>
             <type>integer</type>
             <description>Number of timelines this client fetches at once (default 20)</description>
-            <description lang="ja">初回以降の更新で一度に取得するステータス数 (デフォルトは 20)</description>
+            <description lang="ja">初回以降の更新で一度に取得するステータス数 (デフォルト: 20)</description>
         </option>
         <option>
-            <name>twitter_client.use_popup_notification</name>
+            <name>twitter_client.popup_new_statuses</name>
             <type>boolean</type>
             <description>Whether display pop up notification when statuses are updated or not</description>
-            <description lang="ja">ステータス更新時にポップアップ通知を行うかどうか</description>
+            <description lang="ja">ステータス更新時にポップアップ通知を行うかどうか (デフォルト: OFF)</description>
         </option>
+        <option>
+            <name>twitter_client.popup_new_replies</name>
+            <type>boolean</type>
+            <description>Popup only new mentions</description>
+            <description lang="ja">自分への返信だけポップアップ表示する (デフォルト: ON)</description>
+        </option>
+
         <option>
             <name>twitter_client.update_interval</name>
             <type>integer</type>
@@ -3436,7 +3465,7 @@ Here is the example settings. This makes twitter client plugin tweet-only.
 
 >||
 style.register("#keysnail-twitter-client-container{ display:none !important; }");
-plugins.options["twitter_client.use_popup_notification"]       = false;
+plugins.options["twitter_client.popup_new_statuses"]           = false;
 plugins.options["twitter_client.automatically_begin"]          = false;
 plugins.options["twitter_client.timeline_count_beginning"]     = 0;
 plugins.options["twitter_client.timeline_count_every_updates"] = 0;
@@ -3562,7 +3591,7 @@ twitter_client.update_interval に値を設定することにより、この間�
 
 ==== ポップアップ通知  ====
 
-twitter_client.use_popup_notification オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
+twitter_client.popup_new_statuses オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
 
 また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
 
@@ -3572,7 +3601,7 @@ twitter_client.use_popup_notification オプションが true に設定されて
 
 >||
 style.register("#keysnail-twitter-client-container{ display:none !important; }");
-plugins.options["twitter_client.use_popup_notification"]       = false;
+plugins.options["twitter_client.popup_new_statuses"]           = false;
 plugins.options["twitter_client.automatically_begin"]          = false;
 plugins.options["twitter_client.timeline_count_beginning"]     = 0;
 plugins.options["twitter_client.timeline_count_every_updates"] = 0;
