@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -15,6 +15,7 @@ var PLUGIN_INFO =
     <provides>
         <ext>list-hateb-comments</ext>
         <ext>list-hateb-items</ext>
+        <ext>hateb-bookmark-this-page</ext>
     </provides>
     <options>
         <option>
@@ -29,6 +30,7 @@ var PLUGIN_INFO =
 このプラグインをインストールすることにより
 - list-hateb-comments
 - list-hateb-items
+- hateb-bookmark-this-page
 といったエクステが追加されます。
 
 M-x など (ext.select を呼び出すキー) を入力することにより、これらのコマンドを実行することができます。
@@ -36,34 +38,46 @@ M-x など (ext.select を呼び出すキー) を入力することにより、�
 また .keysnail.js 内に次のような設定を記述することにより、特定のキーへコマンドを割り当てておくことも可能です。
 
 >||
-key.setGlobalKey(["C-M-c"], function (ev, arg) {
-    ext.exec("list-hateb-comments", arg);
-}, "はてなブックマークのコメントを一覧表示", true);
-
 key.setGlobalKey(["C-x", ";"], function (ev, arg) {
     ext.exec("list-hateb-items", arg);
 }, "はてなブックマークのアイテムを一覧表示", true);
+
+key.setViewKey("c", function (ev, arg) {
+    ext.exec("list-hateb-comments", arg);
+}, "はてなブックマークのコメントを一覧表示", true);
+
+key.setViewKey('a', function (ev, arg) {
+    ext.exec("hateb-bookmark-this-page");
+}, 'このページをはてなブックマークに追加', true);
 ||<
 
 上記のような設定により C-M-c で「現在閲覧しているページのはてなブックマークのコメント一覧」を、 C-x ; により「自分のはてなブックマーク一覧」を、それぞれ表示することが可能となります。
+
+a を入力することで現在閲覧中のページをブックマークすることもできます。このとき、まずはじめにタグを入力するよう求められますので、補完機能等を使いながら適当なタグを入力してください。
+
+タグを入力し終わり Enter を押すと、次のタグ入力へと移ります。タグ入力を終了させコメント入力へ進む場合は、タグ入力欄へ何も入力せずにそのまま Enter を押してください。
 ]]></detail>
 </KeySnailPlugin>;
 // }}}
 
 // ChangeLog : {{{
 // 
+// ==== 1.2.0 (2010 01/23) ====
+//
+// * Added hateb-bookmark-this-page command
+//
 // ==== 1.2.0 (2009 12/20) ====
-// 
+//
 // * Supported , in the URL.
-// 
+//
 // ==== 1.1.9 (2009 12/05) ====
-// 
+//
 // * Supported % in the URL.
-// 
+//
 // ==== 1.1.8 (2009 11/23) ====
 //
 // * Added action "Open URL in the comment".
-// 
+//
 // ==== 1.1.7 (2009 11/15) ====
 //
 // * Added some useful actions.
@@ -85,6 +99,100 @@ ext.add("list-hateb-comments", listHBComments, M({ja: 'このページのはて�
 ext.add("list-hateb-items"   , listHBItems,    M({ja: "はてなブックマークのアイテムを一覧表示しジャンプ",
                                                   en: 'List all hatena bookmark entries in prompt.selector'}));
 
+ext.add("hateb-bookmark-this-page", addBookMark, M({ja: "このページをはてなブックマークに追加",
+                                                    en: 'Add this page to the hatena bookmark'}));
+
+function addBookMark() {
+    const limit = 100;
+
+    let tags         = hBookmark.model('Tag').findDistinctTags();
+    let filteredTags = [tag.name for each (tag in tags)];
+
+    let currentMsg  = "";
+    let currentTags = [];
+
+    function remainTextLengthWatcher(arg) {
+        let current = arg.textbox.value;
+        let length  = current.length;
+        let count   = limit - length - currentMsg.length;
+        let msg     = M({ja: ("残り " + count + " 文字"), en: count});
+
+        if (count < 0)
+            msg = M({ja: ((-count) + " 文字オーバー"), en: (-count + " characters overed")});
+
+        display.echoStatusBar(msg);
+    }
+
+    function tagsToMsg() {
+        return currentTags.map(function (t) "[" + t + "]").join("");
+    }
+
+    function inputTag() {
+        let savedSubstrMatch = prompt.substrMatch;
+
+        prompt.substrMatch = false;
+        
+        prompt.reader(
+            {
+                message    : "tag: " + tagsToMsg(),
+                collection : filteredTags,
+                onFinish   : function () {
+                    prompt.substrMatch = savedSubstrMatch;
+                },
+                callback   : function (tag) {
+                    if (!tag)
+                    {
+                        inputPost(tagsToMsg());
+                        return;
+                    }
+
+                    currentTags.push(tag);
+                    inputTag();
+                }
+            }
+        );
+    }
+
+    function inputPost(aInit) {
+        currentMsg = aInit || "";
+
+        prompt.reader(
+            {
+                message      : "add bookmark:",
+                onChange     : remainTextLengthWatcher,
+                initialinput : currentMsg,
+                cursorEnd    : currentMsg.length,
+                callback     : function post(aMsg) {
+                    let command = new hBookmark.RemoteCommand(
+                        "edit", {
+                            bookmark      : {
+                                url     : content.location.href,
+                                comment : aMsg
+                            },
+                            // changeTitle   : false,
+                            // addCollection : false,
+                            // isPrivate     : false,
+                            // sendMail      : false,
+                            // asin          : null,
+                            // changeImage   : false,
+                            // image         : null,
+                            onComplete    : function () {
+                                hBookmark.HTTPCache.entry.clear(bookmark.url);
+                            },
+                            onError       : function () {
+                                window.alert('error');
+                            }
+                        });
+
+                    command.execute();
+                }
+            }
+        );
+    }
+
+    inputTag();
+}
+
 function showCommentOfPage(aPageURL, aArg) {
     if (KeySnail.windowType != "navigator:browser" || !hBookmark)
         return;
@@ -97,14 +205,17 @@ function showCommentOfPage(aPageURL, aArg) {
 
     const B_URL = 'http://b.hatena.ne.jp/';
 
-    function iconGetter(aRow) {
-        return aRow[HB_USER_ICON] = hBookmark.UserUtils.getProfileIcon(aRow[HB_USER_NAME]);
+    function iconGetter([icon, name, tags, comment, date]) {
+        return 'http://www.hatena.ne.jp/users/' +
+            name.substring(0, 2) + '/' + name
+            + '/profile_s.gif';
     }
 
     hBookmark.HTTPCache.comment.async_get(
         aPageURL,
         function (data) {
-            if (!data || !data.title) {
+            if (!data || !data.title)
+            {
                 display.echoStatusBar(M({ja: 'ブックマークが見つかりませんでした',
                                          en: "No bookmarks found"}), 2000);
                 return;
@@ -113,7 +224,8 @@ function showCommentOfPage(aPageURL, aArg) {
             var collection = [];
             var bookmarks = data.bookmarks;
 
-            for (var i = 0; i < bookmarks.length; ++i) {
+            for (var i = 0; i < bookmarks.length; ++i)
+            {
                 var bookmark = bookmarks[i];
 
                 if (!bookmark.comment && (aArg == null))
@@ -122,7 +234,8 @@ function showCommentOfPage(aPageURL, aArg) {
                 collection.push([iconGetter, bookmark.user, bookmark.tags.toString(), bookmark.comment, bookmark.timestamp]);
             }
 
-            if (!collection.length) {
+            if (!collection.length)
+            {
                 display.echoStatusBar(M({ja: ((aArg == null) ? 'コメント付きの' : '') + 'ブックマークが見つかりませんでした',
                                          en: "No bookmarks found"}), 2000);
                 return;
@@ -136,32 +249,38 @@ function showCommentOfPage(aPageURL, aArg) {
 
             prompt.selector(
                 {
-                    message: "pattern:",
-                    collection: collection,
-                    flags: [ICON | IGNORE, 0, 0, 0, 0],
-                    style: ["color:blue;", "color:#3c5bff;", null, "color:#989898;"],
-                    header: ["User", "Tags", "Comment", "Date"],
-                    width: [15, 25, 45, 15],
-                    actions: [
+                    message    : "pattern:",
+                    collection : collection,
+                    flags      : [ICON | IGNORE, 0, 0, 0, 0],
+                    style      : ["color:blue;", "color:#3c5bff;", null, "color:#989898;"],
+                    header     : ["User", "Tags", "Comment", "Date"],
+                    width      : [15, 25, 45, 15],
+                    actions    : [
                         [function (aIndex) {
                              if (aIndex >= 0) {
                                  var url = getPermaLink(collection[aIndex]);
                                  openUILinkIn(url, "tab");
                              }
-                         }, M({ja: '選択中ユーザのブックマークコメントページを新しいタブで開く',
-                               en: "Open User Comment Page in new tab"})],
+                         },
+                         M({ja: '選択中ユーザのブックマークコメントページを新しいタブで開く',
+                            en: "Open User Comment Page in new tab"}),
+                         "open-user-comment-page"],
                         [function (aIndex) {
                              if (aIndex >= 0) {
                                  command.setClipboardText(collection[aIndex][HB_COMMENT]);
                              }
-                         }, M({ja: 'コメントをクリップボードにコピー',
-                               en: "Copy selected comment"})],
+                         },
+                         M({ja: 'コメントをクリップボードにコピー',
+                            en: "Copy selected comment"}),
+                         "copy-comment,c"],
                         [function (aIndex) {
                              if (aIndex >= 0) {
                                  display.prettyPrint(collection[aIndex][HB_COMMENT], {timeout: 6000, fade: 300});
                              }
-                         }, M({ja: 'コメントを全文表示',
-                               en: "Display entire comment"})],
+                         },
+                         M({ja: 'コメントを全文表示',
+                            en: "Display entire comment"}),
+                         "display-whole-comment,c"],
                         [function (aIndex) {
                              var matched;
                              var comment = collection[aIndex][HB_COMMENT];
@@ -176,8 +295,10 @@ function showCommentOfPage(aPageURL, aArg) {
 
                                  comment.text = comment.text.slice(comment.text.indexOf(matched[2]) + matched[2].length);
                              }
-                         }, M({ja: 'コメント中の URL を開く',
-                               en: 'Open URL in the comment'})]
+                         },
+                         M({ja: 'コメント中の URL を開く',
+                            en: 'Open URL in the comment'}),
+                         "open-url-in-comment,c"]
                     ]
                 }
             );
@@ -215,8 +336,10 @@ function listHBItems(aEvent, aArg) {
     }
 
     // by adding prefix arugment to force rebuild the cache
-    if (!hblist || aArg != null) {
-        if (!hBookmark.User.user) {
+    if (!hblist || aArg != null)
+    {
+        if (!hBookmark.User.user)
+        {
             hBookmark.User.login();
             util.sleep(2000);
         }
@@ -226,8 +349,11 @@ function listHBItems(aEvent, aArg) {
                                        "FROM bookmarks b",
                                        "ORDER BY b.date DESC"].join(" "));
         var count = 0;
-        var bookmarks = [];
-        while (stmt.executeStep() && count++ < limit) {
+        var bookmarks = [[
+                         ]];
+
+        while (stmt.executeStep() && count++ < limit)
+        {
             // icon, title, comment, url, date, search,
             bookmarks.push([iconGetter, stmt.getString(0), stmt.getString(1),
                             stmt.getString(2), getDate(stmt.getString(3)), stmt.getString(4)]);
@@ -238,13 +364,13 @@ function listHBItems(aEvent, aArg) {
 
     prompt.selector(
         {
-            message: "pattern:",
-            collection: hblist,
-            flags: [ICON | IGNORE, IGNORE, IGNORE, HIDDEN | IGNORE, IGNORE, HIDDEN],
-            style: [null, "color:#0a1e89;", "color:#001d6b;"],
-            header: ["Title", "Comment", "Date"],
-            width: [40, 45, 15],
-            actions: [
+            message    : "pattern:",
+            collection : hblist,
+            flags      : [ICON | IGNORE, IGNORE, IGNORE, HIDDEN | IGNORE, IGNORE, HIDDEN],
+            style      : [null, "color:#0a1e89;", "color:#001d6b;"],
+            header     : ["Title", "Comment", "Date"],
+            width      : [40, 45, 15],
+            actions    : [
                 [function (aIndex) {
                      if (aIndex >= 0) {
                          openUILinkIn(getURL(aIndex), "tab");
