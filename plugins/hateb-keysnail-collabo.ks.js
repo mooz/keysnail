@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -376,8 +376,7 @@ function listHBItems(aEvent, aArg) {
                                        "FROM bookmarks b",
                                        "ORDER BY b.date DESC"].join(" "));
         var count = 0;
-        var bookmarks = [[
-                         ]];
+        var bookmarks = [];
 
         while (stmt.executeStep() && count++ < limit)
         {
