@@ -61,8 +61,8 @@ a を入力することで現在閲覧中のページをブックマークする
 // }}}
 
 // ChangeLog : {{{
-// 
-// ==== 1.2.0 (2010 01/23) ====
+//
+// ==== 1.2.0 (2010 01/23c) ====
 //
 // * Added hateb-bookmark-this-page command
 //
@@ -102,6 +102,23 @@ ext.add("list-hateb-items"   , listHBItems,    M({ja: "はてなブックマー�
 ext.add("hateb-bookmark-this-page", addBookMark, M({ja: "このページをはてなブックマークに追加",
                                                     en: 'Add this page to the hatena bookmark'}));
 
+let alertsService = null;
+try {
+    var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
+} catch (x) {}
+
+function showPopup(arg) {
+    if (!alertsService)
+        return;
+
+    alertsService.showAlertNotification(arg.icon,
+                                        arg.title,
+                                        arg.message,
+                                        !!arg.link,
+                                        arg.link,
+                                        arg.observer);
+}
+
 function addBookMark() {
     const limit = 100;
 
@@ -131,7 +148,7 @@ function addBookMark() {
         let savedSubstrMatch = prompt.substrMatch;
 
         prompt.substrMatch = false;
-        
+
         prompt.reader(
             {
                 message    : "tag: " + tagsToMsg(),
@@ -163,12 +180,14 @@ function addBookMark() {
                 initialinput : currentMsg,
                 cursorEnd    : currentMsg.length,
                 callback     : function post(aMsg) {
-                    let command = new hBookmark.RemoteCommand(
-                        "edit", {
-                            bookmark      : {
+                    let bookmark = {
                                 url     : content.location.href,
                                 comment : aMsg
-                            },
+                            };
+
+                    let command = new hBookmark.RemoteCommand(
+                        "edit", {
+                            bookmark      : bookmark,
                             // changeTitle   : false,
                             // addCollection : false,
                             // isPrivate     : false,
@@ -178,6 +197,14 @@ function addBookMark() {
                             // image         : null,
                             onComplete    : function () {
                                 hBookmark.HTTPCache.entry.clear(bookmark.url);
+
+                                showPopup(
+                                    {
+                                        icon    : PLUGIN_INFO.iconURL,
+                                        title   : M({ja: "ブックマークに追加しました", en: "Bookmarked"}),
+                                        message : content.document.title
+                                    }
+                                );
                             },
                             onError       : function () {
                                 window.alert('error');
