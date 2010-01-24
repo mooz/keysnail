@@ -22,11 +22,6 @@ KeySnail.Command = {
             .getService(Components.interfaces.nsIAutoCompleteController);
     },
 
-    seed: [
-        [KeySnail.modules, "",       3, [KeySnail]],
-        [window,           "window", 1, [KeySnail]]
-    ],
-
     init: function () {
         // load kill-ring
         try {
@@ -119,33 +114,14 @@ KeySnail.Command = {
      * @returns {}
      */
     interpreter: function (ev, arg) {
-        let savedSubstrMatch = this.modules.prompt.substrMatch;
-
-        function onFinish() {
-            KeySnail.modules.prompt.substrMatch = savedSubstrMatch;
-        }
-
         let inspect = ('inspectObject' in window) && (arg > 0);
-
-        let seed = this.seed;
-        let collection = !(arg < 0) && this.commandList || (this.commandList = this.createCommandList(seed, true));
-
-        let localSeed = [
-            [content.wrappedJSObject, "content.wrappedJSObject", 1],
-            [content.document.wrappedJSObject, "content.document.wrappedJSObject", 1]
-        ];
-        let localCollection = !(arg < 0) && content.document.__ksCommandCollection__ ||
-            (content.document.__ksCommandCollection__ = this.createCommandList(localSeed, true));
-
-        collection = collection.concat(localCollection);
 
         with (this.modules)
         {
-            prompt.substrMatch = false;
             prompt.reader(
                 {
                     message    : "Eval: ",
-                    collection : collection,
+                    completer  : prompt.completer.fetch.javascript,
                     group      : "eval-expression",
                     flags      : [0, 0, IGNORE | HIDDEN],
                     style      : ["", "font-weight:bold;", ""],
@@ -162,7 +138,6 @@ KeySnail.Command = {
                             "boolean"  : "color:#860000;"
                         }[row[2]] || "color:black;";
                     },
-                    onFinish   : onFinish,
                     callback   : function (code) {
                         try
                         {

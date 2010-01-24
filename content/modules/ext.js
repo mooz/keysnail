@@ -27,10 +27,8 @@ KeySnail.Ext = function () {
         }
         keyList = keyList.sort();
 
-        for (var i = 0; i < keyList.length; ++i) {
-            name = keyList[i];
-            extList.push([name, exts[name].description]);
-        }
+        for (let [, name] in Iterator(keyList))
+            extList.push([name, exts[name].description || ""]);
 
         return extList;
     }

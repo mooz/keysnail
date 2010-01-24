@@ -32,6 +32,7 @@ KeySnail.Prompt = function () {
     var label;
     var textbox;
     var listbox;
+    var statusBar;
 
     // Callbacks
     var currentCallback;
@@ -80,10 +81,7 @@ KeySnail.Prompt = function () {
 
     var type = TYPE_NONE;
 
-    // -------------------- prompt.read specific -------------------- //
-
-    var currentHead;
-    var inNormalCompletion = false;
+    var historyHolder;
 
     // -------------------- prompt.selector specific -------------------- //
 
@@ -91,6 +89,9 @@ KeySnail.Prompt = function () {
     var selectorFilter;
     var selectorContext;
     var promptEditMode;
+
+    // In action view, we do not want stylist to work.
+    var selectorStylist;
 
     function createSelectorContext() {
         return {
@@ -135,25 +136,6 @@ KeySnail.Prompt = function () {
     var listStyle;
     var listWidth;
 
-    // ============================== completion type ============================== //
-
-    // History
-    var historyHolder;
-    var history = {
-        list  : null,
-        index : 0,
-        state : false,
-        name  : "History"
-    };
-
-    // Completion
-    var completion = {
-        list  : null,
-        index : 0,
-        state : false,
-        name  : "Completion"
-    };
-
     // ============================== prompt common functions ============================== //
 
     function $(aId) {
@@ -169,6 +151,12 @@ KeySnail.Prompt = function () {
         return elem;
     }
 
+    /**
+     * Combine two object. Implant b to a.
+     * @param {} a
+     * @param {} b
+     * @returns {}
+     */
     function combineObject(a, b) {
         var newObject = {};
         var key;
@@ -177,9 +165,7 @@ KeySnail.Prompt = function () {
             newObject[key] = value;
 
         for (let [key, value] in Iterator(b))
-        {
             newObject[key] = value;
-        }
 
         return newObject;
     }
@@ -653,15 +639,6 @@ KeySnail.Prompt = function () {
         if (command in selectorTranslator)
             command = selectorTranslator[command];
 
-        // function uniq(array) {
-        //     return array.reduce(
-        //         function (accum, current) {
-        //             if (accum.every(function (done) current !== done))
-        //                 accum.push(current);
-        //             return accum;
-        //         }, []);
-        // }
-
         function uniq(str) {
             var found = {};
             var uniqStr = "";
@@ -775,10 +752,12 @@ KeySnail.Prompt = function () {
             case SELECTOR_STATE_CANDIDATES:
                 from = SELECTOR_STATE_CANDIDATES;
                 to   = SELECTOR_STATE_ACTION;
+                cellStylist = null;
                 break;
             case SELECTOR_STATE_ACTION:
                 from = SELECTOR_STATE_ACTION;
                 to   = SELECTOR_STATE_CANDIDATES;
+                cellStylist = selectorStylist;
                 break;
             }
 
@@ -1026,7 +1005,7 @@ KeySnail.Prompt = function () {
 
         if (!currentList || !currentList.length)
         {
-            modules.display.echoStatusBar("No " + completion.name + " found", 1000);
+            modules.display.echoStatusBar("No completion found", 1000);
             wholeListIndex = -1;
             return;
         }
@@ -1066,7 +1045,7 @@ KeySnail.Prompt = function () {
     function createCompletionList() {
         if (!wholeList || !wholeList.length)
         {
-            modules.display.echoStatusBar("No " + completion.name + " found", 1000);
+            modules.display.echoStatusBar("No completion found", 1000);
             wholeListIndex = -1;
             return;
         }
@@ -1198,234 +1177,9 @@ KeySnail.Prompt = function () {
     // prompt.read, prompt.completer
     // ================================================================================ //
 
-    const ST_NEUTRAL = 0;
-    const ST_QUOTE   = 1;
-    const ST_WORD    = 2;
-
-    function lex(str, delimiters, quotes)
-    {
-        if (!delimiters)
-            delimiters = [' ', '\t'];
-
-        if (!quotes)
-            quotes = ['"', '\''];
-
-        let tokens = [];
-        let state  = ST_NEUTRAL;
-
-        let buffer = [];
-        let current;
-
-        let quoteChar;
-
-        for (let i = 0; i < str.length; ++i)
-        {
-            let current = str[i];
-
-            switch (state)
-            {
-                // ================================================== //
-                // Skip (Initial state)
-                // ================================================== //
-            case ST_NEUTRAL:
-
-                if (buffer.length)
-                {
-                    tokens.push(buffer.join(""));
-                    buffer = [];
-                }
-
-                switch (current)
-                {
-                case delimiters.some(function (d) d === current):
-                    break;
-                case quotes.some(function (q) q === current):
-                    buffer.push(current);
-                    state     = ST_QUOTE;
-                    quoteChar = current; // ' or "
-                    break;
-                default:
-                    buffer.push(current);
-                    state = ST_WORD;
-                    break;
-                }
-                break;
-                // ================================================== //
-                // In quote
-                // ================================================== //
-            case ST_QUOTE:
-                if (current === quoteChar)
-                    state = ST_NEUTRAL;
-                buffer.push(current);
-                break;
-                // ================================================== //
-                // Word
-                // ================================================== //
-            case ST_WORD:
-                if (delimiters.some(function (d) d === current))
-                    state = ST_NEUTRAL;
-                else
-                    buffer.push(current);
-                break;
-                // ================================================== //
-            }
-        }
-
-        if (buffer.length)
-            tokens.push(buffer.join(""));
-
-        return [tokens, state];
-    }
-
     function range(a, b) {
         for (let i = a; i < b; ++i)
             yield i;
-    }
-
-    function completerDisplayCompletions(completions) {
-
-    }
-
-    function completerSelectNthCompletion(n) {
-
-    }
-
-    function getCompletionList(args, query) {
-        return [0,
-                [[i, i + " desu"] for (i in range(0, 100))]];
-
-        var options = {
-            "-t" : "Title",
-            "-n" : "Notation",
-            "-c" : "Church"
-        };
-
-        if (!query)
-        {
-            // with option
-            if (args.length && args[args.length - 1] && args[args.length - 1][0] === "-")
-            {
-                let option = args[args.length - 1];
-
-                if (option in options)
-                    return [options[option], "hoge!"];
-
-                return ["Invalid", ""];
-            }
-
-            // all
-            return [[k, v] for ([k, v] in Iterator(options))];
-        }
-
-        return [[k, v] for ([k, v] in Iterator(options)) if (k.indexOf(query) !== -1)];
-    }
-
-    let completerState = {
-        index                   : -1,
-        query                   : null,
-        completions             : null,
-        preferredCursorPosition : 0
-    };
-
-    function resetCompleterState() {
-        completerState.index                   = -1;
-        completerState.query                   = null;
-        completerState.completions             = null;
-        completerState.preferredCursorPosition = 0;
-    }
-
-    function handleKeyUpCompleter(aEvent) {
-        if (textbox.selectionStart !== completerState.preferredCursorPosition)
-            resetCompleterState();
-
-        if (typeof userOnChange === "function")
-        {
-            let (arg = {
-                     textbox : textbox,
-                     event   : aEvent
-                 }) userOnChange(arg);
-        }
-    }
-
-    function handleKeyPressCompleter(aEvent) {
-        var key = modules.key.keyEventToString(aEvent);
-
-        var stopEventPropagation = true;
-        var keymap               = readerKeymap;
-
-        let completeDirection = 0;
-
-        switch (keymap[key])
-        {
-        case "prompt-cancel":
-            self.finish(true);
-            break;
-        case "prompt-decide":
-            self.finish();
-            break;
-        case "prompt-next-completion":
-            completeDirection = 1;
-            break;
-        case "prompt-previous-completion":
-            completeDirection = -1;
-            break;
-        default:
-            stopEventPropagation = false;
-            break;
-        }
-
-        if (completionDirection)
-        {
-            if (completerState.index >= 0)
-            {
-                // 補完中
-                let nextIndex = getNextIndex(completerState.index, completionDirection,
-                                             0, completerState.completions.length, true);
-                completerSelectNthCompletion(nextIndex);
-            }
-            else
-            {
-                // 補完開始
-                let currentText   = (textbox.value || "").substring(0, textbox.selectionStart);
-                let [args, state] = lex(currentText);
-                let origin        = -1;
-
-                // 補完候補を作成する
-                switch (state)
-                {
-                case ST_QUOTE:
-                    modules.display.echoStatusBar("Quotation is not closed", 1000);
-                    break;
-                case ST_WORD:
-                    self.message("[%s", args[args.length - 1]);
-                    // 最後の一つがクエリとなる (クエリを使って前方一致や Migemo 検索をし補完候補を生成)
-                    [origin, completerState.completions] = getCompletionList(args, args[args.length - 1]);
-                    break;
-                case ST_NEUTRAL:
-                    self.message("[%s]", args[args.length - 1]);
-                    [origin, completerState.completions] = getCompletionList(args, null);
-                    // 全ての補完候補を表示
-                    break;
-                }
-
-                if (origin >= 0)
-                {
-                    completerDisplayCompletions(completerState.completions);
-                    completerSelectNthCompletion(origin);
-                }
-                else
-                {
-                    // クリア
-                    // completerClear();
-                }
-            }
-        }
-
-        if (stopEventPropagation)
-        {
-            aEvent.preventDefault();
-            aEvent.stopPropagation();
-        }
     }
 
     // ====================================================================== //
@@ -1438,45 +1192,31 @@ KeySnail.Prompt = function () {
 
     var readerCurrentCollection = null;
     var readerCurrentIndex      = null;
+    var readerCurrentCompleter  = null;
 
-    var readerState       = READER_ST_NEUT;
-    var readerArgs        = null;
-    var readerQuery       = null;
-    var readerLeftContext = null;
+    var readerState        = READER_ST_NEUT;
+    var readerLeftContext  = null;
+    var readerOriginalText = null;
+    var readerCC           = null;
 
-    function setReaderArgs(aArgs) {
-        readerArgs  = aArgs;
-        readerQuery = aArgs ? aArgs[aArgs.length - 1] : null;
-    }
+    var readerHistory;
 
-    function resetState(aType) {
-        aType.index = 0;
-        aType.state = false;
-    }
+    // In history mode, we do not want stylist to work.
+    var readerStylist;
 
-    function resetReadState() {
-        currentHead        = null;
-        inNormalCompletion = false;
+    function readerSetupHistory(aGroup) {
+        aGroup = aGroup || "default";
 
-        // reset completion list index
-        compIndexList = null;
-        compIndex = 0;
+        if (aGroup && typeof historyHolder[aGroup] === "undefined")
+            historyHolder[aGroup] = [];
 
-        resetState(completion);
-        resetState(history);
+        readerHistory = historyHolder[aGroup];
     }
 
     function readerSetupList(aList, aIndex) {
         let pos;
         let center  = Math.round(listboxRows / 2);
         let listLen = aList.length;
-
-        // if (listLen <= listboxRows && !cellStylist)
-        // {
-        //     // just change the selected index of the listbox
-        //     listbox.currentIndex = listbox.selectedIndex = aIndex;
-        //     return;
-        // }
 
         let selectionPos;
 
@@ -1496,68 +1236,464 @@ KeySnail.Prompt = function () {
             selectionPos = center;
         }
 
-        self.message(selectionPos);
-
         listbox.currentIndex = listbox.selectedIndex = selectionPos;
     }
 
-    let tags         = ("hBookmark" in window) ? hBookmark.model('Tag').findDistinctTags() : [];
-    let filteredTags = [tag.name for each (tag in tags)];
+    function suggest(aWord) {
+        var xhr = new XMLHttpRequest();
+        var endPoint = "http://www.google.co.jp/complete/search?output=toolbar&q=" + encodeURIComponent(aWord);
 
-    function completer(args, query) {
-        if (query)
-        {
-            let migexp = window.xulMigemoCore.getRegExpFunctional(query, {}, {});
-            self.message(migexp);
-            return filteredTags.filter(function (s) !!s.match(migexp, "i"));
-        }
-        else
-        {
-            return filteredTags;
-        }
+        xhr.mozBackgroundRequest = true;
+        xhr.open("GET", endPoint, false);
+        xhr.send(null);
 
-        let options = {
-            "-t": [
-                [[i + ". time", "hehe"] for (i in range(0, 100))]
-            ],
-            "-n": [
-                [[i + ". noun", "huhu"] for (i in range(0, 100))]
-            ],
-            "-p": [
-                [[i + ". person", "hoho"] for (i in range(0, 100))]
-            ]
-        };
+        let matched = xhr.responseText.match("(<toplevel>.*</toplevel>)");
 
-        let opt = args[args.length - 2];
+        if (!matched)
+            return null;
 
-        if (opt)
-        {
-            if (opt in options)
-            {
-                return options[opt];
-                // return options[opt].filter(function ([str]) str.indexOf(query || ""));
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        // if (query)
-        // {
-            return [[opt, "desc"] for (opt in options)];
-        // }
-        // else
-        // {
-        // }
+        return new XML(matched[1]);
     }
+
+    function createTextGetter(aStringList) {
+        return isMultipleList(aStringList) ?
+            function (r) r[0] : function (r) r;
+    }
+
+    let completer = {
+        states: {
+            get NEUTRAL () { return 0; },
+            get QUOTE   () { return 1; },
+            get WORD    () { return 2; }
+        },
+
+        utils: {
+            getQuery: function getQuery(currentText, delimiters, quotes) {
+                let [args, state] = completer.utils.lex(currentText, delimiters, quotes);
+
+                let query  = (state === completer.states.NEUTRAL) ? "" : args[args.length - 1];
+                let origin = query ? currentText.lastIndexOf(query) : currentText.length;
+
+                return [query, origin];
+            },
+
+            escapeRegExp: function escapeRegExp(str) {
+                let specials = new RegExp("[.*+?|()\\[\\]{}\\\\]", "g");
+                return str.replace(specials, "\\$&");
+            },
+
+            /**
+             * when these strings are given,
+             * command.hoge
+             * command.huga
+             * command.hoho
+             * ________^___
+             * this function returns index of the ^,
+             * the end of common header string
+             * @param {[string]} aStringList
+             * @returns {integer} index of the common header substring
+             */
+            getCommonSubStringIndex: function getCommonSubStringIndex(aStringList) {
+                let i = 1;
+
+                let getText = createTextGetter(aStringList);
+
+                while (true)
+                {
+                    let header = getText(aStringList[0]).slice(0, i);
+
+                    if (aStringList.some(
+                            function (row) {
+                                let str = getText(row);
+                                return (str.slice(0, i) !== header) || (i > str.length);
+                            }))
+                        break;
+
+                    i++;
+                }
+
+                return i - 1;
+            },
+
+            lex: function lex(str, delimiters, quotes) {
+                if (!delimiters)
+                    delimiters = [' ', '\t', '\n'];
+
+                if (!quotes)
+                    quotes = ['"', '\''];
+
+                let tokens = [];
+                let state  = completer.states.NEUTRAL;
+
+                let buffer = [];
+                let current;
+
+                let quoteChar;
+
+                for (let i = 0; i < str.length; ++i)
+                {
+                    let current = str[i];
+
+                    switch (state)
+                    {
+                        // ================================================== //
+                        // Skip (Initial state)
+                        // ================================================== //
+                    case completer.states.NEUTRAL:
+
+                        if (buffer.length)
+                        {
+                            tokens.push(buffer.join(""));
+                            buffer = [];
+                        }
+
+                        switch (current)
+                        {
+                        case delimiters.some(function (d) d === current):
+                            break;
+                        case quotes.some(function (q) q === current):
+                            buffer.push(current);
+                            state     = completer.states.QUOTE;
+                            quoteChar = current; // ' or "
+                            break;
+                        default:
+                            buffer.push(current);
+                            state = completer.states.WORD;
+                            break;
+                        }
+                        break;
+                        // ================================================== //
+                        // In quote
+                        // ================================================== //
+                    case completer.states.QUOTE:
+                        if (current === quoteChar)
+                            state = completer.states.NEUTRAL;
+                        buffer.push(current);
+                        break;
+                        // ================================================== //
+                        // Word
+                        // ================================================== //
+                    case completer.states.WORD:
+                        if (delimiters.some(function (d) d === current))
+                            state = completer.states.NEUTRAL;
+                        else
+                            buffer.push(current);
+                        break;
+                        // ================================================== //
+                    }
+                }
+
+                if (buffer.length)
+                    tokens.push(buffer.join(""));
+
+                return [tokens, state];
+            }
+        },
+
+        variety: function (completers) {
+            return function (currentText, text) {
+                let collections = [];
+
+                for (let [, cmpltr] in Iterator(completers))
+                {
+                    let collection = cmpltr(currentText, text);
+                    if (collection)
+                        collections.push(collection);
+                }
+
+                let max = -1;
+
+                for (let [, c] in Iterator(collections))
+                {
+                    if (typeof c === "string")
+                    {
+                        if (max < 1)
+                            max = 1;
+                    }
+                    else if (typeof c[0] === "string" && c[0].length > max)
+                    {
+                        max = c[0].length;
+                    }
+                }
+
+                if (max < 0)
+                    return null;
+
+                if (max === 1)
+                {
+                    collections = collections.reduce();
+                }
+
+                collections = collections.reduce(
+                    function (accum, collection) {
+                        let normalized = collection;
+
+                        if (normalized[0].length < max)
+                        {
+                            normalized = normalized.map(function (r) {
+
+                                                        });
+                        }
+                        return accum.concat(collection.map(
+                                                function () {
+                                                }));
+                    }, []);
+
+            };
+        },
+
+        fetch: {
+            googleSuggest: function (currentText, text) {
+                let [query, origin] = completer.utils.getQuery(currentText, [" "]);
+
+                let suggested = query ? suggest(query) : null;
+
+                let cc = {
+                    origin     : origin,
+                    query      : query,
+                    collection : suggested ? [complete.suggestion.@data
+                                              for each (complete in suggested.CompleteSuggestion)] : null
+                };
+
+                return cc;
+            },
+
+            javascript: function (currentText, text) {
+                let [query, origin] = completer.utils.getQuery(currentText, [" "]);
+
+                function getV(obj, k) {
+                    try {
+                        return obj[k] || "";
+                    } catch (x) {
+                        return "";
+                    }
+                }
+
+                function getKeys(obj) {
+                    let wrapped = obj.wrappedJSObject;
+
+                    if (wrapped)
+                        obj = wrapped;
+
+                    try
+                    {
+                        for (let k in obj)
+                            yield k;
+                    }
+                    catch (x)
+                    {
+                        throw StopIteration;
+                    }
+                }
+
+                let cc = {
+                    origin     : origin,
+                    query      : query
+                };
+
+                if (!query)
+                {
+                    cc.collection = [[k, getV(window, k).toString(), typeof getV(window, k)]
+                                     for (k in getKeys(window))];
+                    return cc;
+                }
+                else
+                {
+                    let obj = window;
+
+                    let props = query.split(".");
+                    let all   = query[query.length - 1] === ".";
+                    let key   = props.pop();
+
+                    let prefix  = props.join(".");
+
+                    for (let i = 0; i < props.length; ++i)
+                    {
+                        obj = obj[props[i]];
+
+                        if (!obj)
+                            return cc;
+                    }
+
+                    function propFilter(str) {
+                        if (str.match(/^[a-zA-Z_$]+[0-9a-zA-Z$_]*$/))
+                            return (props.length ? "." : "") + str;
+                        else
+                            return "['" + str.replace(/'/g, "'") + "']"; // '
+                    }
+
+                    if (obj)
+                    {
+                        function cmp([a], [b]) {
+                            if (a < b)
+                                return -1;
+                            else if (a > b)
+                            return 1;
+                            else
+                                return 0;
+                        }
+
+                        // let pattern = "^" + completer.utils.escapeRegExp(key);
+                        if (all)
+                        {
+                            cc.collection =
+                                [[prefix + propFilter(k), getV(obj, k).toString(), typeof getV(obj, k)]
+                                 for (k in getKeys(obj))].sort(cmp);
+                        }
+                        else
+                        {
+                            let keys    = [(k || "") for (k in getKeys(obj))];
+                            let matched = [];
+
+                            // head
+                            keys = keys.filter(function (k) {
+                                                   if (k.indexOf(key) === 0)
+                                                   {
+                                                       matched.push(k);
+                                                       return false;
+                                                   }
+
+                                                   return true;
+                                               });
+
+                            // ignore case
+                            keys = keys.filter(function (k) {
+                                                   if (k.toLowerCase().indexOf(key.toLowerCase()) === 0)
+                                                   {
+                                                       matched.push(k);
+                                                       return false;
+                                                   }
+
+                                                   return true;
+                                               });
+
+                            // substring
+                            keys = keys.filter(function (k) {
+                                                   if (k.toLowerCase().indexOf(key.toLowerCase()) !== -1)
+                                                   {
+                                                       matched.push(k);
+                                                       return false;
+                                                   }
+
+                                                   return true;
+                                               });
+
+                            cc.collection = [[prefix + propFilter(k), getV(obj, k).toString(), typeof getV(obj, k)] for each (k in matched)];
+                        }
+                    }
+
+                    return cc;
+                }
+            }
+        },
+
+        match: {
+            migemo: function (collection, options) {
+                let getText = createTextGetter(collection);
+
+                if ("xulMigemoCore" in window)
+                {
+                    return function (currentText, text) {
+                        let [query, origin] = completer.utils.getQuery(currentText, [" "]);
+
+                        let cc = {
+                            origin : origin,
+                            query  : query
+                        };
+
+                        if (query)
+                        {
+                            let migexp  = window.xulMigemoCore.getRegExp(query);
+                            let matched = [];
+                            let remains = collection;
+
+                            // head
+                            remains = remains.filter(function (c) {
+                                                               let text = getText(c);
+                                                               if (text.indexOf(query) === 0) { matched.push(c); return false; }
+                                                               return true;
+                                                           });
+
+                            // ignore case
+                            let (query = query.toLowerCase())
+                                remains = remains.filter(function (c) {
+                                                                   let text = getText(c).toLowerCase();
+                                                                   if (text.indexOf(query) === 0) { matched.push(c); return false; }
+                                                                   return true;
+                                                               });
+
+                            // mige!
+                            cc.collection = matched.concat(remains.filter(function (s) !!getText(s).match(migexp)));
+                        }
+                        else
+                            cc.collection = collection;
+
+                        return combineObject(cc, options || {});
+                    };
+                }
+                else
+                {
+                    return completer.match.header(collection, options);
+                }
+            },
+
+            header: function (collection, options, specific) {
+                if (!collection) collection = [];
+                if (!options) options       = {};
+                if (!specific) specific     = {};
+
+                return function (currentText, text) {
+                    let query, origin;
+
+                    if (specific.wholeHeaderAsQuery)
+                    {
+                        query  = currentText;
+                        origin = currentText.length;
+                    }
+                    else
+                    {
+                        [query, origin] = completer.utils.getQuery(currentText, [" "]);
+                    }
+
+                    let cc = {
+                        origin : origin,
+                        query  : query
+                    };
+
+                    if (query)
+                    {
+                        if (isMultipleList(collection))
+                            cc.collection = collection.filter(function ([str]) (str || "").indexOf(query) === 0);
+                        else
+                            cc.collection = collection.filter(function (str) (str || "").indexOf(query) === 0);
+                    }
+                    else
+                    {
+                        cc.collection = collection;
+                    }
+
+                    if (specific.stopCaret)
+                    {
+                        cc.cursorpos = currentText.length;
+                        cc.cleartext = true;
+                    }
+
+                    if (cc.collection.length && specific.commonHeader)
+                        cc.cursorpos = origin + completer.utils.getCommonSubStringIndex(cc.collection);
+
+                    // self.message("common %s", cc.cursorpos);
+
+                    return combineObject(cc, options || {});
+                };
+            }
+        }
+    };
 
     var oldSelectionStart = 0;
     function handleKeyUpRead(aEvent) {
         if (textbox.selectionStart !== oldSelectionStart)
         {
             readerState = READER_ST_NEUT;
-            // resetReadState();
         }
 
         oldSelectionStart = textbox.selectionStart;
@@ -1613,65 +1749,109 @@ KeySnail.Prompt = function () {
             break;
         }
 
+        switch (readerState)
+        {
+            case READER_ST_NEUT:
+            case READER_ST_HIST:
+            cellStylist = null;
+            break;
+            case READER_ST_COMP:
+            cellStylist = readerStylist;
+            break;
+        }
+
         if (direction)
         {
             stopEventPropagation = true;
 
+            let notComplete = false;
+
             if (oldState !== readerState)
             {
-                // 候補の作成
-                let currentText   = (textbox.value || "").substring(0, textbox.selectionStart);
-                // self.message('txt "%s"', currentText);
-                let [args, state] = lex(currentText, [" "], []);
-                let query = (state === ST_NEUTRAL) ? null : args[args.length - 1];
+                // ================================================== //
+                // Create
+                // ================================================== //
 
-                setReaderArgs(args);
+                readerOriginalText = textbox.value;
 
-                let completionList = completer(args, query);
+                let currentText = (textbox.value || "").substring(0, textbox.selectionStart);
+                let cc;
 
-                if (!completionList || !completionList.length)
+                let noCompletionMsg;
+
+                switch (readerState)
+                {
+                case READER_ST_COMP:
+                    cc = readerCC = readerCurrentCompleter(currentText, textbox.value);
+
+                    if (readerCC)
+                        noCompletionMsg = modules.util.format("No completion found for [%s]", readerCC.query);
+                    break;
+                case READER_ST_HIST:
+                    cc = readerCC = completer.match.header(readerHistory, {}, {
+                                                               wholeHeaderAsQuery : true,
+                                                               stopCaret          : true
+                                                           })(currentText, textbox.value) || {};
+                    noCompletionMsg = modules.util.format("No history found for [%s]", currentText);
+                    break;
+                }
+
+                if (!cc || !cc.collection || !cc.collection.length)
                 {
                     readerState = READER_ST_NEUT;
-                    modules.display.echoStatusBar("No completions found", 1000);
+                    modules.display.echoStatusBar(noCompletionMsg, 3000);
                 }
                 else
                 {
-                    readerCurrentCollection = completionList;
-                    readerCurrentIndex      = direction > 0 ? 0 : completionList.length - 1;
-                    readerLeftContext       = query ? currentText.slice(0, currentText.lastIndexOf(query)) : currentText;
+                    readerCurrentCollection = cc.collection;
+                    readerCurrentIndex      = direction > 0 ? 0 : readerCurrentCollection.length - 1;
+                    readerLeftContext       = currentText.slice(0, cc.origin);
 
-                    // self.message('que "%s"', query);
-                    // self.message('con "%s"', readerLeftContext);
-
-                    setRows(completionList.length);
+                    setRows(readerCurrentCollection.length);
 
                     listbox.hidden = false;
 
-                    readerSetupList(completionList, readerCurrentIndex);
+                    readerSetupList(readerCurrentCollection, readerCurrentIndex);
                 }
             }
             else
             {
-                readerCurrentIndex = getNextIndex(readerCurrentIndex, direction,
-                                                  0, readerCurrentCollection.length, true);
+                // ================================================== //
+                // Select
+                // ================================================== //
 
-                readerSetupList(readerCurrentCollection, readerCurrentIndex);
+                let next = readerCurrentIndex + direction;
 
-                // 次 / 前の候補へ
-                switch (readerState)
+                if (next < 0 || next >= readerCurrentCollection.length)
                 {
-                case READER_ST_HIST:
-                    break;
-                case READER_ST_COMP:
-                    break;
+                    readerSetupList(readerCurrentCollection, next < 0 ? readerCurrentCollection.length - 1 : 0);
+
+                    listbox.selectedIndex = -1;
+                    textbox.value         = readerOriginalText;
+
+                    // readerCurrentIndex    = 0;
+                    // notComplete           = true;
+
+                    readerState = READER_ST_NEUT;
+                }
+                else
+                {
+                    readerCurrentIndex = next;
+                    readerSetupList(readerCurrentCollection, next);
                 }
             }
 
-            if (readerState !== READER_ST_NEUT)
+            if (readerState !== READER_ST_NEUT && !notComplete)
             {
-                let text          = readerCurrentCollection[readerCurrentIndex];
-                textbox.value     = readerLeftContext + text;
-                oldSelectionStart = textbox.value.length;
+                let text      = isMultipleList(readerCurrentCollection) ?
+                    readerCurrentCollection[readerCurrentIndex][0] : readerCurrentCollection[readerCurrentIndex];
+                textbox.value = readerCC.cleartext ? text : readerLeftContext + text;
+
+                oldSelectionStart = textbox.selectionStart = textbox.selectionEnd =
+                    (typeof readerCC.cursorpos === "number") ? readerCC.cursorpos : textbox.value.length;
+
+                statusBar.label =
+                    modules.util.format("(%s / %s)", readerCurrentIndex + 1, readerCurrentCollection.length);
             }
         }
 
@@ -1693,21 +1873,12 @@ KeySnail.Prompt = function () {
                 if ((after - before) !== 0)
                 {
                     var delta = (after - before);
-                    if (completion.state)
-                    {
-                        readerComplete(completion, delta, true, true, options.substrMatch, true);
-                        return;
-                    }
 
-                    if (history.state)
-                        readerComplete(history, delta);
-                    else
+                    switch (readerState)
                     {
-                        readerComplete(history, 0);
-                        history.state = true;
+                        case READER_ST_HIST:
+                        break;
                     }
-                    // reset completion index
-                    resetState(completion);
                 }
 
                 setTimeout(
@@ -1716,314 +1887,6 @@ KeySnail.Prompt = function () {
                         textbox.selectionStart = textbox.value.length;
                     }, 0);
             }, 0);
-    }
-
-    /**
-     *
-     * @param {object} aType history, completion
-     * @param {int} aDirection 0, -1, 1
-     * @param {boolean} aExpand if this value is true, "head" expands greedly
-     * @param {boolean} aRing whether connect completion list head and tail or not
-     * @param {boolean} aSubstrMatch whether use substring match or not
-     * @param {boolean} aNoSit whether move caret or not
-     */
-    function readerComplete(aType, aDirection, aExpand, aRing, aSubstrMatch, aNoSit) {
-        if (!aType.list || !aType.list.length)
-        {
-            modules.display.echoStatusBar("No " + aType.name + " found", 1000);
-            return;
-        }
-
-        let currentText   = (textbox.value || "").substring(0, textbox.selectionStart);
-        let [args, state] = lex(currentText);
-
-        var listBoxSelectionIndex;
-        var index;
-
-        if (start === 0 || inNormalCompletion)
-        {
-            currentHead = "";
-            // get {current / next / previous} index
-            index = getNextIndex(aType.index, aDirection, 0, aType.list.length, aRing);
-
-            if (!inNormalCompletion)
-            {
-                // at first time
-                setListBoxFromStringList(aType.list);
-                setRows(aType.list.length);
-                listbox.hidden = false;
-            }
-            listBoxSelectionIndex = index;
-
-            // normal completion (not the substring matching)
-            inNormalCompletion = true;
-        }
-        else
-        {
-            inNormalCompletion = false;
-
-            var listLen = aType.list.length;
-            var substrIndex;
-
-            if (currentHead !== null && compIndexList)
-            {
-                // use current completion list
-                var nextCompIndex = getNextIndex(compIndex, aDirection, 0, compIndexList.length, aRing);
-
-                index = compIndexList[nextCompIndex];
-                compIndex = nextCompIndex;
-                listBoxSelectionIndex = nextCompIndex;
-            }
-            else
-            {
-                // generate new completion list
-                compIndexList = [];
-                compIndex = 0;
-
-                var header = textbox.value.slice(0, start);
-
-                currentHead = header;
-
-                // modules.display.prettyPrint(header);
-
-                for (var i = 0; i < listLen; ++i)
-                {
-                    var foundIndex = getListText(aType.list, i).indexOf(header);
-                    if (foundIndex === 0 || (aSubstrMatch && foundIndex !== -1))
-                        compIndexList.push(i);
-                }
-
-                if (compIndexList.length === 0)
-                {
-                    compIndexList = null;
-                    modules.display.echoStatusBar("No match for [" + currentHead + "]");
-                    currentHead = null;
-
-                    return;
-                }
-
-                index = compIndexList[0];
-
-                if (aExpand)
-                {
-                    var newSubstrIndex = getCommonSubstrIndex(aType.list, compIndexList);
-                    currentHead = getListText(aType.list, index).slice(0, newSubstrIndex);
-
-                    oldSelectionStart = newSubstrIndex;
-                }
-
-                setListBoxFromIndexList(aType.list, compIndexList);
-                listBoxSelectionIndex = 0;
-
-                // show
-                setRows(compIndexList.length);
-                listbox.hidden = false;
-            }
-        }
-
-        if (inNormalCompletion)
-            modules.display.echoStatusBar(modules.util.format("%s (%s / %s)", aType.name, index + 1, aType.list.length));
-        else
-        {
-            modules.display.echoStatusBar(modules.util.format("%s Match for [%s] (%s / %s)",
-                                                              aType.name + (aSubstrMatch ? " Substring" : " Header"),
-                                                              currentHead,
-                                                              compIndex + 1,
-                                                              compIndexList.length));
-        }
-
-        // set new text
-
-        textbox.value = getListText(aType.list, index);
-        aType.index = index;
-
-        if (aNoSit)
-        {
-            if (inNormalCompletion)
-            {
-                textbox.selectionStart = textbox.selectionEnd = textbox.value.length;
-                oldSelectionStart = textbox.value.length;
-            }
-            else
-            {
-                textbox.selectionStart = textbox.selectionEnd = currentHead.length;
-            }
-        }
-        else
-        {
-            textbox.selectionStart = textbox.selectionEnd = start;
-        }
-
-        setListBoxSelection(listBoxSelectionIndex);
-    }
-
-    /**
-     *
-     * @param {object} aType history, completion
-     * @param {int} aDirection 0, -1, 1
-     * @param {boolean} aExpand if this value is true, "head" expands greedly
-     * @param {boolean} aRing whether connect completion list head and tail or not
-     * @param {boolean} aSubstrMatch whether use substring match or not
-     * @param {boolean} aNoSit whether move caret or not
-     */
-    function readerComplete2(aType, aDirection, aExpand, aRing, aSubstrMatch, aNoSit) {
-        if (!aType.list || !aType.list.length)
-        {
-            modules.display.echoStatusBar("No " + aType.name + " found", 1000);
-            return;
-        }
-
-        let currentText   = (textbox.value || "").substring(0, textbox.selectionStart);
-        let [args, state] = lex(currentText);
-
-        var listBoxSelectionIndex;
-        var index;
-
-        if (start === 0 || inNormalCompletion)
-        {
-            currentHead = "";
-            // get {current / next / previous} index
-            index = getNextIndex(aType.index, aDirection, 0, aType.list.length, aRing);
-
-            if (!inNormalCompletion)
-            {
-                // at first time
-                setListBoxFromStringList(aType.list);
-                setRows(aType.list.length);
-                listbox.hidden = false;
-            }
-            listBoxSelectionIndex = index;
-
-            // normal completion (not the substring matching)
-            inNormalCompletion = true;
-        }
-        else
-        {
-            inNormalCompletion = false;
-
-            var listLen = aType.list.length;
-            var substrIndex;
-
-            if (currentHead !== null && compIndexList)
-            {
-                // use current completion list
-                var nextCompIndex = getNextIndex(compIndex, aDirection, 0, compIndexList.length, aRing);
-
-                index = compIndexList[nextCompIndex];
-                compIndex = nextCompIndex;
-                listBoxSelectionIndex = nextCompIndex;
-            }
-            else
-            {
-                // generate new completion list
-                compIndexList = [];
-                compIndex = 0;
-
-                var header = textbox.value.slice(0, start);
-
-                currentHead = header;
-
-                // modules.display.prettyPrint(header);
-
-                for (var i = 0; i < listLen; ++i)
-                {
-                    var foundIndex = getListText(aType.list, i).indexOf(header);
-                    if (foundIndex === 0 || (aSubstrMatch && foundIndex !== -1))
-                        compIndexList.push(i);
-                }
-
-                if (compIndexList.length === 0)
-                {
-                    compIndexList = null;
-                    modules.display.echoStatusBar("No match for [" + currentHead + "]");
-                    currentHead = null;
-
-                    return;
-                }
-
-                index = compIndexList[0];
-
-                if (aExpand)
-                {
-                    var newSubstrIndex = getCommonSubstrIndex(aType.list, compIndexList);
-                    currentHead = getListText(aType.list, index).slice(0, newSubstrIndex);
-
-                    oldSelectionStart = newSubstrIndex;
-                }
-
-                setListBoxFromIndexList(aType.list, compIndexList);
-                listBoxSelectionIndex = 0;
-
-                // show
-                setRows(compIndexList.length);
-                listbox.hidden = false;
-            }
-        }
-
-        if (inNormalCompletion)
-            modules.display.echoStatusBar(modules.util.format("%s (%s / %s)", aType.name, index + 1, aType.list.length));
-        else
-        {
-            modules.display.echoStatusBar(modules.util.format("%s Match for [%s] (%s / %s)",
-                                                              aType.name + (aSubstrMatch ? " Substring" : " Header"),
-                                                              currentHead,
-                                                              compIndex + 1,
-                                                              compIndexList.length));
-        }
-
-        // set new text
-
-        textbox.value = getListText(aType.list, index);
-        aType.index = index;
-
-        if (aNoSit)
-        {
-            if (inNormalCompletion)
-            {
-                textbox.selectionStart = textbox.selectionEnd = textbox.value.length;
-                oldSelectionStart = textbox.value.length;
-            }
-            else
-            {
-                textbox.selectionStart = textbox.selectionEnd = currentHead.length;
-            }
-        }
-        else
-        {
-            textbox.selectionStart = textbox.selectionEnd = start;
-        }
-
-        setListBoxSelection(listBoxSelectionIndex);
-    }
-
-    /**
-     * when these strings are given,
-     * command.hoge
-     * command.huga
-     * command.hoho
-     * ________^___
-     * this function returns index of the ^,
-     * the end of common header string
-     * @param {[string]} aStringList
-     * @param {[integer]} aIndexList
-     * @returns {integer} index of the common header substring
-     */
-    function getCommonSubstrIndex(aStringList, aIndexList) {
-        var i = 1;
-
-        while (true)
-        {
-            var header = getListText(aStringList, aIndexList[0]).slice(0, i);
-
-            if (aIndexList.some(
-                    function (strIndex) (getListText(aStringList, strIndex).slice(0, i) !== header)
-                        || (i > getListText(aStringList, strIndex).length)
-                )) break;
-
-            i++;
-        }
-
-        return i - 1;
     }
 
     // ============================== finish ============================== //
@@ -2050,7 +1913,7 @@ KeySnail.Prompt = function () {
                 if (options.ignoreDuplication)
                 {
                     // remove all duplicated elements from list and add str to head
-                    var li = history.list;
+                    var li = readerHistory;
                     for (var i = 0; i < li.length; ++i)
                     {
                         if (text == li[i])
@@ -2061,7 +1924,7 @@ KeySnail.Prompt = function () {
                 }
                 else
                 {
-                    history.list.unshift(text);
+                    readerHistory.unshift(text);
                 }
             }
         }
@@ -2075,6 +1938,8 @@ KeySnail.Prompt = function () {
         init: function () {
             if (KeySnail.windowType != "navigator:browser")
                 return;
+
+            statusBar = $('statusbar-display');
 
             modules = this.modules;
 
@@ -2135,7 +2000,9 @@ KeySnail.Prompt = function () {
             // }} ======================================================================= //
         },
 
-        get editModeEnabled () {
+        completer: completer,
+
+        get editModeEnabled() {
             return promptEditMode;
         },
 
@@ -2359,15 +2226,9 @@ KeySnail.Prompt = function () {
             currentList           = null;
             currentIndexList      = null;
 
-            // -------------------- prompt.read -------------------- //
+            // -------------------- prompt.read, prompt.reader ----------------------------- //
 
-            currentHead        = null;
-            inNormalCompletion = false;
-            compIndex          = 0;
-            compIndexList      = null;
-
-            resetState(history);
-            resetState(completion);
+            readerState = READER_ST_NEUT;
 
             // -------------------- DOM objects -------------------- //
 
@@ -2424,15 +2285,11 @@ KeySnail.Prompt = function () {
             type = TYPE_READ;
 
             // set up history
-            history.index = 0;
-            aGroup = aGroup || "default";
-            if (aGroup && typeof historyHolder[aGroup] === "undefined")
-                historyHolder[aGroup] = [];
-            history.list = historyHolder[aGroup];
+            readerSetupHistory(aGroup);
 
             // set up completion
-            completion.list = aCollection;
-            completion.index = aInitialCount || 0;
+            readerState = READER_ST_NEUT;
+            readerCurrentCompleter = aContext.completer || completer.match.header(aContext.collection);
 
             // set up callbacks
             currentCallback = aCallback;
@@ -2486,22 +2343,19 @@ KeySnail.Prompt = function () {
             type = TYPE_READ;
 
             // set up history
-            history.index = 0;
-            var group = aContext.group || "default";
-            if (group && typeof historyHolder[group] === "undefined")
-                historyHolder[group] = [];
-            history.list = historyHolder[group];
+            readerSetupHistory(aContext.group);
 
             // set up completion
-            completion.list  = aContext.collection;
-            completion.index = aContext.initialcount || 0;
+            readerState = READER_ST_NEUT;
+            readerCurrentCompleter = aContext.completer || completer.match.header(aContext.collection);
 
             // set up callbacks
             currentCallback = aContext.callback;
             currentUserArg  = aContext.userarg;
 
             // set up stylist
-            cellStylist = aContext.stylist;
+            readerStylist = aContext.stylist;
+            // cellStylist = aContext.stylist;
 
             userOnChange = aContext.onChange;
             userOnFinish = aContext.onFinish;
@@ -2514,7 +2368,7 @@ KeySnail.Prompt = function () {
             // display prompt box
             label.value            = aContext.message;
             textbox.value          = aContext.initialinput || "";
-            self.editModeEnabled = false;
+            self.editModeEnabled   = false;
             promptbox.hidden       = false;
             textbox.selectionStart = textbox.selectionEnd = aContext.cursorEnd ? textbox.value.length : 0;
 
@@ -2580,7 +2434,8 @@ KeySnail.Prompt = function () {
             afterSelection  = aContext.afterSelection;
 
             // set up stylist
-            cellStylist = aContext.stylist;
+            selectorStylist = aContext.stylist;
+            cellStylist     = selectorStylist;
 
             // display prompt box
             label.value = aContext.message;
