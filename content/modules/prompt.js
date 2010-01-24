@@ -160,6 +160,15 @@ KeySnail.Prompt = function () {
         return document.getElementById(aId);
     }
 
+    function $E(aName, aAttributes) {
+        let elem = document.createElement(aName);
+
+        for (let [k, v] in Iterator(aAttributes))
+            elem.setAttribute(k, v);
+
+        return elem;
+    }
+
     function combineObject(a, b) {
         var newObject = {};
         var key;
@@ -203,7 +212,14 @@ KeySnail.Prompt = function () {
     // ============================== common DOM manipulation ============================== //
 
     function setLabel(aItem, aLabel) {
-        aItem.setAttribute("label", aLabel);
+        try
+        {
+            aItem.setAttribute("label", aLabel);
+        }
+        catch (e)
+        {
+            self.message(e.stack.split(".js ").join(".js\n"));
+        }
     }
 
     function setTooltip(aRow, aTooltip) {
@@ -286,11 +302,11 @@ KeySnail.Prompt = function () {
     }
 
     function createRow(aRowData) {
-        var row = document.createElement("listitem");
+        let row = document.createElement("listitem");
 
         if (aRowData.length > 1)
         {
-            var cell;
+            let cell;
 
             // i: actual column's index
             // j: visible column's index
@@ -309,7 +325,7 @@ KeySnail.Prompt = function () {
                     i = getNextVisibleRowIndex(i);
                 }
 
-                var style = "";
+                let style = "";
                 if (i < aRowData.length)
                 {
                     setLabel(cell, getCellValue(aRowData, i));
@@ -334,7 +350,7 @@ KeySnail.Prompt = function () {
                 ++j;
             }
         }
-        else
+        else                    // if (aRowData.length > 1)
         {
             setLabel(row, getCellValue(aRowData, 0));
         }
@@ -343,10 +359,10 @@ KeySnail.Prompt = function () {
     }
 
     function applyRow(aRow, aRowData) {
+        let cell = aRow.firstChild;
+
         if (aRowData.length > 1)
         {
-            var cell = aRow.firstChild;
-
             // i: actual column's index
             // j: visible column's index
             let i, j;
@@ -361,7 +377,7 @@ KeySnail.Prompt = function () {
                     i = getNextVisibleRowIndex(i);
                 }
 
-                var style = "";
+                let style = "";
                 if (i < aRowData.length)
                 {
                     setLabel(cell, getCellValue(aRowData, i));
@@ -379,14 +395,14 @@ KeySnail.Prompt = function () {
                     }
                 }
 
-                // if (style) <= we have to clear the style
+                // if (style) <- We have to clear the style. So this if statement is not needed.
                 cell.setAttribute("style", style);
 
                 cell = cell.nextSibling;
                 ++j;
             }
         }
-        else
+        else                    // if (aRowData.length > 1)
         {
             setLabel(cell, getCellValue(aRowData, 0));
         }
@@ -544,7 +560,8 @@ KeySnail.Prompt = function () {
             }
         }
 
-        onFinish();
+        if (typeof onFinish === "function")
+            onFinish();
     }
 
     // ============================== prompt.selector main ============================== //
@@ -578,7 +595,7 @@ KeySnail.Prompt = function () {
                 options.displayDelayTime);
         }
 
-        oldTextLength = textbox.value.length;
+        oldTextLength = textbox.selectionEnd;
 
         if (typeof userOnChange === "function")
         {
@@ -1060,28 +1077,29 @@ KeySnail.Prompt = function () {
         if (start == 0)
         {
             // create list from entire completion
-            compIndex = -1;
-            compIndexList = null;
+            compIndex      = -1;
+            compIndexList  = null;
             setListBoxFromStringList(wholeList);
             setRows(wholeList.length);
             listbox.hidden = false;
             wholeListIndex = index = 0;
-            currentRegexp = "";
+            currentRegexp  = "";
         }
         else
         {
+            // create list which maches the current input
             var listLen = wholeList.length;
             var regexp  = textbox.value;
 
             var substrIndex;
 
             var keywords = regexp.split(" ");
-            var useMigemoActual = (options.useMigemo &&
-                                   window.xulMigemoCore &&
+            var useMigemoActual = (options.useMigemo && window.xulMigemoCore &&
                                    keywords.every(function (aStr) aStr.length >= options.migemoMinWordLength));
 
+            var migexp;
             if (useMigemoActual)
-                var migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
+                migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
 
             var cellForSearch = flags ? [i for (i in flags) if ((flags[i] & modules.IGNORE) === 0)] : null;
 
@@ -1108,13 +1126,13 @@ KeySnail.Prompt = function () {
                     // search whole cells
                     matcher = (useMigemoActual) ?
                         function (i) wholeList[i].some(
-                            function (item) (typeof item === "function" ? item.call(null, wholeList[i]) : item)
+                            function (item) (typeof item === "function" ? item.call(null, wholeList[i]) : item || "")
                                 .match(migexp, "i")
                         )
                     :
                     function (i) keywords.every(
                         function (keyword) wholeList[i].some(
-                            function (item) (typeof item === "function" ? item.call(null, wholeList[i]) : item)
+                            function (item) (typeof item === "function" ? item.call(null, wholeList[i]) : item || "")
                                 .match(keyword, "i")
                         )
                     );
@@ -1135,11 +1153,15 @@ KeySnail.Prompt = function () {
             compIndexList = [];
             compIndex = 0;
 
+            let start = Date.now();
             for (let i = 0; i < listLen; ++i)
             {
                 if (matcher(i))
                     compIndexList.push(i);
             }
+            let end = Date.now();
+
+            self.message(end - start);
 
             if (compIndexList.length === 0)
             {
@@ -1172,7 +1194,260 @@ KeySnail.Prompt = function () {
         setListBoxSelection(0);
     }
 
-    // ============================== prompt.read main ============================== //
+    // ================================================================================ //
+    // prompt.read, prompt.completer
+    // ================================================================================ //
+
+    const ST_NEUTRAL = 0;
+    const ST_QUOTE   = 1;
+    const ST_WORD    = 2;
+
+    function lex(str, delimiters, quotes)
+    {
+        if (!delimiters)
+            delimiters = [' ', '\t'];
+
+        if (!quotes)
+            quotes = ['"', '\''];
+
+        let tokens = [];
+        let state  = ST_NEUTRAL;
+
+        let buffer = [];
+        let current;
+
+        let quoteChar;
+
+        for (let i = 0; i < str.length; ++i)
+        {
+            let current = str[i];
+
+            switch (state)
+            {
+                // ================================================== //
+                // Skip (Initial state)
+                // ================================================== //
+            case ST_NEUTRAL:
+
+                if (buffer.length)
+                {
+                    tokens.push(buffer.join(""));
+                    buffer = [];
+                }
+
+                switch (current)
+                {
+                case delimiters.some(function (d) d === current):
+                    break;
+                case quotes.some(function (q) q === current):
+                    buffer.push(current);
+                    state     = ST_QUOTE;
+                    quoteChar = current; // ' or "
+                    break;
+                default:
+                    buffer.push(current);
+                    state = ST_WORD;
+                    break;
+                }
+                break;
+                // ================================================== //
+                // In quote
+                // ================================================== //
+            case ST_QUOTE:
+                if (current === quoteChar)
+                    state = ST_NEUTRAL;
+                buffer.push(current);
+                break;
+                // ================================================== //
+                // Word
+                // ================================================== //
+            case ST_WORD:
+                if (delimiters.some(function (d) d === current))
+                    state = ST_NEUTRAL;
+                else
+                    buffer.push(current);
+                break;
+                // ================================================== //
+            }
+        }
+
+        if (buffer.length)
+            tokens.push(buffer.join(""));
+
+        return [tokens, state];
+    }
+
+    function range(a, b) {
+        for (let i = a; i < b; ++i)
+            yield i;
+    }
+
+    function completerDisplayCompletions(completions) {
+
+    }
+
+    function completerSelectNthCompletion(n) {
+
+    }
+
+    function getCompletionList(args, query) {
+        return [0,
+                [[i, i + " desu"] for (i in range(0, 100))]];
+
+        var options = {
+            "-t" : "Title",
+            "-n" : "Notation",
+            "-c" : "Church"
+        };
+
+        if (!query)
+        {
+            // with option
+            if (args.length && args[args.length - 1] && args[args.length - 1][0] === "-")
+            {
+                let option = args[args.length - 1];
+
+                if (option in options)
+                    return [options[option], "hoge!"];
+
+                return ["Invalid", ""];
+            }
+
+            // all
+            return [[k, v] for ([k, v] in Iterator(options))];
+        }
+
+        return [[k, v] for ([k, v] in Iterator(options)) if (k.indexOf(query) !== -1)];
+    }
+
+    let completerState = {
+        index                   : -1,
+        query                   : null,
+        completions             : null,
+        preferredCursorPosition : 0
+    };
+
+    function resetCompleterState() {
+        completerState.index                   = -1;
+        completerState.query                   = null;
+        completerState.completions             = null;
+        completerState.preferredCursorPosition = 0;
+    }
+
+    function handleKeyUpCompleter(aEvent) {
+        if (textbox.selectionStart !== completerState.preferredCursorPosition)
+            resetCompleterState();
+
+        if (typeof userOnChange === "function")
+        {
+            let (arg = {
+                     textbox : textbox,
+                     event   : aEvent
+                 }) userOnChange(arg);
+        }
+    }
+
+    function handleKeyPressCompleter(aEvent) {
+        var key = modules.key.keyEventToString(aEvent);
+
+        var stopEventPropagation = true;
+        var keymap               = readerKeymap;
+
+        let completeDirection = 0;
+
+        switch (keymap[key])
+        {
+        case "prompt-cancel":
+            self.finish(true);
+            break;
+        case "prompt-decide":
+            self.finish();
+            break;
+        case "prompt-next-completion":
+            completeDirection = 1;
+            break;
+        case "prompt-previous-completion":
+            completeDirection = -1;
+            break;
+        default:
+            stopEventPropagation = false;
+            break;
+        }
+
+        if (completionDirection)
+        {
+            if (completerState.index >= 0)
+            {
+                // 補完中
+                let nextIndex = getNextIndex(completerState.index, completionDirection,
+                                             0, completerState.completions.length, true);
+                completerSelectNthCompletion(nextIndex);
+            }
+            else
+            {
+                // 補完開始
+                let currentText   = (textbox.value || "").substring(0, textbox.selectionStart);
+                let [args, state] = lex(currentText);
+                let origin        = -1;
+
+                // 補完候補を作成する
+                switch (state)
+                {
+                case ST_QUOTE:
+                    modules.display.echoStatusBar("Quotation is not closed", 1000);
+                    break;
+                case ST_WORD:
+                    self.message("[%s", args[args.length - 1]);
+                    // 最後の一つがクエリとなる (クエリを使って前方一致や Migemo 検索をし補完候補を生成)
+                    [origin, completerState.completions] = getCompletionList(args, args[args.length - 1]);
+                    break;
+                case ST_NEUTRAL:
+                    self.message("[%s]", args[args.length - 1]);
+                    [origin, completerState.completions] = getCompletionList(args, null);
+                    // 全ての補完候補を表示
+                    break;
+                }
+
+                if (origin >= 0)
+                {
+                    completerDisplayCompletions(completerState.completions);
+                    completerSelectNthCompletion(origin);
+                }
+                else
+                {
+                    // クリア
+                    // completerClear();
+                }
+            }
+        }
+
+        if (stopEventPropagation)
+        {
+            aEvent.preventDefault();
+            aEvent.stopPropagation();
+        }
+    }
+
+    // ====================================================================== //
+    // prompt.read, prompt.reader
+    // ====================================================================== //
+
+    const READER_ST_NEUT = 0;   // neutral
+    const READER_ST_COMP = 1;   // completion
+    const READER_ST_HIST = 2;   // history
+
+    var readerCurrentCollection = null;
+    var readerCurrentIndex      = null;
+
+    var readerState       = READER_ST_NEUT;
+    var readerArgs        = null;
+    var readerQuery       = null;
+    var readerLeftContext = null;
+
+    function setReaderArgs(aArgs) {
+        readerArgs  = aArgs;
+        readerQuery = aArgs ? aArgs[aArgs.length - 1] : null;
+    }
 
     function resetState(aType) {
         aType.index = 0;
@@ -1191,15 +1466,98 @@ KeySnail.Prompt = function () {
         resetState(history);
     }
 
+    function readerSetupList(aList, aIndex) {
+        let pos;
+        let center  = Math.round(listboxRows / 2);
+        let listLen = aList.length;
+
+        // if (listLen <= listboxRows && !cellStylist)
+        // {
+        //     // just change the selected index of the listbox
+        //     listbox.currentIndex = listbox.selectedIndex = aIndex;
+        //     return;
+        // }
+
+        let selectionPos;
+
+        if (aIndex <= center)
+        {
+            setListBoxFromStringList(aList, 0);
+            selectionPos = aIndex;
+        }
+        else if (aIndex >= listLen - center)
+        {
+            setListBoxFromStringList(aList, listLen - listboxRows);
+            selectionPos = listboxRows - (listLen - aIndex);
+        }
+        else
+        {
+            setListBoxFromStringList(aList, aIndex - center);
+            selectionPos = center;
+        }
+
+        self.message(selectionPos);
+
+        listbox.currentIndex = listbox.selectedIndex = selectionPos;
+    }
+
+    let tags         = ("hBookmark" in window) ? hBookmark.model('Tag').findDistinctTags() : [];
+    let filteredTags = [tag.name for each (tag in tags)];
+
+    function completer(args, query) {
+        if (query)
+        {
+            let migexp = window.xulMigemoCore.getRegExpFunctional(query, {}, {});
+            self.message(migexp);
+            return filteredTags.filter(function (s) !!s.match(migexp, "i"));
+        }
+        else
+        {
+            return filteredTags;
+        }
+
+        let options = {
+            "-t": [
+                [[i + ". time", "hehe"] for (i in range(0, 100))]
+            ],
+            "-n": [
+                [[i + ". noun", "huhu"] for (i in range(0, 100))]
+            ],
+            "-p": [
+                [[i + ". person", "hoho"] for (i in range(0, 100))]
+            ]
+        };
+
+        let opt = args[args.length - 2];
+
+        if (opt)
+        {
+            if (opt in options)
+            {
+                return options[opt];
+                // return options[opt].filter(function ([str]) str.indexOf(query || ""));
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        // if (query)
+        // {
+            return [[opt, "desc"] for (opt in options)];
+        // }
+        // else
+        // {
+        // }
+    }
+
     var oldSelectionStart = 0;
     function handleKeyUpRead(aEvent) {
-        // Some KeyPress event is grabbed by KeySnail and stopped.
-        // So we need to listen the keyup event for resetting the misc values.
-
-        if (textbox.value.indexOf(currentHead) ||
-            (textbox.selectionStart !== oldSelectionStart && currentHead !== textbox.value))
+        if (textbox.selectionStart !== oldSelectionStart)
         {
-            resetReadState();
+            readerState = READER_ST_NEUT;
+            // resetReadState();
         }
 
         oldSelectionStart = textbox.selectionStart;
@@ -1216,16 +1574,14 @@ KeySnail.Prompt = function () {
     }
 
     function handleKeyPressRead(aEvent) {
-        var key = modules.key.keyEventToString(aEvent);
+        let stopEventPropagation = true;
 
-        var stopEventPropagation = true;
-        var keymap = readerKeymap;
+        let key    = modules.key.keyEventToString(aEvent);
+        let keymap = readerKeymap;
 
-        // var currentText = textbox.value;
-        // var args        = currentText.split(" ");
-        // var currentArg  = args[args.length - 1];
+        let direction = 0;
 
-        // modules.util.message(currentArg);
+        let oldState = readerState;
 
         switch (keymap[key])
         {
@@ -1236,76 +1592,87 @@ KeySnail.Prompt = function () {
             self.finish();
             break;
         case "prompt-next-line":
-            if (completion.state)
-            {
-                readerComplete(completion, 1, true, true, options.substrMatch, true);
-                return;
-            }
-
-            if (history.state)
-            {
-                readerComplete(history, 1);
-            }
-            else
-            {
-                // begin trailing history
-                readerComplete(history, 0);
-                history.state = true;
-            }
-            // reset completion index
-            resetState(completion);
+            readerState = READER_ST_HIST;
+            direction   = 1;
             break;
         case "prompt-previous-line":
-            if (completion.state)
-            {
-                readerComplete(completion, -1, true, true, options.substrMatch, true);
-                return;
-            }
-
-            if (history.state)
-            {
-                readerComplete(history, -1);
-            }
-            else
-            {
-                readerComplete(history, 0);
-                history.state = true;
-            }
-
-            // reset completion index
-            resetState(completion);
+            readerState = READER_ST_HIST;
+            direction   = -1;
             break;
         case "prompt-next-completion":
-            if (completion.state)
-            {
-                readerComplete(completion, 1, true, true, options.substrMatch, true);
-            }
-            else
-            {
-                // begin
-                readerComplete(completion, 0, true, true, options.substrMatch, true);
-                completion.state = true;
-            }
-            // reset history index
-            resetState(history);
+            readerState = READER_ST_COMP;
+            direction   = 1;
             break;
         case "prompt-previous-completion":
-            if (completion.state)
+            readerState = READER_ST_COMP;
+            direction   = -1;
+            break;
+        default:
+            readerState = READER_ST_NEUT;
+            stopEventPropagation = false;
+            break;
+        }
+
+        if (direction)
+        {
+            stopEventPropagation = true;
+
+            if (oldState !== readerState)
             {
-                readerComplete(completion, -1, true, true, options.substrMatch, true);
+                // 候補の作成
+                let currentText   = (textbox.value || "").substring(0, textbox.selectionStart);
+                // self.message('txt "%s"', currentText);
+                let [args, state] = lex(currentText, [" "], []);
+                let query = (state === ST_NEUTRAL) ? null : args[args.length - 1];
+
+                setReaderArgs(args);
+
+                let completionList = completer(args, query);
+
+                if (!completionList || !completionList.length)
+                {
+                    readerState = READER_ST_NEUT;
+                    modules.display.echoStatusBar("No completions found", 1000);
+                }
+                else
+                {
+                    readerCurrentCollection = completionList;
+                    readerCurrentIndex      = direction > 0 ? 0 : completionList.length - 1;
+                    readerLeftContext       = query ? currentText.slice(0, currentText.lastIndexOf(query)) : currentText;
+
+                    // self.message('que "%s"', query);
+                    // self.message('con "%s"', readerLeftContext);
+
+                    setRows(completionList.length);
+
+                    listbox.hidden = false;
+
+                    readerSetupList(completionList, readerCurrentIndex);
+                }
             }
             else
             {
-                // begin
-                readerComplete(completion, 0, true, true, options.substrMatch, true);
-                completion.state = true;
+                readerCurrentIndex = getNextIndex(readerCurrentIndex, direction,
+                                                  0, readerCurrentCollection.length, true);
+
+                readerSetupList(readerCurrentCollection, readerCurrentIndex);
+
+                // 次 / 前の候補へ
+                switch (readerState)
+                {
+                case READER_ST_HIST:
+                    break;
+                case READER_ST_COMP:
+                    break;
+                }
             }
-            // reset history index
-            resetState(history);
-            break;
-        default:
-            stopEventPropagation = false;
-            break;
+
+            if (readerState !== READER_ST_NEUT)
+            {
+                let text          = readerCurrentCollection[readerCurrentIndex];
+                textbox.value     = readerLeftContext + text;
+                oldSelectionStart = textbox.value.length;
+            }
         }
 
         if (stopEventPropagation)
@@ -1367,10 +1734,150 @@ KeySnail.Prompt = function () {
             return;
         }
 
+        let currentText   = (textbox.value || "").substring(0, textbox.selectionStart);
+        let [args, state] = lex(currentText);
+
         var listBoxSelectionIndex;
         var index;
-        // get cursor position
-        var start = textbox.selectionStart;
+
+        if (start === 0 || inNormalCompletion)
+        {
+            currentHead = "";
+            // get {current / next / previous} index
+            index = getNextIndex(aType.index, aDirection, 0, aType.list.length, aRing);
+
+            if (!inNormalCompletion)
+            {
+                // at first time
+                setListBoxFromStringList(aType.list);
+                setRows(aType.list.length);
+                listbox.hidden = false;
+            }
+            listBoxSelectionIndex = index;
+
+            // normal completion (not the substring matching)
+            inNormalCompletion = true;
+        }
+        else
+        {
+            inNormalCompletion = false;
+
+            var listLen = aType.list.length;
+            var substrIndex;
+
+            if (currentHead !== null && compIndexList)
+            {
+                // use current completion list
+                var nextCompIndex = getNextIndex(compIndex, aDirection, 0, compIndexList.length, aRing);
+
+                index = compIndexList[nextCompIndex];
+                compIndex = nextCompIndex;
+                listBoxSelectionIndex = nextCompIndex;
+            }
+            else
+            {
+                // generate new completion list
+                compIndexList = [];
+                compIndex = 0;
+
+                var header = textbox.value.slice(0, start);
+
+                currentHead = header;
+
+                // modules.display.prettyPrint(header);
+
+                for (var i = 0; i < listLen; ++i)
+                {
+                    var foundIndex = getListText(aType.list, i).indexOf(header);
+                    if (foundIndex === 0 || (aSubstrMatch && foundIndex !== -1))
+                        compIndexList.push(i);
+                }
+
+                if (compIndexList.length === 0)
+                {
+                    compIndexList = null;
+                    modules.display.echoStatusBar("No match for [" + currentHead + "]");
+                    currentHead = null;
+
+                    return;
+                }
+
+                index = compIndexList[0];
+
+                if (aExpand)
+                {
+                    var newSubstrIndex = getCommonSubstrIndex(aType.list, compIndexList);
+                    currentHead = getListText(aType.list, index).slice(0, newSubstrIndex);
+
+                    oldSelectionStart = newSubstrIndex;
+                }
+
+                setListBoxFromIndexList(aType.list, compIndexList);
+                listBoxSelectionIndex = 0;
+
+                // show
+                setRows(compIndexList.length);
+                listbox.hidden = false;
+            }
+        }
+
+        if (inNormalCompletion)
+            modules.display.echoStatusBar(modules.util.format("%s (%s / %s)", aType.name, index + 1, aType.list.length));
+        else
+        {
+            modules.display.echoStatusBar(modules.util.format("%s Match for [%s] (%s / %s)",
+                                                              aType.name + (aSubstrMatch ? " Substring" : " Header"),
+                                                              currentHead,
+                                                              compIndex + 1,
+                                                              compIndexList.length));
+        }
+
+        // set new text
+
+        textbox.value = getListText(aType.list, index);
+        aType.index = index;
+
+        if (aNoSit)
+        {
+            if (inNormalCompletion)
+            {
+                textbox.selectionStart = textbox.selectionEnd = textbox.value.length;
+                oldSelectionStart = textbox.value.length;
+            }
+            else
+            {
+                textbox.selectionStart = textbox.selectionEnd = currentHead.length;
+            }
+        }
+        else
+        {
+            textbox.selectionStart = textbox.selectionEnd = start;
+        }
+
+        setListBoxSelection(listBoxSelectionIndex);
+    }
+
+    /**
+     *
+     * @param {object} aType history, completion
+     * @param {int} aDirection 0, -1, 1
+     * @param {boolean} aExpand if this value is true, "head" expands greedly
+     * @param {boolean} aRing whether connect completion list head and tail or not
+     * @param {boolean} aSubstrMatch whether use substring match or not
+     * @param {boolean} aNoSit whether move caret or not
+     */
+    function readerComplete2(aType, aDirection, aExpand, aRing, aSubstrMatch, aNoSit) {
+        if (!aType.list || !aType.list.length)
+        {
+            modules.display.echoStatusBar("No " + aType.name + " found", 1000);
+            return;
+        }
+
+        let currentText   = (textbox.value || "").substring(0, textbox.selectionStart);
+        let [args, state] = lex(currentText);
+
+        var listBoxSelectionIndex;
+        var index;
 
         if (start === 0 || inNormalCompletion)
         {
