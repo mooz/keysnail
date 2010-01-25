@@ -156,7 +156,7 @@ function addBookMark() {
         prompt.reader(
             {
                 message    : "tag: ",
-                completer  : prompt.completer.match.migemo(filteredTags),
+                completer  : prompt.completer.matcher.migemo(filteredTags),
                 callback   : function (tag) {
                     inputPost(tagsToMsg(tag));
                 }
