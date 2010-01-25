@@ -8,6 +8,19 @@ const extensionName = "keysnail";
 let json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
 
 let util = {
+    log: function util_log(aMsg) {
+        let logs = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
+
+        try
+        {
+            logs.logStringMessage(aMsg);
+        }
+        catch (x)
+        {
+            logs.logStringMessage(x);
+        }
+    },
+
     // Char code {{ ============================================================= //
 
     /**
@@ -178,13 +191,13 @@ let persist = {
     preserve: function (aObj, aName) {
         let file = persist.getFile(aName);
 
-        this.preserve(aObj, file);
+        this.preserveTo(aObj, file);
     },
 
     preserveTo: function (aObj, aFile) {
         let encoded = json.encode(aObj);
 
-        util.writeTextFile(util.convertCharCodeFrom(encoded, "UTF-8"), file.path, true);
+        util.writeTextFile(util.convertCharCodeFrom(encoded, "UTF-8"), aFile.path, true);
     },
 
     restore: function (aName) {
@@ -220,11 +233,9 @@ function hookApplicationQuit() {
 
     quitObserver.prototype = {
         observe: function(subject, topic, data) {
-            window.alert("hogehoge");
-
             for (let [name, obj] in Iterator(persist.registeredObjects))
             {
-                if (obj) persist.preserve(obj, name);
+                persist.preserve(obj, name);
             }
 
             this.unregister();
@@ -244,9 +255,12 @@ function hookApplicationQuit() {
     new quitObserver();
 };
 
-(function init() {
-     let promptHistory = persist.restore("prompt_history") || {};
+function init() {
+    let promptHistory = persist.restore("prompt_history") || {};
 
-     persist.promptHistory = promptHistory;
-     persist.register(promptHistory, "prompt_history");
- })();
+    persist.promptHistory = promptHistory;
+    persist.register(promptHistory, "prompt_history");
+}
+
+init();
+hookApplicationQuit();

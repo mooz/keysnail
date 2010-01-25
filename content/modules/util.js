@@ -847,7 +847,7 @@ KeySnail.Util = {
             delete aContext[EVAL_ERROR];
             delete aContext[EVAL_RESULT];
             delete aContext[EVAL_STRING];
-        }  
+        }
     },
 
     /**
@@ -1032,6 +1032,56 @@ KeySnail.Util = {
 
     // }} ======================================================================= //
 
+    // Suggestion {{ ============================================================ //
+
+    suggest:
+    (function () {
+         const Cc = Components.classes;
+         const Ci = Components.interfaces;
+
+         const responseType = "application/x-suggestions+json";
+
+         let ss   = Cc["@mozilla.org/browser/search-service;1"].getService(Ci.nsIBrowserSearchService);
+         let json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+
+         let util = KeySnail.modules.util;
+
+         let self = {
+             getEngines     : function () { return ss.getVisibleEngines({}); },
+             getSuggestions : function (engineName, query, callback) {
+                 let queryURI;
+                 let engine = ss.getEngineByName(engineName);
+
+                 if (engine && engine.supportsResponseType(responseType))
+                     queryURI = engine.getSubmission(query, responseType).uri.spec;
+
+                 if (queryURI)
+                 {
+                     if (callback)
+                     {
+                         util.httpGet(queryURI, false, function (xhr) {
+                                          let results = json.decode(xhr.responseText) || {1:[]};
+                                          callback(results[1]);
+                                      });
+                         return null;
+                     }
+                     else
+                     {
+                         let xhr = util.httpGet(queryURI);
+                         let results = json.decode(xhr.responseText) || {1:[]};
+                         return results[1];
+                     }
+                 }
+
+                 return [];
+             },
+         };
+
+         return self;
+     })(),
+
+    // }} ======================================================================= //
+
     // String {{ ================================================================ //
 
     createSeparator: function (label) {
@@ -1064,7 +1114,7 @@ KeySnail.Util = {
      * @returns {string}
      */
     toStringForm: function (aStr) {
-        return (typeof aStr === "string") ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "''";
+        return (typeof aStr === "string") ? "'" + aStr.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'" : "''"; // '
     },
 
     // }} ======================================================================= //

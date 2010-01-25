@@ -393,6 +393,10 @@ KeySnail.Command = {
         }
     },
 
+    webSearch: function () {
+        
+    },
+
     bookMarkToolBarJumpTo: function (aEvent, aArg) {
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
         var items            = toolbarBookMarks.getElementsByTagName('toolbarbutton');

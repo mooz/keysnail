@@ -228,7 +228,7 @@ var KeySnail = {
     },
 
     message: function (aFormat) {
-        Application.console.log(this.modules.util.format.apply(null, arguments));
+        Application.console.log(KeySnail.modules.util.format.apply(null, arguments));
     },
 
     /**

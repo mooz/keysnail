@@ -73,6 +73,7 @@ KeySnail.Prompt = function () {
         useMigemo           : false,
         migemoMinWordLength : 2,
         listboxMaxRows      : 15,
+        historyMax          : 15,
         displayDelayTime    : 200,
         actionsListStyle    : ["text-decoration: underline;"]
     };
@@ -171,9 +172,9 @@ KeySnail.Prompt = function () {
     }
 
     function getActualCols(aCols) {
-        for (let [, flag] in Iterator(flags))
-            if (flag & (modules.HIDDEN | modules.ICON)) aCols--;
-
+        if (flags)
+            for (let [, flag] in Iterator(flags))
+                if (flag & (modules.HIDDEN | modules.ICON)) aCols--;
         return aCols;
     }
 
@@ -274,13 +275,23 @@ KeySnail.Prompt = function () {
             aElement.removeChild(aElement.firstChild);
     }
 
-    function getNextVisibleRowIndex(aCurrentIndex) {
-        for (var i = aCurrentIndex + 1; i < flags.length; ++i)
-        {
-            if (!isFlagOn(i, modules.HIDDEN))
-                break;
-        }
+    function getNextVisibleColIndex(aCurrentIndex) {
+        if (!flags)
+            return aCurrentIndex;
 
+        for (var i = aCurrentIndex + 1; i < flags.length; ++i)
+            if (!(flags[i] & modules.HIDDEN))
+                break;
+        return i;
+    }
+
+    function getFirstTextColIndex() {
+        if (!flags)
+            return 0;
+
+        for (var i = 0; i < flags.length; ++i)
+            if (!(flags[i] & (modules.HIDDEN | modules.ICON)))
+                break;
         return i;
     }
 
@@ -315,7 +326,7 @@ KeySnail.Prompt = function () {
                 {
                     cell.setAttribute("class", "listcell-iconic");
                     cell.setAttribute("image", getCellValue(aRowData, i));
-                    i = getNextVisibleRowIndex(i);
+                    i = getNextVisibleColIndex(i);
                 }
 
                 let style = "";
@@ -367,7 +378,7 @@ KeySnail.Prompt = function () {
                 if (isFlagOn(i, modules.ICON))
                 {
                     cell.setAttribute("image", getCellValue(aRowData, i));
-                    i = getNextVisibleRowIndex(i);
+                    i = getNextVisibleColIndex(i);
                 }
 
                 let style = "";
@@ -1219,7 +1230,6 @@ KeySnail.Prompt = function () {
 
     var readerState                  = READER_ST_NEUT;
     var readerLeftContext            = null;
-    // var readerRightContext           = null;
     var readerOriginalText           = null;
     var readerOriginalSelectionStart = null;
     var readerCC                     = null;
@@ -1228,6 +1238,7 @@ KeySnail.Prompt = function () {
 
     // In history mode, we do not want stylist to work.
     var readerStylist;
+    var readerFlags;
 
     function readerSetupHistory(aGroup) {
         aGroup = aGroup || "default";
@@ -1264,9 +1275,9 @@ KeySnail.Prompt = function () {
         listbox.currentIndex = listbox.selectedIndex = selectionPos;
     }
 
-    function suggest(aWord) {
+    function suggest(aWord, aDomain) {
         var xhr = new XMLHttpRequest();
-        var endPoint = "http://www.google.co.jp/complete/search?output=toolbar&q=" + encodeURIComponent(aWord);
+        var endPoint = "http://www.google." + aDomain + "/complete/search?output=toolbar&q=" + encodeURIComponent(aWord);
 
         xhr.mozBackgroundRequest = true;
         xhr.open("GET", endPoint, false);
@@ -1282,7 +1293,7 @@ KeySnail.Prompt = function () {
 
     function createTextGetter(aStringList) {
         return isMultipleList(aStringList) ?
-            function (r) r[0] : function (r) r;
+            function (r) r[getFirstTextColIndex()] : function (r) r;
     }
 
     let completer = {
@@ -1295,8 +1306,6 @@ KeySnail.Prompt = function () {
         utils: {
             getQuery: function getQuery(currentText, delimiters, quotes) {
                 let [args, state] = completer.utils.lex(currentText, delimiters, quotes);
-
-                // window.inspectObject(args);
 
                 let query  = (state === completer.states.NEUTRAL) ? "" : args[args.length - 1];
                 let origin = query ? currentText.lastIndexOf(query) : currentText.length;
@@ -1413,14 +1422,204 @@ KeySnail.Prompt = function () {
                     }
                 }
 
-                // window.alert(hogehoge);
-
                 if (buffer.length)
                 {
                     tokens.push(buffer.join(""));
                 }
 
                 return [tokens, state];
+            },
+
+            normalizePath: function (aPath) {
+                let delimiter = modules.userscript.directoryDelimiter;
+
+                if (aPath.indexOf("~" + delimiter) === 0)
+                    aPath = modules.userscript.prefDirectory + aPath.slice(1);
+
+                if (aPath[0] !== delimiter)
+                    aPath = share.pwd + delimiter + aPath;  
+
+                return aPath;
+            },
+
+            // let stripped = text.replace(/^[ ]+/, "").replace(/[]+$/, "");
+            directoryDelimiter: '/',
+
+            /**
+             * Suck Windows version
+             * @param {} context
+             * @returns {} 
+             */
+            completeDirectories: function completeDirectories(context) {
+                let [home, delimiter] = modules.userscript.getPrefDirectory();
+                
+                if (delimiter !== directoryDelimiter)
+                {
+                    // C:\
+                    context.text = context.text.replace(new Regexp("[" + delimiter + "]", "g"), directoryDelimiter);
+                }
+
+                if (!modules.share.pwd)
+                    modules.share.pwd = home;
+
+                let pwd = modules.share.pwd;
+
+                let text = context.text || (pwd + delimiter);
+
+                text = completer.utils.normalizePath(text);
+
+                let directories = text.split(delimiter);
+
+                let query  = directories.pop();
+                let origin = query === "" ? context.text.length : context.text.lastIndexOf(query);
+
+                let path;
+
+                if (directories.length === 1 && directories[0] === "") // strings like "/" or "/hoge"
+                    path = delimiter;
+                else
+                    path = directories.join(delimiter);
+
+                let result = {
+                    collection : null,
+                    query      : query,
+                    origin     : origin,
+                    delimiter  : delimiter,
+                    raw        : null
+                };
+
+                let dir;
+                try
+                {
+                    dir = modules.util.openFile(path);
+                }
+                catch (e)
+                {
+                    return result;
+                }
+
+                if (!dir.exists() || !dir.isDirectory())
+                    return result;
+
+                let files;
+                try {
+                    files = modules.util.readDirectory(dir, true);
+                } catch (x) {
+                    files = [];
+                }
+                let collection = files.map(function (f) f.isDirectory() ? f.leafName + delimiter : f.leafName);
+
+                if (query === "")
+                    result.collection = collection;
+                else
+                {
+                    let tmpCollection = [];
+                    let tmpRaw        = [];
+
+                    let matcher = context.matcher;
+
+                    for (let i = 0; i < collection.length; ++i)
+                    {
+                        if ((matcher && matcher(collection[i], query)) ||
+                            (!matcher && collection[i].indexOf(query) === 0))
+                        {
+                            tmpCollection.push(collection[i]);
+                            tmpRaw.push(files[i]);
+                        }
+                    }
+
+                    result.collection = tmpCollection;
+                    result.raw        = tmpRaw;
+                }
+
+                return result;
+            },
+
+            completeDirectories2: function completeDirectories2(context) {
+                let [home, delimiter] = modules.userscript.getPrefDirectory();
+
+                if (!modules.share.pwd)
+                    modules.share.pwd = home;
+
+                let pwd = modules.share.pwd;
+
+                let text = context.text || (pwd + delimiter);
+
+                // let stripped = text.replace(/^[ ]+/, "").replace(/[]+$/, "");
+
+                text = completer.utils.normalizePath(text);
+
+                // relative path
+                if (text[0] !== delimiter)
+                {
+                    text = pwd + delimiter + text;
+                }
+
+                let directories = text.split(delimiter);
+
+                let query  = directories.pop();
+                let origin = query === "" ? context.text.length : context.text.lastIndexOf(query);
+
+                let path;
+
+                if (directories.length === 1 && directories[0] === "") // strings like "/" or "/hoge"
+                    path = delimiter;
+                else
+                    path = directories.join(delimiter);
+
+                let result = {
+                    collection : null,
+                    query      : query,
+                    origin     : origin,
+                    delimiter  : delimiter,
+                    raw        : null
+                };
+
+                let dir;
+                try
+                {
+                    dir = modules.util.openFile(path);
+                }
+                catch (e)
+                {
+                    return result;
+                }
+
+                if (!dir.exists() || !dir.isDirectory())
+                    return result;
+
+                let files;
+                try {
+                    files = modules.util.readDirectory(dir, true);
+                } catch (x) {
+                    files = [];
+                }
+                let collection = files.map(function (f) f.isDirectory() ? f.leafName + delimiter : f.leafName);
+
+                if (query === "")
+                    result.collection = collection;
+                else
+                {
+                    let tmpCollection = [];
+                    let tmpRaw        = [];
+
+                    let matcher = context.matcher;
+
+                    for (let i = 0; i < collection.length; ++i)
+                    {
+                        if ((matcher && matcher(collection[i], query)) ||
+                            (!matcher && collection[i].indexOf(query) === 0))
+                        {
+                            tmpCollection.push(collection[i]);
+                            tmpRaw.push(files[i]);
+                        }
+                    }
+
+                    result.collection = tmpCollection;
+                    result.raw        = tmpRaw;
+                }
+
+                return result;
             }
         },
 
@@ -1495,16 +1694,42 @@ KeySnail.Prompt = function () {
         },
 
         fetch: {
-            googleSuggest: function (currentText, text) {
-                let [query, origin] = completer.utils.getQuery(currentText, [" "]);
+            directory: function (currentText, text) {
+                let result = completer.utils.completeDirectories({text : currentText});
 
-                let suggested = query ? suggest(query) : null;
+                let collection = result.collection;
+                let query      = result.query;
+                let origin     = result.origin;
+                let delimiter  = result.delimiter;
+
+                if (collection)
+                {
+                    collection = collection.map(function (f) {
+                                                    let icon;
+
+                                                    if (f[f.length - 1] === delimiter)
+                                                    {
+                                                        f    = f.slice(0, f.length - 1);
+                                                        icon = "chrome://keysnail/skin/icon/folder.png";
+                                                    }
+                                                    else
+                                                    {
+                                                        let matched = f.match("[.]([^.]+)$");
+                                                        let ext;
+
+                                                        if (matched && matched[1]) ext = matched[1];
+
+                                                        icon = "moz-icon://." + (ext || "") + "?size=16";
+                                                    }
+
+                                                    return [icon, f];
+                                                });
+                }
 
                 let cc = {
                     origin     : origin,
                     query      : query,
-                    collection : suggested ? [complete.suggestion.@data
-                                              for each (complete in suggested.CompleteSuggestion)] : null
+                    collection : collection
                 };
 
                 return cc;
@@ -1514,13 +1739,12 @@ KeySnail.Prompt = function () {
                 let [query, origin] = completer.utils.getQuery(currentText,
                                                                [" ", "\t", "\n", "(", "{", "}", ")", ";"], []);
 
-
                 const ST_NEUTRAL  = 0;
                 const ST_IN_QUOTE = 1;
                 const ST_IN_BRACE = 2;
                 const ST_ESCAPE   = 3;
 
-                function split(str) {
+                function splitter(str) {
                     let tokens = [];
 
                     let buffer = [];
@@ -1536,7 +1760,7 @@ KeySnail.Prompt = function () {
                             tokens.push(buffer.join(""));
                         buffer = [];
                     }
-                    
+
                     for (let i = 0; i < str.length; ++i)
                     {
                         let current = str[i];
@@ -1577,7 +1801,7 @@ KeySnail.Prompt = function () {
                                 state     = ST_ESCAPE;
                                 break;
                             default:
-                                buffer.push(current);                                
+                                buffer.push(current);
                                 break;
                             }
                             break;
@@ -1609,7 +1833,7 @@ KeySnail.Prompt = function () {
                     }
 
                     flushBuffer();
-                 
+
                     return [tokens, state];
                 }
 
@@ -1695,7 +1919,7 @@ KeySnail.Prompt = function () {
                     if (a < b)
                         return -1;
                     else if (a > b)
-                    return 1;
+                        return 1;
                     else
                         return 0;
                 }
@@ -1719,7 +1943,7 @@ KeySnail.Prompt = function () {
                 }
                 else
                 {
-                    let [props, state] = split(query);
+                    let [props, state] = splitter(query);
 
                     let obj = root;
                     let all = query[query.length - 1] === ".";
@@ -1793,7 +2017,7 @@ KeySnail.Prompt = function () {
             }
         },
 
-        match: {
+        matcher: {
             migemo: function (collection, options) {
                 let getText = createTextGetter(collection);
 
@@ -1839,7 +2063,7 @@ KeySnail.Prompt = function () {
                 }
                 else
                 {
-                    return completer.match.header(collection, options);
+                    return completer.matcher.header(collection, options);
                 }
             },
 
@@ -1889,11 +2113,6 @@ KeySnail.Prompt = function () {
                                                      });
 
                         cc.collection = matched;
-
-                        // if (isMultipleList(collection))
-                        //     cc.collection = collection.filter(function ([str]) (str || "").indexOf(query) === 0);
-                        // else
-                        //     cc.collection = collection.filter(function (str) (str || "").indexOf(query) === 0);
                     }
                     else
                     {
@@ -1918,9 +2137,7 @@ KeySnail.Prompt = function () {
     var oldSelectionStart = 0;
     function handleKeyUpRead(aEvent) {
         if (textbox.selectionStart !== oldSelectionStart)
-        {
             readerState = READER_ST_NEUT;
-        }
 
         oldSelectionStart = textbox.selectionStart;
 
@@ -1980,9 +2197,11 @@ KeySnail.Prompt = function () {
             case READER_ST_NEUT:
             case READER_ST_HIST:
             cellStylist = null;
+            flags       = null;
             break;
             case READER_ST_COMP:
             cellStylist = readerStylist;
+            flags       = readerFlags;
             break;
         }
 
@@ -2013,7 +2232,7 @@ KeySnail.Prompt = function () {
                         noCompletionMsg = modules.util.format("No completion found for [%s]", readerCC.query);
                     break;
                 case READER_ST_HIST:
-                    cc = readerCC = completer.match.header(readerHistory, {}, {
+                    cc = readerCC = completer.matcher.header(readerHistory, {}, {
                                                                wholeHeaderAsQuery : true,
                                                                stopCaret          : true
                                                            })(currentText, textbox.value) || {};
@@ -2023,11 +2242,13 @@ KeySnail.Prompt = function () {
 
                 if (!cc || !cc.collection || !cc.collection.length)
                 {
+                    // No completion found
                     readerState = READER_ST_NEUT;
                     modules.display.echoStatusBar(noCompletionMsg, 3000);
                 }
                 else
                 {
+                    // Select first / last completion
                     readerCurrentCollection = cc.collection;
                     readerCurrentIndex      = direction > 0 ? 0 : readerCurrentCollection.length - 1;
                     readerLeftContext       = currentText.slice(0, cc.origin);
@@ -2050,7 +2271,9 @@ KeySnail.Prompt = function () {
 
                 if (next < 0 || next >= readerCurrentCollection.length)
                 {
-                    readerSetupList(readerCurrentCollection, next < 0 ? readerCurrentCollection.length - 1 : 0);
+                    // on the edge of ring list
+
+                    // readerSetupList(readerCurrentCollection, next < 0 ? readerCurrentCollection.length - 1 : 0);
 
                     listbox.selectedIndex  = -1;
                     textbox.value          = readerOriginalText;
@@ -2067,10 +2290,13 @@ KeySnail.Prompt = function () {
 
             if (readerState !== READER_ST_NEUT)
             {
-                let text      = isMultipleList(readerCurrentCollection) ?
-                    readerCurrentCollection[readerCurrentIndex][0] : readerCurrentCollection[readerCurrentIndex];
-                textbox.value = readerCC.cleartext ? text : readerLeftContext + text /* + readerRightContext */;
+                let text = isMultipleList(readerCurrentCollection) ?
+                    readerCurrentCollection[readerCurrentIndex][getFirstTextColIndex()] :
+                    readerCurrentCollection[readerCurrentIndex];
 
+                textbox.value = readerCC.cleartext ? text : readerLeftContext + text; /* + readerRightContext */
+
+                // set cursor position
                 oldSelectionStart = textbox.selectionStart = textbox.selectionEnd =
                     (typeof readerCC.cursorpos === "number") ? readerCC.cursorpos : (readerLeftContext + text).length;
 
@@ -2150,6 +2376,9 @@ KeySnail.Prompt = function () {
                 {
                     readerHistory.push(text);
                 }
+
+                if (readerHistory.length > options.historyMax)
+                    readerHistory.shift();
             }
         }
 
@@ -2439,6 +2668,8 @@ KeySnail.Prompt = function () {
 
             cellStylist = null;
 
+            flags = null;
+
             // -------------------- prompt.selector (and prompt.reader) -------------------- //
 
             delayedCommandTimeout = null;
@@ -2454,6 +2685,8 @@ KeySnail.Prompt = function () {
             // -------------------- prompt.read, prompt.reader ----------------------------- //
 
             readerState = READER_ST_NEUT;
+            readerStylist = null;
+            readerFlags   = null;
 
             // -------------------- DOM objects -------------------- //
 
@@ -2514,7 +2747,7 @@ KeySnail.Prompt = function () {
 
             // set up completion
             readerState = READER_ST_NEUT;
-            readerCurrentCompleter = completer.match.header(aCollection);
+            readerCurrentCompleter = completer.matcher.header(aCollection);
 
             // set up callbacks
             currentCallback = aCallback;
@@ -2523,8 +2756,10 @@ KeySnail.Prompt = function () {
             // display prompt box
             label.value = aMsg;
             textbox.value = aInitialInput || "";
+
             self.editModeEnabled = false;
-            promptbox.hidden = false;
+            promptbox.hidden     = false;
+
             // do not set selection value till textbox appear (cause crash)
             textbox.selectionStart = textbox.selectionEnd = 0;
 
@@ -2572,7 +2807,7 @@ KeySnail.Prompt = function () {
 
             // set up completion
             readerState = READER_ST_NEUT;
-            readerCurrentCompleter = aContext.completer || completer.match.header(aContext.collection);
+            readerCurrentCompleter = aContext.completer || completer.matcher.header(aContext.collection);
 
             // set up callbacks
             currentCallback = aContext.callback;
@@ -2580,12 +2815,13 @@ KeySnail.Prompt = function () {
 
             // set up stylist
             readerStylist = aContext.stylist;
-            // cellStylist = aContext.stylist;
+            // set up flags
+            readerFlags = aContext.flags;
+            flags       = null;
 
             userOnChange = aContext.onChange;
             userOnFinish = aContext.onFinish;
 
-            flags      = aContext.flags;
             listHeader = aContext.header;
             listStyle  = aContext.style;
             listWidth  = aContext.width;
