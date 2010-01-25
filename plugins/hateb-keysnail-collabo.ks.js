@@ -10,7 +10,7 @@ var PLUGIN_INFO =
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>0.9.6</minVersion>
+    <minVersion>1.4.0</minVersion>
     <include>main</include>
     <provides>
         <ext>list-hateb-comments</ext>
@@ -125,13 +125,12 @@ function addBookMark() {
     let tags         = hBookmark.model('Tag').findDistinctTags();
     let filteredTags = [tag.name for each (tag in tags)];
 
-    let currentMsg  = "";
-    let currentTags = [];
+    let currentMsg;
 
     function remainTextLengthWatcher(arg) {
         let current = arg.textbox.value;
         let length  = current.length;
-        let count   = limit - length - currentMsg.length;
+        let count   = limit - length;
         let msg     = M({ja: ("残り " + count + " 文字"), en: count});
 
         if (count < 0)
@@ -140,62 +139,50 @@ function addBookMark() {
         display.echoStatusBar(msg);
     }
 
-    function tagsToMsg() {
-        return currentTags.map(function (t) "[" + t + "]").join("");
+    function uniq(array) {
+        return array.reduce(
+            function (accum, current) {
+                if (accum.every(function (done) current !== done))
+                    accum.push(current);
+                return accum;
+            }, []);
+    }
+
+    function tagsToMsg(tag) {
+        return uniq(tag.split(" ").filter(function (s) !!s)).map(function (t) "[" + t + "]").join("");
     }
 
     function inputTag() {
-        let savedSubstrMatch = prompt.substrMatch;
-
-        prompt.substrMatch = false;
-
         prompt.reader(
             {
-                message    : "tag: " + tagsToMsg(),
-                collection : filteredTags,
-                onFinish   : function () {
-                    prompt.substrMatch = savedSubstrMatch;
-                },
+                message    : "tag: ",
+                completer  : prompt.completer.match.migemo(filteredTags),
                 callback   : function (tag) {
-                    if (!tag)
-                    {
-                        inputPost(tagsToMsg());
-                        return;
-                    }
-
-                    currentTags.push(tag);
-                    inputTag();
+                    inputPost(tagsToMsg(tag));
                 }
             }
         );
     }
 
     function inputPost(aInit) {
-        currentMsg = aInit || "";
+        aInit = aInit || "";
 
         prompt.reader(
             {
                 message      : "add bookmark:",
                 onChange     : remainTextLengthWatcher,
-                initialinput : currentMsg,
-                cursorEnd    : currentMsg.length,
+                initialinput : aInit,
+                cursorEnd    : aInit.length,
                 callback     : function post(aMsg) {
                     let bookmark = {
-                                url     : content.location.href,
-                                comment : aMsg
-                            };
+                        url     : content.location.href,
+                        comment : aMsg
+                    };
 
                     let command = new hBookmark.RemoteCommand(
                         "edit", {
-                            bookmark      : bookmark,
-                            // changeTitle   : false,
-                            // addCollection : false,
-                            // isPrivate     : false,
-                            // sendMail      : false,
-                            // asin          : null,
-                            // changeImage   : false,
-                            // image         : null,
-                            onComplete    : function () {
+                            bookmark   : bookmark,
+                            onComplete : function () {
                                 hBookmark.HTTPCache.entry.clear(bookmark.url);
 
                                 showPopup(

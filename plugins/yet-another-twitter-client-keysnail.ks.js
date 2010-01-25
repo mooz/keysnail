@@ -362,7 +362,7 @@ var twitterClient =
              // ======================================== //
              [function (status) {
                   if (status) reply(status.screen_name, status.id);
-              }, M({ja: "このつぶやき => 信 : ", en: ""}) + "Send reply message",
+              }, M({ja: "このつぶやき => 返信 : ", en: ""}) + "Send reply message",
              "reply"],
              // ======================================== //
              [function (status) {
