@@ -617,7 +617,7 @@ KeySnail.Prompt = function () {
                 options.displayDelayTime);
         }
 
-        oldTextLength = textbox.selectionEnd;
+        oldTextLength = textbox.value.length;
 
         if (typeof userOnChange === "function")
         {
@@ -1494,16 +1494,26 @@ KeySnail.Prompt = function () {
                 }
                 catch (e)
                 {
+                    self.message(e);
                     return result;
                 }
 
                 if (!dir.exists() || !dir.isDirectory())
+                {
+                    if (!dir.exists())
+                        self.message("%s not exists", dir.path);
+                    else
+                        self.message("%s is not a directory", dir.path);
+
                     return result;
+                }
 
                 let files;
                 try {
                     files = modules.util.readDirectory(dir, true);
                 } catch (x) {
+                    self.message(x);
+
                     files = [];
                 }
 
@@ -1651,13 +1661,15 @@ KeySnail.Prompt = function () {
                 };
             },
 
-            directory: function (filter) {
+            directory: function (context) {
                 return function (currentText, text) {
-                    let result;
-                    let (arg = {
-                             text    : currentText,
-                             filter  : filter || null
-                         }) result = completer.utils.completeFiles(arg);
+                    let result = completer.utils.completeFiles(
+                        {
+                            text    : currentText,
+                            filter  : context.filter,
+                            mask    : context.mask
+                        }
+                    );
 
                     let collection = result.collection;
                     let query      = result.query;
