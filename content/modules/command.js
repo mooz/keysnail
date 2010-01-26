@@ -121,7 +121,7 @@ KeySnail.Command = {
             prompt.reader(
                 {
                     message    : "Eval: ",
-                    completer  : prompt.completer.fetch.javascript,
+                    completer  : completer.fetch.javascript,
                     group      : "eval-expression",
                     flags      : [0, 0, IGNORE | HIDDEN],
                     style      : ["", "font-weight:bold;", ""],

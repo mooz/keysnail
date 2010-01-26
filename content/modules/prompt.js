@@ -1430,14 +1430,24 @@ KeySnail.Prompt = function () {
                 return [tokens, state];
             },
 
-            normalizePath: function (aPath) {
-                let delimiter = modules.userscript.directoryDelimiter;
+            normalizePath: function (aPath, aDelimiter) {
+                let delimiter = aDelimiter || modules.userscript.directoryDelimiter;
+
+                let isWindows = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS === "WINNT";
+
+                if (isWindows)
+                {
+                    aPath = aPath.replace(/\//g, delimiter || "\\");
+                }
 
                 if (aPath.indexOf("~" + delimiter) === 0)
                     aPath = modules.userscript.prefDirectory + aPath.slice(1);
 
-                if (aPath[0] !== delimiter)
-                    aPath = share.pwd + delimiter + aPath;  
+                if ((isWindows && !aPath.match(/^[a-zA-Z]:\\/)) ||
+                    (!isWindows && (aPath[0] !== delimiter)))
+                {
+                    aPath = modules.share.pwd + delimiter + aPath;
+                }
 
                 return aPath;
             },
@@ -1445,33 +1455,23 @@ KeySnail.Prompt = function () {
             // let stripped = text.replace(/^[ ]+/, "").replace(/[]+$/, "");
             directoryDelimiter: '/',
 
-            /**
-             * Suck Windows version
-             * @param {} context
-             * @returns {} 
-             */
-            completeDirectories: function completeDirectories(context) {
+            parseDirectoryQuery: function parseDirectoryQuery(text) {
                 let [home, delimiter] = modules.userscript.getPrefDirectory();
-                
-                if (delimiter !== directoryDelimiter)
-                {
-                    // C:\
-                    context.text = context.text.replace(new Regexp("[" + delimiter + "]", "g"), directoryDelimiter);
-                }
 
                 if (!modules.share.pwd)
                     modules.share.pwd = home;
 
                 let pwd = modules.share.pwd;
 
-                let text = context.text || (pwd + delimiter);
+                let originalText = text;
 
-                text = completer.utils.normalizePath(text);
+                let text = text || (pwd + delimiter);
+                text = completer.utils.normalizePath(text, delimiter);
 
                 let directories = text.split(delimiter);
 
                 let query  = directories.pop();
-                let origin = query === "" ? context.text.length : context.text.lastIndexOf(query);
+                let origin = query === "" ? originalText.length : originalText.lastIndexOf(query);
 
                 let path;
 
@@ -1481,11 +1481,10 @@ KeySnail.Prompt = function () {
                     path = directories.join(delimiter);
 
                 let result = {
-                    collection : null,
-                    query      : query,
-                    origin     : origin,
-                    delimiter  : delimiter,
-                    raw        : null
+                    files     : [],
+                    query     : query,
+                    origin    : origin,
+                    delimiter : delimiter
                 };
 
                 let dir;
@@ -1507,116 +1506,43 @@ KeySnail.Prompt = function () {
                 } catch (x) {
                     files = [];
                 }
-                let collection = files.map(function (f) f.isDirectory() ? f.leafName + delimiter : f.leafName);
 
-                if (query === "")
-                    result.collection = collection;
-                else
-                {
-                    let tmpCollection = [];
-                    let tmpRaw        = [];
-
-                    let matcher = context.matcher;
-
-                    for (let i = 0; i < collection.length; ++i)
-                    {
-                        if ((matcher && matcher(collection[i], query)) ||
-                            (!matcher && collection[i].indexOf(query) === 0))
-                        {
-                            tmpCollection.push(collection[i]);
-                            tmpRaw.push(files[i]);
-                        }
-                    }
-
-                    result.collection = tmpCollection;
-                    result.raw        = tmpRaw;
-                }
+                result.files = files;
 
                 return result;
             },
 
-            completeDirectories2: function completeDirectories2(context) {
-                let [home, delimiter] = modules.userscript.getPrefDirectory();
-
-                if (!modules.share.pwd)
-                    modules.share.pwd = home;
-
-                let pwd = modules.share.pwd;
-
-                let text = context.text || (pwd + delimiter);
-
-                // let stripped = text.replace(/^[ ]+/, "").replace(/[]+$/, "");
-
-                text = completer.utils.normalizePath(text);
-
-                // relative path
-                if (text[0] !== delimiter)
-                {
-                    text = pwd + delimiter + text;
-                }
-
-                let directories = text.split(delimiter);
-
-                let query  = directories.pop();
-                let origin = query === "" ? context.text.length : context.text.lastIndexOf(query);
-
-                let path;
-
-                if (directories.length === 1 && directories[0] === "") // strings like "/" or "/hoge"
-                    path = delimiter;
-                else
-                    path = directories.join(delimiter);
-
-                let result = {
-                    collection : null,
-                    query      : query,
-                    origin     : origin,
-                    delimiter  : delimiter,
-                    raw        : null
-                };
-
-                let dir;
-                try
-                {
-                    dir = modules.util.openFile(path);
-                }
-                catch (e)
-                {
-                    return result;
-                }
-
-                if (!dir.exists() || !dir.isDirectory())
-                    return result;
-
-                let files;
-                try {
-                    files = modules.util.readDirectory(dir, true);
-                } catch (x) {
-                    files = [];
-                }
-                let collection = files.map(function (f) f.isDirectory() ? f.leafName + delimiter : f.leafName);
+            /**
+             * @param {} context
+             * @returns {}
+             */
+            completeFiles: function completeFiles(context) {
+                let result     = completer.utils.parseDirectoryQuery(context.text);
+                let delimiter  = result.delimiter;
+                let query      = result.query;
+                let collection = result.files.map(function (f) f.isDirectory() ? f.leafName + delimiter : f.leafName);
 
                 if (query === "")
                     result.collection = collection;
                 else
                 {
-                    let tmpCollection = [];
-                    let tmpRaw        = [];
-
-                    let matcher = context.matcher;
-
-                    for (let i = 0; i < collection.length; ++i)
+                    if (context.filter)
                     {
-                        if ((matcher && matcher(collection[i], query)) ||
-                            (!matcher && collection[i].indexOf(query) === 0))
-                        {
-                            tmpCollection.push(collection[i]);
-                            tmpRaw.push(files[i]);
-                        }
+                        result.collection = context.filter(collection, query);
                     }
-
-                    result.collection = tmpCollection;
-                    result.raw        = tmpRaw;
+                    else
+                    {
+                        let matched = [];
+                        collection.filter(function (str) {
+                                              if (str.indexOf(query) === 0) { matched.push(str); return false; }
+                                              return true;
+                                          });
+                        collection.filter(function (str) {
+                                              if (str.toLowerCase().indexOf(query.toLowerCase()) === 0) { matched.push(str); return false; }
+                                              return true;
+                                          });
+                        result.collection = matched;
+                    }
                 }
 
                 return result;
@@ -1694,45 +1620,82 @@ KeySnail.Prompt = function () {
         },
 
         fetch: {
-            directory: function (currentText, text) {
-                let result = completer.utils.completeDirectories({text : currentText});
+            suggest: function (aEngines, aWithDescription) {
+                let util = modules.util;
+                let engines = aEngines ? util.suggest.filterEngines(aEngines) : [];
 
-                let collection = result.collection;
-                let query      = result.query;
-                let origin     = result.origin;
-                let delimiter  = result.delimiter;
+                return function (currentText, text) {
+                    [query, origin] = completer.utils.getQuery(currentText, [" "]);
 
-                if (collection)
-                {
-                    collection = collection.map(function (f) {
-                                                    let icon;
+                    let cc = {
+                        origin : origin,
+                        query  : query
+                    };
 
-                                                    if (f[f.length - 1] === delimiter)
-                                                    {
-                                                        f    = f.slice(0, f.length - 1);
-                                                        icon = "chrome://keysnail/skin/icon/folder.png";
-                                                    }
-                                                    else
-                                                    {
-                                                        let matched = f.match("[.]([^.]+)$");
-                                                        let ext;
+                    if (query)
+                    {
+                        let collection = engines.reduce(
+                            function (accum, engine) {
+                                let suggestions = util.suggest.getSuggestions(engine, query);
+                                let description = engine.description;
 
-                                                        if (matched && matched[1]) ext = matched[1];
+                                return accum.concat(aWithDescription ?
+                                                    suggestions.map(function (s) [s, description]) :
+                                                    suggestions);
+                            }, []);
 
-                                                        icon = "moz-icon://." + (ext || "") + "?size=16";
-                                                    }
+                        cc.collection = collection;
+                    }
 
-                                                    return [icon, f];
-                                                });
-                }
-
-                let cc = {
-                    origin     : origin,
-                    query      : query,
-                    collection : collection
+                    return cc;
                 };
+            },
 
-                return cc;
+            directory: function (filter) {
+                return function (currentText, text) {
+                    let result;
+                    let (arg = {
+                             text    : currentText,
+                             filter  : filter || null
+                         }) result = completer.utils.completeFiles(arg);
+
+                    let collection = result.collection;
+                    let query      = result.query;
+                    let origin     = result.origin;
+                    let delimiter  = result.delimiter;
+
+                    if (collection)
+                    {
+                        collection = collection.map(function (f) {
+                                                        let icon;
+
+                                                        if (f[f.length - 1] === delimiter)
+                                                        {
+                                                            f    = f.slice(0, f.length - 1);
+                                                            icon = "chrome://keysnail/skin/icon/folder.png";
+                                                        }
+                                                        else
+                                                        {
+                                                            let matched = f.match("[.]([^.]+)$");
+                                                            let ext;
+
+                                                            if (matched && matched[1]) ext = matched[1];
+
+                                                            icon = "moz-icon://." + (ext || "") + "?size=16";
+                                                        }
+
+                                                        return [icon, f];
+                                                    });
+                    }
+
+                    let cc = {
+                        origin     : origin,
+                        query      : query,
+                        collection : collection
+                    };
+
+                    return cc;
+                };
             },
 
             javascript: function (currentText, text) {
@@ -2351,7 +2314,7 @@ KeySnail.Prompt = function () {
             }
             catch (x)
             {
-                self.message("filename :: " + x.fileName + " :: msg :: " + x);
+                self.message("keysnail.prompt: In " + x.fileName + " (line: " + x.lineNumber + "), " + x);
                 return false;
             }
 
@@ -2451,10 +2414,10 @@ KeySnail.Prompt = function () {
                         .setAttribute("value", modules.util.getLocaleString("promptSelectorKeymapHelpTitle", [displayHelpKey.join(", ")]));
                 });
 
+            KeySnail.modules["completer"] = completer;
+
             // }} ======================================================================= //
         },
-
-        completer: completer,
 
         get editModeEnabled() {
             return promptEditMode;

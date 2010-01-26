@@ -15,6 +15,78 @@ KeySnail.Util = {
         this.userContext = {
             __proto__: this.parent.modules
         };
+
+        // ============================================================ //
+
+        const Cc = Components.classes;
+        const Ci = Components.interfaces;
+
+        const responseType = "application/x-suggestions+json";
+
+        let ss   = Cc["@mozilla.org/browser/search-service;1"].getService(Ci.nsIBrowserSearchService);
+        let json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+
+        this.suggest = {
+            ss: ss,
+            getEngines     : function () { return ss.getVisibleEngines({}); },
+
+            filterEngines  : function (aEngines) {
+                return aEngines.filter(function (engine) engine.supportsResponseType(responseType));
+            },
+
+            getSuggestions : function (aEngine, query, callback) {
+                let queryURI;
+                let engine = aEngine;
+
+                let util = KeySnail.modules.util;
+
+                if (engine && engine.supportsResponseType(responseType))
+                    queryURI = engine.getSubmission(query, responseType).uri.spec;
+
+                if (queryURI)
+                {
+                    if (callback)
+                    {
+                        util.httpGet(queryURI, false, function (xhr) {
+                                         let results = json.decode(xhr.responseText) || {1:[]};
+                                         callback(results[1]);
+                                     });
+                        return null;
+                    }
+                    else
+                    {
+                        let xhr = util.httpGet(queryURI);
+                        let results = json.decode(xhr.responseText) || {1:[]};
+                        return results[1];
+                    }
+                }
+
+                return [];
+            },
+
+            searchWithSuggest: function (aSearchEngine, aSuggestEngines, aOpenStyle) {
+                let util      = KeySnail.modules.util;
+                let prompt    = KeySnail.modules.prompt;
+                let completer = KeySnail.modules.completer;
+
+                prompt.reader(
+                    {
+                        message    : util.format("Search [%s]:", aSearchEngine.name),
+                        group      : "web-search",
+                        flags      : [0, 0],
+                        style      : ["", "color:#545454"],
+                        completer  : completer.fetch.suggest(aSuggestEngines, true),
+                        callback   : function (query) {
+                            if (query)
+                            {
+                                let uri = aSearchEngine.getSubmission(query, null).uri.spec;
+                                openUILinkIn(uri, aOpenStyle || "tab");
+                            }
+                        }
+                    }
+                );
+            }
+        };
     },
 
     get userLocale() {
@@ -1034,53 +1106,11 @@ KeySnail.Util = {
 
     // Suggestion {{ ============================================================ //
 
-    suggest:
-    (function () {
-         const Cc = Components.classes;
-         const Ci = Components.interfaces;
-
-         const responseType = "application/x-suggestions+json";
-
-         let ss   = Cc["@mozilla.org/browser/search-service;1"].getService(Ci.nsIBrowserSearchService);
-         let json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-
-         let util = KeySnail.modules.util;
-
-         let self = {
-             getEngines     : function () { return ss.getVisibleEngines({}); },
-             getSuggestions : function (engineName, query, callback) {
-                 let queryURI;
-                 let engine = ss.getEngineByName(engineName);
-
-                 if (engine && engine.supportsResponseType(responseType))
-                     queryURI = engine.getSubmission(query, responseType).uri.spec;
-
-                 if (queryURI)
-                 {
-                     if (callback)
-                     {
-                         util.httpGet(queryURI, false, function (xhr) {
-                                          let results = json.decode(xhr.responseText) || {1:[]};
-                                          callback(results[1]);
-                                      });
-                         return null;
-                     }
-                     else
-                     {
-                         let xhr = util.httpGet(queryURI);
-                         let results = json.decode(xhr.responseText) || {1:[]};
-                         return results[1];
-                     }
-                 }
-
-                 return [];
-             },
-         };
-
-         return self;
-     })(),
+    suggest: null,
 
     // }} ======================================================================= //
+
+
 
     // String {{ ================================================================ //
 
