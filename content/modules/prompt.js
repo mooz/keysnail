@@ -1236,6 +1236,8 @@ KeySnail.Prompt = function () {
 
     var readerHistory;
 
+    var readerPostProcess = null;
+
     // In history mode, we do not want stylist to work.
     var readerStylist;
     var readerFlags;
@@ -1295,6 +1297,8 @@ KeySnail.Prompt = function () {
         return isMultipleList(aStringList) ?
             function (r) r[getFirstTextColIndex()] : function (r) r;
     }
+
+    // Completer {{ ============================================================= //
 
     let completer = {
         states: {
@@ -1501,9 +1505,9 @@ KeySnail.Prompt = function () {
                 if (!dir.exists() || !dir.isDirectory())
                 {
                     if (!dir.exists())
-                        self.message("%s not exists", dir.path);
+                        result.errorMsg = modules.util.format("%s not exists", dir.path);
                     else
-                        self.message("%s is not a directory", dir.path);
+                        result.errorMsg = modules.util.format("%s is not a directory", dir.path);
 
                     return result;
                 }
@@ -1512,7 +1516,7 @@ KeySnail.Prompt = function () {
                 try {
                     files = modules.util.readDirectory(dir, true);
                 } catch (x) {
-                    self.message(x);
+                    result.errorMsg = modules.util.format("permission denied for %s", dir.path);
 
                     files = [];
                 }
@@ -1531,6 +1535,17 @@ KeySnail.Prompt = function () {
                 let delimiter  = result.delimiter;
                 let query      = result.query;
                 let collection = result.files.map(function (f) f.isDirectory() ? f.leafName + delimiter : f.leafName);
+
+                if (context.mask)
+                {
+                    let mask = context.mask;
+                    collection = collection.filter(function (s) (s[s.length - 1] === delimiter || s.match(mask)));
+                }
+
+                if (context.hideDotFiles)
+                {
+                    collection = collection.filter(function (s) (s[0] !== "."));
+                }
 
                 if (query === "")
                     result.collection = collection;
@@ -1663,13 +1678,8 @@ KeySnail.Prompt = function () {
 
             directory: function (context) {
                 return function (currentText, text) {
-                    let result = completer.utils.completeFiles(
-                        {
-                            text    : currentText,
-                            filter  : context.filter,
-                            mask    : context.mask
-                        }
-                    );
+                    context.text = currentText;
+                    let result = completer.utils.completeFiles(context);
 
                     let collection = result.collection;
                     let query      = result.query;
@@ -1700,295 +1710,297 @@ KeySnail.Prompt = function () {
                                                     });
                     }
 
-                    let cc = {
-                        origin     : origin,
-                        query      : query,
-                        collection : collection
-                    };
+                    result.collection  = collection;
+                    result.flags       = [modules.ICON | modules.IGNORE, 0];
+                    result.postProcess = completer.utils.normalizePath;
 
-                    return cc;
+                    return result;
                 };
             },
 
-            javascript: function (currentText, text) {
-                let [query, origin] = completer.utils.getQuery(currentText,
-                                                               [" ", "\t", "\n", "(", "{", "}", ")", ";"], []);
+            javascript: function (root) {
+                return function (currentText, text) {
+                    let [query, origin] = completer.utils.getQuery(currentText,
+                                                                   [" ", "\t", "\n", "(", "{", "}", ")", ";"], []);
 
-                const ST_NEUTRAL  = 0;
-                const ST_IN_QUOTE = 1;
-                const ST_IN_BRACE = 2;
-                const ST_ESCAPE   = 3;
+                    // if you want to begin with specific object,
+                    // try something like completer.fetch.javascript(window);
+                    root = root || {
+                        __proto__ : modules,
+                        window    : window,
+                        content   : content,
+                        document  : document
+                    };
 
-                function splitter(str) {
-                    let tokens = [];
+                    const ST_NEUTRAL  = 0;
+                    const ST_IN_QUOTE = 1;
+                    const ST_IN_BRACE = 2;
+                    const ST_ESCAPE   = 3;
 
-                    let buffer = [];
-                    let current;
+                    function splitter(str) {
+                        let tokens = [];
 
-                    let state     = ST_NEUTRAL;
-                    let prevState = ST_NEUTRAL;
+                        let buffer = [];
+                        let current;
 
-                    let quoteChar = null;
+                        let state     = ST_NEUTRAL;
+                        let prevState = ST_NEUTRAL;
 
-                    function flushBuffer() {
-                        if (buffer.length)
-                            tokens.push(buffer.join(""));
-                        buffer = [];
+                        let quoteChar = null;
+
+                        function flushBuffer() {
+                            if (buffer.length)
+                                tokens.push(buffer.join(""));
+                            buffer = [];
+                        }
+
+                        for (let i = 0; i < str.length; ++i)
+                        {
+                            let current = str[i];
+
+                            switch (state)
+                            {
+                                // ================================================== //
+                            case ST_NEUTRAL:
+                                switch (current)
+                                {
+                                case '"':
+                                case '\'':
+                                    prevState = ST_NEUTRAL;
+                                    state     = ST_IN_QUOTE;
+                                    quoteChar = current;
+                                    break;
+                                case '[':
+                                    state = ST_IN_BRACE;
+                                    // break through
+                                case '.':
+                                    flushBuffer();
+                                    break;
+                                default:
+                                    buffer.push(current);
+                                    break;
+                                }
+                                break;
+                                // ================================================== //
+                            case ST_IN_QUOTE:
+                                switch (current)
+                                {
+                                case quoteChar:
+                                    state = prevState;
+                                    flushBuffer();
+                                    break;
+                                case '\\':
+                                    prevState = ST_IN_QUOTE;
+                                    state     = ST_ESCAPE;
+                                    break;
+                                default:
+                                    buffer.push(current);
+                                    break;
+                                }
+                                break;
+                                // ================================================== //
+                            case ST_IN_BRACE:
+                                switch (current)
+                                {
+                                case '"':
+                                case '\'':
+                                    prevState = ST_IN_BRACE;
+                                    state     = ST_IN_QUOTE;
+                                    quoteChar = current;
+                                    break;
+                                case ']':
+                                    state = ST_NEUTRAL;
+                                    flushBuffer();
+                                    break;
+                                default:
+                                    buffer.push(current);
+                                    break;
+                                }
+                                break;
+                                // ================================================== //
+                            case ST_ESCAPE:
+                                state = prevState;
+                                buffer.push(current);
+                                break;
+                            }
+                        }
+
+                        flushBuffer();
+
+                        return [tokens, state];
                     }
 
-                    for (let i = 0; i < str.length; ++i)
+                    function propFilter(str) {
+                        if (str.match(/^[a-zA-Z_$]+[0-9a-zA-Z$_]*$/))
+                            return str;
+                        else
+                            return "['" + str.replace(/'/g, "'") + "']"; // '
+                    }
+
+                    function getArgList (aFunc) {
+                        return aFunc.toString().split('\n')[0].match(/\(.*\)/);
+                    }
+
+                    function getRow(obj, k, prefix) {
+                        let value = getV(obj, k);
+                        let type  = typeof value;
+
+                        let keyStr = (prefix ? prefix + "." : "") + propFilter(k);
+                        let valueStr;
+
+                        switch (type)
+                        {
+                        case "function":
+                            valueStr = "function " + getArgList(value);
+                            break;
+                        case "string":
+                            valueStr = '"' + value + '"';
+                            break;
+                        case "undefined":
+                            valueStr = "undefined";
+                        default:
+                            if (value === null)
+                            {
+                                valueStr = "null";
+                                type     = "null";
+                            }
+                            else if (value === undefined)
+                            {
+                                valueStr = "undefined";
+                                type     = "undefined";
+                            }
+                            else
+                            {
+                                // pessimistic ...
+                                try {
+                                    valueStr = value.toString();
+                                } catch (x) {
+                                    valueStr = value;
+                                }
+                            }
+                        }
+
+                        return [keyStr, valueStr, type];
+                    }
+
+                    function getV(obj, k) {
+                        try {
+                            return obj[k];
+                        } catch (x) {
+                            return null;
+                        }
+                    }
+
+                    function getKeys(obj) {
+                        let wrapped = obj.wrappedJSObject;
+
+                        if (wrapped)
+                            obj = wrapped;
+
+                        try
+                        {
+                            for (let k in obj)
+                                yield k;
+                        }
+                        catch (x)
+                        {
+                            throw StopIteration;
+                        }
+                    }
+
+                    function cmp([a], [b]) {
+                        if (a < b)
+                            return -1;
+                        else if (a > b)
+                        return 1;
+                        else
+                            return 0;
+                    }
+
+                    let cc = {
+                        origin : origin,
+                        query  : query
+                    };
+
+                    if (!query)
                     {
-                        let current = str[i];
+                        cc.collection = [getRow(root, k) for (k in getKeys(root))].sort(cmp);
+                        return cc;
+                    }
+                    else
+                    {
+                        let [props, state] = splitter(query);
+
+                        let obj = root;
+                        let all = query[query.length - 1] === ".";
+
+                        let key, prefix;
 
                         switch (state)
                         {
-                            // ================================================== //
-                            case ST_NEUTRAL:
-                            switch (current)
-                            {
-                            case '"':
-                            case '\'':
-                                prevState = ST_NEUTRAL;
-                                state     = ST_IN_QUOTE;
-                                quoteChar = current;
-                                break;
-                            case '[':
-                                state = ST_IN_BRACE;
-                                // break through
-                            case '.':
-                                flushBuffer();
-                                break;
-                            default:
-                                buffer.push(current);
-                                break;
-                            }
-                            break;
-                            // ================================================== //
-                            case ST_IN_QUOTE:
-                            switch (current)
-                            {
-                            case quoteChar:
-                                state = prevState;
-                                flushBuffer();
-                                break;
-                            case '\\':
-                                prevState = ST_IN_QUOTE;
-                                state     = ST_ESCAPE;
-                                break;
-                            default:
-                                buffer.push(current);
-                                break;
-                            }
-                            break;
-                            // ================================================== //
-                            case ST_IN_BRACE:
-                            switch (current)
-                            {
-                            case '"':
-                            case '\'':
-                                prevState = ST_IN_BRACE;
-                                state     = ST_IN_QUOTE;
-                                quoteChar = current;
-                                break;
-                            case ']':
-                                state = ST_NEUTRAL;
-                                flushBuffer();
-                                break;
-                            default:
-                                buffer.push(current);
-                                break;
-                            }
-                            break;
-                            // ================================================== //
-                            case ST_ESCAPE:
-                            state = prevState;
-                            buffer.push(current);
-                            break;
-                        }
-                    }
-
-                    flushBuffer();
-
-                    return [tokens, state];
-                }
-
-                function propFilter(str) {
-                    if (str.match(/^[a-zA-Z_$]+[0-9a-zA-Z$_]*$/))
-                        return str;
-                    else
-                        return "['" + str.replace(/'/g, "'") + "']"; // '
-                }
-
-                function getArgList (aFunc) {
-                    return aFunc.toString().split('\n')[0].match(/\(.*\)/);
-                }
-
-                function getRow(obj, k, prefix) {
-                    let value = getV(obj, k);
-                    let type  = typeof value;
-
-                    let keyStr = (prefix ? prefix + "." : "") + propFilter(k);
-                    let valueStr;
-
-                    switch (type)
-                    {
-                    case "function":
-                        valueStr = "function " + getArgList(value);
-                        break;
-                    case "string":
-                        valueStr = '"' + value + '"';
-                        break;
-                    case "undefined":
-                        valueStr = "undefined";
-                    default:
-                        if (value === null)
-                        {
-                            valueStr = "null";
-                            type     = "null";
-                        }
-                        else if (value === undefined)
-                        {
-                            valueStr = "undefined";
-                            type     = "undefined";
-                        }
-                        else
-                        {
-                            // pessimistic ...
-                            try {
-                                valueStr = value.toString();
-                            } catch (x) {
-                                valueStr = value;
-                            }
-                        }
-                    }
-
-                    return [keyStr, valueStr, type];
-                }
-
-                function getV(obj, k) {
-                    try {
-                        return obj[k];
-                    } catch (x) {
-                        return null;
-                    }
-                }
-
-                function getKeys(obj) {
-                    let wrapped = obj.wrappedJSObject;
-
-                    if (wrapped)
-                        obj = wrapped;
-
-                    try
-                    {
-                        for (let k in obj)
-                            yield k;
-                    }
-                    catch (x)
-                    {
-                        throw StopIteration;
-                    }
-                }
-
-                function cmp([a], [b]) {
-                    if (a < b)
-                        return -1;
-                    else if (a > b)
-                        return 1;
-                    else
-                        return 0;
-                }
-
-                let cc = {
-                    origin : origin,
-                    query  : query
-                };
-
-                let root = {
-                    __proto__ : modules,
-                    window    : window,
-                    content   : content,
-                    document  : document
-                };
-
-                if (!query)
-                {
-                    cc.collection = [getRow(root, k) for (k in getKeys(root))].sort(cmp);
-                    return cc;
-                }
-                else
-                {
-                    let [props, state] = splitter(query);
-
-                    let obj = root;
-                    let all = query[query.length - 1] === ".";
-
-                    let key, prefix;
-
-                    switch (state)
-                    {
-                    case ST_IN_QUOTE:
-                    case ST_ESCAPE:
-                        modules.display.echoStatusBar("Unterminated string", 1000);
-                        return cc;
-                        break;
-                    case ST_IN_BRACE:
-                        all = true;
-                        break;
-                    }
-
-                    if (!all) key = props.pop();
-
-                    prefix = props.reduce(function (a, c) {
-                                              c = propFilter(c);
-                                              if (a === "" || c[0] === '[')
-                                                  return a + c;
-                                              return a + "." + c;
-                                          }, "");
-
-                    for (let i = 0; i < props.length; ++i)
-                    {
-                        obj = obj[props[i]];
-
-                        if (!obj)
+                        case ST_IN_QUOTE:
+                        case ST_ESCAPE:
+                            modules.display.echoStatusBar("Unterminated string", 1000);
                             return cc;
-                    }
-
-                    if (obj)
-                    {
-                        if (all)
-                        {
-                            cc.collection = [getRow(obj, k, prefix) for (k in getKeys(obj))].sort(cmp);
+                            break;
+                        case ST_IN_BRACE:
+                            all = true;
+                            break;
                         }
-                        else
+
+                        if (!all) key = props.pop();
+
+                        prefix = props.reduce(function (a, c) {
+                                                  c = propFilter(c);
+                                                  if (a === "" || c[0] === '[')
+                                                      return a + c;
+                                                  return a + "." + c;
+                                              }, "");
+
+                        for (let i = 0; i < props.length; ++i)
                         {
-                            let keys    = [(k || "") for (k in getKeys(obj))];
-                            let matched = [];
+                            obj = obj[props[i]];
 
-                            // head
-                            keys = keys.filter(function (k) {
-                                                   if (k.indexOf(key) === 0) { matched.push(k); return false; }
-                                                   return true;
-                                               });
-
-                            // ignore case
-                            keys = keys.filter(function (k) {
-                                                   if (k.toLowerCase().indexOf(key.toLowerCase()) === 0) { matched.push(k); return false; }
-                                                   return true;
-                                               });
-
-                            // substring
-                            keys = keys.filter(function (k) {
-                                                   if (k.toLowerCase().indexOf(key.toLowerCase()) !== -1) { matched.push(k); return false; }
-                                                   return true;
-                                               });
-
-                            cc.collection = [getRow(obj, k, prefix) for each (k in matched)];
+                            if (!obj)
+                                return cc;
                         }
-                    }
 
-                    return cc;
-                }
+                        if (obj)
+                        {
+                            if (all)
+                            {
+                                cc.collection = [getRow(obj, k, prefix) for (k in getKeys(obj))].sort(cmp);
+                            }
+                            else
+                            {
+                                let keys    = [(k || "") for (k in getKeys(obj))];
+                                let matched = [];
+
+                                // head
+                                keys = keys.filter(function (k) {
+                                                       if (k.indexOf(key) === 0) { matched.push(k); return false; }
+                                                       return true;
+                                                   });
+
+                                // ignore case
+                                keys = keys.filter(function (k) {
+                                                       if (k.toLowerCase().indexOf(key.toLowerCase()) === 0) { matched.push(k); return false; }
+                                                       return true;
+                                                   });
+
+                                // substring
+                                keys = keys.filter(function (k) {
+                                                       if (k.toLowerCase().indexOf(key.toLowerCase()) !== -1) { matched.push(k); return false; }
+                                                       return true;
+                                                   });
+
+                                cc.collection = [getRow(obj, k, prefix) for each (k in matched)];
+                            }
+                        }
+
+                        return cc;
+                    }
+                };
             }
         },
 
@@ -2109,6 +2121,8 @@ KeySnail.Prompt = function () {
         }
     };
 
+    // }} ======================================================================= //
+
     var oldSelectionStart = 0;
     function handleKeyUpRead(aEvent) {
         if (textbox.selectionStart !== oldSelectionStart)
@@ -2203,14 +2217,15 @@ KeySnail.Prompt = function () {
                 case READER_ST_COMP:
                     cc = readerCC = readerCurrentCompleter(currentText, textbox.value);
 
-                    if (readerCC)
-                        noCompletionMsg = modules.util.format("No completion found for [%s]", readerCC.query);
+                    if (cc)
+                        noCompletionMsg = cc.errorMsg || modules.util.format("No completion found for [%s]", cc.query);                            
                     break;
                 case READER_ST_HIST:
                     cc = readerCC = completer.matcher.header(readerHistory, {}, {
                                                                wholeHeaderAsQuery : true,
                                                                stopCaret          : true
                                                            })(currentText, textbox.value) || {};
+
                     noCompletionMsg = modules.util.format("No history found for [%s]", currentText);
                     break;
                 }
@@ -2223,11 +2238,26 @@ KeySnail.Prompt = function () {
                 }
                 else
                 {
+                    // overwrite {{ ============================================================= //
+
+                    if (cc.flags)       flags         = cc.flags;
+                    if (cc.stylist)     cellStylist   = cc.stylist;
+                    if (cc.header)      listHeader    = cc.header;
+                    if (cc.style)       listStyle     = cc.header;
+                    if (cc.width)       listStyle     = cc.width;
+                    if (cc.message)     label.value   = cc.message;
+                    
+                    // postprocess
+                    readerPostProcess = cc.postProcess;
+
+                    // if (cc.replaceText) textbox.value = cc.replaceText;
+
+                    // }} ======================================================================= //
+
                     // Select first / last completion
                     readerCurrentCollection = cc.collection;
                     readerCurrentIndex      = direction > 0 ? 0 : readerCurrentCollection.length - 1;
                     readerLeftContext       = currentText.slice(0, cc.origin);
-                    // readerRightContext      = readerOriginalText.slice(readerOriginalSelectionStart);
 
                     setRows(readerCurrentCollection.length);
 
@@ -2593,13 +2623,18 @@ KeySnail.Prompt = function () {
             switch (type)
             {
             case TYPE_SELECTOR:
-                var candidates = selectorContext[SELECTOR_STATE_CANDIDATES];
+                let candidates = selectorContext[SELECTOR_STATE_CANDIDATES];
                 callbackArg = [aCanceled ? -1 : candidates.wholeListIndex, candidates.wholeList];
                 if (selectorFilter)
                     callbackArg = selectorFilter.apply(KeySnail, callbackArg);
                 break;
             case TYPE_READ:
-                callbackArg = [aCanceled ? null : textbox.value, savedUserArg];
+                let arg;
+                if (aCanceled)
+                    arg = null;
+                else
+                    arg = (typeof readerPostProcess === "function") ? readerPostProcess(textbox.value) : textbox.value;
+                callbackArg = [arg, savedUserArg];
                 break;
             }
 
@@ -2756,6 +2791,7 @@ KeySnail.Prompt = function () {
             };
 
             modules.display.echoStatusBar(modules.util.getLocaleString("promptKeyDescription"));
+            modules.display.echo.close();
         },
 
         /**
@@ -2787,6 +2823,8 @@ KeySnail.Prompt = function () {
             // set up callbacks
             currentCallback = aContext.callback;
             currentUserArg  = aContext.userarg;
+
+            readerPostProcess = aContext.postProcess;
 
             // set up stylist
             readerStylist = aContext.stylist;
@@ -2825,6 +2863,7 @@ KeySnail.Prompt = function () {
             };
 
             modules.display.echoStatusBar(aContext.description || modules.util.getLocaleString("promptKeyDescription"));
+            modules.display.echo.close();
         },
 
         /**
@@ -2943,6 +2982,8 @@ KeySnail.Prompt = function () {
                 wholeListIndex = aContext.initialIndex;
                 setListBoxSelection(wholeListIndex);
             }
+
+            modules.display.echo.close();
         },
 
         message: KeySnail.message

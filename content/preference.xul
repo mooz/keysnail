@@ -482,7 +482,7 @@
             <image src="chrome://keysnail/skin/logo.png" width="128" height="128"
                    tooltiptext="KeySnail" />
             <spacer height="10px" />
-            <description>mooz &lt;stillpedant@gmail.com&gt; (c) 2009</description>
+            <description>mooz &lt;stillpedant@gmail.com&gt; &#169; 2009-2010</description>
             <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://wiki.github.com/mooz/keysnail/')"
                          >Visit KeySnail wiki</description>

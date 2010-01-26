@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html [
+          <!ENTITY % htmlDTD PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+          %htmlDTD;
+          <!ENTITY % keysnailpluginmanagerDTD SYSTEM "chrome://keysnail/locale/pluginmanager.dtd">
+          %keysnailpluginmanagerDTD;
+          ]>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <title />
+        <link rel="stylesheet" type="text/css" href="chrome://keysnail/skin/css/general-html.css" />
+    </head>
+    <body>
+        <div id="container">
+            <div id="help-box">
+                <h2>&keySnail.pluginManager.howto.title;</h2>
+                <ol id="fancy">
+                    <li>&keySnail.pluginManager.howto.download;</li>
+                    <li>&keySnail.pluginManager.howto.clickButton;</li>
+                    <li>&keySnail.pluginManager.howto.selectFile;</li>
+                </ol>
+                <p id="annotation"><a href="http://wiki.github.com/mooz/keysnail/plugin"
+                                      target="_blank">&keySnail.pluginManager.howto.visitWiki;</a></p>
+                <h2>&keySnail.pluginManager.ext.title;</h2>
+                <p>&keySnail.pluginManager.ext.description1;</p>
+                <p>&keySnail.pluginManager.ext.description2;</p>
+                <pre>key.setGlobalKey('M-x', function (aEvent, aArg) {
+    ext.select(aArg, aEvent);
+}, '&keySnail.pluginManager.ext;', true);</pre>
+                <p>&keySnail.pluginManager.ext.description3;</p>
+                <pre>ext.add("change-locale-to-english", function () {
+    util.setUnicharPref("general.useragent.locale", "en-US");
+}, "Change locale to english");</pre>
+                <h2>&keySnail.pluginManager.option.title;</h2>
+                <p>&keySnail.pluginManager.option.description1;</p>
+                <p>&keySnail.pluginManager.option.description2;</p>
+                <pre>plugins.options["foo_bar.option1"] = true;</pre>
+            </div>
+            <div id="info-box">
+            </div>
+            <div id="detail-box">
+            </div>
+        </div>
+    </body>
+</html>

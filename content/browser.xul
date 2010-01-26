@@ -119,6 +119,11 @@
 
     <!-- prompt -->
     <vbox id="browser-bottombox">
+        <vbox hidden="false" collapsed="true">
+            <iframe id="keysnail-echo-area" src="chrome://keysnail/content/buffer.xhtml"
+                    flex="1" hidden="false" collapsed="false"
+                    onclick="" />
+        </vbox>
         <menupopup id="keysnail-prompt-menu" />
         <listbox id="keysnail-completion-list"
                  hidden="true"

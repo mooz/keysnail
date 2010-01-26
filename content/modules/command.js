@@ -116,15 +116,15 @@ KeySnail.Command = {
     interpreter: function (ev, arg) {
         let inspect = ('inspectObject' in window) && (arg > 0);
 
-        with (this.modules)
+        with (KeySnail.modules)
         {
             prompt.reader(
                 {
                     message    : "Eval: ",
-                    completer  : completer.fetch.javascript,
+                    completer  : completer.fetch.javascript(),
                     group      : "eval-expression",
                     flags      : [0, 0, IGNORE | HIDDEN],
-                    style      : ["", "font-weight:bold;", ""],
+                    style      : ["", "font-weight:bold;"],
                     stylist    : function (row, n) {
                         if (n !== 1)
                             return null;

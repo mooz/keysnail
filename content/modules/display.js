@@ -10,14 +10,15 @@ KeySnail.Display = function () {
     const Ci = Components.interfaces;
     const NOTIFY_ID = "ks-notify-message";
 
-    var modules;
+    let modules;
 
     // ==== status bar ====
-    var statusBar;            // reference to the status bar
-    var msgTimeOut;           // timeout object to the status bar
-    var hideMessageTimeout;
+    let statusBar;            // reference to the status bar
+    let echoArea;
+    let msgTimeOut;           // timeout object to the status bar
+    let hideMessageTimeout;
 
-    var smooth = 15;
+    let smooth = 15;
 
     function fade(aProcess, aFinally, aInterval, aCount) {
         modules.util.sleep(aInterval);
@@ -48,31 +49,93 @@ KeySnail.Display = function () {
         }
     }
 
-    var self = {
+    // some functions are inspired by ui.js of liberator
+    let echo = {
+        document  : null,
+        container : null,
+        help      : "Press ESC to quit",
+
+        get outputHeight() {
+            return getBrowser().mPanelContainer.boxObject.height;
+        },
+
+        open: function () {
+            if (echo.container.collapsed)
+                echo.container.collapsed = false;  
+
+            statusBar.label = echo.help;
+        },
+
+        close: function () {
+            if (!echo.container.collapsed)
+                echo.container.collapsed = true;  
+        },
+
+        updateHeight: function (percent) {
+            let availableHeight = echo.outputHeight;
+
+            if (!echo.container.collapsed)
+                availableHeight += parseFloat(echo.container.height);
+
+            echo.container.height = percent ?
+                availableHeight * (Math.max(Math.min(percent, 100), 0) / 100) :
+                Math.min(echo.document.height, availableHeight) + "px";                
+         
+            echo.open();
+        },
+
+        createElement: function (name) {
+            return echo.document.createElement(name);            
+        },
+
+        createTextNode : function (text) {
+            return echo.document.createTextNode(text);
+        },
+
+        createElementWithText: function (name, text) {
+            let elem = echo.createElement(name);
+            elem.appendChild(echo.createTextNode(text));
+            return elem;
+        },
+
+        html: function (text, timeout, height) {
+            echo.document.body.innerHTML = text;
+
+            echo.updateHeight(height);
+            echoArea.focus();
+
+            if (timeout)
+                setTimeout(function () { echo.close(); }, timeout);
+        },
+
+        handleEvent: function (ev) {
+            if (ev.type === "keypress")
+            {
+                if (ev.keyCode === KeyEvent.DOM_VK_ESCAPE)
+                {
+                    echo.close();                    
+                }
+            }
+        }
+    };
+
+    let self = {
         init: function () {
             modules = this.modules;
 
             statusBar = document.getElementById('statusbar-display');
+            echoArea  = document.getElementById('keysnail-echo-area');
 
-            // if (!statusBar)
-            // {
-            //     var parent = document.createElement("hbox");
-            //     parent.setAttribute("flex", 1);
+            if (echoArea)
+            {
+                echo.document  = echoArea.contentDocument;
+                echo.container = echoArea.parentNode;
 
-            //     var container = document.createElement("statusbar");
-            //     container.setAttribute("id", "status-bar");
-            //     container.setAttribute("flex", 1);
-
-            //     var panel = document.createElement("statusbarpanel");
-            //     panel.setAttribute("flex", 1);
-
-            //     container.appendChild(panel);
-            //     parent.appendChild(container);
-            //     document.documentElement.appendChild(parent);
-
-            //     statusBar = panel;
-            // }
+                echo.document.addEventListener("keypress", echo, true);
+            }
         },
+
+        echo: echo,
 
         echoStatusBar: function (msg, time) {
             if (!statusBar) return;
@@ -93,13 +156,13 @@ KeySnail.Display = function () {
         prettyPrint: function (aMsg, aOptions) {
             aOptions = aOptions || {};
 
-            var origOpacity = aOptions.opacity || 0.8;
-            var aTimeout    = aOptions.timeout;
-            var aFadetime   = aOptions.fade;
+            let origOpacity = aOptions.opacity || 0.8;
+            let aTimeout    = aOptions.timeout;
+            let aFadetime   = aOptions.fade;
 
             function hideMessage() {
                 function process(aCount) {
-                    var percent = aCount / smooth;
+                    let percent = aCount / smooth;
                     container.style.opacity = origOpacity * percent;
                 }
 
@@ -119,7 +182,7 @@ KeySnail.Display = function () {
                 container.style.display = "block";
 
                 function process(aCount) {
-                    var percent = aCount / smooth;
+                    let percent = aCount / smooth;
                     container.style.opacity = origOpacity * (1.0 - percent);
                 }
 
@@ -140,8 +203,8 @@ KeySnail.Display = function () {
                     after();
             }
 
-            var doc = content ? content.document : document;
-            var dBody = doc.body;
+            let doc = content ? content.document : document;
+            let dBody = doc.body;
 
             if (!dBody || modules.util.isFrameSetWindow(content))
             {
@@ -149,12 +212,12 @@ KeySnail.Display = function () {
                 return;
             }
 
-            var ksMessageId = "_ks_message";
-            var ksMessageStyle =
+            let ksMessageId = "_ks_message";
+            let ksMessageStyle =
                 (function (aStyles) {
-                     var array = [];
-                     var prop;
-                     var userDefined = aOptions.style || {};
+                     let array = [];
+                     let prop;
+                     let userDefined = aOptions.style || {};
 
                      for (prop in aStyles) {
                          if (userDefined.hasOwnProperty(prop))
@@ -182,8 +245,8 @@ KeySnail.Display = function () {
                 }
                 );
 
-            var lines = (aMsg || "").toString().split('\n');
-            var container = doc.getElementById(ksMessageId);
+            let lines = (aMsg || "").toString().split('\n');
+            let container = doc.getElementById(ksMessageId);
 
             if (!container)
             {
@@ -205,7 +268,7 @@ KeySnail.Display = function () {
             container.style.cssText = ksMessageStyle;
 
             container.appendChild(doc.createTextNode(lines[0]));
-            for (var i = 1; i < lines.length; ++i) {
+            for (let i = 1; i < lines.length; ++i) {
                 container.appendChild(doc.createElement("br"));
                 container.appendChild(doc.createTextNode(lines[i]));
             }
@@ -235,8 +298,8 @@ KeySnail.Display = function () {
                 ];
             }
 
-            var notifyBox = gBrowser.getNotificationBox();
-            var current = notifyBox.currentNotification;
+            let notifyBox = gBrowser.getNotificationBox();
+            let current = notifyBox.currentNotification;
 
             if (current && current.value == NOTIFY_ID)
                 current.close();
@@ -252,8 +315,8 @@ KeySnail.Display = function () {
             if (!aId)
                 aId = NOTIFY_ID;
 
-            var notifyBox = gBrowser.getNotificationBox();
-            var current = notifyBox.currentNotification;
+            let notifyBox = gBrowser.getNotificationBox();
+            let current = notifyBox.currentNotification;
 
             while (current && current.value === aId)
             {
