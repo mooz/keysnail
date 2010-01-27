@@ -99,6 +99,8 @@ KeySnail.Display = function () {
         },
 
         html: function (text, timeout, height) {
+            echo.document = echoArea.contentDocument;
+
             echo.document.body.innerHTML = text;
 
             echo.updateHeight(height);
@@ -128,10 +130,9 @@ KeySnail.Display = function () {
 
             if (echoArea)
             {
-                echo.document  = echoArea.contentDocument;
                 echo.container = echoArea.parentNode;
 
-                echo.document.addEventListener("keypress", echo, true);
+                echo.container.addEventListener("keypress", echo, true);
             }
         },
 

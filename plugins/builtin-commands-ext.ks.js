@@ -88,7 +88,7 @@ function main() {
         return;
     }
 
-    for each(var commands in context.ksBuiltin) {
+    for (let [, commands] in Iterator(context.ksBuiltin)) {
         for (var name in commands) {
             if (name == "__mode__")
                 continue;

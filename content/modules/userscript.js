@@ -400,7 +400,7 @@ KeySnail.UserScript = {
 
         var scripts = aXml.require.script;
 
-        for each (var script in scripts)
+        for (let [, script] in Iterator(scripts))
         {
             var url = script.text();
             var xhr = this.modules.util.httpGet(url);
@@ -737,7 +737,7 @@ KeySnail.UserScript = {
             main: "chrome://browser/content/browser.xul"
         };
 
-        for each (entry in includeURI)
+        for (let [, entry] in Iterator(includeURI))
         {
             uri = replacePair[entry] || entry;
 
@@ -745,7 +745,7 @@ KeySnail.UserScript = {
                 return false;
         }
 
-        for each (entry in excludeURI)
+        for (let [, entry] in Iterator(excludeURI))
         {
             uri = replacePair[entry] || entry;
 
@@ -1244,7 +1244,7 @@ KeySnail.UserScript = {
 
         var maxLen = Math.max.apply(null, [str.length for each (str in keys)]);
 
-        for each (var key in keys)
+        for (let [, key] in Iterator(keys))
         {
             var setting = settings[key] || "undefined";
             var padding = Math.max(maxLen - key.length, 0) + 2;
@@ -1259,7 +1259,7 @@ KeySnail.UserScript = {
             return;
         }
 
-        for each (var setting in aScheme.hooks)
+        for (let [, setting] in Iterator(aScheme.hooks))
         {
             let [name, body] = setting;
             if (!name || !body)
@@ -1300,7 +1300,7 @@ KeySnail.UserScript = {
         function getFunction(aCommand) {
             if (typeof aCommand === "string")
             {
-                for each (var commands in builtin)
+                for (let [, commands] in Iterator(builtin))
                 {
                     if (commands[aCommand])
                         return commands[aCommand][0].toString();
@@ -1344,7 +1344,7 @@ KeySnail.UserScript = {
 
             var settings = aScheme.keybindings[mode];
 
-            for each (var setting in settings)
+            for (let [, setting] in Iterator(settings))
             {
                 if (!setting)
                     continue;

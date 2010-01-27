@@ -916,7 +916,7 @@ var hok = function () {
     }
 
     function resetHintsColor() {
-        for each (var span in hintElements)
+        for (let [, span] in Iterator(hintElements))
         {
             span.style.backgroundColor = getHintColor(span.element);
         }
@@ -1053,7 +1053,7 @@ var hok = function () {
     function setLocalQuery() {
         if (plugins.options["hok.local_queries"] && typeof content.location.href == "string")
         {
-            for each (var row in plugins.options["hok.local_queries"])
+            for (let [, row] in Iterator(plugins.options["hok.local_queries"]))
             {
                 if (content.location.href.match(row[0]))
                 {
@@ -1124,7 +1124,7 @@ var hok = function () {
                     try
                     {
                         // TODO: Is there a good way to do this?
-                        for each (let hintElem in hintElements)
+                        for (let [, hintElem] in Iterator(hintElements))
                         {
                             if (supressUniqueFire)
                                 hintElem.element.focus();

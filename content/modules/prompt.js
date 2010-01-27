@@ -132,7 +132,7 @@ KeySnail.Prompt = function () {
     // ListBox settings
     var currentList;
     var currentIndexList;
-    var flags;
+    var gFlags;
     var listHeader;
     var listStyle;
     var listWidth;
@@ -172,8 +172,8 @@ KeySnail.Prompt = function () {
     }
 
     function getActualCols(aCols) {
-        if (flags)
-            for (let [, flag] in Iterator(flags))
+        if (gFlags)
+            for (let [, flag] in Iterator(gFlags))
                 if (flag & (modules.HIDDEN | modules.ICON)) aCols--;
         return aCols;
     }
@@ -200,7 +200,7 @@ KeySnail.Prompt = function () {
     }
 
     function isFlagOn(i, aFlag) {
-        return (flags && (flags[i] & aFlag));
+        return (gFlags && (gFlags[i] & aFlag));
     }
 
     // ============================== common DOM manipulation ============================== //
@@ -221,9 +221,9 @@ KeySnail.Prompt = function () {
     }
 
     function setColumns(aColumn) {
-        if (flags)
+        if (gFlags)
         {
-            for each (var flag in flags)
+            for (let [, flag] in Iterator(gFlags))
             {
                 if (flag & (modules.HIDDEN | modules.ICON))
                     aColumn--;
@@ -276,21 +276,21 @@ KeySnail.Prompt = function () {
     }
 
     function getNextVisibleColIndex(aCurrentIndex) {
-        if (!flags)
+        if (!gFlags)
             return aCurrentIndex;
 
-        for (var i = aCurrentIndex + 1; i < flags.length; ++i)
-            if (!(flags[i] & modules.HIDDEN))
+        for (var i = aCurrentIndex + 1; i < gFlags.length; ++i)
+            if (!(gFlags[i] & modules.HIDDEN))
                 break;
         return i;
     }
 
     function getFirstTextColIndex() {
-        if (!flags)
+        if (!gFlags)
             return 0;
 
-        for (var i = 0; i < flags.length; ++i)
-            if (!(flags[i] & (modules.HIDDEN | modules.ICON)))
+        for (var i = 0; i < gFlags.length; ++i)
+            if (!(gFlags[i] & (modules.HIDDEN | modules.ICON)))
                 break;
         return i;
     }
@@ -308,55 +308,48 @@ KeySnail.Prompt = function () {
     function createRow(aRowData) {
         let row = document.createElement("listitem");
 
-        if (aRowData.length > 1)
-        {
-            let cell;
+        let cell;
 
-            // i: actual column's index
-            // j: visible column's index
-            let i, j;
-            for (i = 0, j = 0; i < aRowData.length; ++i)
+        // i: actual column's index
+        // j: visible column's index
+        let i, j;
+        for (i = 0, j = 0; i < aRowData.length; ++i)
+        {
+            if (isFlagOn(i, modules.HIDDEN))
+                continue;
+
+            cell = document.createElement("listcell");
+
+            if (isFlagOn(i, modules.ICON))
             {
-                if (isFlagOn(i, modules.HIDDEN))
-                    continue;
-
-                cell = document.createElement("listcell");
-
-                if (isFlagOn(i, modules.ICON))
-                {
-                    cell.setAttribute("class", "listcell-iconic");
-                    cell.setAttribute("image", getCellValue(aRowData, i));
-                    i = getNextVisibleColIndex(i);
-                }
-
-                let style = "";
-                if (i < aRowData.length)
-                {
-                    setLabel(cell, getCellValue(aRowData, i));
-
-                    // column specific style
-                    if (listStyle && j < listStyle.length && listStyle[j])
-                        style += listStyle[j];
-
-                    if (cellStylist)
-                    {
-                        // cell specific style
-                        let cellStyle = cellStylist(aRowData, i, wholeList);
-                        if (cellStyle)
-                            style += cellStyle;
-                    }
-                }
-
-                if (style)
-                    cell.setAttribute("style", style);
-
-                row.appendChild(cell);
-                ++j;
+                cell.setAttribute("class", "listcell-iconic");
+                cell.setAttribute("image", getCellValue(aRowData, i));
+                i = getNextVisibleColIndex(i);
             }
-        }
-        else                    // if (aRowData.length > 1)
-        {
-            setLabel(row, getCellValue(aRowData, 0));
+
+            let style = "";
+            if (i < aRowData.length)
+            {
+                setLabel(cell, getCellValue(aRowData, i));
+
+                // column specific style
+                if (listStyle && j < listStyle.length && listStyle[j])
+                    style += listStyle[j];
+
+                if (cellStylist)
+                {
+                    // cell specific style
+                    let cellStyle = cellStylist(aRowData, i, wholeList);
+                    if (cellStyle)
+                        style += cellStyle;
+                }
+            }
+
+            if (style)
+                cell.setAttribute("style", style);
+
+            row.appendChild(cell);
+            ++j;
         }
 
         return row;
@@ -365,50 +358,46 @@ KeySnail.Prompt = function () {
     function applyRow(aRow, aRowData) {
         let cell = aRow.firstChild;
 
-        if (aRowData.length > 1)
+        // i: actual column's index
+        // j: visible column's index
+        let i, j;
+        for (i = 0, j = 0; i < aRowData.length; ++i)
         {
-            // i: actual column's index
-            // j: visible column's index
-            let i, j;
-            for (i = 0, j = 0; i < aRowData.length; ++i)
+            if (isFlagOn(i, modules.HIDDEN))
+                continue;
+
+            if (isFlagOn(i, modules.ICON))
             {
-                if (isFlagOn(i, modules.HIDDEN))
-                    continue;
-
-                if (isFlagOn(i, modules.ICON))
-                {
-                    cell.setAttribute("image", getCellValue(aRowData, i));
-                    i = getNextVisibleColIndex(i);
-                }
-
-                let style = "";
-                if (i < aRowData.length)
-                {
-                    setLabel(cell, getCellValue(aRowData, i));
-
-                    // column specific style
-                    if (listStyle && j < listStyle.length && listStyle[j])
-                        style += listStyle[j];
-
-                    if (cellStylist)
-                    {
-                        // cell specific style
-                        let cellStyle = cellStylist(aRowData, i, wholeList);
-                        if (cellStyle)
-                            style += cellStyle;
-                    }
-                }
-
-                // if (style) <- We have to clear the style. So this if statement is not needed.
-                cell.setAttribute("style", style);
-
-                cell = cell.nextSibling;
-                ++j;
+                cell.setAttribute("class", "listcell-iconic");
+                cell.setAttribute("image", getCellValue(aRowData, i));
+                i = getNextVisibleColIndex(i);
             }
-        }
-        else                    // if (aRowData.length > 1)
-        {
-            setLabel(cell, getCellValue(aRowData, 0));
+            else
+                cell.removeAttribute("class");
+
+            let style = "";
+            if (i < aRowData.length)
+            {
+                setLabel(cell, getCellValue(aRowData, i));
+
+                // column specific style
+                if (listStyle && j < listStyle.length && listStyle[j])
+                    style += listStyle[j];
+
+                if (cellStylist)
+                {
+                    // cell specific style
+                    let cellStyle = cellStylist(aRowData, i, wholeList);
+                    if (cellStyle)
+                        style += cellStyle;
+                }
+            }
+
+            // if (style) <- We have to clear the style. So this if statement is not needed.
+            cell.setAttribute("style", style);
+
+            cell = cell.nextSibling;
+            ++j;
         }
     }
 
@@ -496,57 +485,45 @@ KeySnail.Prompt = function () {
         var row;
 
         let hasChildNodes = listbox.hasChildNodes();
-
-        let needsRefresh = !hasChildNodes;
+        let multiple      = isMultipleList(aGeneralList);
+        let needsRefresh  = !hasChildNodes;
 
         if (type === TYPE_READ)
         {
             // prompt.selector does not have to care of the columns count changes.
             // so this part is prompt.read, prompt.reader only.
-            let newCols = isMultipleList(aGeneralList) ? getActualCols(aGeneralList[0].length) : 1;
-            let oldCols = 1;
 
-            if (hasChildNodes && listbox.childNodes[0].localName === "listcols")
-                oldCols = listbox.childNodes[0].childNodes.length;
+            let newCols  = multiple ? getActualCols(aGeneralList[0].length) : 1;
+            let oldCols  = 1;
+
+            let firstChild = listbox.childNodes[0];
+
+            if (hasChildNodes && firstChild.localName === "listcols")
+                oldCols = firstChild.childNodes.length;
 
             if (!needsRefresh)
+            {
                 needsRefresh = (newCols !== oldCols);
+            }
         }
 
         if (needsRefresh)
         {
             // set up the new listbox
-            if (isMultipleList(aGeneralList))
-            {
-                // multiple
-                setColumns(itemRetriever(0).length);
+            setColumns(multiple ? itemRetriever(0).length : 1);
 
-                for (var i = aOffset; i < count; ++i)
-                {
-                    row = createRow(itemRetriever(i));
-                    listbox.appendChild(row);
-                }
-            }
-            else
+            for (var i = aOffset; i < count; ++i)
             {
-                // normal
-                setColumns(1);
-
-                for (var i = aOffset; i < count; ++i)
-                {
-                    row = document.createElement("listitem");
-                    setLabel(row, itemRetriever(i));
-                    listbox.appendChild(row);
-                }
+                row = createRow(multiple ? itemRetriever(i) : [itemRetriever(i)]);
+                listbox.appendChild(row);
             }
         }
         else
         {
             // use listbox which has been already created
-            var childs     = listbox.childNodes;
-            var isMultiple = isMultipleList(aGeneralList);
+            let childs = listbox.childNodes;
 
-            var i = aOffset, j = 0;
+            let i = aOffset, j = 0;
 
             // skip listcols, listhead, ...
             while (childs[j].nodeName !== "listitem")
@@ -556,22 +533,14 @@ KeySnail.Prompt = function () {
             {
                 if (j < childs.length)
                 {
+                    // use already created one
                     row = childs[j];
-
-                    if (isMultiple)
-                        applyRow(row, itemRetriever(i));
-                    else
-                        setLabel(row, itemRetriever(i));
+                    applyRow(row, multiple ? itemRetriever(i) : [itemRetriever(i)]);
                 }
                 else
                 {
-                    if (isMultiple)
-                        row = createRow(itemRetriever(i));
-                    else
-                    {
-                        row = document.createElement("listitem");
-                        setLabel(row, itemRetriever(i));
-                    }
+                    // ok, we should create a new one
+                    row = createRow(multiple ? itemRetriever(i) : [itemRetriever(i)]);
 
                     listbox.appendChild(row);
                 }
@@ -665,21 +634,23 @@ KeySnail.Prompt = function () {
         var stopEventPropagation = true;
         var keymap  = selectorKeymap;
         var command = keymap[key] || "";
-        var flags;
 
-        [command, flags] = command.split(",");
-        if (!flags)
-            flags = "";
+        // gFlags is the global value
+        var opts;
+
+        [command, opts] = command.split(",");
+        if (!opts)
+            opts = "";
 
         // convert local command name to prompt-nth-action-*
         if (command in selectorTranslator)
             command = selectorTranslator[command];
 
         function uniq(str) {
-            var found = {};
+            var found   = {};
             var uniqStr = "";
 
-            for each (let c in str)
+            for (let [, c] in Iterator(str))
             {
                 if (found[c])
                     continue;
@@ -691,19 +662,20 @@ KeySnail.Prompt = function () {
             return uniqStr;
         }
 
-        // if additional flags are found
+        // if additional opts are found
         let (tmp = command.split(","))
         {
             command = tmp[0];
-            flags  += tmp[1] || "";
+            opts  += tmp[1] || "";
         };
 
         var next = 0;
 
         var continuousMode = false;
-        for (let [, flag] in Iterator(uniq(flags)))
+
+        for (let [, opt] in Iterator(uniq(opts)))
         {
-            switch (flag)
+            switch (opt)
             {
             case "c":
                 continuousMode = true;
@@ -863,7 +835,7 @@ KeySnail.Prompt = function () {
         aTo.currentIndexList = currentIndexList;
         aTo.wholeList        = wholeList;
         aTo.wholeListIndex   = wholeListIndex;
-        aTo.flags            = flags;
+        aTo.flags            = gFlags;
         aTo.listHeader       = listHeader;
         aTo.listStyle        = listStyle;
         aTo.listWidth        = listWidth;
@@ -880,7 +852,7 @@ KeySnail.Prompt = function () {
         currentIndexList       = aFrom.currentIndexList;
         wholeList              = aFrom.wholeList;
         wholeListIndex         = aFrom.wholeListIndex;
-        flags                  = aFrom.flags;
+        gFlags                 = aFrom.flags;
         listHeader             = aFrom.listHeader;
         listStyle              = aFrom.listStyle;
         listWidth              = aFrom.listWidth;
@@ -1116,7 +1088,7 @@ KeySnail.Prompt = function () {
             if (useMigemoActual)
                 migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
 
-            var cellForSearch = flags ? [i for (i in flags) if ((flags[i] & modules.IGNORE) === 0)] : null;
+            var cellForSearch = gFlags ? [i for (i in gFlags) if ((gFlags[i] & modules.IGNORE) === 0)] : null;
 
             var matcher;
             if (isMultipleList(wholeList))
@@ -2186,11 +2158,11 @@ KeySnail.Prompt = function () {
             case READER_ST_NEUT:
             case READER_ST_HIST:
             cellStylist = null;
-            flags       = null;
+            gFlags      = null;
             break;
             case READER_ST_COMP:
             cellStylist = readerStylist;
-            flags       = readerFlags;
+            gFlags      = readerFlags;
             break;
         }
 
@@ -2218,7 +2190,7 @@ KeySnail.Prompt = function () {
                     cc = readerCC = readerCurrentCompleter(currentText, textbox.value);
 
                     if (cc)
-                        noCompletionMsg = cc.errorMsg || modules.util.format("No completion found for [%s]", cc.query);                            
+                        noCompletionMsg = cc.errorMsg || modules.util.format("No completion found for [%s]", cc.query);
                     break;
                 case READER_ST_HIST:
                     cc = readerCC = completer.matcher.header(readerHistory, {}, {
@@ -2240,13 +2212,17 @@ KeySnail.Prompt = function () {
                 {
                     // overwrite {{ ============================================================= //
 
-                    if (cc.flags)       flags         = cc.flags;
-                    if (cc.stylist)     cellStylist   = cc.stylist;
-                    if (cc.header)      listHeader    = cc.header;
-                    if (cc.style)       listStyle     = cc.header;
-                    if (cc.width)       listStyle     = cc.width;
-                    if (cc.message)     label.value   = cc.message;
-                    
+                    // for history mode, there is no need of overwriting
+                    if (readerState === READER_ST_COMP)
+                    {
+                        if (cc.flags)       gFlags        = cc.flags;
+                        if (cc.stylist)     cellStylist   = cc.stylist;
+                        if (cc.header)      listHeader    = cc.header;
+                        if (cc.style)       listStyle     = cc.header;
+                        if (cc.width)       listWidth     = cc.width;
+                        if (cc.message)     label.value   = cc.message;
+                    }
+
                     // postprocess
                     readerPostProcess = cc.postProcess;
 
@@ -2346,6 +2322,28 @@ KeySnail.Prompt = function () {
 
     // ============================== finish ============================== //
 
+    function addToHistory(arg) {
+        if (arg && arg.length)
+        {
+            if (options.ignoreDuplication)
+            {
+                // remove all duplicated elements from list and add str to head
+                var li = readerHistory;
+                for (var i = 0; i < li.length; ++i)
+                    if (arg === li[i])
+                        li.splice(i, 1);
+                li.push(arg);
+            }
+            else
+            {
+                readerHistory.push(arg);
+            }
+
+            if (readerHistory.length > options.historyMax)
+                readerHistory.shift();
+        }
+    }
+
     function executeCallback(aCallback, aCallbackArg, aCanceled) {
         if (typeof aCallback === "function")
         {
@@ -2358,32 +2356,6 @@ KeySnail.Prompt = function () {
             {
                 self.message("keysnail.prompt: In " + x.fileName + " (line: " + x.lineNumber + "), " + x);
                 return false;
-            }
-
-            // add history (prompt.read only)
-            if ((type == TYPE_READ) && aCallbackArg[0] && aCallbackArg[0].length)
-            {
-                var text = aCallbackArg[0];
-
-                if (options.ignoreDuplication)
-                {
-                    // remove all duplicated elements from list and add str to head
-                    var li = readerHistory;
-                    for (var i = 0; i < li.length; ++i)
-                    {
-                        if (text == li[i])
-                            li.splice(i, 1);
-                    }
-
-                    li.push(text);
-                }
-                else
-                {
-                    readerHistory.push(text);
-                }
-
-                if (readerHistory.length > options.historyMax)
-                    readerHistory.shift();
             }
         }
 
@@ -2598,6 +2570,8 @@ KeySnail.Prompt = function () {
         finish: function (aCanceled, aAgain) {
             // ==================== temporary preservation ==================== //
 
+            let textboxValue = textbox.value;
+
             var savedCallback;
             var savedUserArg  = currentUserArg;
             var savedOnFinish = userOnFinish;
@@ -2678,7 +2652,7 @@ KeySnail.Prompt = function () {
 
             cellStylist = null;
 
-            flags = null;
+            gFlags = null;
 
             // -------------------- prompt.selector (and prompt.reader) -------------------- //
 
@@ -2688,7 +2662,6 @@ KeySnail.Prompt = function () {
             listHeader            = null;
             listStyle             = null;
             listWidth             = null;
-            flags                 = null;
             currentList           = null;
             currentIndexList      = null;
 
@@ -2713,7 +2686,14 @@ KeySnail.Prompt = function () {
             // ==================== execute callback ==================== //
 
             if (!aCanceled)
+            {
                 aCanceled = !executeCallback(savedCallback, callbackArg, aCanceled);
+
+                if (!aCanceled && (type === TYPE_READ))
+                {
+                    addToHistory(textboxValue);
+                }
+            }
 
             // if canceled or error occurred in callback, reset statusbar
             if (aCanceled)
@@ -2830,7 +2810,7 @@ KeySnail.Prompt = function () {
             readerStylist = aContext.stylist;
             // set up flags
             readerFlags = aContext.flags;
-            flags       = null;
+            gFlags      = null;
 
             userOnChange = aContext.onChange;
             userOnFinish = aContext.onFinish;
@@ -2893,7 +2873,7 @@ KeySnail.Prompt = function () {
 
             // set up completion
             wholeList  = typeof aContext.collection === "function" ? aContext.collection.call() : aContext.collection;
-            flags      = aContext.flags;
+            gFlags     = aContext.flags;
             listHeader = aContext.header;
             listStyle  = aContext.style;
             listWidth  = aContext.width;

@@ -34,7 +34,7 @@ KeySnail.Macro = {
         var len = aEvents.length;
         var sleepTime = this.sleepTime;
 
-        for each (var event in aEvents)
+        for (let [, event] in Iterator(aEvents))
         {
             if (event.keyCode === KeyEvent.DOM_VK_TAB)
             {

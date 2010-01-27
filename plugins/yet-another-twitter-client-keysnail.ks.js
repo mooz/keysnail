@@ -1481,7 +1481,7 @@ var twitterClient =
              if (aOptions.parameters)
              {
                  outer:
-                 for each (var params in aOptions.parameters)
+                 for (let [, params] in Iterator(aOptions.parameters))
                  {
                      for (let i = 0; i < message.parameters; ++i)
                      {
@@ -2588,7 +2588,7 @@ var twitterClient =
          }
 
          function modifyCache(aId, proc) {
-             for each (var status in share.twitterStatusesJSONCache)
+             for (let [, status] in Iterator(share.twitterStatusesJSONCache))
              {
                  if (status.id === aId)
                  {

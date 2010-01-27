@@ -1,0 +1,15 @@
+digraph reader {
+  graph [size = "1.5, 2.5"];
+
+  neutral    -> completion [label = "TAB, S-TAB"];
+  completion -> completion [label = "TAB, S-TAB"];
+  history    -> completion [label = "TAB, S-TAB"];
+
+  neutral    -> history    [label = "C-n, C-p"];
+  completion -> history    [label = "C-n, C-p"];
+  history    -> history    [label = "C-n, C-p"];
+
+  neutral    -> neutral    [label = "!(C-n, C-p) && !(TAB, S-TAB)"];
+  history    -> neutral    [label = "!(C-n, C-p) && !(TAB, S-TAB)"]; 
+  completion -> neutral    [label = "!(C-n, C-p) && !(TAB, S-TAB)"];
+}

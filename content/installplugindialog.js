@@ -60,7 +60,7 @@ var ksInstallPluginDialog = function () {
         dom["plugin-script-list"].appendChild(
             createScriptItem(pluginURL));
 
-        for each (var script in xml.require.script)
+        for (let [, script] in Iterator(xml.require.script))
         {
             dom["plugin-script-list"].appendChild(
                 createScriptItem(script.text()));

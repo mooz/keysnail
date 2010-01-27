@@ -12,7 +12,7 @@
                    em:maxVersion="3.7a1pre"
                    em:updateLink="http://github.com/mooz/keysnail/raw/master/keysnail.xpi"
                    em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.4.1.xhtml"
-                   em:updateHash="sha1:f18ad167c719a59aebad4c262d5e1a8a13128ddd" />
+                   em:updateHash="sha1:539d52c6874b8694dc8b37ffdad2443ced7f74f5" />
   <RDF:Seq RDF:about="rdf:#$mtJrB">
     <RDF:li RDF:resource="rdf:#$ntJrB"/>
   </RDF:Seq>

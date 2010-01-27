@@ -54,7 +54,7 @@ var rcWizard = {
         var defaultIconURL = "chrome://keysnail/skin/icon/empty.png";
         var context        = this.schemeContext = {};
 
-        for each (var leaf in this.getSchemeFiles().map(function (aFile) aFile.leafName))
+        for (let [, leaf] in Iterator(this.getSchemeFiles().map(function (aFile) aFile.leafName)))
         {
             try
             {

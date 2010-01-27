@@ -356,7 +356,7 @@ var ksPluginManager = function () {
             tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
             table.appendChild(tr);
 
-            for each (var ext in xml.provides.ext) {
+            for (let [, ext] in Iterator(xml.provides.ext)) {
                 var extName        = ext.text();
                 var extDescription = modules.ext.description(extName);
 
@@ -382,7 +382,7 @@ var ksPluginManager = function () {
             tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
             table.appendChild(tr);
 
-            for each (var option in xml.options.option) {
+            for (let [, option] in Iterator(xml.options.option)) {
                 var optionName        = option.name.text();
                 var optionType        = option.type.text();
                 var optionDescription = modules.L(modules.util.xmlGetLocaleString(option.description));

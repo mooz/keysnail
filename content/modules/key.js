@@ -317,7 +317,7 @@ KeySnail.Key = {
 
         aKeys.forEach(
             function (key) {
-                for each (var type in aType)
+                for (let [, type] in Iterator(aType))
                 {
                     var event = this.stringToKeyEvent(key, true, type, true);
                     // event.ksNoHandle becomes undefined while propagating
@@ -389,7 +389,7 @@ KeySnail.Key = {
 
             aKeys.forEach(
                 function (key) {
-                    for each (var type in aType)
+                    for (let [, type] in Iterator(aType))
                     {
                         var event = self.stringToKeyEvent(key, true, type, true);
                         // event.ksNoHandle becomes undefined while propagating
@@ -1100,7 +1100,7 @@ KeySnail.Key = {
         if (!(aKeyMapName instanceof Array))
             aKeyMapName = [aKeyMapName];
 
-        for each (var keyMapName in aKeyMapName)
+        for (let [, keyMapName] in Iterator(aKeyMapName))
         {
             var addTo = this.keyMapHolder[keyMapName];
 

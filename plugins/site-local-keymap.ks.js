@@ -476,7 +476,7 @@ var siteLocalKeymap =
                  if (!localKeyMaps[regexp])
                      localKeyMaps[regexp] = {};
 
-                 for each (var pair in keyMapDefinition[pattern])
+                 for (let [, pair] in Iterator(keyMapDefinition[pattern]))
                  {
                      var keySetting = pair[0];
                      var definition = pair[1];
