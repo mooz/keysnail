@@ -2667,9 +2667,10 @@ KeySnail.Prompt = function () {
 
             // -------------------- prompt.read, prompt.reader ----------------------------- //
 
-            readerState = READER_ST_NEUT;
-            readerStylist = null;
-            readerFlags   = null;
+            readerState       = READER_ST_NEUT;
+            readerStylist     = null;
+            readerFlags       = null;
+            readerPostProcess = null;
 
             // -------------------- DOM objects -------------------- //
 
@@ -2742,6 +2743,8 @@ KeySnail.Prompt = function () {
             // set up callbacks
             currentCallback = aCallback;
             currentUserArg  = aUserArg;
+
+            readerPostProcess = null;
 
             // display prompt box
             label.value = aMsg;
