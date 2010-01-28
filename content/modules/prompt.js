@@ -2371,7 +2371,7 @@ KeySnail.Prompt = function () {
 
             statusBar = $('statusbar-display');
 
-            modules = this.modules;
+            modules = self.modules;
 
             promptbox = $("keysnail-prompt");
             label     = $("keysnail-prompt-label");

@@ -7,17 +7,17 @@ var ksBuiltin = {
 
         open_the_new_tab: [
             function (ev) {
-                document.dispatchEvent(key.stringToKeyEvent("C-t", true));
+                BrowserOpenTab();
             }, false],
 
         close_tab_window: [
             function (ev) {
-                document.dispatchEvent(key.stringToKeyEvent("C-w", true));
+                BrowserCloseTabOrWindow();
             }, false],
 
         undo_closed_tab: [
             function (ev) {
-                document.dispatchEvent(key.stringToKeyEvent("C-T", true));
+                undoCloseTab();
             }, false],
 
         select_next_tab: [
@@ -259,7 +259,7 @@ var ksBuiltin = {
 
         exit_firefox: [
             function (ev) {
-                document.dispatchEvent(key.stringToKeyEvent("C-q", true));
+                goQuitApplication();
             }, false],
 
         restart_firefox: [
