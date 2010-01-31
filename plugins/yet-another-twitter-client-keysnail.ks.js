@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.5.6 (2010 01/31) ====
+// 
+// * Made official ReTweet to be displayed in the timeline (default green color)
+// 
 // ==== 1.5.5 (2010 01/16) ====
 // 
 // * Added popup_new_replies option.
@@ -142,6 +146,7 @@ var optionsDefaultValue = {
     "normal_tweet_style"                    : "color:black;",
     "my_tweet_style"                        : "color:#0a00d5;",
     "reply_to_me_style"                     : "color:#930c00;",
+    "retweeted_status_style"                : "color:#134f00;",
     "selected_row_style"                    : "background-color:#93c6ff; color:black; outline: 1px solid #93c6ff !important;",
     "selected_user_style"                   : "background-color:#ddedff; color:black;",
     "selected_user_reply_to_style"          : "background-color:#ffd4ff; color:black;",
@@ -2567,6 +2572,10 @@ var twitterClient =
                              {
                                  style += getOption("selected_user_reply_to_reply_to_style");
                              }
+                             else if (status.retweeted_status)
+                             {
+                                 style += getOption("retweeted_status_style");
+                             }
 
                              return style;
                          } : null,
@@ -2871,8 +2880,9 @@ var twitterClient =
 
                  oauthASyncRequest(
                      {
-                         action : "http://twitter.com/statuses/friends_timeline.json?count=" + timelineCount,
-                         method : "GET"
+                         action     : "http://api.twitter.com/1/statuses/home_timeline.json?count=" + timelineCount,
+                         host       : "http://api.twitter.com/",
+                         method     : "GET"
                      },
                      function (aEvent, xhr) {
                          if (xhr.readyState === 4)
@@ -3280,7 +3290,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.5</version>
+    <version>1.5.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
