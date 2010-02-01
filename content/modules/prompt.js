@@ -285,12 +285,12 @@ KeySnail.Prompt = function () {
         return i;
     }
 
-    function getFirstTextColIndex() {
-        if (!gFlags)
+    function getFirstTextColIndex(aFlags) {
+        if (!aFlags)
             return 0;
 
-        for (var i = 0; i < gFlags.length; ++i)
-            if (!(gFlags[i] & (modules.HIDDEN | modules.ICON)))
+        for (var i = 0; i < aFlags.length; ++i)
+            if (!(aFlags[i] & (modules.HIDDEN | modules.ICON)))
                 break;
         return i;
     }
@@ -1208,7 +1208,11 @@ KeySnail.Prompt = function () {
 
     var readerHistory;
 
-    var readerPostProcess = null;
+    var readerPostProcess    = null;
+
+    function resetPostProcess() {
+        readerPostProcess = null;
+    }
 
     // In history mode, we do not want stylist to work.
     var readerStylist;
@@ -1265,9 +1269,9 @@ KeySnail.Prompt = function () {
         return new XML(matched[1]);
     }
 
-    function createTextGetter(aStringList) {
+    function createTextGetter(aStringList, aFlags) {
         return isMultipleList(aStringList) ?
-            function (r) r[getFirstTextColIndex()] : function (r) r;
+            function (r) r[getFirstTextColIndex(aFlags)] : function (r) r;
     }
 
     // Completer {{ ============================================================= //
@@ -1417,7 +1421,9 @@ KeySnail.Prompt = function () {
                 }
 
                 if (aPath.indexOf("~" + delimiter) === 0)
+                {
                     aPath = modules.userscript.prefDirectory + aPath.slice(1);
+                }
 
                 if ((isWindows && !aPath.match(/^[a-zA-Z]:\\/)) ||
                     (!isWindows && (aPath[0] !== delimiter)))
@@ -1470,7 +1476,7 @@ KeySnail.Prompt = function () {
                 }
                 catch (e)
                 {
-                    self.message(e);
+                    result.errorMsg = e.message;
                     return result;
                 }
 
@@ -1485,15 +1491,16 @@ KeySnail.Prompt = function () {
                 }
 
                 let files;
-                try {
+                try
+                {
                     files = modules.util.readDirectory(dir, true);
-                } catch (x) {
-                    result.errorMsg = modules.util.format("permission denied for %s", dir.path);
-
-                    files = [];
+                }
+                catch (x)
+                {
+                    result.errorMsg = x.message;
                 }
 
-                result.files = files;
+                result.files = files || [];
 
                 return result;
             },
@@ -1650,7 +1657,9 @@ KeySnail.Prompt = function () {
 
             directory: function (context) {
                 return function (currentText, text) {
+                    context      = context || {};
                     context.text = currentText;
+
                     let result = completer.utils.completeFiles(context);
 
                     let collection = result.collection;
@@ -1684,20 +1693,22 @@ KeySnail.Prompt = function () {
 
                     result.collection  = collection;
                     result.flags       = [modules.ICON | modules.IGNORE, 0];
-                    result.postProcess = completer.utils.normalizePath;
 
                     return result;
                 };
             },
 
-            javascript: function (root) {
+            javascript: function (context) {
                 return function (currentText, text) {
-                    let [query, origin] = completer.utils.getQuery(currentText,
-                                                                   [" ", "\t", "\n", "(", "{", "}", ")", ";"], []);
+                    context = context || {};
+
+                    let [query, origin] = completer.utils.getQuery(
+                        currentText, [" ", "\t", "\n", "(", "{", "}", ")", ";"], []
+                    );
 
                     // if you want to begin with specific object,
-                    // try something like completer.fetch.javascript(window);
-                    root = root || {
+                    // try something like completer.fetch.javascript({root: window});
+                    let root = context.root || {
                         __proto__ : modules,
                         window    : window,
                         content   : content,
@@ -1890,8 +1901,25 @@ KeySnail.Prompt = function () {
                     }
 
                     let cc = {
-                        origin : origin,
-                        query  : query
+                        origin  : origin,
+                        query   : query,
+                        flags   : [0, 0, modules.IGNORE | modules.HIDDEN],
+                        style   : ["", "font-weight:bold;"],
+                        stylist : function (row, n) {
+                            if (n !== 1)
+                                return null;
+
+                            return {
+                                "function"  : "color:#003d72;",
+                                "object"    : "color:#b63404;",
+                                "string"    : "color:#165b00;",
+                                "xml"       : "color:#290070;",
+                                "number"    : "color:#8505ac;",
+                                "boolean"   : "color:#860000;",
+                                "undefined" : "color:#91046c;",
+                                "null"      : "color:#008e6d;"
+                            }[row[2]] || "color:black;";
+                        }
                     };
 
                     if (!query)
@@ -1978,8 +2006,6 @@ KeySnail.Prompt = function () {
 
         matcher: {
             migemo: function (collection, options) {
-                let getText = createTextGetter(collection);
-
                 if ("xulMigemoCore" in window)
                 {
                     return function (currentText, text) {
@@ -1989,6 +2015,8 @@ KeySnail.Prompt = function () {
                             origin : origin,
                             query  : query
                         };
+
+                        let getText = createTextGetter(collection, options.flags);
 
                         if (query)
                         {
@@ -2034,7 +2062,7 @@ KeySnail.Prompt = function () {
                 return function (currentText, text) {
                     let query, origin;
 
-                    let getText = createTextGetter(collection);
+                    let getText = createTextGetter(collection, options.flags);
 
                     if (specific.wholeHeaderAsQuery)
                     {
@@ -2086,6 +2114,63 @@ KeySnail.Prompt = function () {
 
                     if (cc.collection.length && specific.commonHeader)
                         cc.cursorpos = origin + completer.utils.getCommonSubStringIndex(cc.collection);
+
+                    return combineObject(cc, options || {});
+                };
+            },
+
+            substring: function (collection, options) {
+                if (!collection) collection = [];
+                if (!options)    options    = {};
+
+                return function (currentText, text) {
+                    let query, origin;
+
+                    let getText = createTextGetter(collection, options.flags);
+
+                    [query, origin] = completer.utils.getQuery(currentText, [" "]);
+
+                    let cc = {
+                        origin : origin,
+                        query  : query
+                    };
+
+                    if (query)
+                    {
+                        let remains = collection;
+                        let matched = [];
+
+                        // head
+                        remains = remains.filter(function (c) {
+                                                     let text = getText(c);
+                                                     if (text.indexOf(query) === 0) { matched.push(c); return false; }
+                                                     return true;
+                                                 });
+
+                        let (query = query.toLowerCase())
+                        {
+                            // ignore case
+                            remains = remains.filter(function (c) {
+                                                         let text = getText(c).toLowerCase();
+                                                         if (text.indexOf(query) === 0) { matched.push(c); return false; }
+                                                         return true;
+                                                     });
+
+                            // substring
+                            remains = remains.filter(function (c) {
+                                                         self.message("cmp(%s, %s)", query, getText(c));
+                                                         let text = getText(c).toLowerCase();
+                                                         if (text.indexOf(query) !== -1) { matched.push(c); return false; }
+                                                         return true;
+                                                     });
+                        };
+
+                        cc.collection = matched;
+                    }
+                    else
+                    {
+                        cc.collection = collection;
+                    }
 
                     return combineObject(cc, options || {});
                 };
@@ -2215,16 +2300,16 @@ KeySnail.Prompt = function () {
                     // for history mode, there is no need of overwriting
                     if (readerState === READER_ST_COMP)
                     {
-                        if (cc.flags)       gFlags        = cc.flags;
-                        if (cc.stylist)     cellStylist   = cc.stylist;
-                        if (cc.header)      listHeader    = cc.header;
-                        if (cc.style)       listStyle     = cc.header;
-                        if (cc.width)       listWidth     = cc.width;
-                        if (cc.message)     label.value   = cc.message;
-                    }
+                        gFlags      = readerFlags   = cc.flags;
+                        cellStylist = readerStylist = cc.stylist;
 
-                    // postprocess
-                    readerPostProcess = cc.postProcess;
+                        listStyle  = cc.style;
+                        listWidth  = cc.width;
+                        listHeader = cc.header;
+
+                        if (cc.message)
+                            label.value   = cc.message;
+                    }
 
                     // if (cc.replaceText) textbox.value = cc.replaceText;
 
@@ -2272,7 +2357,7 @@ KeySnail.Prompt = function () {
             if (readerState !== READER_ST_NEUT)
             {
                 let text = isMultipleList(readerCurrentCollection) ?
-                    readerCurrentCollection[readerCurrentIndex][getFirstTextColIndex()] :
+                    readerCurrentCollection[readerCurrentIndex][getFirstTextColIndex(gFlags)] :
                     readerCurrentCollection[readerCurrentIndex];
 
                 textbox.value = readerCC.cleartext ? text : readerLeftContext + text; /* + readerRightContext */
@@ -2607,7 +2692,11 @@ KeySnail.Prompt = function () {
                 if (aCanceled)
                     arg = null;
                 else
-                    arg = (typeof readerPostProcess === "function") ? readerPostProcess(textbox.value) : textbox.value;
+                {
+                    arg = textbox.value;
+                    if (typeof readerPostProcess === "function")
+                        arg = readerPostProcess(arg);
+                }
                 callbackArg = [arg, savedUserArg];
                 break;
             }
@@ -2670,7 +2759,8 @@ KeySnail.Prompt = function () {
             readerState       = READER_ST_NEUT;
             readerStylist     = null;
             readerFlags       = null;
-            readerPostProcess = null;
+
+            resetPostProcess();
 
             // -------------------- DOM objects -------------------- //
 
@@ -2744,10 +2834,10 @@ KeySnail.Prompt = function () {
             currentCallback = aCallback;
             currentUserArg  = aUserArg;
 
-            readerPostProcess = null;
+            resetPostProcess();
 
             // display prompt box
-            label.value = aMsg;
+            label.value   = aMsg;
             textbox.value = aInitialInput || "";
 
             self.editModeEnabled = false;
@@ -2801,12 +2891,24 @@ KeySnail.Prompt = function () {
 
             // set up completion
             readerState = READER_ST_NEUT;
-            readerCurrentCompleter = aContext.completer || completer.matcher.header(aContext.collection);
+
+            readerCurrentCompleter = aContext.completer ||
+                completer.matcher.header(
+                    aContext.collection,
+                    {
+                        header  : aContext.header,
+                        style   : aContext.style,
+                        width   : aContext.width,
+                        flags   : aContext.flags,
+                        stylist : aContext.stylist
+                    }
+                );
 
             // set up callbacks
             currentCallback = aContext.callback;
             currentUserArg  = aContext.userarg;
 
+            resetPostProcess();
             readerPostProcess = aContext.postProcess;
 
             // set up stylist
