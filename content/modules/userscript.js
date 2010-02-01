@@ -114,6 +114,8 @@ KeySnail.UserScript = {
         [this.prefDirectory, this.directoryDelimiter]
             = this.getPrefDirectory();
 
+        this.modules.share.pwd = this.prefDirectory;
+
         this.userPath = this.modules.util
             .getUnicharPref("extensions.keysnail.userscript.location");
 
@@ -367,16 +369,24 @@ KeySnail.UserScript = {
         {
             try
             {
-                var destinationDir  = util.openFile(this.pluginDir);
-                var destinationFile = util.openFile(this.pluginDir);
+                let destinationDir  = util.openFile(this.pluginDir);
+                let destinationFile = util.openFile(this.pluginDir);
+
                 destinationFile.append(aFile.leafName);
 
-                if (destinationFile.exists() &&
-                    !util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
-                                  util.getLocaleString("overWriteConfirmation", [destinationFile.path])))
+                if (destinationFile.exists())
                 {
-                    // canceled
-                    throw util.getLocaleString("canceledByUser");
+                    if (util.hashFile(aFile) === util.hashFile(destinationFile))
+                    {
+                        // no need to install this file
+                        return destinationFile;
+                    }
+
+                    let overwriteConfirmed = util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
+                                                          util.getLocaleString("overWriteConfirmation", [destinationFile.path]));
+
+                    if (!overwriteConfirmed)
+                        throw util.getLocaleString("canceledByUser");
                 }
 
                 aFile.moveTo(destinationDir, "");
@@ -398,20 +408,20 @@ KeySnail.UserScript = {
         if (!aXml || !aXml.require.length())
             return;
 
-        var scripts = aXml.require.script;
+        let scripts = aXml.require.script;
 
         for (let [, script] in Iterator(scripts))
         {
-            var url = script.text();
-            var xhr = this.modules.util.httpGet(url);
+            let url = script.text();
+            let xhr = this.modules.util.httpGet(url);
 
             if (xhr && xhr.responseText)
             {
                 try
                 {
-                    var fileName     = this.modules.util.getLeafNameFromURL(url);
-                    var tmpFile      = this.writeTextTmp(fileName, xhr.responseText);
-                    var installed    = this.installFile(tmpFile);
+                    let fileName  = this.modules.util.getLeafNameFromURL(url);
+                    let tmpFile   = this.writeTextTmp(fileName, xhr.responseText);
+                    let installed = this.installFile(tmpFile);
                     this.message(installed.path + " installed");
                 }
                 catch (x)
@@ -435,8 +445,8 @@ KeySnail.UserScript = {
      * @param {string} aVersionB
      * @returns {integer} 0, 1, -1
      *  0: when two version are considered as same
-     *  1: <aVersionA> is newer than <aVersionB>
-     * -1: <aVersionA> is older than <aVersionB>
+     *  1: <b>aVersionA</b> is newer than <b>aVersionB</b>
+     * -1: <b>aVersionA</b> is older than <b>aVersionB</b>
      */
     compareVersion: function (aVersionA, aVersionB) {
         var a = aVersionA.split(".");
