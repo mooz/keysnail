@@ -2,8 +2,8 @@ var EXPORTED_SYMBOLS = ["SCHEME"];
 
 var SCHEME = {
     name: {
-        ja: "適度に Emacs (For Mac OSX)",
-        en: "Lightweight Emacs for Mac OSX"
+        ja: "適度に Emacs (For Mac OS X)",
+        en: "Lightweight Emacs for Mac OS X"
     },
     description: {
         ja: "Mac OSX のショートカットキーをつぶされたくない人用のスキームです",
@@ -179,15 +179,34 @@ SCHEME.hooks.push(
      function (aEvent) {
          if (key.currentKeySequence.length)
              return;
-
+         
          command.closeFindBar();
 
+         let marked = command.marked(aEvent);
+         
          if (util.isCaretEnabled())
-             command.resetMark(aEvent);
+         {
+             if (marked)
+             {
+                 command.resetMark(aEvent);
+             }
+             else
+             {
+                 if ("blur" in aEvent.target) aEvent.target.blur();
+                 
+                 gBrowser.focus();
+                 _content.focus();
+             }
+         }
          else
-             goDoCommand('cmd_selectNone');
-
-         key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
+         {
+             goDoCommand("cmd_selectNone");
+         }
+         
+         if (KeySnail.windowType === "navigator:browser" && !marked)
+         {
+             key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
+         }
      }]
 );
 

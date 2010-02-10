@@ -3,7 +3,7 @@ var EXPORTED_SYMBOLS = ["SCHEME"];
 var SCHEME = {
     name: {
         ja: "とにかく Emacs / w3m",
-        en: "Full Emacs / w3m"
+        en: "Emacs / w3m"
     },
     description: {
         ja: "Emacs や w3m のキーバインドを最大限に再現したスキームです。",
@@ -37,15 +37,34 @@ SCHEME.hooks.push(
      function (aEvent) {
          if (key.currentKeySequence.length)
              return;
-
+         
          command.closeFindBar();
 
+         let marked = command.marked(aEvent);
+         
          if (util.isCaretEnabled())
-             command.resetMark(aEvent);
+         {
+             if (marked)
+             {
+                 command.resetMark(aEvent);
+             }
+             else
+             {
+                 if ("blur" in aEvent.target) aEvent.target.blur();
+                 
+                 gBrowser.focus();
+                 _content.focus();
+             }
+         }
          else
-             goDoCommand('cmd_selectNone');
-
-         key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
+         {
+             goDoCommand("cmd_selectNone");
+         }
+         
+         if (KeySnail.windowType === "navigator:browser" && !marked)
+         {
+             key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
+         }
      }]
 );
 

@@ -21,8 +21,8 @@ var SCHEME = {
     hooks: [],
     keybindings: {},
     prefs: {
-        "keyhandler.use_prefix_argument" : true,
-        "keyhandler.digit_prefix_argument_type": "Digit"
+        "keyhandler.use_prefix_argument"        : true,
+        "keyhandler.digit_prefix_argument_type" : "Digit"
     },
     specialKeys: {
         'escape'  : 'C-v',
@@ -101,7 +101,13 @@ var nonEditableCommon = [
     [["g", "u"], "upper_directory"],
     [["g", "U"], "goto_root"],
     ["d", "close_tab_window"],
-    ["u", "undo_closed_tab"]
+    ["u", "undo_closed_tab"],
+    // Others
+    ["i",
+     [function (ev, arg) {
+          util.setBoolPref("accessibility.browsewithcaret",
+                           !util.getBoolPref("accessibility.browsewithcaret"));
+      }, "Toggle caret mode"], true]
 ];
 
 SCHEME.keybindings["view"]  = SCHEME.keybindings["view"].concat(nonEditableCommon);
