@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.2.2</version>
+    <version>1.2.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -61,8 +61,12 @@ a を入力することで現在閲覧中のページをブックマークする
 // }}}
 
 // ChangeLog : {{{
+// 
+// ==== 1.2.3 (2010 02/08) ====
+// 
+// * Made title in the popup message be equal to the of actual bookmarked page.
 //
-// ==== 1.2.0 (2010 01/23c) ====
+// ==== 1.2.0 (2010 01/23) ====
 //
 // * Added hateb-bookmark-this-page command
 //
@@ -123,7 +127,7 @@ function addBookMark() {
     const limit = 100;
 
     let tags         = hBookmark.model('Tag').findDistinctTags();
-    let filteredTags = [tag.name for each (tag in tags)];
+    let filteredTags = [tag.name for ([, tag] in Iterator(tags))];
 
     let currentMsg;
 
@@ -171,13 +175,15 @@ function addBookMark() {
             {
                 message      : "add bookmark:",
                 onChange     : remainTextLengthWatcher,
-                initialinput : aInit,
+                initialInput : aInit,
                 cursorEnd    : aInit.length,
                 callback     : function post(aMsg) {
                     let bookmark = {
                         url     : content.location.href,
                         comment : aMsg
                     };
+
+                    let title = content.document.title;
 
                     let command = new hBookmark.RemoteCommand(
                         "edit", {
@@ -189,12 +195,13 @@ function addBookMark() {
                                     {
                                         icon    : PLUGIN_INFO.iconURL,
                                         title   : M({ja: "ブックマークに追加しました", en: "Bookmarked"}),
-                                        message : content.document.title
+                                        message : title
                                     }
                                 );
                             },
                             onError       : function () {
-                                window.alert('error');
+                                display.echoStatusBar(M({ja: "はてなブックマークの追加に失敗しました",
+                                                         en: "Failed to add hatena bookmark"}), 3000);
                             }
                         });
 
