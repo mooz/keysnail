@@ -90,6 +90,23 @@ After installing HoK, press ';' key and launch extended hint mode. Then, press '
 Now select image you want to reblog by pressing its hint and reblog will be done. How easy!
 
 If you want to select where to post image, press 'R' instead of 'r'. By pressing 'p' key, you can reblog any elements as well as images.
+
+==== Google Reader ====
+
+If you are using Google Reader, the settings below allows you to reblog current item quickly.
+
+>||
+local["^http://www.google.(co.jp|com)/reader/view/"] = [
+    // foobar
+    ["r", function () {
+         let link = content.document.querySelector("#current-entry a.entry-title-link");
+         if (link && plugins.kungfloo)
+             plugins.kungfloo.reblog(link, false, false);
+     }]
+||<
+
+See site-local-keymap's help for details.
+
     ]]></detail>
     <detail lang="ja"><![CDATA[
 === 使い方 ===
@@ -141,6 +158,26 @@ HoK をインストールした後 ; などのキーを入力して拡張ヒン�
 「投稿先を選びたい」という場合は r でなく R を押せば、先程説明した投稿先一覧が現れます。また、画像だけでなくリンクなどを Reblog したい場合は p (post) を入力してください。
 
 これらのキーはオプションの値を変更することで、カスタマイズすることも可能となっています。
+
+==== Google Reader 用設定 ====
+
+Google Reader をお使いの方は、次のような設定を行っておくと現在閲覧中のアイテムを簡単に Reblog することができて便利です。
+
+>||
+local["^http://www.google.(co.jp|com)/reader/view/"] = [
+    // 略
+    ["r", function () {
+         let link = content.document.querySelector("#current-entry a.entry-title-link");
+         if (link && plugins.kungfloo)
+             plugins.kungfloo.reblog(link, false, false);
+     }]
+||<
+
+なお、上記の設定詳細について site-local-keymap プラグインのヘルプを参照してください。
+
+=== 謝辞 ===
+
+プラグインを開発するにあたって http://unsigned.g.hatena.ne.jp/Trapezoid/20080717/1216297347 のコードを参考にさせていただきました。
 
 ]]></detail>
 </KeySnailPlugin>;
@@ -256,7 +293,7 @@ let kungfloo =
                  let candidates = [[e, e.ICON, e.name] for ([, e] in Iterator(extensions))];
 
                  function share(extension, dialog) {
-                     Tombloo.Service.share(context, extension, dialog);
+                     Tombloo.Service.share(context, extension, dialog);                         
                      display.echoStatusBar("Reblogged - " + context.title, 3000);
                  }
 
@@ -352,6 +389,5 @@ ext.add("kungfloo-reblog-dwim",
 ext.add("kungfloo-tombloo-menu",
         function (ev, arg) { kungfloo.menu(); },
         "Kungfloo - Tombloo Menu");
-
 
 // }} ======================================================================= //
