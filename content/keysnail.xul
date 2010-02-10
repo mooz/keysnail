@@ -17,6 +17,7 @@
   <!-- modules only for main browser -->
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/prompt.js" />
   <script type="application/x-javascript" src="chrome://keysnail/content/modules/ext.js" />
+  <script type="application/x-javascript" src="chrome://keysnail/content/modules/shell.js" />
 
   <!-- initialization -->
   <script type="application/x-javascript">

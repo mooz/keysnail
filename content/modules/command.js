@@ -123,23 +123,6 @@ KeySnail.Command = {
                     message    : "Eval: ",
                     completer  : completer.fetch.javascript(),
                     group      : "eval-expression",
-                    flags      : [0, 0, IGNORE | HIDDEN],
-                    style      : ["", "font-weight:bold;"],
-                    stylist    : function (row, n) {
-                        if (n !== 1)
-                            return null;
-
-                        return {
-                            "function"  : "color:#003d72;",
-                            "object"    : "color:#b63404;",
-                            "string"    : "color:#165b00;",
-                            "xml"       : "color:#290070;",
-                            "number"    : "color:#8505ac;",
-                            "boolean"   : "color:#860000;",
-                            "undefined" : "color:#91046c;",
-                            "null"      : "color:#008e6d;"
-                        }[row[2]] || "color:black;";
-                    },
                     callback   : function (code) {
                         try
                         {

@@ -1195,6 +1195,7 @@ KeySnail.Prompt = function () {
     const READER_ST_NEUT = 0;   // neutral
     const READER_ST_COMP = 1;   // completion
     const READER_ST_HIST = 2;   // history
+    const READER_ST_KEEP = 3;   // use chache
 
     var readerCurrentCollection = null;
     var readerCurrentIndex      = null;
@@ -1208,10 +1209,18 @@ KeySnail.Prompt = function () {
 
     var readerHistory;
 
-    var readerPostProcess    = null;
+    var readerPostProcess = null;
 
     function resetPostProcess() {
         readerPostProcess = null;
+    }
+
+    function readerResetState() {
+        readerState                  = READER_ST_NEUT;
+        readerLeftContext            = null;
+        readerOriginalText           = null;
+        readerOriginalSelectionStart = null;
+        readerCC                     = null;
     }
 
     // In history mode, we do not want stylist to work.
@@ -2006,6 +2015,8 @@ KeySnail.Prompt = function () {
 
         matcher: {
             migemo: function (collection, options) {
+                options = options || {};
+
                 if ("xulMigemoCore" in window)
                 {
                     return function (currentText, text) {
@@ -2158,7 +2169,6 @@ KeySnail.Prompt = function () {
 
                             // substring
                             remains = remains.filter(function (c) {
-                                                         self.message("cmp(%s, %s)", query, getText(c));
                                                          let text = getText(c).toLowerCase();
                                                          if (text.indexOf(query) !== -1) { matched.push(c); return false; }
                                                          return true;
@@ -2246,6 +2256,7 @@ KeySnail.Prompt = function () {
             gFlags      = null;
             break;
             case READER_ST_COMP:
+            case READER_ST_KEEP:
             cellStylist = readerStylist;
             gFlags      = readerFlags;
             break;
@@ -2255,7 +2266,7 @@ KeySnail.Prompt = function () {
         {
             stopEventPropagation = true;
 
-            if (oldState !== readerState)
+            if (oldState !== READER_ST_KEEP && oldState !== readerState)
             {
                 // ================================================== //
                 // Create
@@ -2290,6 +2301,7 @@ KeySnail.Prompt = function () {
                 if (!cc || !cc.collection || !cc.collection.length)
                 {
                     // No completion found
+                    readerResetState();
                     readerState = READER_ST_NEUT;
                     modules.display.echoStatusBar(noCompletionMsg, 3000);
                 }
@@ -2333,7 +2345,12 @@ KeySnail.Prompt = function () {
                 // Select
                 // ================================================== //
 
-                let next = readerCurrentIndex + direction;
+                let next;
+
+                if (oldState === READER_ST_KEEP)
+                    next = direction > 0 ? 0 : readerCurrentCollection.length - 1;
+                else
+                    next = readerCurrentIndex + direction;
 
                 if (next < 0 || next >= readerCurrentCollection.length)
                 {
@@ -2345,7 +2362,7 @@ KeySnail.Prompt = function () {
                     textbox.value          = readerOriginalText;
                     textbox.selectionStart = textbox.selectionEnd = readerOriginalSelectionStart;
 
-                    readerState = READER_ST_NEUT;
+                    readerState = READER_ST_KEEP;
                 }
                 else
                 {
@@ -2354,7 +2371,7 @@ KeySnail.Prompt = function () {
                 }
             }
 
-            if (readerState !== READER_ST_NEUT)
+            if (readerState !== READER_ST_NEUT && readerState !== READER_ST_KEEP)
             {
                 let text = isMultipleList(readerCurrentCollection) ?
                     readerCurrentCollection[readerCurrentIndex][getFirstTextColIndex(gFlags)] :
@@ -2926,7 +2943,7 @@ KeySnail.Prompt = function () {
 
             // display prompt box
             label.value            = aContext.message;
-            textbox.value          = aContext.initialinput || "";
+            textbox.value          = aContext.initialInput || aContext.initialinput || "";
             self.editModeEnabled   = false;
             promptbox.hidden       = false;
             textbox.selectionStart = textbox.selectionEnd = aContext.cursorEnd ? textbox.value.length : 0;

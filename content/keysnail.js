@@ -45,6 +45,7 @@ var KeySnail = {
                              "Key",
                              "Prompt",
                              "Ext",
+                             "Shell",
                              // UserScript must be the last
                              "UserScript"];
         this.modules.modules = this.modules;

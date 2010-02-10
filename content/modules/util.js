@@ -35,8 +35,38 @@ KeySnail.Util = function () {
             let json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
 
             this.suggest = {
-                ss: ss,
-                getEngines     : function () { return ss.getVisibleEngines({}); },
+                ss            : ss,
+                responseType  : responseType,
+                getEngines    : function () { return ss.getVisibleEngines({}); },
+
+                // partially borrowed from bookmarks.js of liberator
+                ensureAliases : function (aEngines) {
+                    for (let [, engine] in Iterator(aEngines))
+                    {
+                        if (!engine.alias)
+                        {
+                            let alias = engine.alias;
+                            if (!alias || !/^[a-z0-9_-]+$/.test(alias))
+                                alias = engine.name.replace(/^\W*([a-zA-Z_-]+).*/, "$1").toLowerCase();
+                            if (!alias)
+                                alias = "search";
+
+                            let newAlias = alias;
+                            for (let j = 1; j <= 10; j++)
+                            {
+                                if (!aEngines.some(function (item) item[0] == newAlias))
+                                    break;
+
+                                newAlias = alias + j;
+                            }
+
+                            if (engine.alias !== newAlias)
+                                engine.alias = newAlias;
+                        }
+                    }
+
+                    return aEngines;
+                },
 
                 filterEngines  : function (aEngines) {
                     return aEngines.filter(function (engine) engine.supportsResponseType(responseType));
@@ -269,7 +299,7 @@ KeySnail.Util = function () {
                 // returns pair of hex code for given 1 byte
                 function toHexString(charCode) ("0" + charCode.toString(16)).slice(-2);
 
-                return [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");                
+                return [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
             }
 
             return hash;
