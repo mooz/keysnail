@@ -1,11 +1,11 @@
 // PLUGIN_INFO {{ =========================================================== //
 
-var PLUGIN_INFO =
+let PLUGIN_INFO =
 <KeySnailPlugin>
-    <name>Kungfloo</name>
-    <description>Tombloo</description>
-    <description lang="ja">Tombloo を操作</description>
-    <version>0.0.1</version>
+    <name>kungfloo</name>
+    <description>Manipulate Tombloo from KeySnail</description>
+    <description lang="ja">KeySnail から Tombloo を操作</description>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kungfloo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kungfloo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -13,40 +13,135 @@ var PLUGIN_INFO =
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.2.8</minVersion>
     <provides>
-        <ext>swap-caret</ext>
+        <ext>kungfloo-reblog</ext>
+        <ext>kungfloo-reblog-dwim</ext>
+        <ext>kungfloo-tombloo-menu</ext>
     </provides>
     <include>main</include>
     <options>
         <option>
-            <name>caret_hint.head_key</name>
+            <name>kungfloo.reblog_image_dwim_key</name>
             <type>string</type>
-            <description>Key to move caret to the head of element (default: c)</description>
-            <description lang="ja">要素の先頭へキャレットを移動するキー (デフォルト: c)</description>
+            <description>Key bound to "Reblog image DWIM" in the HoK extended hint mode (Default: r)</description>
+            <description lang="ja">HoK 拡張ヒントモードにおいて "画像の Reblog DWIM" へ割り当てるキー (デフォルト: r)</description>
         </option>
         <option>
-            <name>caret_hint.tail_key</name>
+            <name>kungfloo.reblog_image_key</name>
             <type>string</type>
-            <description>Key to move caret to the head of element (default: C)</description>
-            <description lang="ja">要素の末尾へキャレットを移動するキー (デフォルト: C)</description>
+            <description>Key bound to "Reblog image" in the HoK extended hint mode (Default: R)</description>
+            <description lang="ja">HoK 拡張ヒントモードにおいて "画像の Reblog" へ割り当てるキー (デフォルト: R)</description>
         </option>
         <option>
-            <name>caret_hint.select_head_key</name>
+            <name>kungfloo.reblog_misc_key</name>
             <type>string</type>
-            <description>Key to select element and move caret to the head (default: disabled)</description>
-            <description lang="ja">要素を選択し、先頭にキャレットを移動するキー (デフォルト: 無効)</description>
+            <description>Key bound to "Reblog miscellanies" in the HoK extended hint mode (Default: p)</description>
+            <description lang="ja">HoK 拡張ヒントモードにおいて "色々 Reblog" へ割り当てるキー (デフォルト: p)</description>
+        </option>
+        <option>
+            <name>kungfloo.keymap</name>
+            <type>object</type>
+            <description>Keymap of the extensions selector</description>
+            <description lang="ja">投稿先を選択する画面のキーマップ</description>
         </option>
     </options>
     <detail><![CDATA[
 === Usage ===
-==== Power up HoK extend hint mode ====
 
-This plugin provides commands which moves caret using hints to HoK extend mode.
+==== Manipulate Tombloo with keyboard ====
 
-For example, if you binds HoK extend mode to ;, you can display hints by pressing ;c and move caret to the element you selected.
+kungfloo allows you to manipulate Tombloo by keyboard.
 
+You can reblog entry of blog, videos in YouTube, photos in Flickr, and of course tumble in Tumblr in various ways listed below.
+
+- DWIM post by pressing certain key.
+- Select where to post by pressing certain key.
+- Select image using HoK and post it.
+- Select arbitrary element using HoK and post it.
+
+==== Settings / Basics ====
+
+Paste the code below to the bottom of your .keysnail.js.
+
+>||
+key.defineKey([key.modes.VIEW, key.modes.CARET], 'r', function (ev, arg) {
+    ext.exec("kungfloo-reblog", arg, ev);
+}, 'kungfloo - Reblog', true);
+||<
+
+After that, by pressing 'r' key, you can select where to post.  
+
+Use arrow key or j/k to select where to post and press keys listed below.
+
+- r / Enter
+ - Post current page immediately.
+- R
+ - Dialog of Tombloo will be opened.
+
+We bound kungfloo-reblog to r in the above settings so we can reblog current page by pressing r two times like rr. How easy!
+
+If you do not want to select where to post and reblog current page directly, change kungfloo-reblog to kungfloo-reblog-dwim. Do What I Mean.
+
+==== Reblog images ====
+
+kungfloo collaborates with HoK plugin and allows you to reblog images by using only keyboard easily.
+
+After installing HoK, press ';' key and launch extended hint mode. Then, press 'r' key and hints are attached to the images in the screen.
+
+Now select image you want to reblog by pressing its hint and reblog will be done. How easy!
+
+If you want to select where to post image, press 'R' instead of 'r'. By pressing 'p' key, you can reblog any elements as well as images.
     ]]></detail>
     <detail lang="ja"><![CDATA[
 === 使い方 ===
+
+==== Tombloo を KeySnail から操作 ====
+
+kungfloo はキーボードだけで Tombloo を操作する為に作られた KeySnail プラグインです。
+
+このプラグインによって提供される Reblog 方法には、以下のようなものがあります。
+
+- キーを押し、それらしい Reblog 先を Tombloo に判断させて即座にポスト
+- キーを押し Reblog 先を選んで現在閲覧中のページを (範囲が選択されていれば Quote もして) ポスト
+- HoK の拡張ヒントモードを用い、画像を選択してポスト
+- HoK の拡張ヒントモードを用い、様々な要素を選択してポスト
+
+==== 設定 / 基本操作 ====
+
+以下のような設定を .keysnail.js の末尾へ挿入しておきます。
+
+>||
+key.defineKey([key.modes.VIEW, key.modes.CARET], 'r', function (ev, arg) {
+    ext.exec("kungfloo-reblog", arg, ev);
+}, 'kungfloo - Reblog', true);
+||<
+
+この設定を行った後に view-mode と caret-mode において r を押すと、投稿先一覧が画面下部へ表示されます。
+
+ここで十字キーや j/k を使い投稿先にカーソルを合わせた後、次のようなキーを入力することで投稿を行うことが可能です。
+
+- r / Enter
+ - 即座に投稿が行われる
+- R
+ - Tombloo の投稿用ダイアログが開く
+
+先程の設定では kungfloo-reblog へ r を割り当てていましたので、 rr と r を続けて二回押すことにより Reblog が可能となるわけです。
+
+いちいち投稿先を選ぶのが面倒くさい。 Tombloo へお任せでいいから r 一回で Reblog したい。という方は kungfloo-reblog ではなく kungfloo-reblog-dwim へとキーを割り当てておけば良いでしょう。
+
+==== 画像の Reblog ====
+
+ページだけでなく画像も Reblog したいですよね。しかしキーボードだけだと、少し辛そうな感じもします。
+
+kungfloo は Hit a Hint プラグインの HoK と連携し、キーボード操作による画像の簡単 Reblog を可能としました。
+
+HoK をインストールした後 ; などのキーを入力して拡張ヒントモードを立ち上げ r を入力します。
+
+すると画面中の画像にだけヒントがつくので、 Reblog したいものを選んでそのヒントを入力してください。これだけで画像の Reblog が完了します。
+
+「投稿先を選びたい」という場合は r でなく R を押せば、先程説明した投稿先一覧が現れます。また、画像だけでなくリンクなどを Reblog したい場合は p (post) を入力してください。
+
+これらのキーはオプションの値を変更することで、カスタマイズすることも可能となっています。
+
 ]]></detail>
 </KeySnailPlugin>;
 
@@ -55,7 +150,7 @@ For example, if you binds HoK extend mode to ;, you can display hints by pressin
 // Change Log {{ ============================================================ //
 //
 // ==== 0.0.1 (2010 01/10) ====
-// 
+//
 // * Released
 //
 // }} ======================================================================= //
@@ -63,16 +158,27 @@ For example, if you binds HoK extend mode to ;, you can display hints by pressin
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-var optionsDefaultValue = {
-    "post_image_key" : 'c',
-    "tail_key"        : 'C',
-    "select_key"      : '',
-    "select_tail_key" : 's',
-    "hint_query"      : '*'
+let optionsDefaultValue = {
+    "reblog_image_dwim_key" : 'r',
+    "reblog_image_key"      : 'R',
+    "reblog_misc_key"       : 'p',
+    "keymap"           : {
+        "C-z" : "prompt-toggle-edit-mode",
+        "SPC" : "prompt-next-page",
+        "b"   : "prompt-previous-page",
+        "j"   : "prompt-next-completion",
+        "k"   : "prompt-previous-completion",
+        "g"   : "prompt-beginning-of-candidates",
+        "G"   : "prompt-end-of-candidates",
+        "q"   : "prompt-cancel",
+        //
+        "r"   : "reblog",
+        "R"   : "reblog-with-dialog"
+    }
 };
 
 function getOption(aName) {
-    var fullName = "kungfloo." + aName;
+    let fullName = "kungfloo." + aName;
 
     if (typeof plugins.options[fullName] !== "undefined")
         return plugins.options[fullName];
@@ -80,155 +186,172 @@ function getOption(aName) {
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
 }
 
-let kungfloo = (
-    function () {
+let kungfloo =
+    (function () {
         let to      = Cc['@brasil.to/tombloo-service;1'].getService().wrappedJSObject;
         let Tombloo = to.Tombloo;
 
-        function getTomblooActionList() {
-            let actions = Tombloo.Service.actions;
-            return [actions[name] for each (name in actions.names)
-                                    if (typeof actions[name].execute === "function")];
-        }
+         function getActions() {
+             let actions = Tombloo.Service.actions;
 
-        let headMode       = getOption('head_key');
-        let tailMode       = getOption('tail_key');
-        let selectHeadMode = getOption('select_head_key');
-        let selectTailMode = getOption('select_tail_key');
-        let hintQuery      = getOption('hint_query');
+             return [actions[name] for ([, name] in Iterator(actions.names))
+                                   if (actions[name] && typeof actions[name].execute === "function")];
+         }
 
-        function swapCaret (ev, arg) {
-            let win = new XPCNativeWrapper(window.content.window);
-            let s = win.getSelection();
+         function getContext(target) {
+             let doc = window.content.document;
+             let win = window.content.wrappedJSObject;
 
-            if (s.rangeCount <= 0)
-                return;
+             target = target || doc;
 
-            let [a, f] = [[s.anchorNode, s.anchorOffset], [s.focusNode, s.focusOffset]];
-            s.collapse.apply(s, f);
-            s.extend.apply(s, a);
+             return implant(
+                 implant(
+                     {
+                         document  : doc,
+                         window    : win,
+                         title     : doc.title.toString() || '',
+                         selection : win.getSelection().toString(),
+                         target    : target
+                     },
+                     {}
+                 ),
+                 win.location
+             );
+         }
 
-            /*
-             if (util.isWritable(ev))
-             {
-             let elem = ev.originalTarget;
-
-             if (typeof elem.ksMarked === 'number')
-             {
-             let [from, to] = [elem.selectionStart, elem.selectionEnd];
-
-             util.message("st %s   end %s", elem.selectionStart, elem.selectionEnd);
-
-             if (elem.ksMarked === elem.selectionStart)
-             {
-             // this doesn't work properly
-             elem.ksMarked = elem.selectionEnd;
-             elem.setSelectionRange(elem.ksMarked, elem.ksMarked);
-             util.message(elem.selectionStart);
-             elem.selectionStart = from;
-             util.message(elem.selectionStart);
-             }
+         function implant(dst, src, keys) {
+             if (keys)
+                 keys.forEach(function (key) { dst[key] = src[key]; });
              else
-             {
-             // this works well
-             elem.ksMarked = elem.selectionStart;
-             elem.setSelectionRange(elem.ksMarked, elem.ksMarked);
-             elem.selectionEnd = to;
+                 for (let key in src) dst[key] = src[key];
+
+             return dst;
+         }
+
+         let self = {
+             menu  : function menu() {
+                 let items = getActions();
+
+                 prompt.selector(
+                     {
+                         message       : "action:",
+                         collection    : items.map(function (e) e.name),
+                         heade         : ["Tombloo action"],
+                         style         : ["color:#003870;"],
+                         keymap        : getOption("keymap"),
+                         callback      : function (i) {
+                             if (i < 0)
+                                 return;
+
+                             items[i].execute();
+                         }
+                     }
+                 );
+             },
+
+             reblog: function reblog(target, dwim, withDialog) {
+                 let context    = getContext(target);
+                 let extensions = Tombloo.Service.check(context);
+
+                 let candidates = [[e, e.ICON, e.name] for ([, e] in Iterator(extensions))];
+
+                 function share(extension, dialog) {
+                     Tombloo.Service.share(context, extension, dialog);
+                     display.echoStatusBar("Reblogged - " + context.title, 3000);
+                 }
+
+                 if (dwim)
+                 {
+                     share(candidates[0][0], withDialog);
+                 }
+                 else
+                 {
+                     prompt.selector(
+                         {
+                             message       : "reblog:",
+                             collection    : candidates,
+                             heade         : ["Post to"],
+                             style         : ["color:#003870;"],
+                             flags         : [HIDDEN | IGNORE, ICON | IGNORE, 0],
+                             keymap        : getOption("keymap"),
+                             initialAction : withDialog ? 1 : 0,
+                             actions       : [
+                                 [function (i) { if (i >= 0) share(candidates[i][0], false); }, "Reblog", "reblog"],
+                                 [function (i) { if (i >= 0) share(candidates[i][0], true);  }, "Reblog with dialog", "reblog-with-dialog"]
+                             ]
+                         }
+                     );
+                 }
              }
-             }
-             }
-             */
+         };
+
+         // }} ======================================================================= //
+         
+         return self;
+     })();
+
+plugins.kungfloo = kungfloo;
+
+// Extend HoK {{ ============================================================ //
+
+hook.addToHook(
+    'PluginLoaded',
+    function () {
+        if (!plugins.hok)
+            return;
+
+        var actions = [
+            //
+            [getOption("reblog_image_key"),
+             M({ja: "画像を Reblog", en: "Reblog image"}),
+             function (elem) { if (elem) kungfloo.reblog(elem); }, false, false, "img"],
+            //
+            [getOption("reblog_misc_key"),
+             M({ja: "色々 Reblog", en: "Reblog miscellanies"}),
+             function (elem) { if (elem) kungfloo.reblog(elem); }],
+            //
+            [getOption("reblog_image_dwim_key"),
+             M({ja: "画像を Reblog - DWIM", en: "Reblog image - DWIM"}),
+             function (elem) { if (elem) kungfloo.reblog(elem, true); }, false, false, "img"]
+        ];
+
+        function seekAction(aActions, aKey) {
+            for (let i = 0; i < aActions.length; ++i)
+                if (aActions[i][0] === aKey)
+                    return i;
+            return -1;
         }
 
-        function moveCaret () {
-            try {
-                _moveCaret.apply(null, arguments);
-            } catch (x) {}
+        actions.forEach(
+            function (row) {
+                let k = row[0];
+                if (!k) return;
 
-            gBrowser.focus();
-            _content.focus();
-        }
+                let i = seekAction(plugins.hok.actions, k);
 
-        function _moveCaret (elem, head, select) {
-            let doc = elem.ownerDocument;
-            let win = new XPCNativeWrapper(window.content.window);
-            let sel = win.getSelection();
-            let r   = doc.createRange();
-
-            sel.removeAllRanges();
-            r.selectNodeContents(elem);
-
-            if (select)
-            {
-                util.setBoolPref("accessibility.browsewithcaret", true);
-                content.document.documentElement.ksMarked = true;
-            }
-            else
-            {
-                if (head)
-                    r.setEnd(r.startContainer, r.startOffset);
+                if (i >= 0)
+                    plugins.hok.actions[i] = row;
                 else
-                    r.setStart(r.endContainer, r.endOffset);
-
-                util.setBoolPref("accessibility.browsewithcaret", true);
+                    plugins.hok.actions.push(row);
             }
+        );
+    });
 
-            sel.addRange(r);
+// }} ======================================================================= //
 
-            if (select && head)
-                swapCaret();
-        }
+// Add exts {{ ============================================================== //
 
-        // Add HoK extend mode actions {{ =========================================== //
+ext.add("kungfloo-reblog",
+        function (ev, arg) { kungfloo.reblog(null, false, !!arg); },
+        "Kungfloo - Reblog");
 
-        hook.addToHook('PluginLoaded', function () {
-                           if (!plugins.hok)
-                               return;
+ext.add("kungfloo-reblog-dwim",
+        function (ev, arg) { kungfloo.reblog(null, true, !!arg); },
+        "Kungfloo - Reblog Do What I Mean");
 
-                           var actions = [
-                               [headMode, M({ja: "キャレットを要素の先頭へ移動", en: "Move caret to the head of the selected element"}),
-                                function (e) moveCaret(e, true, false)],
-                               [tailMode, M({ja: "キャレットを要素の末尾へ移動", en: "Move caret to the tail of the selected element"}),
-                                function (e) moveCaret(e, false, false)],
-                               [selectHeadMode, M({ja: "要素を選択してキャレットを先頭へ移動", en: "Select element and move caret to the head"}),
-                                function (e) moveCaret(e, false, true)],
-                               [selectTailMode, M({ja: "要素を選択してキャレットを末尾へ移動", en: "Select element and move caret to the tail"}),
-                                function (e) moveCaret(e, false, true)]
-                           ];
-
-                           function seekAction(aActions, aKey) {
-                               for (let i = 0; i < aActions.length; ++i)
-                               {
-                                   if (aActions[i][0] === aKey)
-                                       return i;
-                               }
-
-                               return -1;
-                           }
-
-                           actions.forEach(
-                               function ([aKey, aDesc, aFunc]) {
-                                   if (!aKey)
-                                       return;
-
-                                   let i   = seekAction(plugins.hok.actions, aKey);
-                                   let row = [aKey, aDesc, aFunc, false, false, hintQuery];
-
-                                   if (i >= 0)
-                                       plugins.hok.actions[i] = row;
-                                   else
-                                       plugins.hok.actions.push(row);
-                               }
-                           );
-                       });
-
-        // }} ======================================================================= //
-
-        // Add exts {{ ============================================================== //
-
-        ext.add("swap-caret", swapCaret, M({ja: 'キャレットを交換', en: "Swap caret"}));
-
-        // }} ======================================================================= //
-    })();
+ext.add("kungfloo-tombloo-menu",
+        function (ev, arg) { kungfloo.menu(); },
+        "Kungfloo - Tombloo Menu");
 
 
+// }} ======================================================================= //
