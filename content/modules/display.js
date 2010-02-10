@@ -9,7 +9,6 @@ KeySnail.Display = function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
     const NOTIFY_ID = "ks-notify-message";
-
     let modules;
 
     // ==== status bar ====
@@ -98,24 +97,34 @@ KeySnail.Display = function () {
             return elem;
         },
 
-        html: function (text, timeout, height) {
+        html: function (text, options) {
+            options = options || {};
+            
             echo.document = echoArea.contentDocument;
 
             echo.document.body.innerHTML = text;
 
-            echo.updateHeight(height);
+            echo.updateHeight(typeof options.height === "number" ? options.height : 50);
             echoArea.focus();
 
-            if (timeout)
-                setTimeout(function () { echo.close(); }, timeout);
+            if (options.timeout)
+                setTimeout(function () { echo.close(); }, options.timeout);
+
+            echo.keyhandler = options.keyhandler;
         },
 
         handleEvent: function (ev) {
             if (ev.type === "keypress")
             {
-                if (ev.keyCode === KeyEvent.DOM_VK_ESCAPE)
+                let k = modules.key.keyEventToString(ev);
+
+                if (k === "ESC")
                 {
                     echo.close();                    
+                }
+                else if (typeof echo.keyhandler === "function")
+                {
+                    echo.keyhandler(k);
                 }
             }
         }
