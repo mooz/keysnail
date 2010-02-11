@@ -5,7 +5,7 @@ let PLUGIN_INFO =
     <name>kungfloo</name>
     <description>Manipulate Tombloo from KeySnail</description>
     <description lang="ja">KeySnail から Tombloo を操作</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kungfloo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kungfloo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -68,7 +68,7 @@ key.defineKey([key.modes.VIEW, key.modes.CARET], 'r', function (ev, arg) {
 }, 'kungfloo - Reblog', true);
 ||<
 
-After that, by pressing 'r' key, you can select where to post.  
+After that, by pressing 'r' key, you can select where to post.
 
 Use arrow key or j/k to select where to post and press keys listed below.
 
@@ -97,12 +97,13 @@ If you are using Google Reader, the settings below allows you to reblog current 
 
 >||
 local["^http://www.google.(co.jp|com)/reader/view/"] = [
-    // foobar
+    // Your local keybind settings here
     ["r", function () {
          let link = content.document.querySelector("#current-entry a.entry-title-link");
          if (link && plugins.kungfloo)
-             plugins.kungfloo.reblog(link, false, false);
+             plugins.kungfloo.reblog(link, false, false, ["FFFFOUND", "Flickr", "Tumblr"]);
      }]
+];
 ||<
 
 See site-local-keymap's help for details.
@@ -169,8 +170,9 @@ local["^http://www.google.(co.jp|com)/reader/view/"] = [
     ["r", function () {
          let link = content.document.querySelector("#current-entry a.entry-title-link");
          if (link && plugins.kungfloo)
-             plugins.kungfloo.reblog(link, false, false);
+             plugins.kungfloo.reblog(link, false, false, ["FFFFOUND", "Flickr", "Tumblr"]);
      }]
+];
 ||<
 
 なお、上記の設定詳細について site-local-keymap プラグインのヘルプを参照してください。
@@ -186,7 +188,13 @@ local["^http://www.google.(co.jp|com)/reader/view/"] = [
 
 // Change Log {{ ============================================================ //
 //
-// ==== 0.0.1 (2010 01/10) ====
+// ==== 0.0.3 (2010 02/11) ====
+//
+// * Added 4th argument "preferred" to the plugins.kungfloo.reblog()
+//   This argument specifies the initialy selected service by array
+//   e.g. ["FFFFOUND", "Flickr", "Tumblr"].
+//
+// ==== 0.0.2 (2010 02/10) ====
 //
 // * Released
 //
@@ -266,7 +274,7 @@ let kungfloo =
          }
 
          let self = {
-             menu  : function menu() {
+             menu: function menu() {
                  let items = getActions();
 
                  prompt.selector(
@@ -286,20 +294,39 @@ let kungfloo =
                  );
              },
 
-             reblog: function reblog(target, dwim, withDialog) {
+             /**
+              * Reblog
+              * @param {} target      Target element
+              * @param {} dwim        Do What I Mean
+              * @param {} dialog      true if tombloo's dialog is wanted
+              * @param {} preferred   ex) ["FFFFOUND", "Flickr"]
+              */
+             reblog: function reblog(target, dwim, withDialog, preferred) {
                  let context    = getContext(target);
                  let extensions = Tombloo.Service.check(context);
 
                  let candidates = [[e, e.ICON, e.name] for ([, e] in Iterator(extensions))];
 
                  function share(extension, dialog) {
-                     Tombloo.Service.share(context, extension, dialog);                         
+                     Tombloo.Service.share(context, extension, dialog);
                      display.echoStatusBar("Reblogged - " + context.title, 3000);
                  }
 
+                 function findPreferredExtractor(preferredNames) {
+                     let found = -1;
+                     preferredNames.some(function (pat) extensions.some(
+                                             function (e, i) e.name.match(pat) ? (found = i, true) : false));
+                     return found;
+                 }
+
+                 preferred = Object.prototype.toString.call(preferred) === "[object Array]"
+                     ? preferred : [preferred || ""];
+
+                 let extensionIndex = Math.max(findPreferredExtractor(preferred), 0);
+
                  if (dwim)
                  {
-                     share(candidates[0][0], withDialog);
+                     share(candidates[extensionIndex][0], withDialog);
                  }
                  else
                  {
@@ -311,6 +338,7 @@ let kungfloo =
                              style         : ["color:#003870;"],
                              flags         : [HIDDEN | IGNORE, ICON | IGNORE, 0],
                              keymap        : getOption("keymap"),
+                             initialIndex  : extensionIndex,
                              initialAction : withDialog ? 1 : 0,
                              actions       : [
                                  [function (i) { if (i >= 0) share(candidates[i][0], false); }, "Reblog", "reblog"],
@@ -323,7 +351,7 @@ let kungfloo =
          };
 
          // }} ======================================================================= //
-         
+
          return self;
      })();
 
