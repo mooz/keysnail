@@ -95,12 +95,12 @@ key.setEditKey('M-@', function (ev) {
 繰り返しの誤爆が大きいな、と感じる方は .keysnail.js の PRESERVE エリアへ次のような設定を行っておくと良いでしょう。
 
 >||
-plugins.options["dmacro.predicate_length"] = 10;
+plugins.options["dmacro.predicate_length"] = 20;
 ||<
 
 これは「次の動作を予測した繰り返し」において「操作の単位」とみなすキー入力数の上限を意味します。
 
-デフォルトでは 20 となっていますので、お好みで調節すると良いでしょう。
+デフォルトでは 30 となっていますので、お好みで調節すると良いでしょう。
 
 ]]></detail>
 </KeySnailPlugin>;
@@ -117,7 +117,7 @@ plugins.options["dmacro.predicate_length"] = 10;
 
 let optionsDefaultValue = {
     "key_length"       : 1,
-    "predicate_length" : 20
+    "predicate_length" : 30
 };
 
 function getOption(aName) {
