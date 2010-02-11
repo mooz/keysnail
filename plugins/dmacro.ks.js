@@ -5,7 +5,7 @@ let PLUGIN_INFO =
     <name>Dynamic Macro</name>
     <description>Detect duplicated manipulation. Repeat it easily.</description>
     <description lang="ja">繰り返しを検出し、簡単に再実行</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/dmacro.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/dmacro.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -110,6 +110,10 @@ plugins.options["dmacro.predicate_length"] = 20;
 
 // Change Log {{ ============================================================ //
 // 
+// ==== 0.0.3 (2010 02/13) ====
+// 
+// * Made keymacro only effective in the editable area
+// 
 // ==== 0.0.2 (2010 02/12) ====
 // 
 // * Added dmacro-reset
@@ -210,6 +214,38 @@ let dmacro =
              return [s, t];
          }
 
+         function play(aEvents) {
+             var len = aEvents.length;
+
+             for (let [, event] in Iterator(aEvents))
+             {
+                 let target = macro.getCurrentFocusedElement();
+
+                 if (!util.isWritable({originalTarget : target}))
+                     break;
+
+                 if (event.keyCode === KeyEvent.DOM_VK_TAB)
+                 {
+                     if (event.shiftKey)
+                         document.commandDispatcher.rewindFocus();
+                     else
+                         document.commandDispatcher.advanceFocus();
+                 }
+                 else
+                 {
+                     var newEvent = document.createEvent('KeyboardEvent');
+                     newEvent.initKeyEvent('keypress', true, true, null,
+                                           event.ctrlKey,
+                                           event.altKey,
+                                           event.shiftKey,
+                                           event.metaKey,
+                                           event.keyCode,
+                                           event.charCode);
+                     target.dispatchEvent(newEvent);
+                 }
+             }
+         }
+
          let self = {
              stocks: [],
 
@@ -247,14 +283,11 @@ let dmacro =
                  if (found)
                  {
                      ignoreIt = true;
-                     let originalSleepTime = macro.sleepTime;
-                     macro.sleepTime = 1;
 
                      try {
-                         macro.doMacro(found.map(function (k) key.stringToKeyEvent(k)));
+                         play(found.map(function (k) key.stringToKeyEvent(k)));
                      } catch (x) {}
 
-                     macro.sleepTime = originalSleepTime;
                      ignoreIt = false;
                  }
              }
