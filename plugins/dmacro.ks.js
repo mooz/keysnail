@@ -188,9 +188,8 @@ let dmacro =
              let s, t;
 
              let len = ss.length;
-             let to  = len / 2;
 
-             for (let i = len - 1; i >= to; --i)
+             for (let i = len - 1; i >= 0; --i)
              {
                  let current = ss.slice(i);
                  let remain  = ss.slice(0, i);
