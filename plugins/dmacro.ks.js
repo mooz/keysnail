@@ -5,7 +5,7 @@ let PLUGIN_INFO =
     <name>Dynamic Macro</name>
     <description>Detect duplicated manipulation. Repeat it easily.</description>
     <description lang="ja">繰り返しを検出し、簡単に再実行</description>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/dmacro.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/dmacro.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -14,6 +14,7 @@ let PLUGIN_INFO =
     <minVersion>1.4.1</minVersion>
     <provides>
         <ext>dmacro-exec</ext>
+        <ext>dmacro-reset</ext>
     </provides>
     <include>main</include>
     <options>
@@ -108,6 +109,10 @@ plugins.options["dmacro.predicate_length"] = 20;
 // }} ======================================================================= //
 
 // Change Log {{ ============================================================ //
+// 
+// ==== 0.0.2 (2010 02/12) ====
+// 
+// * Added dmacro-reset
 // 
 // ==== 0.0.1 (2010 02/12) ====
 //
@@ -267,5 +272,10 @@ dmacro.init();
 // Add exts {{ ============================================================== //
 
 ext.add("dmacro-exec", function (ev, arg) { dmacro.exec(); }, "Do Dynamic Macro");
+ext.add("dmacro-reset", function (ev, arg) {
+            dmacro.stocks = [];
+            display.echoStatusBar(M({ja: "Dynamic Macro がリセットされました",
+                                     en: "Dynamic Macro has been resetted"}),2000);
+        }, "Reset Dynamic Macro");
 
 // }} ======================================================================= //
