@@ -140,9 +140,14 @@ function getOption(aName) {
 
 let dmacro =
     (function () {
-         let ignoreIt = false;
-         let limit = 100;
+         let ignoreIt       = false;
+         let limit          = 100;
+         let confirmedMacro = "";
 
+         /**
+          * Add key-string to stocks
+          * @param {} k
+          */
          function stock(k) {
              let ss = self.stocks;
              ss.push(k);
@@ -150,6 +155,12 @@ let dmacro =
                  ss.shift();
          }
 
+         /**
+          * find needle from haystack
+          * @param   {array} haystack
+          * @param   {array} needle
+          * @returns {number} 
+          */
          function findBlock(haystack, needle) {
              let neelen = needle.length;
 
@@ -168,6 +179,12 @@ let dmacro =
              return -1;
          }
 
+         /**
+          * Detects former complete repetetition
+          * ex) hogehugahuga => huga
+          * @param   {[string]} ss
+          * @returns {[string]} 
+          */
          function seekCompleteRepeat(ss) {
              let found;
 
@@ -189,9 +206,10 @@ let dmacro =
          }
 
          /**
-          * [s][t][s]
-          * @param   {} ss
-          * @returns {}
+          * Detect partial repetetition
+          * ex) foobarbuzfo => [fo, obarbuz]
+          * @param   {[string]} ss
+          * @returns {[string, string]} [s, t]
           */
          function seekIncompleteRepeat(ss) {
              let s, t;
@@ -214,6 +232,10 @@ let dmacro =
              return [s, t];
          }
 
+         /**
+          * Simplate keypress events
+          * @param {[event]} aEvents events to simulate
+          */
          function play(aEvents) {
              var len = aEvents.length;
 
@@ -244,6 +266,20 @@ let dmacro =
                      target.dispatchEvent(newEvent);
                  }
              }
+         }
+
+         /**
+          * 
+          * @param {[string]} keys
+          */
+         function doIt(keys) {
+             ignoreIt = true;
+
+             try {
+                 play(keys.map(function (k) key.stringToKeyEvent(k)));
+             } catch (x) {}
+
+             ignoreIt = false;                     
          }
 
          let self = {
@@ -278,17 +314,49 @@ let dmacro =
                          t.forEach(stock);
                          found = t;
                      }
+
+                     // confirm
+                     if (found && t.length > 15 && confirmedMacro !== found.join(""))
+                     {
+                         let def = "y";
+
+                         let description = s.join(",") + " [" + found.join(",") + "]";
+
+                         ignoreIt = true;
+
+                         prompt.reader(
+                             {
+                                 message : util.format(M({ja: "%s 個以上の予測された操作からなるマクロを実行しようとしています。よろしいですか？",
+                                                          en: "Are you sure to play predicated dynamic macro over %s times manipulation?"})
+                                                       + " (y/n)", t.length),
+                                 onChange: function (arg) {
+                                     let current = arg.textbox.value.toLowerCase();
+
+                                     if (current === "y" || current === "n")
+                                     {
+                                         prompt.finish(current === "n");
+                                     }
+                                 },
+                                 description: description,
+                                 callback: function (answer) {
+                                     ignoreIt = false;
+
+                                     if (answer.toLowerCase() === "y")
+                                     {
+                                         doIt(found);
+                                         confirmedMacro = found.join("");
+                                     }
+                                 }
+                             }
+                         );
+
+                         return;
+                     }
                  }
 
                  if (found)
                  {
-                     ignoreIt = true;
-
-                     try {
-                         play(found.map(function (k) key.stringToKeyEvent(k)));
-                     } catch (x) {}
-
-                     ignoreIt = false;
+                     doIt(found);
                  }
              }
          };
