@@ -5,18 +5,17 @@ let PLUGIN_INFO =
     <name>Dynamic Macro</name>
     <description>Detect duplicated manipulation. Repeat it easily.</description>
     <description lang="ja">繰り返しを検出し、簡単に再実行</description>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/dmacro.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/dmacro.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.4.1</minVersion>
+    <minVersion>1.2.4</minVersion>
     <provides>
         <ext>dmacro-exec</ext>
         <ext>dmacro-reset</ext>
     </provides>
-    <include>main</include>
     <options>
         <option>
             <name>dmacro.key_length</name>
@@ -56,7 +55,7 @@ key.setEditKey('M-@', function (ev) {
 In this settings, we bound dmacro-exec to M-@ key.
 
 After that, do something on textarea and press M-@ key (or your defined one).
-Repetition of the manipulation will be detected automatically and it will be repeated one time. 
+Repetition of the manipulation will be detected automatically and it will be repeated one time.
 
 If you want detection to be more strictly, paste the settings below to the PRESERVE area in your .keysnail.js file.
 
@@ -96,12 +95,12 @@ key.setEditKey('M-@', function (ev) {
 繰り返しの誤爆が大きいな、と感じる方は .keysnail.js の PRESERVE エリアへ次のような設定を行っておくと良いでしょう。
 
 >||
-plugins.options["dmacro.predicate_length"] = 20;
+plugins.options["dmacro.predicate_length"] = 10;
 ||<
 
 これは「次の動作を予測した繰り返し」において「操作の単位」とみなすキー入力数の上限を意味します。
 
-デフォルトでは 30 となっていますので、お好みで調節すると良いでしょう。
+デフォルトでは 15 となっていますので、お好みで調節すると良いでしょう。
 
 ]]></detail>
 </KeySnailPlugin>;
@@ -109,15 +108,15 @@ plugins.options["dmacro.predicate_length"] = 20;
 // }} ======================================================================= //
 
 // Change Log {{ ============================================================ //
-// 
+//
 // ==== 0.0.3 (2010 02/13) ====
-// 
+//
 // * Made keymacro only effective in the editable area
-// 
+//
 // ==== 0.0.2 (2010 02/12) ====
-// 
+//
 // * Added dmacro-reset
-// 
+//
 // ==== 0.0.1 (2010 02/12) ====
 //
 // * Released
@@ -126,7 +125,7 @@ plugins.options["dmacro.predicate_length"] = 20;
 
 let optionsDefaultValue = {
     "key_length"       : 1,
-    "predicate_length" : 30
+    "predicate_length" : 15
 };
 
 function getOption(aName) {
@@ -159,7 +158,7 @@ let dmacro =
           * find needle from haystack
           * @param   {array} haystack
           * @param   {array} needle
-          * @returns {number} 
+          * @returns {number}
           */
          function findBlock(haystack, needle) {
              let neelen = needle.length;
@@ -183,7 +182,7 @@ let dmacro =
           * Detects former complete repetetition
           * ex) hogehugahuga => huga
           * @param   {[string]} ss
-          * @returns {[string]} 
+          * @returns {[string]}
           */
          function seekCompleteRepeat(ss) {
              let found;
@@ -232,6 +231,14 @@ let dmacro =
              return [s, t];
          }
 
+         function win() {
+             var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                 .getService(Components.interfaces.nsIWindowMediator);
+             var enumerator = wm.getEnumerator("mail:3pane");
+
+             return enumerator.getNext();
+         }
+
          /**
           * Simplate keypress events
           * @param {[event]} aEvents events to simulate
@@ -241,9 +248,18 @@ let dmacro =
 
              for (let [, event] in Iterator(aEvents))
              {
-                 let target = macro.getCurrentFocusedElement();
+                 let target  = macro.getCurrentFocusedElement();
+                 let fakedEv = {originalTarget : target};
 
-                 if (!util.isWritable({originalTarget : target}))
+                 // if (KeySnail.isThunderbird &&
+                 //     document.documentURI === "chrome://messenger/content/messengercompose/messengercompose.xul" &&
+                 //     !util.isWritable(fakedEv))
+                 // {
+                 //     target = document.getElementById("content-frame");
+                 //     editor = GetCurrentEditor();
+                 // }
+
+                 if (!util.isWritable(fakedEv))
                      break;
 
                  if (event.keyCode === KeyEvent.DOM_VK_TAB)
@@ -263,13 +279,14 @@ let dmacro =
                                            event.metaKey,
                                            event.keyCode,
                                            event.charCode);
+                    
                      target.dispatchEvent(newEvent);
                  }
              }
          }
 
          /**
-          * 
+          *
           * @param {[string]} keys
           */
          function doIt(keys) {
@@ -279,7 +296,7 @@ let dmacro =
                  play(keys.map(function (k) key.stringToKeyEvent(k)));
              } catch (x) {}
 
-             ignoreIt = false;                     
+             ignoreIt = false;
          }
 
          let self = {
@@ -289,9 +306,29 @@ let dmacro =
                  hook.addToHook(
                      'KeyPress',
                      function (ev) {
-                         if (util.isWritable(ev) && !ignoreIt)
-                             stock(key.keyEventToString(ev));
+                         if (!ignoreIt)
+                         {
+                             if (typeof ev === "string")
+                             {
+                                 // old version
+                                 let fakedEv = { originalTarget : document.commandDispatcher.focusedElement || { localName : "" } };
+                                 if (util.isWritable(fakedEv))
+                                     stock(ev);
+                             }
+                             else
+                             {
+                                 if (util.isWritable(ev))
+                                     stock(key.keyEventToString(ev));
+                             }
+                         }
                      });
+
+                 document.addEventListener('blur', function () {
+                                               if (!ignoreIt)
+                                               {
+                                                   self.stocks.length = 0;
+                                               }
+                                           }, false);
              },
 
              exec: function () {
@@ -309,17 +346,17 @@ let dmacro =
                      // Seek for incomplete repeat
                      let [s, t] = seekIncompleteRepeat(ss);
 
-                     if (s && t && t.length <= getOption("predicate_length"))
+                     if (s && t)
                      {
                          t.forEach(stock);
                          found = t;
                      }
 
                      // confirm
-                     if (found && t.length > 15 && confirmedMacro !== found.join(""))
+                     if (found &&
+                         t.length > getOption("predicate_length") &&
+                         confirmedMacro !== found.join(""))
                      {
-                         let def = "y";
-
                          let description = s.join(",") + " [" + found.join(",") + "]";
 
                          ignoreIt = true;
@@ -333,19 +370,18 @@ let dmacro =
                                      let current = arg.textbox.value.toLowerCase();
 
                                      if (current === "y" || current === "n")
-                                     {
                                          prompt.finish(current === "n");
-                                     }
                                  },
-                                 description: description,
-                                 callback: function (answer) {
-                                     ignoreIt = false;
-
+                                 description : description,
+                                 callback    : function (answer) {
                                      if (answer.toLowerCase() === "y")
                                      {
                                          doIt(found);
                                          confirmedMacro = found.join("");
                                      }
+                                 },
+                                 onFinish: function () {
+                                     ignoreIt = false;
                                  }
                              }
                          );
@@ -374,9 +410,9 @@ dmacro.init();
 
 ext.add("dmacro-exec", function (ev, arg) { dmacro.exec(); }, "Do Dynamic Macro");
 ext.add("dmacro-reset", function (ev, arg) {
-            dmacro.stocks = [];
+            dmacro.stocks.length = 0;
             display.echoStatusBar(M({ja: "Dynamic Macro がリセットされました",
-                                     en: "Dynamic Macro has been resetted"}),2000);
+                                     en: "Dynamic Macro has been resetted"}), 2000);
         }, "Reset Dynamic Macro");
 
 // }} ======================================================================= //
