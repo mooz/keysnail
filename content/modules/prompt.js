@@ -1086,12 +1086,18 @@ KeySnail.Prompt = function () {
 
             var migexp;
             if (useMigemoActual)
-                migexp = window.xulMigemoCore.getRegExpFunctional(regexp, {}, {});
+                migexp = new RegExp(window.xulMigemoCore.getRegExpFunctional(regexp, {}, {}), "i");
+            else
+                keywords = keywords.map(function (s) (new RegExp(s, "i")));
 
             var cellForSearch = gFlags ? [i for (i in gFlags) if ((gFlags[i] & modules.IGNORE) === 0)] : null;
 
+            // reduce prototype chaine
+            let list  = wholeList;
+            let cellv = getCellValue;
+
             var matcher;
-            if (isMultipleList(wholeList))
+            if (isMultipleList(list))
             {
                 // multiple cols
                 if (cellForSearch)
@@ -1099,12 +1105,12 @@ KeySnail.Prompt = function () {
                     // cells specified "IGNORE" by user will be ignored
                     matcher = (useMigemoActual) ?
                         function (i) cellForSearch.some(
-                            function (j) getCellValue(wholeList[i], j).match(migexp, "i")
+                            function (j) migexp.test(cellv(list[i], j))
                         )
                         :
                         function (i) keywords.every(
                             function (keyword) cellForSearch.some(
-                                function (j) getCellValue(wholeList[i], j).match(keyword, "i")
+                                function (j) keyword.test(cellv(list[i], j))
                             )
                         );
                 }
@@ -1112,15 +1118,13 @@ KeySnail.Prompt = function () {
                 {
                     // search whole cells
                     matcher = (useMigemoActual) ?
-                        function (i) wholeList[i].some(
-                            function (item) (typeof item === "function" ? item.call(null, wholeList[i]) : item || "")
-                                .match(migexp, "i")
+                        function (i) list[i].some(
+                            function (item) migexp.test(typeof item === "function" ? item.call(null, list[i]) : item || "")
                         )
                     :
                     function (i) keywords.every(
-                        function (keyword) wholeList[i].some(
-                            function (item) (typeof item === "function" ? item.call(null, wholeList[i]) : item || "")
-                                .match(keyword, "i")
+                        function (keyword) list[i].some(
+                            function (item) keyword.test(typeof item === "function" ? item.call(null, list[i]) : item || "")
                         )
                     );
                 }
@@ -1129,10 +1133,10 @@ KeySnail.Prompt = function () {
             {
                 // single col
                 matcher = (useMigemoActual) ?
-                    function (i) wholeList[i].match(migexp, "i")
+                    function (i) migexp.test(list[i])
                     :
                     function (i) keywords.every(
-                        function (keyword) wholeList[i].match(keyword, "i")
+                        function (keyword) keyword.test(list[i])
                     );
             }
 
@@ -1147,6 +1151,8 @@ KeySnail.Prompt = function () {
                     compIndexList.push(i);
             }
             let end = Date.now();
+
+            // self.message("Total : %s msec", end - start);
 
             if (compIndexList.length === 0)
             {
