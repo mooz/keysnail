@@ -3,16 +3,19 @@
 var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>KKK</name>
-    <description>Kill keyup keydown</description>
+    <description>Kill keyup and keydown event</description>
+    <description lang="ja">keyup, keydown イベントが特定のサイトへ渡らないように</description>
     <version>0.0.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kkk.ks.js</updateURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kkk.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
-    <license>MIT</license>
+    <license>The MIT License</license>
+    <license lang="ja">MIT ライセンス</license>
     <minVersion>1.0.1</minVersion>
     <include>main</include>
     <provides>
-        <ext>toggle-permit</ext>
-        <ext>toggle-prevent</ext>
+        <ext>kkk-permit</ext>
+        <ext>kkk-prevent</ext>
     </provides>
     <detail><![CDATA[
 === Usage ===
@@ -110,9 +113,9 @@ let kkk =
 ext.add("kkk-permit", function () {
             kkk.status = false;
             display.echoStatusBar(util.format("KKK permitted '%s'", content.document.title), 2000);
-        });
+        }, "KKK - permit this site");
 
 ext.add("kkk-prevent", function () {
             kkk.status = true;
             display.echoStatusBar(util.format("KKK prevented '%s'", content.document.title), 2000);
-        });
+        }, "KKK - prevent this site");
