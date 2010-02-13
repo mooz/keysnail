@@ -31,7 +31,7 @@ plugins.options["kkk.sites"] = ["^http://wiki\\.github\\.com/"];
 If you want to kill shortcut keys of everywhere in GitHub, paste the code below to the PRESERVE area in your .keysnail.js file.
 
 >||
-plugins.options["kkk.sites"] = ["^http://([0-9a-zA-Z]+)?\\.github\\.com/"];
+plugins.options["kkk.sites"] = ["^http://([0-9a-zA-Z]+\\.)?github\\.com/"];
 ||<
 	       ]]></detail>
     <detail lang="ja"><![CDATA[
@@ -48,7 +48,7 @@ plugins.options["kkk.sites"] = ["^http://wiki\\.github\\.com/"];
 GitHub 全体でショートカットキーを無効にさせたい場合は、次のようにします。
 
 >||
-plugins.options["kkk.sites"] = ["^http://([0-9a-zA-Z]+)?\\.github\\.com/"];
+plugins.options["kkk.sites"] = ["^http://([0-9a-zA-Z]+\\.)?github\\.com/"];
 ||<
 
 ご利用は計画的に。
