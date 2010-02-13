@@ -559,6 +559,8 @@ KeySnail.Prompt = function () {
 
     var oldTextLength = 0;
     var delayedCommandTimeout;
+    var createCompletionListPending;
+    var createCompletionListQueued;
     var currentRegexp;
 
     /**
@@ -580,10 +582,25 @@ KeySnail.Prompt = function () {
             // add delay
             delayedCommandTimeout = setTimeout(
                 function () {
-                    createCompletionList();
                     delayedCommandTimeout = null;
-                },
-                options.displayDelayTime);
+
+                    if (createCompletionListPending)
+                    {
+                        createCompletionListQueued = true;
+                        return;
+                    }
+
+                    createCompletionListPending = true;
+                    createCompletionList();
+                    createCompletionListPending = false;
+
+                    // jobs added while processing createCompletionList
+                    if (createCompletionListQueued)
+                    {
+                        createCompletionListQueued = false;
+                        delayedCommandTimeout = setTimeout(arguments.callee, options.displayDelayTime);
+                    }
+                }, options.displayDelayTime);
         }
 
         oldTextLength = textbox.value.length;
