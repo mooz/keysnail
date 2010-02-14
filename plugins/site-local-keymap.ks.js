@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.0.9</version>
+    <version>1.1.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -46,20 +46,20 @@ function pass(k, i) [k, fake(k, i)];
 function ignore(k, i) [k, null];
 
 local["^https?://mail.google.com/mail/"] = [
-    pass(['g', 'i'], 4),
-    pass(['g', 's'], 4),
-    pass(['g', 't'], 4),
-    pass(['g', 'd'], 4),
-    pass(['g', 'a'], 4),
-    pass(['g', 'c'], 4),
-    pass(['g', 'k'], 4),
+    pass(['g', 'i'], 3),
+    pass(['g', 's'], 3),
+    pass(['g', 't'], 3),
+    pass(['g', 'd'], 3),
+    pass(['g', 'a'], 3),
+    pass(['g', 'c'], 3),
+    pass(['g', 'k'], 3),
     // thread list
-    pass(['*', 'a'], 4),
-    pass(['*', 'n'], 4),
-    pass(['*', 'r'], 4),
-    pass(['*', 'u'], 4),
-    pass(['*', 's'], 4),
-    pass(['*', 't'], 4),
+    pass(['*', 'a'], 3),
+    pass(['*', 'n'], 3),
+    pass(['*', 'r'], 3),
+    pass(['*', 'u'], 3),
+    pass(['*', 's'], 3),
+    pass(['*', 't'], 3),
     // navigation
     ['u', null],
     ['k', null],
@@ -87,7 +87,7 @@ local["^https?://mail.google.com/mail/"] = [
     ['f', null],
     ['F', null],
     ['N', null],
-    pass(['<tab>', 'RET'], 4),
+    pass(['<tab>', 'RET'], 3),
     ['ESC', null],
     [']', null],
     ['[', null],
@@ -187,20 +187,20 @@ function pass(k, i) [k, fake(k, i)];
 function ignore(k, i) [k, null];
 
 local["^https?://mail.google.com/mail/"] = [
-    pass(['g', 'i'], 4),
-    pass(['g', 's'], 4),
-    pass(['g', 't'], 4),
-    pass(['g', 'd'], 4),
-    pass(['g', 'a'], 4),
-    pass(['g', 'c'], 4),
-    pass(['g', 'k'], 4),
+    pass(['g', 'i'], 3),
+    pass(['g', 's'], 3),
+    pass(['g', 't'], 3),
+    pass(['g', 'd'], 3),
+    pass(['g', 'a'], 3),
+    pass(['g', 'c'], 3),
+    pass(['g', 'k'], 3),
     // thread list
-    pass(['*', 'a'], 4),
-    pass(['*', 'n'], 4),
-    pass(['*', 'r'], 4),
-    pass(['*', 'u'], 4),
-    pass(['*', 's'], 4),
-    pass(['*', 't'], 4),
+    pass(['*', 'a'], 3),
+    pass(['*', 'n'], 3),
+    pass(['*', 'r'], 3),
+    pass(['*', 'u'], 3),
+    pass(['*', 's'], 3),
+    pass(['*', 't'], 3),
     // navigation
     ['u', null],
     ['k', null],
@@ -228,7 +228,7 @@ local["^https?://mail.google.com/mail/"] = [
     ['f', null],
     ['F', null],
     ['N', null],
-    pass(['<tab>', 'RET'], 4),
+    pass(['<tab>', 'RET'], 3),
     ['ESC', null],
     [']', null],
     ['[', null],
@@ -319,6 +319,10 @@ key.setGlobalKey("C-;", function (ev, arg) {
 // }}}
 
 // ChangeLog : {{{
+// 
+// ==== 1.1.0 (2010 2/14) ====
+// 
+// * Fixed the settings of Gmail in the document
 // 
 // ==== 1.0.9 (2009 12/9) ====
 // 
