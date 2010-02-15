@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -61,6 +61,10 @@ a を入力することで現在閲覧中のページをブックマークする
 // }}}
 
 // ChangeLog : {{{
+// 
+// ==== 1.2.4 (2010 02/15) ====
+// 
+// * Lower compatibility
 // 
 // ==== 1.2.3 (2010 02/08) ====
 // 
@@ -176,6 +180,7 @@ function addBookMark() {
                 message      : "add bookmark:",
                 onChange     : remainTextLengthWatcher,
                 initialInput : aInit,
+                initialinput : aInit,
                 cursorEnd    : aInit.length,
                 callback     : function post(aMsg) {
                     let bookmark = {
