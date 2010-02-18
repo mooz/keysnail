@@ -462,33 +462,39 @@ KeySnail.Shell = function () {
                  //            }, 0);
 
                  function uriOpener(args, extra, callback) {
-                     let uri  = null;
-                     let left = completer.utils.unescape(extra.left);
+                     extra.left.split(",").forEach(
+                         function (left) {
+                             let query;
 
-                     if (args.length > 1)
-                     {
-                         // search with engine or google words
-                         let engine = util.suggest.ss.getEngineByAlias(args[0]);
+                             let [args, state] = completer.utils.lex(left);
 
-                         if (engine)
-                             uri = engine.getSubmission(left.slice(left.indexOf(args[1])), null).uri.spec;
-                     }
-                     else
-                     {
-                         // url
-                         if (/^[a-zA-Z]+:\/\//.test(left))
-                             uri = left;
-                     }
+                             let uri  = null;
 
-                     if (!uri)
-                     {
-                         let engine = util.suggest.ss.currentEngine;
+                             if (args.length > 1)
+                             {
+                                 // search with engine or google words
+                                 let engine = util.suggest.ss.getEngineByAlias(args[0]);
 
-                         if (engine)
-                             uri = engine.getSubmission(left, null).uri.spec;
-                     }
+                                 if (engine)
+                                     uri = engine.getSubmission(left.slice(left.indexOf(args[1])), null).uri.spec;
+                             }
+                             else
+                             {
+                                 // url
+                                 if (/^[a-zA-Z]+:\/\//.test(left))
+                                     uri = left;
+                             }
 
-                     callback(uri, extra.bang);
+                             if (!uri)
+                             {
+                                 let engine = util.suggest.ss.currentEngine;
+
+                                 if (engine)
+                                     uri = engine.getSubmission(left, null).uri.spec;
+                             }
+
+                             callback(uri, extra.bang);
+                         });
                  }
 
                  function uriCompleter(args, extra) {
@@ -519,9 +525,14 @@ KeySnail.Shell = function () {
                      };
 
                      let cc;
-                     let left  = extra.left;
-                     let whole = extra.whole;
-                     let query = extra.query;
+                     let lefts = extra.left.split(",");
+                     let left  = lefts[lefts.length - 1];
+                     let query;
+
+                     let [args, state] = completer.utils.lex(left);
+
+                     if (state !== completer.states.NEUTRAL)
+                         query = args.pop();
 
                      if (query)
                      {
@@ -556,7 +567,7 @@ KeySnail.Shell = function () {
                              options.multiple = true;
                              cc = completer.matcher.migemo(
                                  engines.concat(bookmarks).concat(memoizedHist), options
-                             )(left, whole);
+                             )(left, left);
                          }
 
                          cc.query = query;
@@ -610,11 +621,11 @@ KeySnail.Shell = function () {
                          }
                          else
                          {
-                             cc = {
-                                 errorMsg: "No completions found"
-                             };
+                             cc = { errorMsg: "No completions found" };
                          }
                      }
+
+                     cc.origin += extra.left.lastIndexOf(left);
 
                      return cc;
                  }
@@ -741,15 +752,11 @@ KeySnail.Shell = function () {
 
             add("ext", "Execute KeySnail's Ext",
                 function (args, extra) {
-                    window.inspectObject(extra);
-                    ext.exec(args[0]);
+                    ext.exec(args[0], extra.options["-prefix-arguments"]);
                 },
                 {
                     count     : "1",
-                    options   : [
-                        [["-arguments", "-a"], option.BOOL, null],
-                        [["-list", "-l"], option.LIST, null, ["hoge", "huga", "hehe"]]
-                    ],
+                    options   : [[["-prefix-arguments", "-pa"], option.INT, null]],
                     completer : function (args, extra) completer.matcher.header(
                         [[n, ext.description(n)] for (n in ext.exts)],
                         {
@@ -770,8 +777,7 @@ KeySnail.Shell = function () {
                     cursorEnd        : init ? init.length : 0,
                     escapeWhiteSpace : true,
                     completer        : function (left, whole) {
-                        let parsed = parseCommand(left);
-
+                        let parsed  = parseCommand(left);
                         let cmdName = parsed.cmd;
 
                         let cc = {
@@ -782,9 +788,15 @@ KeySnail.Shell = function () {
                         {
                             // return list of command name and description pair
 
+                            cc.query      = left;
                             cc.collection = [];
                             let done      = [];
 
+                            // at most 1 item for 1 command
+                            // ex) command A's name is extracted from ["ho[ge]", "hu[ga]"]
+                            //     if user input
+                            //        "h" <TAB>
+                            //     returned item is will be "hoge".
                             for ([name, cmd] in Iterator(commands))
                             {
                                 if (name.indexOf(left) === 0)
@@ -798,8 +810,8 @@ KeySnail.Shell = function () {
                             }
 
                             cc.collection = cc.collection.sort(function ([a], [b]) (a < b) ? -1 : (a > b) ? 1 : 0);
-
-                            cc.style = ["", self.styles.description];
+                            cc.errorMsg   = "No commands for \"" + left + "\"";
+                            cc.style      = ["", self.styles.description];
                         }
                         else
                         {
@@ -829,6 +841,9 @@ KeySnail.Shell = function () {
 
                                 let callCompleter = true;
 
+                                // ============================================================ //
+                                // Process Option
+                                // ============================================================ //
                                 if (cmd.extra.options)
                                 {
                                     // complete option
@@ -920,7 +935,7 @@ KeySnail.Shell = function () {
                                     // return result of each command completer
                                     let commandCompleter = cmd.extra.completer;
 
-                                    // parse command
+                                    // check arguments count
                                     if (typeof cmd.extra.count !== "undefined")
                                     {
                                         let count    = cmd.extra.count;
@@ -961,6 +976,10 @@ KeySnail.Shell = function () {
                                         }
                                     }
 
+                                    // ============================================================ //
+                                    // Count Escaped Characters
+                                    // ============================================================ //
+
                                     let escapedCount = 0;
 
                                     if (extra.query)
@@ -974,6 +993,27 @@ KeySnail.Shell = function () {
 
                                     escapedCount += unescapedArgs.reduce(function (a, s) a + s.length, 0)
                                         - args.reduce(function (a, s) a + s.length, 0);
+
+                                    // ============================================================ //
+                                    // Call completer
+                                    // 
+                                    // args[0..n] => unescaped (raw)
+                                    // 
+                                    // extra = {
+                                    //     bang         :
+                                    //     count        :
+                                    //     state        :
+                                    //     query        : => unescaped (raw)
+                                    //     left         : => escaped
+                                    //     whole        : => escaped
+                                    //     options[foo] : => unescaped (raw)
+                                    // };
+                                    // 
+                                    // You may need call completer.utils.unescape for escaped strings
+                                    // e.g. left, whole. left and whole is especially userful for commands
+                                    // which uses completely original completer like :js, :open and so forth.
+                                    // 
+                                    // ============================================================ //
 
                                     let result = commandCompleter ? commandCompleter(unescapedArgs, extra) : {};
 
@@ -991,7 +1031,7 @@ KeySnail.Shell = function () {
                             }
                             else
                             {
-                                cc.errorMsg = "No such command " + cmdName;
+                                cc.errorMsg = util.format("No such command \"%s\"", cmdName);
                             }
                         }
 
