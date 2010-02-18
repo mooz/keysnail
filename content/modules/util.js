@@ -1029,31 +1029,50 @@ KeySnail.Util = function () {
          * @param {function} aCallback
          * @returns {XMLHttpRequest}
          */
-        httpGet: function (aUrl, aRaw, aCallback)
+        httpGet: function (aUrl, aRaw, aCallback, aTimeOut)
         {
             try
             {
-                var req = new XMLHttpRequest();
+                let req = new XMLHttpRequest();
                 req.mozBackgroundRequest = true;
+                let timer;
+                let async = typeof aCallback === "function";
 
-                if (aCallback)
+                let self = this;
+
+                if (typeof aTimeOut === "number")
+                {
+                    timer = setTimeout(function () {
+                                           self.message("Aborted");
+                                           req.abort();
+                                       }, 0);
+                }
+
+                if (async)
                 {
                     req.onreadystatechange = function () {
                         if (req.readyState == 4)
+                        {
+                            if (timer)
+                                clearTimeout(timer);
                             aCallback(req);
+                        }
                     };
                 }
 
-                req.open("GET", aUrl, !!aCallback);
+                req.open("GET", aUrl, async);
                 if (aRaw)
                     req.overrideMimeType('text/plain; charset=x-user-defined');
                 req.send(null);
+
+                if (timer && !async)
+                    clearTimeout(timer);
 
                 return req;
             }
             catch (e)
             {
-                modules.display.notify("Error opening " + aUrl + " :: " + e);
+                self.message("Error opening " + aUrl + " :: " + e);
 
                 return null;
             }
