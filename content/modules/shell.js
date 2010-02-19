@@ -248,7 +248,7 @@ KeySnail.Shell =
              return [valid, errorMsg];
          }
 
-         function executeCommand(str) {
+         function executeCommand(str, prefixArg) {
              let parsed = parseCommand(str, true);
 
              if (parsed.cmd)
@@ -264,7 +264,8 @@ KeySnail.Shell =
                          bang  : parsed.bang,
                          state : state,
                          left  : left,
-                         whole : str
+                         whole : str,
+                         count : prefixArg
                      };
 
                      if (command.extra.options)
@@ -449,7 +450,7 @@ KeySnail.Shell =
                      });
              },
 
-             input: function (init) {
+             input: function (init, prefixArg) {
                  let currentCommand;
                  let currentOrigin;
 
@@ -730,7 +731,9 @@ KeySnail.Shell =
 
                              return cc;
                          },
-                         callback : executeCommand
+                         callback : function (str) {
+                             executeCommand(str, prefixArg);
+                         }
                      }
                  );
              }

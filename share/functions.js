@@ -294,23 +294,23 @@ var ksBuiltin = {
             }, true],
 
         open_the_bookmark_toolbar_item: [
-            function (aEvent, arg) {
-                command.bookMarkToolBarJumpTo(aEvent, arg);
+            function (ev, arg) {
+                command.bookMarkToolBarJumpTo(ev, arg);
             }, true],
 
         copy_selected_text: [
-            function (aEvent) {
-                command.copyRegion(aEvent);
+            function (ev) {
+                command.copyRegion(ev);
             }, false],
 
         select_next_frame: [
-            function (aEvent, aArg) {
-                command.focusOtherFrame(aArg);
+            function (ev, arg) {
+                command.focusOtherFrame(arg);
             }, true],
 
         show_current_frame_only: [
-            function (aEvent) {
-                window.loadURI(aEvent.target.ownerDocument.location.href);
+            function (ev) {
+                window.loadURI(ev.target.ownerDocument.location.href);
             }, false],
 
         open_the_local_file: [
@@ -324,8 +324,8 @@ var ksBuiltin = {
             }, false],
 
         generate_the_return_key_code: [
-            function (aEvent) {
-                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_RETURN, true);
+            function (ev) {
+                key.generateKey(ev.originalTarget, KeyEvent.DOM_VK_RETURN, true);
             }, false],
 
         display_javascript_console: [
@@ -344,8 +344,8 @@ var ksBuiltin = {
             }, false],
 
         start_lol: [
-            function (aEvent) {
-                hah.enterStartKey(aEvent);
+            function (ev) {
+                hah.enterStartKey(ev);
             }, false]
     },
 
@@ -355,23 +355,23 @@ var ksBuiltin = {
         __mode__: 1,
 
         scroll_line_down: [
-            function (aEvent) {
-                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_DOWN, true);
+            function (ev) {
+                key.generateKey(ev.originalTarget, KeyEvent.DOM_VK_DOWN, true);
             }, false],
 
         scroll_line_up: [
-            function (aEvent) {
-                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_UP, true);
+            function (ev) {
+                key.generateKey(ev.originalTarget, KeyEvent.DOM_VK_UP, true);
             }, false],
 
         scroll_right: [
-            function (aEvent) {
-                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_RIGHT, true);
+            function (ev) {
+                key.generateKey(ev.originalTarget, KeyEvent.DOM_VK_RIGHT, true);
             }, false],
 
         scroll_left: [
-            function (aEvent) {
-                key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_LEFT, true);
+            function (ev) {
+                key.generateKey(ev.originalTarget, KeyEvent.DOM_VK_LEFT, true);
             }, false],
 
         scroll_page_up: [
@@ -406,20 +406,20 @@ var ksBuiltin = {
         __mode__: 2,
 
         copy_selected_text: [
-            function (aEvent) {
-                command.copyRegion(aEvent);
+            function (ev) {
+                command.copyRegion(ev);
             }, false],
 
         cut_current_region: [
-            function (aEvent) {
+            function (ev) {
                 goDoCommand("cmd_copy");
                 goDoCommand("cmd_delete");
-                command.resetMark(aEvent);
+                command.resetMark(ev);
             }, false],
 
         kill_the_rest_of_the_line: [
-            function (aEvent) {
-                command.killLine(aEvent);
+            function (ev) {
+                command.killLine(ev);
             }, false],
 
         paste: [
@@ -429,7 +429,7 @@ var ksBuiltin = {
             "command.yankPop", false],
 
         show_kill_ring_and_select_text_to_paste: [
-            function (aEvent) {
+            function (ev) {
                 if (!command.kill.ring.length)
                     return;
 
@@ -446,18 +446,18 @@ var ksBuiltin = {
             }, false],
 
         select_whole_text: [
-            function (aEvent) {
-                command.selectAll(aEvent);
+            function (ev) {
+                command.selectAll(ev);
             }, false],
 
         open_line: [
-            function (aEvent) {
-                command.openLine(aEvent);
+            function (ev) {
+                command.openLine(ev);
             }, false],
 
         set_the_mark: [
-            function (aEvent) {
-                command.setMark(aEvent);
+            function (ev) {
+                command.setMark(ev);
             }, false],
 
         undo: [
@@ -473,91 +473,91 @@ var ksBuiltin = {
             }, false],
 
         delete_text_in_the_region_rectangle: [
-            function (aEvent, aArg) {
-                command.replaceRectangle(aEvent.originalTarget, "", false, !aArg);
+            function (ev, arg) {
+                command.replaceRectangle(ev.originalTarget, "", false, !arg);
             }, true],
 
         replace_text_in_the_region_rectangle_with_user_inputted_string: [
-            function (aEvent) {
+            function (ev) {
                 prompt.read("String rectangle: ", function (aStr, aInput) {
                                 command.replaceRectangle(aInput, aStr);
                             },
-                            aEvent.originalTarget);
+                            ev.originalTarget);
             }, true],
 
         blank_out_the_region_rectangle_shifting_text_right: [
-            function (aEvent) {
-                command.openRectangle(aEvent.originalTarget);
+            function (ev) {
+                command.openRectangle(ev.originalTarget);
             }, true],
 
         delete_the_region_rectangle_and_save_it_as_the_last_killed_one: [
-            function (aEvent, aArg) {
-                command.kill.buffer = command.killRectangle(aEvent.originalTarget, !aArg);
+            function (ev, arg) {
+                command.kill.buffer = command.killRectangle(ev.originalTarget, !arg);
             }, true],
 
         yank_the_last_killed_rectangle_with_upper_left_corner_at_point: [
-            function (aEvent) {
-                command.yankRectangle(aEvent.originalTarget, command.kill.buffer);
+            function (ev) {
+                command.yankRectangle(ev.originalTarget, command.kill.buffer);
             }, true],
 
         beginning_of_the_line: [
-            function (aEvent) {
-                command.beginLine(aEvent);
+            function (ev) {
+                command.beginLine(ev);
             }, false],
 
         end_of_the_line: [
-            function (aEvent) {
-                command.endLine(aEvent);
+            function (ev) {
+                command.endLine(ev);
             }, false],
 
         forward_char: [
-            function (aEvent) {
-                command.nextChar(aEvent);
+            function (ev) {
+                command.nextChar(ev);
             }, false],
 
         backward_char: [
-            function (aEvent) {
-                command.previousChar(aEvent);
+            function (ev) {
+                command.previousChar(ev);
             }, false],
 
         next_word: [
-            function (aEvent) {
-                command.forwardWord(aEvent);
+            function (ev) {
+                command.forwardWord(ev);
             }, false],
 
         previous_word: [
-            function (aEvent) {
-                command.backwardWord(aEvent);
+            function (ev) {
+                command.backwardWord(ev);
             }, false],
 
         next_line: [
-            function (aEvent) {
-                command.nextLine(aEvent);
+            function (ev) {
+                command.nextLine(ev);
             }, false],
 
         previous_line: [
-            function (aEvent) {
-                command.previousLine(aEvent);
+            function (ev) {
+                command.previousLine(ev);
             }, false],
 
         page_down: [
-            function (aEvent) {
-                command.pageDown(aEvent);
+            function (ev) {
+                command.pageDown(ev);
             }, false],
 
         page_up: [
-            function (aEvent) {
-                command.pageUp(aEvent);
+            function (ev) {
+                command.pageUp(ev);
             }, false],
 
         beginning_of_the_text_area: [
-            function (aEvent) {
-                command.moveTop(aEvent);
+            function (ev) {
+                command.moveTop(ev);
             }, false],
 
         end_of_the_text_area: [
-            function (aEvent) {
-                command.moveBottom(aEvent);
+            function (ev) {
+                command.moveBottom(ev);
             }, false],
 
         delete_forward_char: [
@@ -596,8 +596,8 @@ var ksBuiltin = {
             }, true],
 
         recenter: [
-            function (aEvent) {
-                command.recenter(aEvent);
+            function (ev) {
+                command.recenter(ev);
             }, true]
     },
 
@@ -607,63 +607,63 @@ var ksBuiltin = {
         __mode__: 3,
 
         move_caret_to_the_next_line: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectLineNext") : goDoCommand("cmd_scrollLineDown");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectLineNext") : goDoCommand("cmd_scrollLineDown");
             }, false],
 
         move_caret_to_the_previous_line: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectLinePrevious") : goDoCommand("cmd_scrollLineUp");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectLinePrevious") : goDoCommand("cmd_scrollLineUp");
             }, false],
 
         move_caret_to_the_right: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectCharNext") : goDoCommand("cmd_scrollRight");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectCharNext") : goDoCommand("cmd_scrollRight");
             }, false],
 
         move_caret_to_the_left: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectCharPrevious") : goDoCommand("cmd_scrollLeft");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectCharPrevious") : goDoCommand("cmd_scrollLeft");
             }, false],
 
         move_caret_up_by_page: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectPagePrevious") : goDoCommand("cmd_movePageUp");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectPagePrevious") : goDoCommand("cmd_movePageUp");
             }, false],
 
         move_caret_down_by_page: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectPageNext") : goDoCommand("cmd_movePageDown");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectPageNext") : goDoCommand("cmd_movePageDown");
             }, false],
 
         move_caret_to_the_top_of_the_page: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectTop") : goDoCommand("cmd_scrollTop");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectTop") : goDoCommand("cmd_scrollTop");
             }, false],
 
         move_caret_to_the_bottom_of_the_page: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectBottom") : goDoCommand("cmd_scrollBottom");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectBottom") : goDoCommand("cmd_scrollBottom");
             }, false],
 
         move_caret_to_the_beginning_of_the_line: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectBeginLine") : goDoCommand("cmd_beginLine");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectBeginLine") : goDoCommand("cmd_beginLine");
             }, false],
 
         move_caret_to_the_end_of_the_line: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectEndLine") : goDoCommand("cmd_endLine");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectEndLine") : goDoCommand("cmd_endLine");
             }, false],
 
         move_caret_to_the_right_by_word: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectWordNext") : goDoCommand("cmd_wordNext");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectWordNext") : goDoCommand("cmd_wordNext");
             }, false],
 
         move_caret_to_the_left_by_word: [
-            function (aEvent) {
-                aEvent.target.ksMarked ? goDoCommand("cmd_selectWordPrevious") : goDoCommand("cmd_wordPrevious");
+            function (ev) {
+                ev.target.ksMarked ? goDoCommand("cmd_selectWordPrevious") : goDoCommand("cmd_wordPrevious");
             }, false],
 
         scroll_line_down_caret: [
@@ -689,8 +689,8 @@ var ksBuiltin = {
             }, false],
 
         scroll_to_the_cursor_position: [
-            function (aEvent) {
-                command.recenter(aEvent);
+            function (ev) {
+                command.recenter(ev);
             }, false]
     },
 
@@ -713,8 +713,13 @@ var ksBuiltin = {
             }, false],
 
         ext_select: [
-            function (aEvent, aArg) {
-                ext.select(aArg, aEvent);
+            function (ev, arg) {
+                ext.select(arg, ev);
+            }, true],
+
+        list_command: [
+            function (ev, arg) {
+                shell.input(null, arg);
             }, true]
     }
 };
