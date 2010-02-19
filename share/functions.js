@@ -266,7 +266,6 @@ var ksBuiltin = {
             function () {
                 var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"].getService(Ci.nsIAppStartup);
                 appStartup.quit(appStartup.eRestart | appStartup.eAttemptQuit);
-                Application.restart();
             }, false]
     },
 
