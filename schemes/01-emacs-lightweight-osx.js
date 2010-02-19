@@ -37,7 +37,6 @@ SCHEME.keybindings["global"] = [
     [[SCHEME.specialKeys.help, "b"], "list_all_keybindings"],
     // Misc
     ["C-m", "generate_the_return_key_code"],
-    ["C-j", "open_the_bookmark_toolbar_item", true],
     [[SCHEME.specialKeys.help, "F"], "display_firefox_help"],
     // Focus
     [["C-x", "l"], "focus_to_the_location_bar", true],
