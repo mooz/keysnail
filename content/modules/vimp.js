@@ -1,3 +1,14 @@
+let liberator =
+    (function () {
+         let self = {
+             echoerr: function (msg) {
+                 display.echoStatusBar(msg);
+             }
+         };
+
+         return self;
+     })();
+
 let places = function () {
     const defaultFavicon = "chrome://mozapps/skin/places/defaultFavicon.png";
 
@@ -48,6 +59,41 @@ let engines = util.suggest.ensureAliases(util.suggest.getEngines()).map(
 
 let memoizedHist = [];
 
+function getMostVisitedPages(count) {
+    const historyService = Cc["@mozilla.org/browser/nav-history-service;1"]
+        .getService(Ci.nsINavHistoryService);
+    let query   = historyService.getNewQuery();
+    let options = historyService.getNewQueryOptions();
+    options.sortingMode = options.SORT_BY_VISITCOUNT_DESCENDING;
+    options.maxResults = count;
+
+    // execute the query
+    let result = historyService.executeQuery(query, options);
+
+    // iterate over the results
+    result.root.containerOpen = true;
+
+    let count      = result.root.childCount;
+    let collection = [];
+
+    for (let i = 0; i < count; i++)
+    {
+        let node = result.root.getChild(i);
+        collection.push(
+            [
+                node.icon || "",
+                node.uri,
+                node.title,
+                TYPE_HISTORY
+            ]
+        );
+    }
+
+    result.root.containerOpen = false;
+
+    return collection;
+}
+
 // setTimeout(function (max) {
 //                const history = Cc["@mozilla.org/browser/nav-history-service;1"]
 //                    .getService(Ci.nsINavHistoryService);
@@ -93,6 +139,8 @@ function uriOpener(args, extra, callback) {
 
             let [args, state] = completer.utils.lex(left);
 
+            util.message(args);
+
             let uri  = null;
 
             if (args.length > 1)
@@ -101,13 +149,13 @@ function uriOpener(args, extra, callback) {
                 let engine = util.suggest.ss.getEngineByAlias(args[0]);
 
                 if (engine)
-                    uri = engine.getSubmission(left.slice(left.indexOf(args[1])), null).uri.spec;
+                    uri = engine.getSubmission(args.slice(1).join(" "), null).uri.spec;
             }
             else
             {
                 // url
-                if (/^[a-zA-Z]+:\/\//.test(left))
-                    uri = left;
+                if (/^[a-zA-Z]+:\/\//.test(args[0]))
+                    uri = args[0];
             }
 
             if (!uri)
@@ -115,7 +163,7 @@ function uriOpener(args, extra, callback) {
                 let engine = util.suggest.ss.currentEngine;
 
                 if (engine)
-                    uri = engine.getSubmission(left, null).uri.spec;
+                    uri = engine.getSubmission(args[0], null).uri.spec;
             }
 
             callback(uri, extra.bang);
@@ -162,7 +210,6 @@ function uriCompleter(args, extra) {
     if (query)
     {
         // user inputting query
-
         let engine = util.suggest.ss.getEngineByAlias(args[0]);
 
         if (args.length > 0 && engine)
@@ -178,7 +225,7 @@ function uriCompleter(args, extra) {
 
                 cc.collection = suggestions;
 
-                cc.origin = left.lastIndexOf(query);
+                cc.origin = left.lastIndexOf(completer.utils.escape(query));
             }
             else
             {
@@ -192,7 +239,7 @@ function uriCompleter(args, extra) {
             options.multiple = true;
             cc = completer.matcher.migemo(
                 engines.concat(bookmarks).concat(memoizedHist), options
-            )(left, left);
+            )(left);
         }
 
         cc.query = query;
@@ -206,43 +253,8 @@ function uriCompleter(args, extra) {
             cc.origin     = left.length;
             cc.query      = "";
 
-            let mostVisited = (
-                function () {
-                    const historyService = Cc["@mozilla.org/browser/nav-history-service;1"]
-                        .getService(Ci.nsINavHistoryService);
-                    let query   = historyService.getNewQuery();
-                    let options = historyService.getNewQueryOptions();
-                    options.sortingMode = options.SORT_BY_VISITCOUNT_DESCENDING;
-                    options.maxResults = 15;
-
-                    // execute the query
-                    let result = historyService.executeQuery(query, options);
-
-                    // iterate over the results
-                    result.root.containerOpen = true;
-
-                    let count      = result.root.childCount;
-                    let collection = [];
-
-                    for (let i = 0; i < count; i++)
-                    {
-                        let node = result.root.getChild(i);
-                        collection.push(
-                            [
-                                node.icon || "",
-                                node.uri,
-                                node.title,
-                                TYPE_HISTORY
-                            ]
-                        );
-                    }
-
-                    result.root.containerOpen = false;
-
-                    return collection;
-                })();
-
-            cc.collection = engines.concat(mostVisited.concat(bookmarks));
+            let mostVisited = getMostVisitedPages(15);
+            cc.collection   = engines.concat(mostVisited.concat(bookmarks));
         }
         else
         {
@@ -251,6 +263,7 @@ function uriCompleter(args, extra) {
     }
 
     cc.origin += extra.left.lastIndexOf(left);
+    cc.supressAdjustOrigin = true;
 
     return cc;
 }
@@ -262,16 +275,21 @@ shell.add(["t[abopen]", "tb"], "Open page in new tab", function (args, extra) {
           },
           {
               bang      : true,
-              completer : uriCompleter
+              completer : uriCompleter,
+              literal   : 0
           });
 
-shell.add(["o[pen]"], "Open page in current tab", function (args, extra) {
-              uriOpener(args, extra, function (uri, bang) {
-                            if (uri) openUILinkIn(uri, "current");
-                        });
+shell.add(["o[pen]", "e[dit]"],
+          "Open one or more URLs in the current tab",
+          function (args, extra) {
+              let (opened = false)
+                  uriOpener(args, extra, function (uri, bang) {
+                                openUILinkIn(uri || "about:blank", opened ? "tabshifted" : (opened = true, "current"));
+                            });
           },
           {
-              completer : uriCompleter
+              completer : uriCompleter,
+              literal   : 0
           });
 
 let dialogs = [
@@ -360,4 +378,39 @@ shell.add("dia[log]", "Open a dialog",
 
                   return cc;
               }
+          });
+
+shell.add(["res[tart]"],
+          "Force firefox to restart",
+          function () {
+              let (appStartup = Cc["@mozilla.org/toolkit/app-startup;1"].getService(Ci.nsIAppStartup))
+                  appStartup.quit(appStartup.eRestart | appStartup.eAttemptQuit);
+          },
+          { argCount: "0" });
+
+// shell.add(["b[uffer]"],
+//           "Switch to a buffer",
+//           function (args, extra) {
+//               let title = completer.utils.unescape(extra.left);
+//               let tabs  = getBrowser().mTabContainer.childNodes;
+
+//               for (let i = 0; i < tabs.length; ++i)
+//                   if (tabs.label === extra.left)
+//                       return getBrowser().mTabContainer.selectedIndex = i;
+//           },
+//           {
+//               argCount  : "?",
+//               bang      : true,
+//               count     : true,
+//               literal   : 0,
+//               completer : function (a, e) completer.fetch.tabs()(e.left, e.whole)
+//           }
+//          );
+
+shell.add(["reloada[ll]"],
+          "Reload all tab pages",
+          function (args) { getBrowser().reloadAllTabs(); },
+          {
+              argCount : "0",
+              bang     : true
           });
