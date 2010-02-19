@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 // 
+// ==== 1.5.7 (2010 02/20) ====
+// 
+// * Added option tweet_keymap
+// 
 // ==== 1.5.6 (2010 01/31) ====
 // 
 // * Made official ReTweet to be displayed in the timeline (default green color)
@@ -138,6 +142,7 @@ var optionsDefaultValue = {
     "unread_status_count_style"    : "color:#383838;font-weight:bold;",
     "automatically_begin"          : true,
     "keymap"                       : null,
+    "tweet_keymap"                 : null,
     "block_users"                           : [],
     "black_users"                           : [],
     "enable_header"                         : true,
@@ -1852,11 +1857,12 @@ var twitterClient =
              tPrompt.close();
              prompt.reader(
                  {
-                     message: "tweet:",
-                     initialcount: 0,
-                     initialinput: aInitialInput,
-                     group: "twitter_tweet",
-                     onChange: function (arg) {
+                     message      : "tweet:",
+                     initialcount : 0,
+                     initialinput : aInitialInput,
+                     group        : "twitter_tweet",
+                     keymap       : getOption("tweet_keymap"),
+                     onChange     : function (arg) {
                          var current = arg.textbox.value;
                          var length  = current.length;
                          var count   = limit - length;
@@ -3290,7 +3296,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.6</version>
+    <version>1.5.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3381,6 +3387,12 @@ var PLUGIN_INFO =
             <type>object</type>
             <description>Local keymap</description>
             <description lang="ja">ローカルキーマップ</description>
+        </option>
+        <option>
+            <name>twitter_client.tweet_keymap</name>
+            <type>object</type>
+            <description>Local keymap for tweet input box</description>
+            <description lang="ja">つぶやき入力部分のローカルキーマップ</description>
         </option>
         <option>
             <name>twitter_client.fancy_mode</name>
@@ -3524,7 +3536,7 @@ KeySnail を使って、じゃんじゃんつぶやいてしまいましょう�
 
 ==== キーバインドの設定 ====
 
-次のような設定を .keysnail.js の PRESERVE エリアへ張り付けておくと、かくだんに操作がしやすくなります。
+次のような設定を .keysnail.js の PRESERVE エリアへ貼り付けておくと、かくだんに操作がしやすくなります。
 
 >||
 plugins.options["twitter_client.keymap"] = {
@@ -3554,7 +3566,18 @@ plugins.options["twitter_client.keymap"] = {
 
 どのようなキーバインドとなっているかは、設定を見ていただければ分かるかと思います。気に入らなければ変更してしまってください。
 
-このままではアルファベットが入力できないので、もし絞り込み健作などでアルファベットを入力したくなった場合は C-z を入力するか 「閉じる」 ボタン左の 「地球マーク」 をクリックし、編集モードへと切り替えてください。
+このままではアルファベットが入力できないので、もし絞り込み健作などでアルファベットを入力したくなった場合は C-z を入力するか 「閉じる」 ボタン左の 「地球マーク」 をクリックし、編集モードへと切り替えてください。'
+
+==== Enter ではなく Ctrl + Enter でポストするように ====
+
+Enter では誤爆が多いので Ctrl + Enter でポストするようにしたい、という方は次のような設定を .keysnail.js の PRESERVE エリアへ貼り付けておくとよいでしょう。
+
+>||
+plugins.options["twitter_client.tweet_keymap"] = {
+    "C-RET" : "prompt-decide",
+    "RET"   : ""
+};
+||<
 
 ==== ヘッダ ====
 
