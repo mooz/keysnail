@@ -30,7 +30,7 @@ var ksBuiltin = {
                 getBrowser().mTabContainer.advanceSelectedTab(-1, true);
             }, false],
 
-        move_selected_tab_right: [
+        move_selected_tab_left: [
             function () {
                 let browser = getBrowser();
                 if (browser.mCurrentTab.previousSibling) {
@@ -40,7 +40,7 @@ var ksBuiltin = {
                 }
             }, false],
 
-        move_selected_tab_left: [
+        move_selected_tab_right: [
             function () {
                 let browser = getBrowser();
                 if (browser.mCurrentTab.nextSibling) {
