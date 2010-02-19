@@ -1512,8 +1512,6 @@ KeySnail.Prompt = function () {
                     tokens.push(buffer.join(""));
                 }
 
-                self.message(this.state2str(state));
-
                 return [tokens, state];
             },
 
@@ -1642,14 +1640,9 @@ KeySnail.Prompt = function () {
                     else
                     {
                         let matched = [];
-                        collection.filter(function (str) {
-                                              if (str.indexOf(query) === 0) { matched.push(str); return false; }
-                                              return true;
-                                          });
-                        collection.filter(function (str) {
-                                              if (str.toLowerCase().indexOf(query.toLowerCase()) === 0) { matched.push(str); return false; }
-                                              return true;
-                                          });
+                        collection = collection.filter(function (s) (!s.indexOf(query)) ? (matched.push(s), false) : true);
+                        collection = collection.filter(function (s) (!s.toLowerCase().indexOf(query.toLowerCase())) ?
+                                                       (matched.push(s), false) : true);
                         result.collection = matched;
                     }
                 }
@@ -1729,6 +1722,23 @@ KeySnail.Prompt = function () {
         },
 
         fetch: {
+            tabs: function (context) {
+                return function (left, whole) {
+                    context      = context || {};
+                    context.text = left;
+
+                    let tabs       = getBrowser().mTabContainer.childNodes;
+                    let collection = [[tab.image, tab.label, tab.linkedBrowser.contentDocument.URL]
+                                      for ([, tab] in Iterator(Array.slice(tabs)))];
+
+                    let cc    = completer.matcher.migemo(collection, {multiple:true})(left, whole);
+                    cc.flags  = [modules.ICON | modules.IGNORE, 0, 0];
+                    cc.header = ["Title", "URL"];
+
+                    return cc;
+                };
+            },
+
             suggest: function (aEngines, aWithDescription) {
                 let util = modules.util;
                 let engines = aEngines ? util.suggest.filterEngines(aEngines) : [];
@@ -1764,8 +1774,6 @@ KeySnail.Prompt = function () {
                 return function (currentText, text) {
                     context      = context || {};
                     context.text = currentText;
-
-
 
                     let result = completer.utils.completeFiles(context);
 
