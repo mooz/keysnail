@@ -1252,38 +1252,24 @@ ext.add("hok-start-continuous-mode",
 ext.add("hok-start-extended-mode", function (ev, arg) {
             prompt.reader(
                 {
-                    message: "Extended hint mode (Press TAB to see completions): ",
-                    onChange: function (arg) {
+                    message  : "Extended hint mode (Press TAB to see completions): ",
+                    onChange : function (arg) {
                         if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT ||
                             arg.event.keyCode === KeyEvent.DOM_VK_TAB)
-                        {
                             return;
-                        }
 
                         var current = arg.textbox.value;
                         if (current)
                             arg.finish();
                     },
-                    collection: formatActions(actions),
-                    header: [
-                        M({ja: "キー", en: "Key"}), M({ja: "説明", en: "Description"})
-                    ],
-                    style: [
-                        "font-weight:bold;text-align:right;margin-right:2em;", "color:#5100ae;"
-                    ],
-                    width: [
-                        40, 60
-                    ],
-                    supressRecoverFocus: true,
-                    callback: function (aStr) {
-                        if (aStr == null)
-                        {
-                            recoverFocus();
-                            return;
-                        }
-
-                        doAction(aStr);
-
+                    collection          : formatActions(actions),
+                    header              : [M({ja: "キー", en: "Key"}), M({ja: "説明", en: "Description"})],
+                    style               : ["font-weight:bold;text-align:right;margin-right:2em;", "color:#5100ae;"],
+                    width               : [40, 60],
+                    supressRecoverFocus : true,
+                    callback            : function (aStr) {
+                        if (aStr !== null)
+                            doAction(aStr);
                         recoverFocus();
                     }
                 }
