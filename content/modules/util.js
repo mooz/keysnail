@@ -682,6 +682,46 @@ KeySnail.Util = function () {
 
         // Directory {{ ============================================================= //
 
+        changeDirectory: function (path) {
+            with (KeySnail.modules)
+            {
+                let dest;
+
+                if (path === "-")
+                {
+                    if (!share.oldpwd)
+                        share.oldpwd = share.pwd;
+                    dest = share.oldpwd;
+                }
+                else
+                    dest = completer.utils.normalizePath(path);
+
+                let dir = util.openFile(dest);
+                if (!dir)
+                {
+                    display.echoStatusBar("Failed to change current directory");
+                    return;
+                }
+
+                if (!dir.exists())
+                {
+                    display.echoStatusBar("No such directory " + dest);
+                    return;
+                }
+
+                if (!dir.isDirectory())
+                {
+                    display.echoStatusBar(dest + " is not a directory");
+                    return;
+                }
+
+                share.oldpwd = share.pwd;
+                share.pwd    = dir.path;
+
+                return dir;
+            }
+        },
+
         /**
          * check if the directory has certain files
          * @param {string} aPath
@@ -1196,6 +1236,12 @@ KeySnail.Util = function () {
         // Suggestion {{ ============================================================ //
 
         suggest: null,
+
+        // }} ======================================================================= //
+
+        // Misc {{ ================================================================== //
+
+        sortMultiple: function ([a], [b]) { return (a < b) ? -1 : (a > b) ? 1 : 0; },
 
         // }} ======================================================================= //
 

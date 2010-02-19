@@ -48,6 +48,10 @@ KeySnail.Style = function () {
             modules = this.modules;
         },
 
+        prompt: {
+            description: "color:#484848;"
+        },
+
         get XHTML () { return XHTML; },
         get XUL   () { return XUL; },
 

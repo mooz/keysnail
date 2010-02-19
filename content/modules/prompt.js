@@ -1404,6 +1404,26 @@ KeySnail.Prompt = function () {
                 return unquoted || str;
             },
 
+            state2str: function state2str(state) {
+                let str;
+                switch (state)
+                {
+                case completer.states.NEUTRAL:
+                    str = "NEUTRAL";
+                    break;
+                case completer.states.WORD:
+                    str = "WORD";
+                    break;
+                case completer.states.QUOTE:
+                    str = "QUOTE";
+                    break;
+                case completer.states.ESCAPE:
+                    str = "ESCAPE";
+                    break;
+                }
+                return str;
+            },
+
             lex: function lex(str, options) {
                 options = options || {};
 
@@ -1472,7 +1492,7 @@ KeySnail.Prompt = function () {
                         // ================================================== //
                     case completer.states.QUOTE:
                         if (current === quoteChar)
-                            state = completer.states.NEUTRAL;
+                            state = completer.states.WORD;
                         if (!(current === quoteChar && !options.raw))
                             buffer.push(current);
                         break;
@@ -1481,7 +1501,7 @@ KeySnail.Prompt = function () {
                         // ================================================== //
                     case completer.states.ESCAPE:
                         buffer.push(current);
-                        state = completer.states.NEUTRAL;
+                        state = completer.states.WORD;
                         break;
                         // ================================================== //
                     }
@@ -1491,6 +1511,8 @@ KeySnail.Prompt = function () {
                 {
                     tokens.push(buffer.join(""));
                 }
+
+                self.message(this.state2str(state));
 
                 return [tokens, state];
             },
@@ -1743,7 +1765,7 @@ KeySnail.Prompt = function () {
                     context      = context || {};
                     context.text = currentText;
 
-                    
+
 
                     let result = completer.utils.completeFiles(context);
 
@@ -2096,6 +2118,8 @@ KeySnail.Prompt = function () {
                 if ("xulMigemoCore" in window)
                 {
                     return function (currentText, text) {
+                        text = text || currentText;
+
                         let [query, origin] = completer.utils.getQuery(currentText, [" "]);
 
                         let cc = {
@@ -2156,6 +2180,8 @@ KeySnail.Prompt = function () {
                 if (!specific)   specific   = {};
 
                 return function (currentText, text) {
+                    text = text || currentText;
+
                     let query, origin;
 
                     let getText = createTextGetter(collection, options.flags, options.multiple);
@@ -2220,6 +2246,8 @@ KeySnail.Prompt = function () {
                 if (!options)    options    = {};
 
                 return function (currentText, text) {
+                    text = text || currentText;
+
                     let query, origin;
 
                     let getText = createTextGetter(collection, options.flags, options.multiple);

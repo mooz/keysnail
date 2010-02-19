@@ -86,7 +86,7 @@ SCHEME.keybindings["caret"] = [
 ];
 
 var nonEditableCommon = [
-    [":", "ext_select", true],
+    [":", "list_command", true],
     // Navigation
     ["r", "reload_the_page", true],
     ["H", "back"],

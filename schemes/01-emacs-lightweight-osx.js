@@ -155,6 +155,7 @@ SCHEME.keybindings["caret"] = [
 ];
 
 var nonEditableCommon = [
+    [":", "list_command", true],
     // Navigation
     ["R", "reload_the_page", true],
     ["B", "back"],
