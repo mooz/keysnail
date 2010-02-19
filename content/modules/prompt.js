@@ -2343,9 +2343,13 @@ KeySnail.Prompt = function () {
         {
         case "prompt-cancel":
             self.finish(true);
+            modules.util.stopEventPropagation(aEvent);
+            return;
             break;
         case "prompt-decide":
             self.finish();
+            modules.util.stopEventPropagation(aEvent);
+            return;
             break;
         case "prompt-next-line":
             readerState = READER_ST_HIST;
@@ -2897,7 +2901,7 @@ KeySnail.Prompt = function () {
 
             // -------------------- prompt.read, prompt.reader ----------------------------- //
 
-            readerState       = READER_ST_NEUT;
+            readerResetState();
             readerStylist     = null;
             readerFlags       = null;
 
@@ -3082,12 +3086,10 @@ KeySnail.Prompt = function () {
             textbox.addEventListener('keypress', handleKeyPressRead, false);
             textbox.addEventListener('keyup', handleKeyUpRead, false);
             listbox.addEventListener('click', modules.util.stopEventPropagation, true);
-            // listbox.addEventListener('mousedown', handleMouseDownRead, true);
             eventListenerRemover = function () {
                 textbox.removeEventListener('keypress', handleKeyPressRead, false);
                 textbox.removeEventListener('keyup', handleKeyUpRead, false);
                 listbox.removeEventListener('click', modules.util.stopEventPropagation, true);
-                // listbox.removeEventListener('mousedown', handleMouseDownRead, true);
             };
 
             modules.display.echoStatusBar(aContext.description || modules.util.getLocaleString("promptKeyDescription"));
