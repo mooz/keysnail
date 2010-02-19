@@ -253,20 +253,19 @@ KeySnail.Shell =
 
              if (parsed.cmd)
              {
-                 let left = str.slice(parsed.queryStart);
-                 let [args, state] = completer.utils.lex(left);
-
                  if (parsed.cmd in commands)
                  {
                      let command = commands[parsed.cmd];
+                     let left    = str.slice(parsed.queryStart);
 
-                     let extra   = {
+                     let extra = {
                          bang  : parsed.bang,
-                         state : state,
                          left  : left,
                          whole : str,
                          count : prefixArg
                      };
+
+                     let [args, state] = completer.utils.lex(left);
 
                      if (command.extra.options)
                      {
@@ -355,7 +354,8 @@ KeySnail.Shell =
 
              add  : add,
              init : function () {
-                 if (KeySnail.windowType !== "navigator:browser")
+                 if (KeySnail.windowType !== "navigator:browser" ||
+                     !self.modules.util.getBoolPref("extensions.keysnail.vimp.enabled", true))
                      return;
 
                  modules = self.modules;
@@ -370,15 +370,19 @@ KeySnail.Shell =
                  try
                  {
                      modules.vimp = { __proto__ : KeySnail.modules };
-                     modules.userscript.loadSubScript("chrome://keysnail/content/vimp.js", modules.vimp);                     
+                     modules.userscript.loadSubScript("chrome://keysnail/content/modules/vimp.js", modules.vimp);
                  }
-                 catch(x) {};
+                 catch (x)
+                 {
+                     util.message(x);
+                 };
 
                  add(["!", "run"], "Execute shell command",
                      function (args) {
                          executeLocalCommand(args);
                      },
                      {
+                         argCount  : "+",
                          completer : function (args, extra) {
                              if (!localCommands)
                                  localCommands = getLocalCommands();
@@ -401,7 +405,7 @@ KeySnail.Shell =
                          if (dir) display.echoStatusBar(dir.path);
                      },
                      {
-                         argCount     : "?",
+                         argCount  : "?",
                          completer : function (args, extra) completer.fetch.directory()(extra.query || "", extra.query || "")
                      });
 
@@ -416,7 +420,8 @@ KeySnail.Shell =
                          }
                      },
                      {
-                         completer: function (args, extra) completer.fetch.javascript()(extra.left, extra.whole)
+                         literal   : 0,
+                         completer : function (args, extra) completer.fetch.javascript()(extra.left, extra.whole)
                      });
 
                  add("inspect", "Inspect object",
@@ -425,7 +430,8 @@ KeySnail.Shell =
                              window.inspectObject(util.evalInContext(extra.left));
                      },
                      {
-                         completer: function (args, extra) completer.fetch.javascript()(extra.left, extra.whole)
+                         literal   : 0,
+                         completer : function (args, extra) completer.fetch.javascript()(extra.left, extra.whole)
                      });
 
                  add("js", "Evaluate javascript code",
@@ -433,7 +439,8 @@ KeySnail.Shell =
                          util.evalInContext(extra.left);
                      },
                      {
-                         completer: function (args, extra) completer.fetch.javascript()(extra.left, extra.whole)
+                         literal   : 0,
+                         completer : function (args, extra) completer.fetch.javascript()(extra.left, extra.whole)
                      });
 
                  add("ext", "Execute KeySnail's Ext",
@@ -441,7 +448,7 @@ KeySnail.Shell =
                          ext.exec(args[0], extra.options["-prefix-arguments"]);
                      },
                      {
-                         argCount     : "1",
+                         argCount  : "1",
                          options   : [[["-prefix-arguments", "-pa"], option.INT, null]],
                          completer : function (args, extra) completer.matcher.header(
                              [[n, ext.description(n)] for (n in ext.exts)].sort(util.sortMultiple),
@@ -510,7 +517,7 @@ KeySnail.Shell =
                                      let qLeft  = left.slice(parsed.queryStart);
                                      let qWhole = whole.slice(parsed.queryStart);
 
-                                     let [args, state] = completer.utils.lex(qLeft, {raw : true});
+                                     let commandCompleter = cmd.extra.completer;
 
                                      let extra = {
                                          bang     : cmd.bang,
@@ -519,6 +526,18 @@ KeySnail.Shell =
                                          whole    : qWhole,
                                          state    : state
                                      };
+
+                                     let isLiteral = cmd.extra.literal || typeof cmd.extra.literal === "number";
+
+                                     if (isLiteral)
+                                     {
+                                         let result = commandCompleter(null, extra);
+                                         if (typeof result.origin === "number")
+                                             result.origin += parsed.queryStart;
+                                         return result;
+                                     }
+
+                                     let [args, state] = completer.utils.lex(qLeft, {raw : true});
 
                                      if (state !== completer.states.NEUTRAL)
                                      {
@@ -624,13 +643,10 @@ KeySnail.Shell =
 
                                      if (callCompleter)
                                      {
-                                         // return result of each command completer
-                                         let commandCompleter = cmd.extra.completer;
-
                                          // check arguments count
                                          if (typeof cmd.extra.argCount !== "undefined")
                                          {
-                                             let argCount    = cmd.extra.argCount;
+                                             let argCount = cmd.extra.argCount;
                                              let current  = args.length;
                                              let needMore = false;
                                              let errorMsg;
@@ -676,17 +692,15 @@ KeySnail.Shell =
 
                                          if (extra.query)
                                          {
-                                             util.message("[%s]", extra.query);
                                              let escapedLength = extra.query.length;
                                              extra.query       = completer.utils.unescape(extra.query);
-                                             util.message("[%s]", extra.query);
                                              escapedCount      = escapedLength - extra.query.length;
                                          }
 
                                          let unescapedArgs = args.map(completer.utils.unescape);
 
-                                         escapedCount += unescapedArgs.reduce(function (a, s) a + s.length, 0)
-                                             - args.reduce(function (a, s) a + s.length, 0);
+                                         escapedCount += args.reduce(function (a, s) a + s.length, 0)
+                                             - unescapedArgs.reduce(function (a, s) a + s.length, 0);
 
                                          // ============================================================ //
                                          // Call completer
@@ -714,7 +728,11 @@ KeySnail.Shell =
                                          if (result)
                                          {
                                              if (typeof result.origin === "number")
-                                                 result.origin += parsed.queryStart + escapedCount;
+                                             {
+                                                 result.origin += parsed.queryStart;
+                                                 if (!result.supressAdjustOrigin)
+                                                     result.origin += escapedCount;
+                                             }
                                              cc = result;
                                          }
                                          else

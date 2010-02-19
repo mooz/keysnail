@@ -39,6 +39,10 @@
                  id="extensions.keysnail.plugin.global_enabled"
                  name="extensions.keysnail.plugin.global_enabled"
                  type="bool"/>
+            <preference
+                 id="extensions.keysnail.vimp.enabled"
+                 name="extensions.keysnail.vimp.enabled"
+                 type="bool"/>
         </preferences>
         <!-- Status -->
         <groupbox orient="vertical">
@@ -119,6 +123,13 @@
             <spacer height="5px" />
             <checkbox label="&keySnail.preference.plugin.globalEnabled;"
                       preference="extensions.keysnail.plugin.global_enabled" />
+        </groupbox>
+
+        <!-- Vimperator -->
+        <groupbox orient="vertical">
+            <caption label="&keySnail.preference.vimp;" />
+            <checkbox label="&keySnail.preference.vimp.enabled;"
+                      preference="extensions.keysnail.vimp.enabled" />
         </groupbox>
     </prefpane>
 

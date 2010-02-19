@@ -16,7 +16,6 @@
 <!ENTITY keySnail.preference.plugin.location "Location: ">
 <!ENTITY keySnail.preference.plugin.globalEnabled "Load plugins in every window">
 
-
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "Key Handler Settings">
 <!ENTITY keySnail.preference.keyhandler.enabled "Enabled">
@@ -29,6 +28,10 @@
 <!ENTITY keySnail.preference.keyhandler.usePrefixArgument "Use Emacs-like prefix argument system">
 <!ENTITY keySnail.preference.keyhandler.degitArgumentType "Modifier + [number] type digit argument">
 <!ENTITY keySnail.preference.keyhandler.degitArgumentDisable "Disable">
+
+<!-- Vimperator -->
+<!ENTITY keySnail.preference.vimp "Vimperator">
+<!ENTITY keySnail.preference.vimp.enabled "Enable Vimperator like command system.">
 
 <!-- # KEY SETTINGS # -->
 

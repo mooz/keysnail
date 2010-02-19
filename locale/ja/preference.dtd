@@ -29,6 +29,10 @@
 <!ENTITY keySnail.preference.keyhandler.degitArgumentType "モディファイア + [数字キー] で入力する前置引数">
 <!ENTITY keySnail.preference.keyhandler.degitArgumentDisable "無効">
 
+<!-- Vimperator -->
+<!ENTITY keySnail.preference.vimp "Vimperator">
+<!ENTITY keySnail.preference.vimp.enabled "Vimperator ライクなコマンドシステムを使用する">
+
 <!-- # KEY SETTINGS # -->
 
 <!ENTITY keySnail.preference.keys "キーバインド">
