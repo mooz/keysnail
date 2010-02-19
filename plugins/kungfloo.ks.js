@@ -5,7 +5,7 @@ let PLUGIN_INFO =
     <name>kungfloo</name>
     <description>Manipulate Tombloo from KeySnail</description>
     <description lang="ja">KeySnail から Tombloo を操作</description>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kungfloo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kungfloo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -186,7 +186,13 @@ local["^http://www.google.(co.jp|com)/reader/view/"] = [
 
 // }} ======================================================================= //
 
+// ' # quick hack for js2-modes parser bug
+
 // Change Log {{ ============================================================ //
+// 
+// ==== 0.0.4 (2010 02/19) ====
+// 
+// * Fixed the missing focus bug
 //
 // ==== 0.0.3 (2010 02/11) ====
 //
@@ -244,7 +250,7 @@ let kungfloo =
          }
 
          function getContext(target) {
-             let doc = window.content.document;
+             let doc = window.content.document.wrappedJSObject;
              let win = window.content.wrappedJSObject;
 
              target = target || doc;
@@ -284,12 +290,7 @@ let kungfloo =
                          heade         : ["Tombloo action"],
                          style         : ["color:#003870;"],
                          keymap        : getOption("keymap"),
-                         callback      : function (i) {
-                             if (i < 0)
-                                 return;
-
-                             items[i].execute();
-                         }
+                         callback      : function (i) { if (i >= 0) items[i].execute(); }
                      }
                  );
              },
@@ -319,6 +320,11 @@ let kungfloo =
                      return found;
                  }
 
+                 function focusContent() {
+                     getBrowser().focus();
+                     _content.focus();
+                 }
+
                  preferred = Object.prototype.toString.call(preferred) === "[object Array]"
                      ? preferred : [preferred || ""];
 
@@ -334,16 +340,20 @@ let kungfloo =
                          {
                              message       : "reblog:",
                              collection    : candidates,
-                             heade         : ["Post to"],
+                             header        : ["Post to"],
                              style         : ["color:#003870;"],
                              flags         : [HIDDEN | IGNORE, ICON | IGNORE, 0],
                              keymap        : getOption("keymap"),
                              initialIndex  : extensionIndex,
                              initialAction : withDialog ? 1 : 0,
                              actions       : [
-                                 [function (i) { if (i >= 0) share(candidates[i][0], false); }, "Reblog", "reblog"],
-                                 [function (i) { if (i >= 0) share(candidates[i][0], true);  }, "Reblog with dialog", "reblog-with-dialog"]
-                             ]
+                                 [function (i) { if (i >= 0) share(candidates[i][0], false); },
+                                  "Reblog", "reblog"],
+                                 [function (i) { if (i >= 0) share(candidates[i][0], true);  },
+                                  "Reblog with dialog", "reblog-with-dialog"]
+                             ],
+                             supressRecoverFocus : true,
+                             onFinish            : function () { focusContent(); }
                          }
                      );
                  }
