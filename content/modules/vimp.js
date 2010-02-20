@@ -198,7 +198,7 @@ function uriCompleter(args, extra) {
     };
 
     let cc;
-    let lefts = extra.left.split(",");
+    let lefts = extra.left.split(", ");
     let left  = lefts[lefts.length - 1];
     let query;
 
