@@ -1373,8 +1373,9 @@ KeySnail.Prompt = function () {
                 return i - 1;
             },
 
-            escape: function escape(str) {
-                return str.replace(/ /g, "\\ ");
+            escape: function escape(str, escapeChars) {
+                escapeChars = escapeChars || " ";
+                return str.replace(new RegExp("[" + escapeChars + "]", "g"), "\\$&");
             },
 
             unescape: function unescape(str) {
