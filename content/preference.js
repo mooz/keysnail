@@ -14,6 +14,8 @@ var ksPreference = {
     digitArgumentDescription : null,
     prefixArgumentCheckBox   : null,
 
+    initFileTabBox : null,
+
     keybindTreeBox      : null,
     keybindTextarea     : null,
     dropMarker          : null,
@@ -80,6 +82,8 @@ var ksPreference = {
         } catch (x) {
             Application.console.log(x);
         }
+
+        this.initFileTabBox = document.getElementById("init-file-tabbox");
 
         // init key-binds tree
         ksKeybindTreeView.init();
@@ -178,10 +182,20 @@ var ksPreference = {
     },
 
     onInitFileCreate: function () {
+        let preservedCodeChanged = (this.preservedEditBox.value !== this.modules.userscript.preserve.code);
+
         var error;
         if ((error = ksKeybindTreeView.checkSyntax()))
         {
+            this.initFileTabBox.selectedIndex = 0;
             this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInFunction"));
+            return false;
+        }
+
+        if (preservedCodeChanged && (error = this.checkPreservedCodeSyntax()))
+        {
+            this.initFileTabBox.selectedIndex = 3;
+            this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInPreservedArea"));
             return false;
         }
 
@@ -892,8 +906,6 @@ var ksPreference = {
         return output;
     },
 
-
-
     generateSpecialKeySettings: function (aContentHolder) {
         aContentHolder.push("");
 
@@ -1090,6 +1102,22 @@ var ksPreference = {
         ksKeybindTreeView.appendItem(params.out);
     },
 
+    // ============================== Misc ============================== //
+
+    checkPreservedCodeSyntax: function () {
+        let code = this.preservedEditBox.value;
+        code = "function () { " + code + " }";
+
+        try
+        {
+            with (this.modules) util.safeEval(code);
+        }
+        catch (x)
+        {
+            return x;
+        }
+    },
+
     // ============================== Add builtin command ============================== //
 
     addBuiltinCommand: function () {
@@ -1252,7 +1280,7 @@ var ksKeybindTreeView = {
     checkSyntax: function () {
         var i = this.currentIndex;
         if (i < 0)
-            return null;
+            return;
 
         var src = this.data[i][KS_FUNCTION];
 
@@ -1265,9 +1293,8 @@ var ksKeybindTreeView = {
         }
         catch (x)
         {
-            return x.message;
+            return x;
         }
-        return null;
     },
 
     deleteItemAt: function (aIndex) {

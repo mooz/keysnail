@@ -145,7 +145,7 @@
         </preferences>
         <notificationbox id="keysnail-preference-notification" flex="1">
             <!-- key bindings list -->
-            <tabbox flex="1">
+            <tabbox flex="1" id="init-file-tabbox">
                 <tabs>
                     <tab label="&keySnail.preference.keys.keybindings;"/>
                     <tab label="&keySnail.preference.keys.specialkey;"/>
