@@ -1,15 +1,19 @@
 // ChangeLog {{ ============================================================= //
-// 
+//
+// ==== 1.5.8 (2010 02/23) ====
+//
+// * Added option jmp_id and jmp_key which allows user to use their account of j.mp
+//
 // ==== 1.5.7 (2010 02/20) ====
-// 
+//
 // * Added option tweet_keymap
-// 
+//
 // ==== 1.5.6 (2010 01/31) ====
-// 
+//
 // * Made official ReTweet to be displayed in the timeline (default green color)
-// 
+//
 // ==== 1.5.5 (2010 01/16) ====
-// 
+//
 // * Added popup_new_replies option.
 //   This option is only effective when the user set false to popup_new_statuses.
 //
@@ -155,7 +159,10 @@ var optionsDefaultValue = {
     "selected_row_style"                    : "background-color:#93c6ff; color:black; outline: 1px solid #93c6ff !important;",
     "selected_user_style"                   : "background-color:#ddedff; color:black;",
     "selected_user_reply_to_style"          : "background-color:#ffd4ff; color:black;",
-    "selected_user_reply_to_reply_to_style" : "background-color:#ffe9d4; color:black;"
+    "selected_user_reply_to_reply_to_style" : "background-color:#ffe9d4; color:black;",
+    // j.mp settings
+    "jmp_id"                                : "stillpedant",
+    "jmp_key"                               : "R_168719821d1100c59352962dce863251"
 };
 
 function getOption(aName) {
@@ -1268,8 +1275,8 @@ var twitterClient =
          }
 
          function shortenURL(aURL) {
-             const id  = "stillpedant";
-             const key = "R_168719821d1100c59352962dce863251";
+             const id  = getOption("jmp_id");
+             const key = getOption("jmp_key");
 
              var xhr = new XMLHttpRequest();
              // bit.ly
@@ -3296,7 +3303,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.7</version>
+    <version>1.5.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3405,6 +3412,18 @@ var PLUGIN_INFO =
             <type>boolean</type>
             <description>Enable header</description>
             <description lang="ja">ヘッダを表示するかどうか</description>
+        </option>
+        <option>
+            <name>twitter_client.jmp_id</name>
+            <type>string</type>
+            <description>Specify ID of your j.mp account if you want use your one</description>
+            <description lang="ja">j.mp の URL 短縮で独自アカウントを用いたい場合、その ID を指定</description>
+        </option>
+        <option>
+            <name>twitter_client.jmp_key</name>
+            <type>string</type>
+            <description>Specify Key of your j.mp account if you want use your one</description>
+            <description lang="ja">j.mp の URL 短縮で独自アカウントを用いたい場合、その Key を指定</description>
         </option>
     </options>
     <detail><![CDATA[
