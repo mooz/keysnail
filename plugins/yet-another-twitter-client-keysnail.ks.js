@@ -1091,8 +1091,8 @@ var twitterClient =
                  reset  : null,
 
                  set: function (remain, limit, reset) {
-                     if (this.remain != remain ||
-                         this.limit  != limit)
+                     if (this.remain !== remain ||
+                         this.limit  !== limit)
                      {
                          this.remain = remain;
                          this.limit  = limit;
@@ -1691,7 +1691,7 @@ var twitterClient =
                          : M({ja: "お気に入りに追加しました", en: "Added status to favorites"});
 
 
-                         if (xhr.status != 200)
+                         if (xhr.status !== 200)
                          {
                              display.echoStatusBar(errorMsg, 2000);
                              return;
@@ -1742,7 +1742,7 @@ var twitterClient =
                                  return;
                              }
 
-                             if (xhr.status != 200)
+                             if (xhr.status !== 200)
                              {
                                  display.echoStatusBar(M({ja: "検索に失敗しました",
                                                           en: "Failed to search word"}), 3000);
@@ -1820,7 +1820,7 @@ var twitterClient =
                  function (aEvent, xhr) {
                      if (xhr.readyState === 4)
                      {
-                         if ((xhr.status === 401) && (xhr.responseText.indexOf("expired") != -1))
+                         if ((xhr.status === 401) && (xhr.responseText.indexOf("expired") !== -1))
                          {
                              // token expired
                              reAuthorize();
@@ -1906,7 +1906,7 @@ var twitterClient =
                              function (aEvent, xhr) {
                                  if (xhr.readyState === 4)
                                  {
-                                     if (xhr.status === 401 && xhr.responseText.indexOf("expired") != -1)
+                                     if (xhr.status === 401 && xhr.responseText.indexOf("expired") !== -1)
                                      {
                                          // token expired
                                          reAuthorize();
@@ -1917,7 +1917,7 @@ var twitterClient =
                                          log(LOG_LEVEL_DEBUG, "Failed to tweet. Retry");
                                          postTweet(aTweet);
                                      }
-                                     else if (xhr.status != 200)
+                                     else if (xhr.status !== 200)
                                      {
                                          // misc error
                                          showPopup({
@@ -2277,7 +2277,7 @@ var twitterClient =
          }
 
          function showMentions(aArg) {
-             var updateForced = (aArg != null);
+             var updateForced = (aArg !== null);
 
              if (updateForced || !share.twitterMentionsJSONCache)
              {
@@ -2307,7 +2307,7 @@ var twitterClient =
          function showFollowersStatus(aArg) {
              self.currentFilter = self.filterNameTimeline;
 
-             var updateForced = (aArg != null);
+             var updateForced = (aArg !== null);
 
              if (updateForced || !share.twitterStatusesJSONCache)
              {
@@ -2946,7 +2946,7 @@ var twitterClient =
 
                                                  try
                                                  {
-                                                     if (win != window  &&
+                                                     if (win !== window  &&
                                                          win.KeySnail   &&
                                                          win.KeySnail.modules.plugins.twitterClient)
                                                      {
@@ -2986,7 +2986,7 @@ var twitterClient =
                          {
                              twitterMentionsPending = false;
 
-                             if (xhr.status != 200)
+                             if (xhr.status !== 200)
                              {
                                  if (isRetryable(xhr))
                                  {
@@ -3099,7 +3099,7 @@ var twitterClient =
                      function (aEvent, xhr) {
                          if (xhr.readyState === 4)
                          {
-                             if (xhr.status != 200)
+                             if (xhr.status !== 200)
                              {
                                  display.echoStatusBar(M({en: "Failed to get your statuses", ja: "ステータスの取得に失敗しました"}));
                                  return;
