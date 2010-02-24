@@ -1338,7 +1338,7 @@ var twitterClient =
 
              var newStatuses;
 
-             if (newStatusCount == -1)
+             if (newStatusCount === -1)
              {
                  // all statuses in aNew is updated status
                  newStatuses = aNew;
@@ -1503,7 +1503,7 @@ var twitterClient =
                      for (let i = 0; i < message.parameters; ++i)
                      {
 
-                         if (params[0] == message.parameters[i][0])
+                         if (params[0] === message.parameters[i][0])
                          {
                              // override
                              message.parameters[i][1] = params[1];
@@ -1547,8 +1547,8 @@ var twitterClient =
                      authorize : true
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status == 200)
+                     if (xhr.readyState === 4) {
+                         if (xhr.status === 200)
                          {
                              var parts = xhr.responseText.split("&");
 
@@ -1591,7 +1591,7 @@ var twitterClient =
              prompt.read(M({ja: "認証が終了したら Enter キーを押してください",
                             en: "Press Enter When Authorization Finished:"}),
                          function (aReadStr) {
-                             if (aReadStr == null)
+                             if (aReadStr === null)
                                  return;
 
                              getAccessToken(function () {
@@ -1607,8 +1607,8 @@ var twitterClient =
                      method : "GET"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4) {
-                         if (xhr.status == 200)
+                     if (xhr.readyState === 4) {
+                         if (xhr.status === 200)
                          {
                              try {
                                  var parts = xhr.responseText.split("&");
@@ -1618,7 +1618,7 @@ var twitterClient =
                                  util.setUnicharPref(prefKeys.oauth_token, oauthTokens.oauth_token);
                                  util.setUnicharPref(prefKeys.oauth_token_secret, oauthTokens.oauth_token_secret);
 
-                                 if (typeof aCallBack == "function")
+                                 if (typeof aCallBack === "function")
                                      aCallBack();
                              } catch (e) {
                                  display.notify(e +  xhr.responseText);
@@ -1677,7 +1677,7 @@ var twitterClient =
                      method: "POST"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4)
+                     if (xhr.readyState === 4)
                      {
                          if (isRetryable(xhr))
                          {
@@ -1734,7 +1734,7 @@ var twitterClient =
                          method: "POST"
                      },
                      function (aEvent, xhr) {
-                         if (xhr.readyState == 4)
+                         if (xhr.readyState === 4)
                          {
                              if (isRetryable(xhr))
                              {
@@ -1818,9 +1818,9 @@ var twitterClient =
                      host       : "http://api.twitter.com/"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4)
+                     if (xhr.readyState === 4)
                      {
-                         if ((xhr.status == 401) && (xhr.responseText.indexOf("expired") != -1))
+                         if ((xhr.status === 401) && (xhr.responseText.indexOf("expired") != -1))
                          {
                              // token expired
                              reAuthorize();
@@ -1885,7 +1885,7 @@ var twitterClient =
                      callback: function postTweet(aTweet) {
                          statusbar.label = "";
 
-                         if (aTweet == null)
+                         if (aTweet === null)
                              return;
 
                          var parameters = [["source", "KeySnail"], ["status" , aTweet]];
@@ -1904,7 +1904,7 @@ var twitterClient =
                                  parameters : parameters
                              },
                              function (aEvent, xhr) {
-                                 if (xhr.readyState == 4)
+                                 if (xhr.readyState === 4)
                                  {
                                      if (xhr.status === 401 && xhr.responseText.indexOf("expired") != -1)
                                      {
@@ -1976,7 +1976,7 @@ var twitterClient =
                          // delete from cache
                          for (var i = 0; i < share.twitterStatusesJSONCache.length; ++i)
                          {
-                             if (share.twitterStatusesJSONCache[i].id == aStatusID)
+                             if (share.twitterStatusesJSONCache[i].id === aStatusID)
                              {
                                  share.twitterStatusesJSONCache.splice(i, 1);
                                  break;
@@ -2192,7 +2192,7 @@ var twitterClient =
                      method : "GET"
                  },
                  function (aEvent, xhr) {
-                     if (xhr.readyState == 4)
+                     if (xhr.readyState === 4)
                      {
                          if (isRetryable(xhr))
                          {
@@ -2641,7 +2641,7 @@ var twitterClient =
 
              for (var i = 0; i < aJSON.length; ++i)
              {
-                 if (aJSON[i].id == aID)
+                 if (aJSON[i].id === aID)
                      return i;
              }
 
@@ -2752,7 +2752,7 @@ var twitterClient =
                      // right click
                      if (isLink)
                      {
-                         if (text[0] == '@')
+                         if (text[0] === '@')
                          {
                              let userName = text.slice(1);
                              showDynamicMenu(aEvent,
@@ -3097,7 +3097,7 @@ var twitterClient =
                          method: "GET"
                      },
                      function (aEvent, xhr) {
-                         if (xhr.readyState == 4)
+                         if (xhr.readyState === 4)
                          {
                              if (xhr.status != 200)
                              {
