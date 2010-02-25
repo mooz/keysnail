@@ -133,7 +133,7 @@ function getMostVisitedPages(count) {
 //            }, 0);
 
 function uriOpener(args, extra, callback) {
-    extra.left.split(",").forEach(
+    extra.left.split(", ").forEach(
         function (left) {
             let query;
 
@@ -198,7 +198,7 @@ function uriCompleter(args, extra) {
     };
 
     let cc;
-    let lefts = extra.left.split(", ");
+    let lefts = extra.left.split(/, /);
     let left  = lefts[lefts.length - 1];
     let query;
 
