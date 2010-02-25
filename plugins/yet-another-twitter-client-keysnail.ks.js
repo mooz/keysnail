@@ -2221,59 +2221,74 @@ var twitterClient =
              if (!aScreenName)
                  aScreenName = share.userInfo.screen_name;
 
-             oauthASyncRequest(
-                 {
-                     action : "http://api.twitter.com/1/" + aScreenName + "/lists.json",
-                     host   : "http://api.twitter.com/",
-                     method : "GET"
-                 },
-                 function (aEvent, xhr) {
-                     if (xhr.readyState === 4)
+             if (share.twitterListCache && share.twitterListCache[aScreenName])
+             {
+                 // use cache
+                 showListsInPrompt(share.twitterListCache[aScreenName]);
+             }
+             else
+             {
+                 oauthASyncRequest(
                      {
-                         if (isRetryable(xhr))
+                         action : "http://api.twitter.com/1/" + aScreenName + "/lists.json",
+                         host   : "http://api.twitter.com/",
+                         method : "GET"
+                     },
+                     function (aEvent, xhr) {
+                         if (xhr.readyState === 4)
                          {
-                             showLists(aScreenName);
-                             return;
-                         }
-
-                         if (xhr.status !== 200)
-                         {
-                             display.echoStatusBar(M({ja: 'リスト一覧の取得に失敗しました。',
-                                                      en: "Failed to get lists"}), 2000);
-                             return;
-                         }
-
-                         let result = json.decode(xhr.responseText);
-
-                         let collection = Array.slice((result || {lists:[]}).lists).map(
-                             function (list)
-                                 [
-                                     list.name,
-                                     list.description,
-                                     list.member_count,
-                                     list.subscriber_count
-                                 ]
-                         );
-
-                         tPrompt.close();
-                         prompt.selector(
+                             if (isRetryable(xhr))
                              {
-                                 message    : M({ja: "リスト", en: "lists"}),
-                                 collection : collection,
-                                 // name, description, member_count, subscriber_count
-                                 flags      : [0, 0, 0, 0],
-                                 header     : [M({ja: 'リスト名', en: "List name"}),
-                                               M({ja: '説明', en: "Description"}),
-                                               M({ja: 'フォロー中', en: "Following"}),
-                                               M({ja: 'リストをフォロー', en: "Follower"})],
-                                 actions    : [
-                                     [function (i) {
-                                          if (i >= 0) showListStatuses(aScreenName, collection[i][0]);
-                                      }, M({ja: "リストの TL を表示", en: "Show list statuses"})]
-                                 ]
-                             });
-                     }
-                 });
+                                 showLists(aScreenName);
+                                 return;
+                             }
+
+                             if (xhr.status !== 200)
+                             {
+                                 display.echoStatusBar(M({ja: 'リスト一覧の取得に失敗しました。',
+                                                          en: "Failed to get lists"}), 2000);
+                                 return;
+                             }
+
+                             let result = json.decode(xhr.responseText);
+                             if (!share.twitterListCache)
+                                 share.twitterListCache = {};
+                             share.twitterListCache[aScreenName] = result;
+
+                             showListsInPrompt(result);
+                         }
+                     });
+             }
+
+             function showListsInPrompt(cache) {
+                 let collection = Array.slice((cache || {lists:[]}).lists).map(
+                     function (list)
+                     [
+                         list.name,
+                         list.description,
+                         list.member_count,
+                         list.subscriber_count
+                     ]
+                 );
+
+                 tPrompt.close();
+                 prompt.selector(
+                     {
+                         message    : M({ja: "リスト", en: "lists"}),
+                         collection : collection,
+                         // name, description, member_count, subscriber_count
+                         flags      : [0, 0, 0, 0],
+                         header     : [M({ja: 'リスト名', en: "List name"}),
+                                       M({ja: '説明', en: "Description"}),
+                                       M({ja: 'フォロー中', en: "Following"}),
+                                       M({ja: 'リストをフォロー', en: "Follower"})],
+                         actions    : [
+                             [function (i) {
+                                  if (i >= 0) showListStatuses(aScreenName, collection[i][0]);
+                              }, M({ja: "リストの TL を表示", en: "Show list statuses"})]
+                         ]
+                     });
+             }
          }
 
          function showMentions(aArg) {
@@ -2638,6 +2653,8 @@ var twitterClient =
          function getStatusPos(aJSON, aID) {
              if (!aID)
                  return aJSON.length;
+
+             aID = +aID;        // string => number
 
              for (var i = 0; i < aJSON.length; ++i)
              {
