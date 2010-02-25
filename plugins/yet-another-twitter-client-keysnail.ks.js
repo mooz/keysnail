@@ -2292,7 +2292,7 @@ var twitterClient =
          }
 
          function showMentions(aArg) {
-             var updateForced = (aArg !== null);
+             var updateForced = typeof aArg === "number";
 
              if (updateForced || !share.twitterMentionsJSONCache)
              {
@@ -2322,7 +2322,7 @@ var twitterClient =
          function showFollowersStatus(aArg) {
              self.currentFilter = self.filterNameTimeline;
 
-             var updateForced = (aArg !== null);
+             var updateForced = typeof aArg === "number";
 
              if (updateForced || !share.twitterStatusesJSONCache)
              {
