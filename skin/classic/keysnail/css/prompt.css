@@ -4,7 +4,7 @@
     border          : none !important;
 }
 
-#keysnail-prompt-label {
+.keysnail-prompt-label {
     -moz-appearance : none !important;
     font-weight     : bold;
 }

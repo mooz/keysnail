@@ -31,7 +31,8 @@ KeySnail.Prompt = function () {
     // DOM Objects
     var promptbox;
     var container;
-    var label;
+    var leftLabel;
+    var rightLabel;
     var textbox;
     var listbox;
     var statusBar;
@@ -2449,8 +2450,8 @@ KeySnail.Prompt = function () {
                         listWidth  = cc.width;
                         listHeader = cc.header;
 
-                        if (cc.message)
-                            label.value = cc.message;
+                        leftLabel.value  = cc.message || currentPromptContext.message || "";
+                        rightLabel.value = cc.rmessage || currentPromptContext.message || "";
                     }
 
                     if (cc.replaceText)
@@ -2612,10 +2613,11 @@ KeySnail.Prompt = function () {
 
             modules = self.modules;
 
-            promptbox = $("keysnail-prompt");
-            label     = $("keysnail-prompt-label");
-            textbox   = $("keysnail-prompt-textbox");
-            container = $("browser-bottombox");
+            promptbox  = $("keysnail-prompt");
+            leftLabel  = $("keysnail-prompt-left-label");
+            rightLabel = $("keysnail-prompt-right-label");
+            textbox    = $("keysnail-prompt-textbox");
+            container  = $("browser-bottombox");
 
             listbox   = $("keysnail-completion-list");
 
@@ -2923,8 +2925,9 @@ KeySnail.Prompt = function () {
 
             removeAllChilds(listbox);
 
-            textbox.value      = "";
-            label.value        = "";
+            textbox.value    = "";
+            leftLabel.value  = "";
+            rightLabel.value = "";
 
             $("keysnail-prompt-display-selector-help-button").setAttribute("hidden", true);
 
@@ -2991,8 +2994,8 @@ KeySnail.Prompt = function () {
             resetPostProcess();
 
             // display prompt box
-            label.value   = aMsg;
-            textbox.value = aInitialInput || "";
+            leftLabel.value = aMsg || "";
+            textbox.value   = aInitialInput || "";
 
             self.editModeEnabled = false;
             promptbox.hidden     = false;
@@ -3083,7 +3086,8 @@ KeySnail.Prompt = function () {
             listWidth  = aContext.width;
 
             // display prompt box
-            label.value            = aContext.message;
+            leftLabel.value        = aContext.message || "";
+            rightLabel.value       = aContext.rmessage || "";
             textbox.value          = aContext.initialInput || aContext.initialinput || "";
             self.editModeEnabled   = false;
             promptbox.hidden       = false;
@@ -3156,9 +3160,10 @@ KeySnail.Prompt = function () {
             cellStylist     = selectorStylist;
 
             // display prompt box
-            label.value = aContext.message;
+            leftLabel.value      = aContext.message || "";
+            rightLabel.value     = aContext.rmessage || "";
             self.editModeEnabled = false;
-            promptbox.hidden = false;
+            promptbox.hidden     = false;
             // do not set selection value till textbox appear (cause crash)
             textbox.selectionStart = textbox.selectionEnd = 0;
 
