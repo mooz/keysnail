@@ -20,6 +20,8 @@ KeySnail.Prompt = function () {
     actionKeys.read     = {};
     actionKeys.selector = {};
 
+    var currentPromptContext;
+
     var readerKeymap;
     var selectorKeymap;
     var selectorTranslator;
@@ -1229,7 +1231,7 @@ KeySnail.Prompt = function () {
     var readerOriginalText           = null;
     var readerOriginalSelectionStart = null;
     var readerCC                     = null;
-    var readerEscape                 = true;
+    var readerEscapeChars            = undefined;
 
     var readerHistory;
 
@@ -2433,7 +2435,7 @@ KeySnail.Prompt = function () {
                 }
                 else
                 {
-                    // overwrite {{ ============================================================= //
+                    // overwrite prompt settings {{ ============================================= //
 
                     // for history mode, there is no need of overwriting
                     if (readerState === READER_ST_COMP)
@@ -2441,15 +2443,21 @@ KeySnail.Prompt = function () {
                         gFlags      = readerFlags   = cc.flags;
                         cellStylist = readerStylist = cc.stylist;
 
+                        readerEscapeChars = cc.escapeChars || currentPromptContext.escapeChars;
+
                         listStyle  = cc.style;
                         listWidth  = cc.width;
                         listHeader = cc.header;
 
                         if (cc.message)
-                            label.value   = cc.message;
+                            label.value = cc.message;
                     }
 
-                    // if (cc.replaceText) textbox.value = cc.replaceText;
+                    if (cc.replaceText)
+                        textbox.value = cc.replaceText;
+
+                    if (typeof cc.cursorPos === "number")
+                        textbox.selectionStart = textbox.selectionEnd = cc.cursorPos;
 
                     // }} ======================================================================= //
 
@@ -2503,8 +2511,8 @@ KeySnail.Prompt = function () {
                     readerCurrentCollection[readerCurrentIndex][getFirstTextColIndex(gFlags)] :
                     readerCurrentCollection[readerCurrentIndex];
 
-                if (readerEscape && readerState !== READER_ST_HIST)
-                    text = completer.utils.escape(text);
+                if (readerEscapeChars && readerState !== READER_ST_HIST)
+                    text = completer.utils.escape(text, readerEscapeChars);
 
                 textbox.value = readerCC.cleartext ? text : readerLeftContext + text; /* + readerRightContext */
 
@@ -3011,6 +3019,8 @@ KeySnail.Prompt = function () {
 
             modules.display.echoStatusBar(modules.util.getLocaleString("promptKeyDescription"));
             modules.display.echo.close();
+
+            currentPromptContext = null;
         },
 
         /**
@@ -3063,7 +3073,7 @@ KeySnail.Prompt = function () {
             readerFlags = aContext.flags;
             gFlags      = null;
 
-            readerEscape = !!aContext.escapeWhiteSpace;
+            readerEscapeChars = aContext.escapeChars;
 
             userOnChange = aContext.onChange;
             userOnFinish = aContext.onFinish;
@@ -3095,6 +3105,8 @@ KeySnail.Prompt = function () {
 
             modules.display.echoStatusBar(aContext.description || modules.util.getLocaleString("promptKeyDescription"));
             modules.display.echo.close();
+
+            currentPromptContext = aContext;
         },
 
         /**
@@ -3215,6 +3227,8 @@ KeySnail.Prompt = function () {
             }
 
             modules.display.echo.close();
+
+            currentPromptContext = aContext;
         },
 
         message: KeySnail.message
