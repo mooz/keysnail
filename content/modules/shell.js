@@ -407,6 +407,12 @@ KeySnail.Shell =
                      {
                          argCount  : "?",
                          completer : function (args, extra) completer.fetch.directory()(extra.query || "", extra.query || "")
+                         // completer : function (args, extra) implant(
+                         //     {
+                         //         rmessage: util.format("[%s]", modules.share.pwd)
+                         //     },
+                         //     completer.fetch.directory()(extra.query || "", extra.query || "")
+                         // ),
                      });
 
                  add("echo", "Evaluate javascript code and display its result",
