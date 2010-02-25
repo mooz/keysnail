@@ -73,10 +73,10 @@ function getMostVisitedPages(count) {
     // iterate over the results
     result.root.containerOpen = true;
 
-    let count      = result.root.childCount;
+    let childCount = result.root.childCount;
     let collection = [];
 
-    for (let i = 0; i < count; i++)
+    for (let i = 0; i < childCount; i++)
     {
         let node = result.root.getChild(i);
         collection.push(
