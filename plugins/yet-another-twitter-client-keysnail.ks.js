@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.5.9 (2010 02/26) ====
+//
+// * Added option prefer_screen_name whith allows user to display screen name instead of user name.
+//
 // ==== 1.5.8 (2010 02/23) ====
 //
 // * Added option jmp_id and jmp_key which allows user to use their account of j.mp
@@ -145,6 +149,7 @@ var optionsDefaultValue = {
     "timeline_count_every_updates" : 20,
     "unread_status_count_style"    : "color:#383838;font-weight:bold;",
     "automatically_begin"          : true,
+    "prefer_screen_name"           : false,
     "keymap"                       : null,
     "tweet_keymap"                 : null,
     "block_users"                           : [],
@@ -2468,6 +2473,8 @@ var twitterClient =
 
              function favIconGetter(aRow) aRow[0].favorited ? favoritedIcon : "";
 
+             let preferScreenName = getOption("prefer_screen_name");
+
              var collection = statuses.map(
                  function (status) {
                      var created = Date.parse(status.created_at);
@@ -2475,7 +2482,7 @@ var twitterClient =
 
                      return [status,
                              status.user.profile_image_url,
-                             status.user.name,
+                             preferScreenName ? status.user.screen_name : status.user.name,
                              html.unEscapeTag(status.text),
                              favIconGetter,
                              util.format("%s %s",
@@ -3320,7 +3327,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.8</version>
+    <version>1.5.9</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3441,6 +3448,12 @@ var PLUGIN_INFO =
             <type>string</type>
             <description>Specify Key of your j.mp account if you want use your one</description>
             <description lang="ja">j.mp の URL 短縮で独自アカウントを用いたい場合、その Key を指定</description>
+        </option>
+        <option>
+            <name>twitter_client.prefer_screen_name</name>
+            <type>boolean</type>
+            <description>If you prefer screen name to user name to be displayed, set this value to true.</description>
+            <description lang="ja">TL 一覧などでユーザ名の代わりに ID (screen name) を表示したい場合 true へ設定.</description>
         </option>
     </options>
     <detail><![CDATA[
