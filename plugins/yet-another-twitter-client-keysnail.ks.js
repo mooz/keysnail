@@ -1803,7 +1803,8 @@ var twitterClient =
          }
 
          function reply(aUserID, aStatusID) {
-             tweet("@" + aUserID + " ", aStatusID);
+             let init = "@" + aUserID + " ";
+             tweet(init, aStatusID, init.length);
          }
 
          function quoteTweet(aUserID, aMsg) {
@@ -1862,7 +1863,7 @@ var twitterClient =
              );
          }
 
-         function tweet(aInitialInput, aReplyID) {
+         function tweet(aInitialInput, aReplyID, aCursorEnd) {
              var statusbar = document.getElementById('statusbar-display');
              var limit = 140;
 
@@ -1874,6 +1875,7 @@ var twitterClient =
                      initialinput : aInitialInput,
                      group        : "twitter_tweet",
                      keymap       : getOption("tweet_keymap"),
+                     cursorEnd    : aCursorEnd,
                      onChange     : function (arg) {
                          var current = arg.textbox.value;
                          var length  = current.length;
