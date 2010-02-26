@@ -2242,12 +2242,12 @@ KeySnail.Prompt = function () {
 
                     if (specific.stopCaret)
                     {
-                        cc.cursorpos = currentText.length;
+                        cc.cursorEnd = currentText.length;
                         cc.cleartext = true;
                     }
 
                     if (cc.collection.length && specific.commonHeader)
-                        cc.cursorpos = origin + completer.utils.getCommonSubStringIndex(cc.collection);
+                        cc.cursorEnd = origin + completer.utils.getCommonSubStringIndex(cc.collection);
 
                     return combineObject(cc, options || {});
                 };
@@ -2457,8 +2457,8 @@ KeySnail.Prompt = function () {
                     if (cc.replaceText)
                         textbox.value = cc.replaceText;
 
-                    if (typeof cc.cursorPos === "number")
-                        textbox.selectionStart = textbox.selectionEnd = cc.cursorPos;
+                    if (typeof cc.cursorEnd === "number")
+                        textbox.selectionStart = textbox.selectionEnd = cc.cursorEnd;
 
                     // }} ======================================================================= //
 
@@ -2519,7 +2519,7 @@ KeySnail.Prompt = function () {
 
                 // set cursor position
                 oldSelectionStart = textbox.selectionStart = textbox.selectionEnd =
-                    (typeof readerCC.cursorpos === "number") ? readerCC.cursorpos : (readerLeftContext + text).length;
+                    (typeof readerCC.cursorEnd === "number") ? readerCC.cursorEnd : (readerLeftContext + text).length;
 
                 statusBar.label =
                     modules.util.format("match (%s / %s)", readerCurrentIndex + 1, readerCurrentCollection.length);
@@ -3222,6 +3222,12 @@ KeySnail.Prompt = function () {
             setSelectorContextMenu(aContext.actions || aContext.callback);
 
             selectorContext[SELECTOR_STATE_ACTION].wholeListIndex = aContext.initialAction || 0;
+
+            if (typeof aContext.initialInput === 'string')
+                textbox.value = aContext.initialInput;
+
+            textbox.selectionStart = textbox.selectionEnd = (typeof aContext.cursorEnd === 'number') ?
+                aContext.cursorEnd : textbox.value.length;
 
             createCompletionList();
 
