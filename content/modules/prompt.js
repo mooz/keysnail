@@ -2182,7 +2182,7 @@ KeySnail.Prompt = function () {
                 }
                 else
                 {
-                    return completer.matcher.header(collection, options);
+                    return completer.matcher.substring(collection, options);
                 }
             },
 
