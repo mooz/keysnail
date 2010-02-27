@@ -962,6 +962,8 @@ var hok = function () {
             }
 
             document.removeEventListener('keypress', onKeyPress, true);
+            document.removeEventListener('keydown', preventEvent, true);
+            document.removeEventListener('keyup', preventEvent, true);
         }
 
         display.echoStatusBar("");
@@ -1050,6 +1052,11 @@ var hok = function () {
         }
     }
 
+    function preventEvent(event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
     function setLocalQuery() {
         if (plugins.options["hok.local_queries"] && typeof content.location.href == "string")
         {
@@ -1112,7 +1119,11 @@ var hok = function () {
             // util.message((endDate - fromDate) + " msec");
 
             if (hintCount > 1)
+            {
                 document.addEventListener('keypress', onKeyPress, true);
+                document.addEventListener('keydown', preventEvent, true);
+                document.addEventListener('keyup', preventEvent, true);
+            }
             else
             {
                 // remove hints, recover keysnail's keyhandler, ...
