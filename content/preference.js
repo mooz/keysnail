@@ -192,12 +192,13 @@ var ksPreference = {
             return false;
         }
 
-        if (preservedCodeChanged && (error = this.checkPreservedCodeSyntax()))
-        {
-            this.initFileTabBox.selectedIndex = 3;
-            this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInPreservedArea"));
-            return false;
-        }
+        // if (preservedCodeChanged && (error = this.checkPreservedCodeSyntax()))
+        // {
+        //     this.modules.util.message(error);
+        //     this.initFileTabBox.selectedIndex = 3;
+        //     this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInPreservedArea"));
+        //     return false;
+        // }
 
         var createButton = document.getElementById("create-button");
         createButton.disabled = true;
@@ -212,11 +213,15 @@ var ksPreference = {
         try
         {
             // backup file
-            var initFile = this.modules.util.openFile(this.modules.userscript.initFilePath);
-            var tmpDir   = this.modules.util.getSpecialDir("TmpD");
+            let initFile = this.modules.util.openFile(this.modules.userscript.initFilePath);
+            let tmpDir   = this.modules.util.getSpecialDir("TmpD");
+
+            let initFileDir = initFile.parent;
+
             initFile.moveTo(tmpDir, "");
 
             let status;
+
             try
             {
                 this.modules.util.writeTextFile(output, this.modules.userscript.initFilePath, false, "preference.ask_when_overwrite");
@@ -239,8 +244,8 @@ var ksPreference = {
                 tmpDir.append(initFile.leafName);
                 // copyTo fails if the destination file already exists.
                 this.modules.util.message("tmpDir.path :: %s", tmpDir.path);
-                tmpDir.moveTo(initFile.parent, "");
-                this.modules.util.message("initFile.parent.path :: %s", initFile.parent.path);
+                tmpDir.moveTo(initFileDir, "");
+                this.modules.util.message("initFile.parent.path :: %s", initFileDir);
 
                 // reload
                 status = this.modules.userscript.reload();
@@ -1106,7 +1111,7 @@ var ksPreference = {
 
     checkPreservedCodeSyntax: function () {
         let code = this.preservedEditBox.value;
-        code = "function () { " + code + " }";
+        code = "function () {\n" + code + "\n}";
 
         try
         {
