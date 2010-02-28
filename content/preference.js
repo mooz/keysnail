@@ -192,13 +192,13 @@ var ksPreference = {
             return false;
         }
 
-        // if (preservedCodeChanged && (error = this.checkPreservedCodeSyntax()))
-        // {
-        //     this.modules.util.message(error);
-        //     this.initFileTabBox.selectedIndex = 3;
-        //     this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInPreservedArea"));
-        //     return false;
-        // }
+        if (preservedCodeChanged && (error = this.checkPreservedCodeSyntax()))
+        {
+            this.modules.util.message(error);
+            this.initFileTabBox.selectedIndex = 3;
+            this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInPreservedArea"));
+            return false;
+        }
 
         var createButton = document.getElementById("create-button");
         createButton.disabled = true;
@@ -1111,7 +1111,7 @@ var ksPreference = {
 
     checkPreservedCodeSyntax: function () {
         let code = this.preservedEditBox.value;
-        code = "function () {\n" + code + "\n}";
+        code = "function dummy() {\n" + code + "\n}";
 
         try
         {
