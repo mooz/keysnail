@@ -1037,8 +1037,13 @@ KeySnail.Util = function () {
          * @param {} aText
          * @returns {object} result of evaluation
          */
-        safeEval: function (aText) {
-            return Components.utils.evalInSandbox(aText, this.sandboxForSafeEval);
+        safeEval: function (aText, aOptions) {
+            aOptions = aOptions || {};
+            return Components.utils.evalInSandbox(aText,
+                                                  this.sandboxForSafeEval,
+                                                  aOptions.version    || "1.8",
+                                                  aOptions.fileName   || "",
+                                                  aOptions.lineNumber || 0);
         },
 
         /**
