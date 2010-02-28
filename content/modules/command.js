@@ -377,7 +377,7 @@ KeySnail.Command = {
     },
 
     webSearch: function () {
-        
+
     },
 
     bookMarkToolBarJumpTo: function (aEvent, aArg) {
@@ -511,23 +511,16 @@ KeySnail.Command = {
         }
     },
 
-    inputScrollSelectionIntoView: function (aInput) {
-        let selCon;
+    inputScrollSelectionIntoView: function (aInput, aVPercent, aHPercent) {
+        let editor = aInput.editor || aInput
+            .QueryInterface(Components.interfaces.nsIDOMNSEditableElement).editor;
+        let selection = editor.selection;
 
-        if (aInput.editor)
-        {
-            // XUL (?)
-            selCon = aInput.editor.selectionController;
-        }
-        else
-        {
-            selCon = aInput.QueryInterface(Components.interfaces.nsIDOMNSEditableElement)
-                .editor.selectionController;
-        }
+        aVPercent = typeof aVPercent === "number" ? aVPercent : 50;
+        aHPercent = typeof aHPercent === "number" ? aHPercent : 50;
 
-        selCon.scrollSelectionIntoView(selCon.SELECTION_NORMAL,
-                                       selCon.SELECTION_ANCHOR_REGION,
-                                       true);
+        selection.QueryInterface(Components.interfaces.nsISelection2)
+	    .scrollIntoView(editor.selectionController.SELECTION_ANCHOR_REGION, true, aVPercent, aHPercent);
     },
 
     // ==================== Insertion ==================== //
