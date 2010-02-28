@@ -1,5 +1,10 @@
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.6.0 (2010 02/28) ====
+//
+// * Added support for hash tag.
+// * Added support for in_reply_to_status_id.
+//
 // ==== 1.5.9 (2010 02/26) ====
 //
 // * Added option prefer_screen_name whith allows user to display screen name instead of user name.
@@ -2411,14 +2416,11 @@ var twitterClient =
              _content.focus();
          }
 
-         function createMessage(msg) {
-             let userNamePattern = /(@[a-zA-Z0-9_]+|((https?\:\/\/|www\.)[^\s]+)([^\w\s\d]*))/g;
+         function createMessage(msg, status) {
+             let specialPattern = /(@[a-zA-Z0-9_]+|((http|ftp)s?\:\/\/|www\.)[^\s]+)|(#[a-zA-Z0-9_]+)/g;
 
-             let matched = msg.match(userNamePattern);
-
-             let message = genElem("description", {
-                                       style   : "-moz-user-select : text !important;"
-                                   });
+             let matched = msg.match(specialPattern);
+             let message = genElem("description", { style : "-moz-user-select : text !important;" });
 
              if (matched)
              {
@@ -2429,11 +2431,18 @@ var twitterClient =
                      let right = msg.slice(pos + matched[i].length);
 
                      let url;
-                     let type = matched[i][0] === '@' ? "user" : "url";
+                     let type =
+                         matched[i][0] === '@' ? "user" :
+                         matched[i][0] === '#' ? "hash" : "url";
 
                      if (type === "user")
                      {
                          url = "http:twitter.com/" + matched[i].slice(1);
+                     }
+                     else if (type === "hash")
+                     {
+
+                         url = "http://twitter.com/search?q=" + encodeURIComponent(matched[i]);
                      }
                      else
                      {
@@ -2456,6 +2465,15 @@ var twitterClient =
              else
              {
                  message.appendChild(document.createTextNode(msg));
+             }
+
+             if (status.in_reply_to_status_id)
+             {
+                 let url = "http:twitter.com/" + status.in_reply_to_screen_name + "/status/" + status.in_reply_to_status_id;
+                 message.appendChild(genElem("description",
+                                             {"class"       : linkClass,
+                                              "tooltiptext" : url,
+                                              "value"       : "[in reply to]"}));
              }
 
              return message;
@@ -2558,7 +2576,7 @@ var twitterClient =
 
                                  header.buttonTwitter.setAttribute("onclick", genCommand.openLink('http://twitter.com/' + status.user.screen_name));
 
-                                 header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text)), header.userTweet.firstChild);
+                                 header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text), status), header.userTweet.firstChild);
 
                                  my.twitterClientHeaderUpdater = null;
                              }
@@ -3329,7 +3347,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.5.9</version>
+    <version>1.6.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
