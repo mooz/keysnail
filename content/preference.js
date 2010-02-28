@@ -194,9 +194,28 @@ var ksPreference = {
 
         if (preservedCodeChanged && (error = this.checkPreservedCodeSyntax()))
         {
-            this.modules.util.message(error);
+            this.modules.util.message(error.message);
             this.initFileTabBox.selectedIndex = 3;
+            this.preservedEditBox.focus();
+
+            let ln    = error.lineNumber;
+            let code  = this.preservedEditBox.value;
+            let lines = code.split("\n");
+            let start = 0, end = 0;
+
+            for (let i = 0; i < error.lineNumber; ++i)
+                start = end = (start + lines[i].length + 1);
+
+            if (lines[error.lineNumber])
+                end += lines[error.lineNumber].length;
+
+            this.preservedEditBox.selectionStart = start;
+            this.preservedEditBox.selectionEnd   = end;
+
             this.notify(this.modules.util.getLocaleString("syntaxErrorFoundInPreservedArea"));
+
+            this.modules.command.inputScrollSelectionIntoView(this.preservedEditBox);
+
             return false;
         }
 
@@ -1111,11 +1130,11 @@ var ksPreference = {
 
     checkPreservedCodeSyntax: function () {
         let code = this.preservedEditBox.value;
-        code = "function dummy() {\n" + code + "\n}";
+        code = "function dummy() { " + code + " }";
 
         try
         {
-            with (this.modules) util.safeEval(code);
+            this.modules.util.safeEval(code);
         }
         catch (x)
         {
@@ -1293,7 +1312,7 @@ var ksKeybindTreeView = {
         {
             with (this.modules)
             {
-                util.safeEval("(function(f){})(" + src + ")");
+                util.safeEval("(function(f){})(" + src + ")", {lineNumber: 0});
             }
         }
         catch (x)
