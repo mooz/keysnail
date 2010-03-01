@@ -2451,7 +2451,7 @@ KeySnail.Prompt = function () {
                         listHeader = cc.header;
 
                         leftLabel.value  = cc.message || currentPromptContext.message || "";
-                        rightLabel.value = cc.rmessage || currentPromptContext.message || "";
+                        rightLabel.value = cc.rmessage || currentPromptContext.rmessage || "";
                     }
 
                     if (cc.replaceText)
