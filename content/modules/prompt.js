@@ -2444,7 +2444,7 @@ KeySnail.Prompt = function () {
                         gFlags      = readerFlags   = cc.flags;
                         cellStylist = readerStylist = cc.stylist;
 
-                        readerEscapeChars = cc.escapeChars || currentPromptContext.escapeChars;
+                        readerEscapeChars = cc.escapeChars || currentPromptContext.escapeChars || "";
 
                         listStyle  = cc.style;
                         listWidth  = cc.width;
@@ -3023,7 +3023,7 @@ KeySnail.Prompt = function () {
             modules.display.echoStatusBar(modules.util.getLocaleString("promptKeyDescription"));
             modules.display.echo.close();
 
-            currentPromptContext = null;
+            currentPromptContext = {};
         },
 
         /**
