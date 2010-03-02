@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.6.1 (2010 03/03) ====
+//
+// * Added local action show-conversations.
+//
 // ==== 1.6.0 (2010 02/28) ====
 //
 // * Added support for hash tag.
@@ -506,7 +510,14 @@ var twitterClient =
              [function (status) {
                   selectFilter(showFilteredStatuses);
               }, M({ja: "フィルタを選択 : ", en: ""}) + "Select filter",
-              "select-filter"]
+              "select-filter"],
+             [function (status) {
+                  if (status.raw.in_reply_to_status_id)
+                      showConversations(status.raw.in_reply_to_status_id, status.raw);
+                  else
+                      display.echoStatusBar("Oops. No conversations found.", 2000);
+              }, M({ja: "会話を表示 : ", en: ""}) + "Show conversations",
+              "show-conversations,c"]
          ];
 
          // }} ======================================================================= //
@@ -1787,7 +1798,8 @@ var twitterClient =
                                                   id          : result.id,
                                                   user_id     : result.from_user_id,
                                                   text        : html.unEscapeTag(result.text),
-                                                  favorited   : result.favorited
+                                                  favorited   : result.favorited,
+                                                  raw         : result
                                               }];
                                      },
                                      keymap  : getOption("keymap"),
@@ -2303,6 +2315,44 @@ var twitterClient =
              }
          }
 
+         function showConversations(id, init) {
+             let conversations = [];
+
+             if (init)
+                 conversations.push(init);
+
+             display.echoStatusBar(M({ja: "会話リストの取得を開始. しばらくお待ち下さい.",
+                                      en: "Fetching conversations beginning"}));
+
+             function trail(from) {
+                 util.httpGet(
+                     "http://api.twitter.com/1/statuses/show/" + from + ".json",
+                     false,
+                     function (xhr) {
+                         let result = util.safeEval("(" + xhr.responseText + ")");
+                         conversations.push(result);
+
+                         display.echoStatusBar(util.format(M({ja: "会話リストを取得中... (%s)",
+                                                              en: "Fetching conversations ... (%s)"}),
+                                                           conversations.length));
+
+                         if (result.in_reply_to_status_id)
+                         {
+                             trail(result.in_reply_to_status_id);
+                         }
+                         else
+                         {
+                             // finish
+                             tPrompt.forced = true;
+                             callSelector(conversations);
+                         }
+                     }
+                 );
+             }
+
+             trail(id);
+         }
+
          function showMentions(aArg) {
              var updateForced = typeof aArg === "number";
 
@@ -2643,7 +2693,8 @@ var twitterClient =
                                   id          : status.id,
                                   user_id     : status.user.id,
                                   text        : html.unEscapeTag(status.text),
-                                  favorited   : status.favorited
+                                  favorited   : status.favorited,
+                                  raw         : status
                               }];
                      },
                      keymap  : getOption("keymap"),
@@ -3347,7 +3398,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.6.0</version>
+    <version>1.6.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
