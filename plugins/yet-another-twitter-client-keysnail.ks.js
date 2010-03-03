@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.6.2 (2010 03/03) ====
+//
+// * Made show-conversations works more speedy.
+//
 // ==== 1.6.1 (2010 03/03) ====
 //
 // * Added local action show-conversations.
@@ -2324,30 +2328,47 @@ var twitterClient =
              display.echoStatusBar(M({ja: "会話リストの取得を開始. しばらくお待ち下さい.",
                                       en: "Fetching conversations beginning"}));
 
+             function createMap(maps) {
+                 let map = {};
+                 maps.forEach(function (m) m.forEach(function (s) map[s.id] = s));
+                 return map;
+             }
+
+             let map = createMap([share.twitterStatusesJSONCache, share.twitterMentionsJSONCache]);
+
+             tPrompt.forced = true;
+             callSelector(conversations);
+
              function trail(from) {
-                 util.httpGet(
-                     "http://api.twitter.com/1/statuses/show/" + from + ".json",
-                     false,
-                     function (xhr) {
-                         let result = util.safeEval("(" + xhr.responseText + ")");
-                         conversations.push(result);
+                 function next(status) {
+                     tPrompt.forced = true;
+                     callSelector(conversations);
 
-                         display.echoStatusBar(util.format(M({ja: "会話リストを取得中... (%s)",
-                                                              en: "Fetching conversations ... (%s)"}),
-                                                           conversations.length));
+                     if (status.in_reply_to_status_id)
+                         trail(status.in_reply_to_status_id);
+                 }
 
-                         if (result.in_reply_to_status_id)
-                         {
-                             trail(result.in_reply_to_status_id);
+                 if (from in map)
+                 {
+                     conversations.push(map[from]);
+                     next(map[from]);
+                 }
+                 else
+                 {
+                     util.httpGet(
+                         "http://api.twitter.com/1/statuses/show/" + from + ".json",
+                         false,
+                         function (xhr) {
+                             let result = util.safeEval("(" + xhr.responseText + ")");
+                             conversations.push(result);
+
+                             display.echoStatusBar(util.format(M({ja: "会話リストを取得中... (%s)",
+                                                                  en: "Fetching conversations ... (%s)"}),
+                                                               conversations.length));
+                             next(result);
                          }
-                         else
-                         {
-                             // finish
-                             tPrompt.forced = true;
-                             callSelector(conversations);
-                         }
-                     }
-                 );
+                     );
+                 }
              }
 
              trail(id);
@@ -3398,7 +3419,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
