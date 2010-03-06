@@ -138,17 +138,17 @@ var ksBuiltin = {
 
         text_zoom_reduce: [
             function () {
-                ZoomManager.reduce();
+                FullZoom.reduce();
             }, false],
 
         text_zoom_enlarge: [
             function () {
-                ZoomManager.enlarge();
+                FullZoom.enlarge();
             }, false],
 
         text_zoom_reset: [
             function () {
-                ZoomManager.reset();
+                FullZoom.reset();
             }, false]
     },
 
