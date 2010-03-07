@@ -112,7 +112,7 @@ KeySnail.Util = function () {
                             message    : util.format("Search [%s]:", aSearchEngine.name),
                             group      : "web-search",
                             flags      : [0, 0],
-                            style      : ["", "color:#545454"],
+                            style      : ["", style.prompt.url],
                             completer  : completer.fetch.suggest(aSuggestEngines, true),
                             callback   : function (query) {
                                 if (query)

@@ -49,7 +49,24 @@ KeySnail.Style = function () {
         },
 
         prompt: {
-            description: "color:#484848;"
+            default     : "color:black;",
+            description : "color:#484848;",
+            url         : "color:blue;text-decoration:underline;",
+            //
+            engine      : "color:#0f3a48;",
+            bookmark    : "color:#470f39;",
+            history     : "color:#39470f;"
+        },
+
+        js: {
+            "function"  : "color:#003d72;",
+            "object"    : "color:#b63404;",
+            "string"    : "color:#165b00;",
+            "xml"       : "color:#290070;",
+            "number"    : "color:#8505ac;",
+            "boolean"   : "color:#860000;",
+            "undefined" : "color:#91046c;",
+            "null"      : "color:#008e6d;"
         },
 
         get XHTML () { return XHTML; },

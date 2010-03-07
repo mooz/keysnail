@@ -178,22 +178,22 @@ function uriCompleter(args, extra) {
             if (n !== 2)
                 return null;
 
-            let style = "";
+            let sty = "";
 
             switch (args[3])
             {
             case TYPE_ENGINE:
-                style += "color:#0f3a48;";
+                sty += style.prompt.engine;
                 break;
             case TYPE_BM:
-                style += "color:#470f39;";
+                sty += style.prompt.bookmark;
                 break;
             case TYPE_HISTORY:
-                style += "color:#39470f;";
+                sty += style.prompt.history;
                 break;
             }
 
-            return style;
+            return sty;
         }
     };
 

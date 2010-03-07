@@ -397,7 +397,7 @@ KeySnail.Command = {
                              // [icon, title, url, id]
                              flags: [ICON | IGNORE, 0, 0, IGNORE | HIDDEN],
                              header: ["Title", "URL"],
-                             style: [null, 'color:blue;text-decoration:underline;'],
+                             style: [null, style.prompt.url],
                              actions: [
                                  [function (aIndex) {
                                       if (aIndex >= 0) {
