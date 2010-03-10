@@ -386,6 +386,32 @@ KeySnail.Util = function () {
         },
 
         /**
+         * List all properties of the object
+         * @param {object} aObject target object
+         */
+        dir: function (obj) {
+            if (!obj)
+            {
+                this.message("dir: undefined object passed");
+            }
+            else
+            {
+                function getV(v) {
+                    try {
+                        return v.toString();
+                    } catch (x) {
+                        return "";
+                    }
+                }
+
+                let buffer = [[k, v] for ([k, v] in new Iterator(obj))];
+                let max    = Math.max.apply(null, buffer.map(function ([k]) (k || "").length));
+                let util   = this;
+                this.message(buffer.map(function ([k, v]) k + util.repeatString(" ", max - k.length) + " : " + getV(v)).join("\n"));
+            }
+        },
+
+        /**
          * check if the command is usable
          * @param {string} aCommand command name
          * @returns {boolean} true if aCommand is usable in current situation
@@ -407,8 +433,8 @@ KeySnail.Util = function () {
          * @param {event} aEvent keypress (or any) event with property originalTarget
          * @returns {boolean} true if text is insertable
          */
-        isWritable: function (aEvent) {
-            var localName = aEvent.originalTarget.localName.toLowerCase();
+        isWritable: function (ev) {
+            var localName = ev.originalTarget ? (ev.originalTarget.localName || "").toLowerCase() : "";
 
             // in select or option, we shold ignore the alphabet key
             if (localName === 'select' || localName === 'option')
@@ -1251,6 +1277,14 @@ KeySnail.Util = function () {
         // }} ======================================================================= //
 
         // String {{ ================================================================ //
+
+        range: function (from, to) {
+            for (let i = from; i < to; ++i) yield i;
+        },
+
+        repeatString: function (str, len) {
+            return [str for (i in this.range(0, len))].join("");
+        },
 
         createSeparator: function (label) {
             var separator = [];

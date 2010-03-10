@@ -240,12 +240,10 @@ KeySnail.Key = {
 
     getCurrentMode: function (aEvent, aKey) {
         if (this.modules.util.isWritable(aEvent))
-        {
             return this.modes.EDIT;
-        }
 
-        return this.modules.util.isCaretEnabled()
-            || this.modules.util.getBoolPref("accessibility.browsewithcaret") ?
+        return (this.modules.util.isCaretEnabled() ||
+                this.modules.util.getBoolPref("accessibility.browsewithcaret")) ?
             this.modes.CARET : this.modes.VIEW;
     },
 
