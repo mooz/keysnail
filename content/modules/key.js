@@ -469,7 +469,9 @@ KeySnail.Key = {
         if (this.inputtingMacro)
             this.currentMacro.push(aEvent);
 
-        this.modules.hook.callHook("KeyPress", aEvent);
+        try {
+            this.modules.hook.callHook("KeyPress", aEvent);
+        } catch (x) {}
 
         switch (key)
         {
