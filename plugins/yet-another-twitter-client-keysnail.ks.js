@@ -3352,7 +3352,7 @@ ext.add("twitter-client-display-timeline", twitterClient.showTimeline,
         M({ja: 'TL を表示',
            en: "Display your timeline"}));
 
-ext.add("twitter-client-tweet", twitterClient.tweet,
+ext.add("twitter-client-tweet", function () { twitterClient.tweet() },
         M({ja: 'つぶやく',
            en: "Tweet!"}));
 
