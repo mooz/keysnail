@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.6.4 (2010 03/14) ====
+//
+// * Added action reflesh-or-back-to-timeline.
+//
 // ==== 1.6.3 (2010 03/14) ====
 //
 // * Now public method tweet() takes arguments
@@ -525,7 +529,11 @@ var twitterClient =
                   else
                       display.echoStatusBar("Oops. No conversations found.", 2000);
               }, M({ja: "会話を表示 : ", en: ""}) + "Show conversations",
-              "show-conversations,c"]
+              "show-conversations,c"],
+             [function (status) {
+                  window.setTimeout(function () { self.showTimeline(); }, 0);
+              }, M({ja: "更新 / TL へ戻る", en: "Reflesh / Display TL"}),
+              "reflesh-or-back-to-timeline"]
          ];
 
          // }} ======================================================================= //
@@ -3423,7 +3431,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.6.3</version>
+    <version>1.6.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
