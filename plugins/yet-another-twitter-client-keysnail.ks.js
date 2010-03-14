@@ -2,7 +2,7 @@
 //
 // ==== 1.6.4 (2010 03/14) ====
 //
-// * Added action reflesh-or-back-to-timeline.
+// * Added action refresh-or-back-to-timeline.
 //
 // ==== 1.6.3 (2010 03/14) ====
 //
@@ -532,8 +532,8 @@ var twitterClient =
               "show-conversations,c"],
              [function (status) {
                   window.setTimeout(function () { self.showTimeline(); }, 0);
-              }, M({ja: "更新 / TL へ戻る", en: "Reflesh / Display TL"}),
-              "reflesh-or-back-to-timeline"]
+              }, M({ja: "更新 / TL へ戻る", en: "Refresh / Display TL"}),
+              "refresh-or-back-to-timeline"]
          ];
 
          // }} ======================================================================= //
@@ -955,7 +955,7 @@ var twitterClient =
              const HEAD_USER_TWEET    = "keysnail-twitter-client-user-tweet";
 
              const HEAD_API_USAGE = "keysnail-twitter-client-api-usage";
-             const HEAD_REFLESH_BUTTON = "keysnail-twitter-client-reflesh-button";
+             const HEAD_REFRESH_BUTTON = "keysnail-twitter-client-refresh-button";
              const HEAD_FILTER_BUTTON = "keysnail-twitter-client-filter-button";
 
              const HEAD_USER_BUTTON_HOME    = "keysnail-twitter-client-user-button-home";
@@ -966,7 +966,7 @@ var twitterClient =
 
              let tooltipTextTwitter = M({ja: "このユーザの Twitter ページへ", en: "Visit this user's page on twitter"});
              let tooltipTextHome    = M({ja: "このユーザのホームページへ", en: "Visit this user's homepage"});
-             let tooltipTextReflesh = M({ja: "更新", en: "Refresh"});
+             let tooltipTextRefresh = M({ja: "更新", en: "Refresh"});
              let tooltipTextClose   = M({ja: "閉じる", en: "Close"});
 
              let labelTimeline = M({ja: "タイムライン", en: "Timeline"});
@@ -996,8 +996,8 @@ var twitterClient =
                                                   margin  : 0 4px;
                                                   padding : 0;" />
                          <!-- misc -->
-                         <toolbarbutton tooltiptext={tooltipTextReflesh} image={REFRESH_ICON}
-                                        id={HEAD_REFLESH_BUTTON}
+                         <toolbarbutton tooltiptext={tooltipTextRefresh} image={REFRESH_ICON}
+                                        id={HEAD_REFRESH_BUTTON}
                                         style="margin-top:auto;margin-bottom:auto;"
                                         oncommand={"KeySnail.modules.prompt.finish(true);" + root + ".showTimeline();"} />
                          <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
@@ -1056,7 +1056,7 @@ var twitterClient =
                  userTweet     : document.getElementById(HEAD_USER_TWEET),
                  //
                  buttonFilter  : document.getElementById(HEAD_FILTER_BUTTON),
-                 buttonReflesh : document.getElementById(HEAD_REFLESH_BUTTON),
+                 buttonRefresh : document.getElementById(HEAD_REFRESH_BUTTON),
                  //
                  buttonTwitter : document.getElementById(HEAD_USER_BUTTON_TWITTER),
                  buttonHome    : document.getElementById(HEAD_USER_BUTTON_HOME),
