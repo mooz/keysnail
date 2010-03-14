@@ -1229,6 +1229,7 @@ KeySnail.Prompt = function () {
 
     var readerState                  = READER_ST_NEUT;
     var readerLeftContext            = null;
+    var readerRightContext           = null;
     var readerOriginalText           = null;
     var readerOriginalSelectionStart = null;
     var readerCC                     = null;
@@ -1245,6 +1246,7 @@ KeySnail.Prompt = function () {
     function readerResetState() {
         readerState                  = READER_ST_NEUT;
         readerLeftContext            = null;
+        readerRightContext           = null;
         readerOriginalText           = null;
         readerOriginalSelectionStart = null;
         readerCC                     = null;
@@ -1821,23 +1823,28 @@ KeySnail.Prompt = function () {
                 return function (currentText, text) {
                     context = context || {};
 
+                    let right = text.slice(currentText.length);
+
                     let [query, origin] = completer.utils.getQuery(
-                        currentText, [" ", "\t", "\n", "(", "{", "}", ")", ",", ";"], [], []
+                        currentText, [" ", "\t", "\n", "(", "{", ",", ";"], [], []
                     );
 
                     // if you want to begin with specific object,
                     // try something like completer.fetch.javascript({root: window});
                     let root = context.root || {
-                        __proto__ : modules,
+                        __proto__ : modules.util.userContext,
                         window    : window,
                         content   : content,
                         document  : document
                     };
 
+                    const IDENTIFIER_PATTERN = /^[a-zA-Z$_]+[0-9a-zA-Z$_]*$/;
+
                     const ST_NEUTRAL  = 0;
                     const ST_IN_QUOTE = 1;
                     const ST_IN_BRACE = 2;
-                    const ST_ESCAPE   = 3;
+                    const ST_IN_PAREN = 3;
+                    const ST_ESCAPE   = 4;
 
                     function splitter(str) {
                         let tokens = [];
@@ -1845,8 +1852,8 @@ KeySnail.Prompt = function () {
                         let buffer = [];
                         let current;
 
-                        let state     = ST_NEUTRAL;
-                        let prevState = ST_NEUTRAL;
+                        let stack = [];
+                        let state = ST_NEUTRAL;
 
                         let quoteChar = null;
 
@@ -1858,7 +1865,8 @@ KeySnail.Prompt = function () {
 
                         for (let i = 0; i < str.length; ++i)
                         {
-                            let current = str[i];
+                            let current  = str[i];
+                            let oldState = state;
 
                             switch (state)
                             {
@@ -1868,13 +1876,15 @@ KeySnail.Prompt = function () {
                                 {
                                 case '"':
                                 case '\'':
-                                    prevState = ST_NEUTRAL;
                                     state     = ST_IN_QUOTE;
                                     quoteChar = current;
                                     break;
                                 case '[':
                                     state = ST_IN_BRACE;
-                                    // break through
+                                    // fall through
+                                case '(':
+                                    state = ST_IN_PAREN;
+                                    // fall through
                                 case '.':
                                     flushBuffer();
                                     break;
@@ -1888,12 +1898,12 @@ KeySnail.Prompt = function () {
                                 switch (current)
                                 {
                                 case quoteChar:
-                                    state = prevState;
+                                    state = stack.pop();
                                     flushBuffer();
+                                    continue;
                                     break;
                                 case '\\':
-                                    prevState = ST_IN_QUOTE;
-                                    state     = ST_ESCAPE;
+                                    state = ST_ESCAPE;
                                     break;
                                 default:
                                     buffer.push(current);
@@ -1902,15 +1912,16 @@ KeySnail.Prompt = function () {
                                 break;
                                 // ================================================== //
                             case ST_IN_BRACE:
+                            case ST_IN_PAREN:
                                 switch (current)
                                 {
                                 case '"':
                                 case '\'':
-                                    prevState = ST_IN_BRACE;
                                     state     = ST_IN_QUOTE;
                                     quoteChar = current;
                                     break;
                                 case ']':
+                                case ')':
                                     state = ST_NEUTRAL;
                                     flushBuffer();
                                     break;
@@ -1921,33 +1932,47 @@ KeySnail.Prompt = function () {
                                 break;
                                 // ================================================== //
                             case ST_ESCAPE:
-                                state = prevState;
+                                state = stack.pop();
                                 buffer.push(current);
+                                continue;
                                 break;
                             }
+
+                            if (oldState !== state)
+                                stack.push(oldState);
                         }
 
                         flushBuffer();
+
+                        // if (stack.length)
+                        // {
+                        //     window.inspectObject(stack);
+                        // }
 
                         return [tokens, state];
                     }
 
                     function propFilter(str) {
-                        if (str.match(/^[a-zA-Z_$]+[0-9a-zA-Z$_]*$/))
+                        if (IDENTIFIER_PATTERN.test(str))
                             return str;
                         else
                             return "['" + str.replace(/'/g, "'") + "']"; // '
                     }
 
                     function getArgList (aFunc) {
-                        return aFunc.toString().split('\n')[0].match(/\(.*\)/);
+                        try {
+                            return aFunc.toString().split('\n')[0].match(/\(.*\)/);
+                        } catch (x) {
+                            return "";
+                        }
                     }
 
                     function getRow(obj, k, prefix) {
                         let value = getV(obj, k);
                         let type  = typeof value;
 
-                        let keyStr = (prefix ? prefix + "." : "") + propFilter(k);
+                        let keyStr = let (filtered = propFilter(k))
+                        (prefix ? prefix + (filtered[0] !== "[" ? "." : "") : "") + filtered;
                         let valueStr;
 
                         switch (type)
@@ -2008,6 +2033,9 @@ KeySnail.Prompt = function () {
                         {
                             throw StopIteration;
                         }
+
+                        if (wrapped)
+                            yield "wrappedJSObject";
                     }
 
                     function cmp([a], [b]) {
@@ -2029,7 +2057,8 @@ KeySnail.Prompt = function () {
                                 return null;
 
                             return modules.style.js[row[2]] || modules.style.prompt.default;
-                        }
+                        },
+                        rightText : right
                     };
 
                     if (!query)
@@ -2050,7 +2079,7 @@ KeySnail.Prompt = function () {
                         {
                         case ST_IN_QUOTE:
                         case ST_ESCAPE:
-                            modules.display.echoStatusBar("Unterminated string", 1000);
+                            cc.errorMsg = "Unterminated string";
                             return cc;
                             break;
                         case ST_IN_BRACE:
@@ -2072,7 +2101,10 @@ KeySnail.Prompt = function () {
                             obj = obj[props[i]];
 
                             if (!obj)
+                            {
+                                cc.errorMsg = "Object does not have the property \"" + props[i] + "\"";
                                 return cc;
+                            }
                         }
 
                         if (obj)
@@ -2457,6 +2489,7 @@ KeySnail.Prompt = function () {
                     readerCurrentCollection = cc.collection;
                     readerCurrentIndex      = direction > 0 ? 0 : readerCurrentCollection.length - 1;
                     readerLeftContext       = currentText.slice(0, cc.origin);
+                    readerRightContext      = cc.rightText || "";
 
                     setRows(readerCurrentCollection.length);
 
@@ -2506,7 +2539,7 @@ KeySnail.Prompt = function () {
                 if (readerEscapeChars && readerState !== READER_ST_HIST)
                     text = completer.utils.escape(text, readerEscapeChars);
 
-                textbox.value = readerCC.cleartext ? text : readerLeftContext + text; /* + readerRightContext */
+                textbox.value = readerCC.cleartext ? text : readerLeftContext + text + readerRightContext;
 
                 // set cursor position
                 oldSelectionStart = textbox.selectionStart = textbox.selectionEnd =
