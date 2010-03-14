@@ -186,6 +186,7 @@ var optionsDefaultValue = {
     "selected_user_style"                   : "background-color:#ddedff; color:black;",
     "selected_user_reply_to_style"          : "background-color:#ffd4ff; color:black;",
     "selected_user_reply_to_reply_to_style" : "background-color:#ffe9d4; color:black;",
+    "search_result_user_name_style"         : "color:#003870;",
     // j.mp settings
     "jmp_id"                                : "stillpedant",
     "jmp_key"                               : "R_168719821d1100c59352962dce863251"
@@ -1801,7 +1802,7 @@ var twitterClient =
                                      collection : results.map(
                                          function (result) [result.profile_image_url, result.from_user, html.unEscapeTag(result.text)]
                                      ),
-                                     style      : ["color:#003870;", null],
+                                     style      : [getOption("search_result_user_name_style"), null],
                                      width      : [15, 85],
                                      header     : ["From", 'Search result for "' + aWord + '"'],
                                      flags      : [ICON | IGNORE, 0, 0],
