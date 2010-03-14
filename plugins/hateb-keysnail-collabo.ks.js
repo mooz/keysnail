@@ -10,7 +10,7 @@ var PLUGIN_INFO =
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.4.0</minVersion>
+    <minVersion>1.5.4</minVersion>
     <include>main</include>
     <provides>
         <ext>list-hateb-comments</ext>
@@ -61,13 +61,13 @@ a を入力することで現在閲覧中のページをブックマークする
 // }}}
 
 // ChangeLog : {{{
-// 
+//
 // ==== 1.2.4 (2010 02/15) ====
-// 
+//
 // * Lower compatibility
-// 
+//
 // ==== 1.2.3 (2010 02/08) ====
-// 
+//
 // * Made title in the popup message be equal to the of actual bookmarked page.
 //
 // ==== 1.2.0 (2010 01/23) ====
@@ -278,7 +278,7 @@ function showCommentOfPage(aPageURL, aArg) {
                     message    : "pattern:",
                     collection : collection,
                     flags      : [ICON | IGNORE, 0, 0, 0, 0],
-                    style      : ["color:blue;", "color:#3c5bff;", null, "color:#989898;"],
+                    style      : [null, style.prompt.description, style.prompt.description, style.prompt.description],
                     header     : ["User", "Tags", "Comment", "Date"],
                     width      : [15, 25, 45, 15],
                     actions    : [
@@ -392,7 +392,7 @@ function listHBItems(aEvent, aArg) {
             message    : "pattern:",
             collection : hblist,
             flags      : [ICON | IGNORE, IGNORE, IGNORE, HIDDEN | IGNORE, IGNORE, HIDDEN],
-            style      : [null, "color:#0a1e89;", "color:#001d6b;"],
+            style      : [null, style.prompt.description, style.prompt.description],
             header     : ["Title", "Comment", "Date"],
             width      : [40, 45, 15],
             actions    : [
