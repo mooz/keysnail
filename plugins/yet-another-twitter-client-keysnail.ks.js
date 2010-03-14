@@ -1,5 +1,9 @@
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.6.3 (2010 03/14) ====
+//
+// * Now public method tweet() takes arguments
+//
 // ==== 1.6.2 (2010 03/03) ====
 //
 // * Made show-conversations works more speedy.
@@ -1785,15 +1789,15 @@ var twitterClient =
                              tPrompt.close();
                              prompt.selector(
                                  {
-                                     message: "regexp:",
-                                     collection: results.map(
+                                     message    : "regexp:",
+                                     collection : results.map(
                                          function (result) [result.profile_image_url, result.from_user, html.unEscapeTag(result.text)]
                                      ),
-                                     style: ["color:#003870;", null],
-                                     width: [15, 85],
-                                     header: ["From", 'Search result for "' + aWord + '"'],
-                                     flags: [ICON | IGNORE, 0, 0],
-                                     filter: function (aIndex) {
+                                     style      : ["color:#003870;", null],
+                                     width      : [15, 85],
+                                     header     : ["From", 'Search result for "' + aWord + '"'],
+                                     flags      : [ICON | IGNORE, 0, 0],
+                                     filter     : function (aIndex) {
                                          var result = results[aIndex];
 
                                          return (aIndex < 0 ) ? [null] :
@@ -3176,7 +3180,7 @@ var twitterClient =
              },
 
              tweet: function () {
-                 tweet();
+                 tweet.apply(null, arguments);
              },
 
              tweetWithTitleAndURL: function (ev, arg) {
@@ -3419,7 +3423,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>1.6.2</version>
+    <version>1.6.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
