@@ -22,8 +22,6 @@ KeySnail.Util = function () {
         init: function () {
             modules = self.modules;
 
-            let {util, prompt, completer, style} = KeySnail.modules;
-
             this.sandboxForSafeEval = new Components.utils.Sandbox("about:blank");
             this.userContext = {
                 __proto__: this.parent.modules
@@ -75,6 +73,8 @@ KeySnail.Util = function () {
                 },
 
                 getSuggestions : function (aEngine, query, callback) {
+                    let {util, prompt, completer, style} = KeySnail.modules;
+
                     let queryURI;
                     let engine = aEngine;
 
@@ -103,6 +103,8 @@ KeySnail.Util = function () {
                 },
 
                 searchWithSuggest: function (aSearchEngine, aSuggestEngines, aOpenStyle) {
+                    let {util, prompt, completer, style} = KeySnail.modules;
+
                     prompt.reader(
                         {
                             message    : util.format("Search [%s]:", aSearchEngine.name),
