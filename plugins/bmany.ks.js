@@ -3,13 +3,13 @@ var PLUGIN_INFO =
     <name>bmany</name>
     <description>Search bookmarks incrementally and go!</description>
     <description lang="ja">anything.el 気分でブックマークを操作</description>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/bmany.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/bmany.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.2.1</minVersion>
+    <minVersion>1.5.4</minVersion>
     <include>main</include>
     <options>
         <option>
@@ -53,7 +53,7 @@ var PLUGIN_INFO =
 === Usage ===
 ==== Manipulating bookmarks with prompt.selector ====
 
-This plugin enables you to list bookmarks / bookmarklets using prompt.selector (which is similar to anything.el) and open / execute / edit the item. 
+This plugin enables you to list bookmarks / bookmarklets using prompt.selector (which is similar to anything.el) and open / execute / edit the item.
 
 By pasting the settings below to the bottom of your .keysnail.js, you can list all bookmarks by pressing : b.
 
@@ -170,7 +170,7 @@ var optionsDefaultValue = {
     "folder_style"      : "",
     "keyword_style"     : 'font-weight:bold;',
     "title_style"       : 'font-weight:bold;',
-    "url_style"         : 'color:#0000ff;text-decoration:underline;',
+    "url_style"         : style.prompt.url,
     "default_open_type" : 'current',
     "keymap"            : {}
 };
@@ -355,7 +355,7 @@ var bmany =
          let self = {
              get ACTION_CURRENT() { return 0; },
              get ACTION_TAB()     { return 1; },
-             
+
              listBookmarks: function (arg, openType) {
                  if (arg || !cache.bookmarks)
                  {

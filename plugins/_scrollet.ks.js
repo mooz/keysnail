@@ -28,6 +28,10 @@ the terms of any one of the MPL, the GPL or the LGPL.
 
 // ChangeLog {{ ============================================================= //
 //
+// ==== 0.0.5 (2010 03/24) ====
+//
+// * Color scheme
+//
 // ==== 0.0.4 (2009 12/11) ====
 //
 // * Power upped mark system.
@@ -723,7 +727,7 @@ ext.add("scrollet-jump-to-mark", function (ev, arg) {
                         "text-align:right;margin-right:1em;",
                         "font-weight:bold;",
                         null,
-                        "color:#132fc2;"
+                        style.prompt.description
                     ],
                     width: [
                         20, 10, 40, 30
@@ -764,12 +768,12 @@ var PLUGIN_INFO =
     <name>Scrollet!</name>
     <description>Provides various scroll commands and mark system</description>
     <description lang="ja">強力なマークシステムと様々なスクロールコマンドを提供します</description>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>MPL</license>
-    <minVersion>1.1.3</minVersion>
+    <minVersion>1.5.4</minVersion>
     <include>main</include>
     <provides>
         <ext>scrollet-scroll-line-down</ext>

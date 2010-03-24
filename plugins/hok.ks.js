@@ -10,7 +10,7 @@ var PLUGIN_INFO =
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>MPL</license>
-    <minVersion>1.1.8</minVersion>
+    <minVersion>1.5.4</minVersion>
     <include>main</include>
     <provides>
         <ext>hok-start-foreground-mode</ext>
@@ -1279,7 +1279,7 @@ ext.add("hok-start-extended-mode", function (ev, arg) {
                     },
                     collection          : formatActions(actions),
                     header              : [M({ja: "キー", en: "Key"}), M({ja: "説明", en: "Description"})],
-                    style               : ["font-weight:bold;text-align:right;margin-right:2em;", "color:#5100ae;"],
+                    style               : ["font-weight:bold;text-align:right;margin-right:2em;", style.prompt.history],
                     width               : [40, 60],
                     supressRecoverFocus : true,
                     callback            : function (aStr) {
