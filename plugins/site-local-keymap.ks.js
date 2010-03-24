@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -319,17 +319,22 @@ key.setGlobalKey("C-;", function (ev, arg) {
 // }}}
 
 // ChangeLog : {{{
-// 
-// ==== 1.1.0 (2010 2/14) ====
-// 
+//
+// ==== 1.1.1 (2010 03/24) ====
+//
+// * Fixed the bug when use transit about:blank from the page local-keymap enabled,
+//   local keymap still be used;
+//
+// ==== 1.1.0 (2010 02/14) ====
+//
 // * Fixed the settings of Gmail in the document
-// 
+//
 // ==== 1.0.9 (2009 12/9) ====
-// 
+//
 // * Updated details.
-// 
+//
 // ==== 1.0.8 (2009 12/5) ====
-// 
+//
 // * Made status site local. Renamed option prefix name to "site_local_keymap" from "remap_pages".
 //
 // ==== 1.0.6 (2009 11/13) ====
@@ -400,7 +405,7 @@ var siteLocalKeymap =
              // about:blank?
              if (!aNsURI || !aNsURI.spec)
              {
-                 localKeyMaps[regexp] = null;
+                 key.keyMapHolder[key.modes.SITELOCAL] = null;
                  key.updateStatusBar();
                  return;
              }
