@@ -155,6 +155,11 @@ KeySnail.Prompt = function () {
         return elem;
     }
 
+    function implant(a, b) {
+        for (let [k, v] in Iterator(b))
+            a[k] = b[k];
+    }
+
     /**
      * Combine two object. Implant b to a.
      * @param {} a
@@ -1824,6 +1829,68 @@ KeySnail.Prompt = function () {
                         content   : content,
                         document  : document
                     };
+
+                    let objectPrototype = {
+                        "__defineGetter__"     : undefined,
+                        "__defineSetter__"     : undefined,
+                        "__lookupGetter__"     : undefined,
+                        "__lookupSetter__"     : undefined,
+                        "__noSuchMethod__"     : undefined,
+                        "hasOwnProperty"       : undefined,
+                        "isPrototypeOf"        : undefined,
+                        "propertyIsEnumerable" : undefined,
+                        "unwatch"              : undefined,
+                        "watch"                : undefined
+                    };
+
+                    for (let k in Iterator(objectPrototype, true))
+                        objectPrototype[k] = Object[k];
+
+                    let functionPrototype = {__proto__ : objectPrototype};
+
+                    for (let [, k] in Iterator(["apply", "call", "toSource", "toString", "valueOf"]))
+                        functionPrototype[k] = Function[k];
+
+                    let globalObjects = {
+                        Array          : ["concat", "join", "pop", "push", "reverse", "shift", "slice", "sort",
+                                          "splice", "toSource", "toString", "unshift", "every", "filter", "forEach",
+                                          "indexOf", "lastIndexOf", "map", "some"],
+                        Boolean        : [],
+                        Date           : ["now", "parse", "UTC"],
+                        Error          : [],
+                        EvalError      : [],
+                        Math           : ["E", "LN2", "LN10", "LOG2E", "LOG10E", "PI", "SQRT1_2", "SQRT2",
+                                          "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "exp", "floor",
+                                          "log", "max", "min", "pow", "random", "round", "sin", "sqrt", "tan"],
+                        Number         : ["MAX_VALUE", "MIN_VALUE", "NaN", "NEGATIVE_INFINITY", "POSITIVE_INFINITY",
+                                          "toExponential", "toFixed", "toLocaleString", "toPrecision", "toSource", "toString", "valueOf"],
+                        RangeError     : [],
+                        ReferenceError : [],
+                        RegExp         : [],
+                        String         : [],
+                        SyntaxError    : [],
+                        TypeError      : [],
+                        URIError       : []
+                    };
+
+                    let global = (function () this)();
+
+                    for (let [objName, keys] in Iterator(globalObjects))
+                    {
+                        globalObjects[objName] = {};
+
+                        for ([, k] in Iterator(keys))
+                        {
+                            globalObjects[objName][k] = global[objName][k];
+                        }
+
+                        globalObjects[objName]["__proto__"] = functionPrototype;
+                    }
+
+                    globalObjects.Function = functionPrototype;
+                    globalObjects.Object   = objectPrototype;
+
+                    implant(root, globalObjects);
 
                     const IDENTIFIER_PATTERN = /^[a-zA-Z$_]+[0-9a-zA-Z$_]*$/;
 
