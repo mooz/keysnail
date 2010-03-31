@@ -1205,15 +1205,6 @@ KeySnail.Prompt = function () {
         setListBoxSelection(0);
     }
 
-    // ================================================================================ //
-    // prompt.read, prompt.completer
-    // ================================================================================ //
-
-    function range(a, b) {
-        for (let i = a; i < b; ++i)
-            yield i;
-    }
-
     // ====================================================================== //
     // prompt.read, prompt.reader
     // ====================================================================== //
@@ -1687,13 +1678,9 @@ KeySnail.Prompt = function () {
                     let first = c[0];
 
                     if (typeof first === "string")
-                    {
                         if (max < 1) max = 1;
-                    }
                     else if (typeof first[0] === "string" && first[0].length > max)
-                    {
                         max = first[0].length;
-                    }
                 }
 
                 if (max < 0)
@@ -1944,11 +1931,6 @@ KeySnail.Prompt = function () {
 
                         flushBuffer();
 
-                        // if (stack.length)
-                        // {
-                        //     window.inspectObject(stack);
-                        // }
-
                         return [tokens, state];
                     }
 
@@ -2042,7 +2024,7 @@ KeySnail.Prompt = function () {
                         if (a < b)
                             return -1;
                         else if (a > b)
-                        return 1;
+                            return 1;
                         else
                             return 0;
                     }
