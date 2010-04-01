@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>bmany</name>
     <description>Search bookmarks incrementally and go!</description>
     <description lang="ja">anything.el 気分でブックマークを操作</description>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/bmany.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/bmany.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -515,7 +515,9 @@ plugins.bmany = bmany;
 var openType = {
     "current"    : 0,
     "tab"        : 1,
-    "tabshifted" : 2
+    "tabshifted" : 2,
+    "window"     : 3,
+    "unique"     : 4
 }[getOption("default_open_type")] || 0;
 
 // Add exts {{ ============================================================== //
