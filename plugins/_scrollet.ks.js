@@ -28,6 +28,10 @@ the terms of any one of the MPL, the GPL or the LGPL.
 
 // ChangeLog {{ ============================================================= //
 //
+// ==== 0.0.6 (2010 04/02) ====
+//
+// * Made scroll commands works properly
+//
 // ==== 0.0.5 (2010 03/24) ====
 //
 // * Color scheme
@@ -283,7 +287,7 @@ function getCurrentMode()
 
 function findScrollableWindow()
 {
-    var win;
+    let win;
 
     try
     {
@@ -313,7 +317,8 @@ var scrollet =
     (function () {
          function checkScrollYBounds(win, direction)
          {
-             return !(direction > 0 && win.scrollY >= win.scrollMaxY || direction < 0 && win.scrollY == 0);
+             return false;
+             // return !(direction > 0 && win.scrollY >= win.scrollMaxY || direction < 0 && win.scrollY == 0);
          }
 
          // Scroll methods {{ ======================================================== //
@@ -768,7 +773,7 @@ var PLUGIN_INFO =
     <name>Scrollet!</name>
     <description>Provides various scroll commands and mark system</description>
     <description lang="ja">強力なマークシステムと様々なスクロールコマンドを提供します</description>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
