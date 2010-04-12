@@ -570,7 +570,7 @@ var ksPluginManager = function () {
                 removeAllChilds(container);
                 container.appendChild(createElementWithText("h1", "Please reload this page"));
                 container.appendChild(iframeDoc.createElement("hr"));
-                container.appendChild(createElementWithText("p", "Plugin manager does not loaded propery. Plese refresh this page."));
+                container.appendChild(createElementWithText("p", "Plugin manager does not loaded properly. Please refresh this page."));
 
                 var form   = iframeDoc.createElement("form");
                 form.setAttribute("style", "text-align:center;margin:auto;");
