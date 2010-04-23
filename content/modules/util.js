@@ -1147,6 +1147,55 @@ KeySnail.Util = function () {
             }
         },
 
+        /**
+         * @param {} aUrl
+         * @param {} aRaw
+         * @param {} aCallback
+         * @param {} aTimeOut
+         * @returns {}
+         */
+        httpPost: function (url, params, callback) {
+            let xhr = new XMLHttpRequest();
+
+            switch (typeof params)
+            {
+            case "string":
+                // nothing
+                break;
+            case "object":
+                params = [k + "=" + v for ([k, v] in Iterator(params))].join("&");
+                break;
+            default:
+                params = "";
+                break;
+            }
+
+            let async = typeof callback === "function";
+
+            if (async)
+            {
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4)
+                        callback(xhr);
+                };
+            }
+
+            xhr.open("POST", url, async);
+
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhr.setRequestHeader("Content-length", params.length);
+            xhr.setRequestHeader("Connection", "close");
+
+            xhr.onreadystatechange = function () {
+	        if (xhr.readyState === 4 && xhr.status === 200)
+                    typeof callback === "function" && callback();
+            };
+
+            xhr.send(params);
+
+            return xhr;
+        },
+
         // }} ======================================================================= //
 
         // Thread {{ ================================================================ //
@@ -1191,14 +1240,16 @@ KeySnail.Util = function () {
          * @param {} xmlns
          * @returns {}
          */
-        xmlToDom: function (xml, xmlns) {
+        xmlToDom: function (xml, xmlns, doc) {
             if (!xmlns)
                 xmlns = this.XUL;
 
-            var doc = (new DOMParser).parseFromString(
-                '<root xmlns="' + xmlns + '">' + xml.toXMLString() + "</root>",
-                "application/xml");
-            var imported = document.importNode(doc.documentElement, true);
+            doc = doc || document;
+
+            var docElem = (new DOMParser).parseFromString(
+                '<root xmlns="' + xmlns + '">' + xml.toXMLString() + "</root>", "application/xml"
+            ).documentElement;
+            var imported = document.importNode(docElem, true);
             var range = document.createRange();
             range.selectNodeContents(imported);
             var fragment = range.extractContents();
@@ -1274,11 +1325,31 @@ KeySnail.Util = function () {
 
         // }} ======================================================================= //
 
-        // String {{ ================================================================ //
+        // Range / Iterator {{ ====================================================== //
 
-        range: function (from, to) {
-            for (let i = from; i < to; ++i) yield i;
+        range: function (from, to, step) {
+            step = Math.max(step || 0, 1);
+            for (let i = from; i < to; i += step) yield i;
         },
+
+        interruptibleRange: function (from, to, step) {
+            let range = this.range(from, to, step);
+            this.rangeInterrupted = false;
+
+            for (let i in range)
+            {
+                if (this.rangeInterrupted)
+                {
+                    this.message("Interrupted");
+                    throw StopIteration;
+                }
+                yield i;
+            }
+        },
+
+        // }} ======================================================================= //
+
+        // String {{ ================================================================ //
 
         repeatString: function (str, len) {
             return [str for (i in this.range(0, len))].join("");

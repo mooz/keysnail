@@ -116,7 +116,7 @@ KeySnail.Ext = function () {
 
             modules.prompt.selector(
                 {
-                    message: "Ext:",
+                    message: (aArgument ? modules.key.universalArgumentKey + " " : "") + "Ext:",
                     callback: function (aIndex) {
                         if (aIndex >= 0) {
                             var name = extList[aIndex][0];

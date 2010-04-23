@@ -585,7 +585,7 @@ KeySnail.Key = {
         // KeySnail ignores the keybindings bounded with "null".
         // this is useful when keymap is the site-local
         // and user not want this "key" to handled by KeySnail.
-        if (this.currentKeyMap[key] === null)
+        if (key in this.currentKeyMap && this.currentKeyMap[key] === null)
         {
             this.backToNeutral("");
             return;
@@ -660,7 +660,7 @@ KeySnail.Key = {
                     {
                         this.modules.util.stopEventPropagation(aEvent);
 
-                        for (var i = 0; i < this.prefixArgument; ++i)
+                        for (let i in this.modules.util.interruptibleRange(0, this.prefixArgument))
                         {
                             if (key == "<tab>")
                             {

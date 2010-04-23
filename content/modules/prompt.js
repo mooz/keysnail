@@ -179,6 +179,12 @@ KeySnail.Prompt = function () {
         return newObject;
     }
 
+    function setCursorPos(n) {
+        try {
+            textbox.selectionStart = textbox.selectionEnd = n;
+        } catch (x) { Components.utils.reportError(x); };
+    }
+
     function getActualCols(aCols) {
         if (gFlags)
             for (let [, flag] in Iterator(gFlags))
@@ -2791,33 +2797,23 @@ KeySnail.Prompt = function () {
             actionKeys[aType][aKey] = aAction;
         },
 
-        set ignoreDuplication(aBool) { options.ignoreDuplication = !!aBool; },
-        get ignoreDuplication() { return options.ignoreDuplication; },
+        set ignoreDuplication(aBool) options.ignoreDuplication = !!aBool,
+        get ignoreDuplication() options.ignoreDuplication,
 
-        set substrMatch(aBool) { options.substrMatch = !!aBool; },
-        get substrMatch() { return options.substrMatch; },
+        set substrMatch(aBool) options.substrMatch = !!aBool,
+        get substrMatch() options.substrMatch,
 
-        set rows(aNum) {
-            if (typeof aNum === "number")
-                options.listboxMaxRows = Math.round(aNum);
-        },
-        get rows() {
-            return options.listboxMaxRows;
-        },
+        set rows(aNum) { if (typeof aNum === "number") options.listboxMaxRows = Math.round(aNum); },
+        get rows() options.listboxMaxRows,
 
-        set useMigemo(aBool) {
-            options.useMigemo = !!aBool;
-        },
+        set multiLine(bool) textbox.setAttribute("multiline", bool ? "true" : "false"),
+        get multiLine() ({"true" : true}[textbox.getAttribute("multiline")] || false),
 
-        set migemoMinWordLength(aNum) {
-            if (typeof aNum === "number")
-                options.migemoMinWordLength = Math.round(aNum);
-        },
+        set useMigemo(aBool) options.useMigemo = !!aBool,
 
-        set displayDelayTime(aMiliSec) {
-            if (typeof aMiliSec === "number")
-                options.displayDelayTime = aMiliSec;
-        },
+        set migemoMinWordLength(aNum) { if (typeof aNum === "number") options.migemoMinWordLength = Math.round(aNum); },
+
+        set displayDelayTime(aMiliSec) { if (typeof aMiliSec === "number") options.displayDelayTime = aMiliSec; },
 
         set actionListStyle(aStyle) {
             var style;
@@ -3074,7 +3070,7 @@ KeySnail.Prompt = function () {
             promptbox.hidden     = false;
 
             // do not set selection value till textbox appear (cause crash)
-            textbox.selectionStart = textbox.selectionEnd = 0;
+            setCursorPos(0);
 
             // now focus to the input area
             textbox.focus();
@@ -3164,7 +3160,8 @@ KeySnail.Prompt = function () {
             textbox.value          = aContext.initialInput || aContext.initialinput || "";
             self.editModeEnabled   = false;
             promptbox.hidden       = false;
-            textbox.selectionStart = textbox.selectionEnd = aContext.cursorEnd ? textbox.value.length : 0;
+
+            setCursorPos(aContext.cursorEnd ? textbox.value.length : 0);
 
             textbox.focus();
 
@@ -3238,7 +3235,7 @@ KeySnail.Prompt = function () {
             self.editModeEnabled = false;
             promptbox.hidden     = false;
             // do not set selection value till textbox appear (cause crash)
-            textbox.selectionStart = textbox.selectionEnd = 0;
+            setCursorPos(0);
 
             // now focus to the input area
             textbox.focus();
@@ -3299,8 +3296,7 @@ KeySnail.Prompt = function () {
             if (typeof aContext.initialInput === 'string')
                 textbox.value = aContext.initialInput;
 
-            textbox.selectionStart = textbox.selectionEnd = (typeof aContext.cursorEnd === 'number') ?
-                aContext.cursorEnd : textbox.value.length;
+            setCursorPos((typeof aContext.cursorEnd === 'number') ? aContext.cursorEnd : textbox.value.length);
 
             createCompletionList();
 

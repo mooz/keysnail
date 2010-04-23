@@ -133,7 +133,7 @@
               insertafter="keysnail-completion-list" hidden="true"
               align="center">
             <label class="keysnail-prompt-label" id="keysnail-prompt-left-label" />
-            <textbox id="keysnail-prompt-textbox" flex="1" />
+            <textbox id="keysnail-prompt-textbox" multiline="false" flex="1" />
             <label class="keysnail-prompt-label" id="keysnail-prompt-right-label" />
             <toolbarbutton id="keysnail-prompt-display-selector-help-button"
                            image="chrome://keysnail/skin/icon/help.png"
