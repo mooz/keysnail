@@ -116,8 +116,8 @@ SCHEME.keybindings["view"] = [
     // Scroll
     [[["C-n"], ["j"]], "scroll_line_down"],
     [[["C-p"], ["k"]], "scroll_line_up"],
-    [[["C-f"], ["."]], "scroll_left"],
-    [[["C-b"], [","]], "scroll_right"],
+    [[["C-f"], ["."]], "scroll_right"],
+    [[["C-b"], [","]], "scroll_left"],
     [[["M-v"], ["b"]], "scroll_page_up"],
     ["C-v", "scroll_page_down"],
     [[["M-<"], ["g"]], "scroll_to_the_top_of_the_page", true],
@@ -179,11 +179,11 @@ SCHEME.hooks.push(
      function (aEvent) {
          if (key.currentKeySequence.length)
              return;
-         
+
          command.closeFindBar();
 
          let marked = command.marked(aEvent);
-         
+
          if (util.isCaretEnabled())
          {
              if (marked)
@@ -193,7 +193,7 @@ SCHEME.hooks.push(
              else
              {
                  if ("blur" in aEvent.target) aEvent.target.blur();
-                 
+
                  gBrowser.focus();
                  _content.focus();
              }
@@ -202,7 +202,7 @@ SCHEME.hooks.push(
          {
              goDoCommand("cmd_selectNone");
          }
-         
+
          if (KeySnail.windowType === "navigator:browser" && !marked)
          {
              key.generateKey(aEvent.originalTarget, KeyEvent.DOM_VK_ESCAPE, true);
