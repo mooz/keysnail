@@ -7,17 +7,17 @@
                    em:minVersion="3.0"
                    em:maxVersion="3.7a1pre"
                    em:updateLink="http://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.5.6.xhtml"
-                   em:updateHash="sha1:9213f31b3887a2513da06c4bb56b2c7fbd729b19" />
-  <RDF:Seq RDF:about="rdf:#$mtJrB">
-    <RDF:li RDF:resource="rdf:#$ntJrB"/>
-  </RDF:Seq>
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.5.7.xhtml"
+                   em:updateHash="sha1:6cd49959010834fd13634a818566544ae3b59502" />
   <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.5.6">
+                   em:version="1.5.7">
     <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
   </RDF:Description>
   <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBADr16RJeLlc+RyqWT/2RnFYSLiSbuz0VglzFIJrW9B/7ETZ3n8nT49qsScCnrUPbhJdMpmkm5RKCpIGb/PUt8SCpijDMbScSITIhZoNxeTiUiN/XhnrMJxWzRHjhdZjHqe9vkytdCZV5Tap6e60KEXbMAVOTXO4IYp+mQOda9bH/">
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBALA7luyZ9oelQEW3y/WkK6fWxW2h8+icer4moiuzToj5uPQDxVPM2JoCRnKmoS9Ra1E8zaiwy9JAhKwBqZM8TxkrHWqqFwX4KFTBx/E9gEVg9QI/8jk2fKGOO6ZHUV/zZLX61rcOiXJJ52IOwabqaLEv/wkPqABodu6NCC6S5GPU">
     <em:updates RDF:resource="rdf:#$mtJrB"/>
   </RDF:Description>
+  <RDF:Seq RDF:about="rdf:#$mtJrB">
+    <RDF:li RDF:resource="rdf:#$ntJrB"/>
+  </RDF:Seq>
 </RDF:RDF>
