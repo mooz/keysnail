@@ -1098,8 +1098,7 @@ KeySnail.Util = function () {
          * @param {function} aCallback
          * @returns {XMLHttpRequest}
          */
-        httpGet: function (aUrl, aRaw, aCallback, aTimeOut)
-        {
+        httpGet: function (aUrl, aRaw, aCallback, aTimeOut) {
             try
             {
                 let req = new XMLHttpRequest();
@@ -1327,12 +1326,14 @@ KeySnail.Util = function () {
 
         // Range / Iterator {{ ====================================================== //
 
-        range: function (from, to, step) {
+        range:
+        function range(from, to, step) {
             step = Math.max(step || 0, 1);
             for (let i = from; i < to; i += step) yield i;
         },
 
-        interruptibleRange: function (from, to, step) {
+        interruptibleRange:
+        function interruptibleRange(from, to, step) {
             let range = this.range(from, to, step);
             this.rangeInterrupted = false;
 
@@ -1345,6 +1346,12 @@ KeySnail.Util = function () {
                 }
                 yield i;
             }
+        },
+
+        coro:
+        function coro(process) {
+            var g = process(function resume(v) { g.send(v); }, g);
+            g.next();
         },
 
         // }} ======================================================================= //
