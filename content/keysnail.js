@@ -27,12 +27,31 @@ var KeySnail = {
         return !!window.navigator.userAgent.match(/thunderbird/i);
     },
 
-    init: function () {
-        var extmanager = Components.classes["@mozilla.org/extensions/manager;1"]
-            .createInstance(Components.interfaces.nsIExtensionManager);
+    init:
+    function init() {
+        try
+        {
+            let extManager = Components.classes["@mozilla.org/extensions/manager;1"]
+                .createInstance(Components.interfaces.nsIExtensionManager);
 
-        this.extInfo = extmanager.getItemForID(this.id);
+            this.extInfo = extManager.getItemForID(this.id);
+            this.doInit();
+        }
+        catch (x)
+        {
+            let am = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", am);
 
+            let self = this;
+            am.AddonManager.getAddonByID(this.id, function (addon) {
+                                             self.extInfo = addon;
+                                             self.doInit();
+                                         });
+        }
+    },
+
+    doInit:
+    function doInit() {
         // Arrange modules {{ ======================================================= //
 
         var moduleObjects = ["Util",
