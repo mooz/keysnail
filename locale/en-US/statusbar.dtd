@@ -1,14 +1,14 @@
 <!ENTITY keySnail.statusbar.listKeyBindings "Display all keybindings">
-<!ENTITY keySnail.statusbar.reloadUserScript "Reload the init file">
+<!ENTITY keySnail.statusbar.reloadUserScript "Reload init file">
 
 <!ENTITY keySnail.statusbar.openPreference "Open preference dialog">
 
 <!ENTITY keySnail.statusbar.initFile "Init file">
-<!ENTITY keySnail.statusbar.wizard "Create / Select the init file">
-<!ENTITY keySnail.statusbar.editInitFile "Edit the init file">
+<!ENTITY keySnail.statusbar.wizard "Create / Select init file">
+<!ENTITY keySnail.statusbar.editInitFile "Edit init file">
 
 <!ENTITY keySnail.statusbar.openPluginManager "Open plugin manager">
 
 <!ENTITY keySnail.statusbar.isEnabled "Enable">
 
-<!ENTITY keySnail.statusbar.closePrompt "Close the prompt">
+<!ENTITY keySnail.statusbar.closePrompt "Close prompt">
