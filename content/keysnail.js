@@ -31,11 +31,8 @@ var KeySnail = {
     function init() {
         try
         {
-            let extManager = Components.classes["@mozilla.org/extensions/manager;1"]
+            var extManager = Components.classes["@mozilla.org/extensions/manager;1"]
                 .createInstance(Components.interfaces.nsIExtensionManager);
-
-            this.extInfo = extManager.getItemForID(this.id);
-            this.doInit();
         }
         catch (x)
         {
@@ -47,7 +44,11 @@ var KeySnail = {
                                              self.extInfo = addon;
                                              self.doInit();
                                          });
+            return;
         }
+
+        this.extInfo = extManager.getItemForID(this.id);
+        this.doInit();
     },
 
     doInit:
