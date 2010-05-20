@@ -4,13 +4,13 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.2.4</version>
+    <version>1.2.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.5.4</minVersion>
+    <minVersion>1.5.6</minVersion>
     <include>main</include>
     <provides>
         <ext>list-hateb-comments</ext>
@@ -61,6 +61,10 @@ a を入力することで現在閲覧中のページをブックマークする
 // }}}
 
 // ChangeLog : {{{
+//
+// ==== 1.2.5 (2010 04/23) ====
+//
+// * Automatically log in when user haven't logged in to Hatena.
 //
 // ==== 1.2.4 (2010 02/15) ====
 //
@@ -127,7 +131,59 @@ function showPopup(arg) {
                                         arg.observer);
 }
 
+function login(args) {
+    let callback = args.callee;
+
+    let pm = Cc['@mozilla.org/login-manager;1'].getService(Ci.nsILoginManager);
+    let logins;
+    ["http://www.hatena.ne.jp", "https://www.hatena.ne.jp"].some(
+        function (url) logins = pm.findLogins({}, "https://www.hatena.ne.jp", "https://www.hatena.ne.jp", null)
+    );
+
+    if (logins && logins.length)
+        doLogin(logins[0].username, logins[0].password);
+    else
+    {
+        prompt.read("user: ", function (user) {
+                        if (!user) return;
+
+                        prompt.read("password: ", function (pass) {
+                                        if (!pass) return;
+
+                                        util.message("type %s", typeof callback);
+
+                                        doLogin(user, pass);
+                                    });
+                    });
+    }
+
+    function doLogin(username, password) {
+        logout(function () {
+                   util.httpPost("https://www.hatena.ne.jp/login", {
+                                     "name"     : username,
+                                     "password" : password
+                                 },
+                                 function () { callback(); });
+               });
+    }
+}
+
+function logout(callback) {
+    util.httpPost("https://www.hatena.ne.jp/logout", {}, callback);
+}
+
+function isLogined() !!hBookmark.User.user;
+
 function addBookMark() {
+    if (KeySnail.windowType != "navigator:browser" || !("hBookmark" in window))
+        return;
+
+    if (!isLogined())
+    {
+        login(arguments);
+        return;
+    }
+
     const limit = 100;
 
     let tags         = hBookmark.model('Tag').findDistinctTags();
@@ -172,6 +228,9 @@ function addBookMark() {
         );
     }
 
+    let url   = content.location.href;
+    let title = content.document.title;
+
     function inputPost(aInit) {
         aInit = aInit || "";
 
@@ -184,11 +243,9 @@ function addBookMark() {
                 cursorEnd    : aInit.length,
                 callback     : function post(aMsg) {
                     let bookmark = {
-                        url     : content.location.href,
+                        url     : url,
                         comment : aMsg
                     };
-
-                    let title = content.document.title;
 
                     let command = new hBookmark.RemoteCommand(
                         "edit", {
@@ -220,8 +277,14 @@ function addBookMark() {
 }
 
 function showCommentOfPage(aPageURL, aArg) {
-    if (KeySnail.windowType != "navigator:browser" || !hBookmark)
+    if (KeySnail.windowType != "navigator:browser" || !("hBookmark" in window))
         return;
+
+    if (!isLogined())
+    {
+        login(arguments);
+        return;
+    }
 
     const HB_USER_ICON = 0;
     const HB_USER_NAME = 1;
@@ -336,8 +399,14 @@ function listHBComments(aEvent, aArg) {
 };
 
 function listHBItems(aEvent, aArg) {
-    if (KeySnail.windowType != "navigator:browser")
+    if (KeySnail.windowType != "navigator:browser" || !("hBookmark" in window))
         return;
+
+    if (!isLogined())
+    {
+        login(arguments);
+        return;
+    }
 
     var limit = plugins.options["hatebnail.list_bookmarks_limit"] || 5000;
 
@@ -364,12 +433,6 @@ function listHBItems(aEvent, aArg) {
     // by adding prefix arugment to force rebuild the cache
     if (!hblist || aArg != null)
     {
-        if (!hBookmark.User.user)
-        {
-            hBookmark.User.login();
-            util.sleep(2000);
-        }
-
         var db = hBookmark.User.user.database.connection;
         var stmt = db.createStatement(["SELECT b.title, b.comment, b.url, b.date, b.search",
                                        "FROM bookmarks b",
