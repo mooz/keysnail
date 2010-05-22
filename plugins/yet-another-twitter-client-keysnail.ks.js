@@ -475,8 +475,6 @@ var twitterClient = (
 
                 let self = this;
 
-                util.message(this.action);
-
                 this.oauth.asyncRequest(
                     {
                         action: this.action + (query || ""),
@@ -492,8 +490,8 @@ var twitterClient = (
                         {
                             if (isRetryable(xhr))
                             {
-                                log(LOG_LEVEL_DEBUG, "updateMentionsCache: retry %s", new Date());
-                                self.update(after, noRepeat, fromTimer);
+                                log(LOG_LEVEL_DEBUG, "Crawler#update: retry %s", new Date());
+                                self.update(after, noRepeat, fromTimer, query);
 
                                 return;
                             }
@@ -507,7 +505,7 @@ var twitterClient = (
                             updateAllStatusbars();
                         }
 
-                        if ((!noRepeat && !self.updater || fromTimer))
+                        if (self.interval && (!noRepeat && !self.updater || fromTimer))
                         {
                             self.updater = setTimeout(function () { self.update(null, false, true); }, self.interval);
 
@@ -620,11 +618,6 @@ var twitterClient = (
                     }
                 );
             });
-
-        // for (let [, crawler] in Iterator(gCrawlers))
-        // {
-        //     crawler.update();
-        // }
 
         var gStatuses = new Crawler(
             {
@@ -1191,6 +1184,10 @@ var twitterClient = (
                                         image={FAVORITED_ICON}
                                         oncommand={"KeySnail.modules.prompt.finish(true);" + root + ".showFavorites();"}
                                         />
+                         <toolbarbutton label="DM"
+                                        image={MESSAGE_ICON}
+                                        oncommand={"KeySnail.modules.prompt.finish(true);" + root + ".showDMs();"}
+                                        />
                          <toolbarseparator style="height : 16px; margin : 0 4px; padding : 0;" />
                          <!-- limit -->
                          <image src={LIMIT_ICON} style="margin-right: 4px;"/>
@@ -1455,7 +1452,8 @@ var twitterClient = (
 
          function isRetryable(xhr) {
              return (xhr.status === 401)
-                 && (xhr.responseText.indexOf("Could not authenticate you") !== -1);
+                 && ((xhr.responseText.indexOf("Could not authenticate you") !== -1) ||
+                     (xhr.responseText.indexOf("This method requires authentication") !== -1));
          }
 
          function shortenURL(aURL) {
