@@ -401,6 +401,7 @@ var twitterClient = (
             this.lastKey   = arg.lastKey;
             this.startNext = arg.startNext;
             this.mapper    = arg.mapper;
+            this.countName = arg.countName || "count";
 
             if (!share.twitterCache)
                 share.twitterCache = {};
@@ -474,6 +475,8 @@ var twitterClient = (
                 this.pending = true;
 
                 let self = this;
+
+                util.message(this.name + " => " + query);
 
                 this.oauth.asyncRequest(
                     {
@@ -614,7 +617,8 @@ var twitterClient = (
                         action    : listAction.action,
                         name      : name,
                         interval  : getOption("list_update_interval"),
-                        oauth     : gOAuth
+                        oauth     : gOAuth,
+                        countName : "per_page"
                     }
                 );
             });
@@ -1242,15 +1246,25 @@ var twitterClient = (
                  container, document.getElementById("keysnail-completion-list")
              );
 
-             let listOrigin = document.getElementById(HEAD_LIST_ORIGIN);
+             // ============================================================ //
+             // List
+             // ============================================================ //
 
+             let listOrigin = document.getElementById(HEAD_LIST_ORIGIN);
              let headTopContainer = document.getElementById(HEAD_TOP_CONTAINER);
 
              for (let [, crawler] in Iterator(gCrawlers))
              {
                  let button = document.createElement("toolbarbutton");
-                 button.setAttribute("label", crawler.name);
+
+                 let [id, name] = crawler.name.split("/");
+                 button.setAttribute("label", name);
+                 button.setAttribute("image", TAG_ICON);
+                 button.setAttribute("oncommand",
+                                     util.format("KeySnail.modules.prompt.finish(true);%s.showCrawledListStatuses('%s', '%s');",
+                                                 root, id, name));
                  headTopContainer.insertBefore(button, listOrigin);
+
              }
 
              my.twitterClientHeader = {
@@ -2024,145 +2038,98 @@ var twitterClient = (
              }
          }
 
-         function showConversations(id, init) {
-             let conversations = [];
+        function showConversations(id, init) {
+            let conversations = [];
 
-             if (init)
-                 conversations.push(init);
+            if (init)
+                conversations.push(init);
 
-             display.echoStatusBar(M({ja: "会話リストの取得を開始. しばらくお待ち下さい.",
-                                      en: "Fetching conversations beginning"}));
+            display.echoStatusBar(M({ja: "会話リストの取得を開始. しばらくお待ち下さい.",
+                                     en: "Fetching conversations beginning"}));
 
-             function createMap(maps) {
-                 let map = {};
-                 maps.forEach(function (m) m.forEach(function (s) map[s.id] = s));
-                 return map;
-             }
+            function createMap(maps) {
+                let map = {};
+                maps.forEach(function (m) m.forEach(function (s) map[s.id] = s));
+                return map;
+            }
 
-             let map = createMap([gStatuses.cache, gMentions.cache]);
+            let map = createMap([gStatuses.cache, gMentions.cache]);
 
-             gPrompt.forced = true;
-             callSelector(conversations);
+            gPrompt.forced = true;
+            callSelector(conversations);
 
-             function trail(from) {
-                 function next(status) {
-                     gPrompt.forced = true;
-                     callSelector(conversations);
+            function trail(from) {
+                function next(status) {
+                    gPrompt.forced = true;
+                    callSelector(conversations);
 
-                     if (status.in_reply_to_status_id)
-                         trail(status.in_reply_to_status_id);
-                 }
+                    if (status.in_reply_to_status_id)
+                        trail(status.in_reply_to_status_id);
+                }
 
-                 if (from in map)
-                 {
-                     conversations.push(map[from]);
-                     next(map[from]);
-                 }
-                 else
-                 {
-                     util.httpGet(
-                         "http://api.twitter.com/1/statuses/show/" + from + ".json",
-                         false,
-                         function (xhr) {
-                             let result = decodeJSON("(" + xhr.responseText + ")");
-                             conversations.push(result);
+                if (from in map)
+                {
+                    conversations.push(map[from]);
+                    next(map[from]);
+                }
+                else
+                {
+                    util.httpGet(
+                        "http://api.twitter.com/1/statuses/show/" + from + ".json",
+                        false,
+                        function (xhr) {
+                            let result = decodeJSON("(" + xhr.responseText + ")");
+                            conversations.push(result);
 
-                             display.echoStatusBar(util.format(M({ja: "会話リストを取得中... (%s)",
-                                                                  en: "Fetching conversations ... (%s)"}),
-                                                               conversations.length));
-                             next(result);
-                         }
-                     );
-                 }
-             }
+                            display.echoStatusBar(util.format(M({ja: "会話リストを取得中... (%s)",
+                                                                 en: "Fetching conversations ... (%s)"}),
+                                                              conversations.length));
+                            next(result);
+                        }
+                    );
+                }
+            }
 
-             trail(id);
-         }
+            trail(id);
+        }
 
-         function showMentions(aArg) {
-             var updateForced = typeof aArg === "number";
+        function showCrawlersCache(crawler, arg) {
+            var updateForced = typeof aArg === "number";
 
-             if (updateForced || !gMentions.cache)
-             {
-                 if (gMentions.pending)
-                 {
-                     display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
-                                              en: "Requesting to the Twitter ... Please wait."}), 2000);
-                 }
-                 else
-                 {
-                     self.updateMentionsCache(
-                         function () {
-                             callSelector(gMentions.cache);
-                             setLastID(gMentions, true);
-                         }, updateForced);
-                 }
-             }
-             else
-             {
-                 // use cache
-                 callSelector(gMentions.cache);
-                 setLastID(gMentions, true);
-             }
-         }
+            if (updateForced || !crawler.cache)
+            {
+                if (crawler.pending)
+                {
+                    display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
+                                             en: "Requesting to the Twitter ... Please wait."}), 2000);
+                }
+                else
+                {
+                    crawler.update(
+                        function () {
+                            callSelector(crawler.cache);
+                            setLastID(crawler, false);
+                        },
+                        updateForced,
+                        false,
+                        crawler.cache && crawler.cache.length ? "" : "?" + crawler.countName + "=" + timelineCountBeginning);
+                }
+            }
+            else
+            {
+                // use cache
+                callSelector(crawler.cache);
+                setLastID(crawler, false);
+            }
+        }
 
-         function showDMs(aArg) {
-             var updateForced = typeof aArg === "number";
+        function showFollowersStatus(arg) {
+            showCrawlersCache(gStatuses, arg);
+        }
 
-             if (updateForced || !gDMs.cache)
-             {
-                 if (gDMs.pending)
-                 {
-                     display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
-                                              en: "Requesting to the Twitter ... Please wait."}), 2000);
-                 }
-                 else
-                 {
-                     gDMs.update(
-                         function () {
-                             callSelector(gDMs.cache);
-                             setLastID(gDMs, false);
-                         }, updateForced);
-                 }
-             }
-             else
-             {
-                 // use cache
-                 callSelector(gDMs.cache);
-                 setLastID(gDMs, false);
-             }
-         }
-
-         function showFollowersStatus(aArg) {
-             var updateForced = typeof aArg === "number";
-
-             if (updateForced || !gStatuses.cache)
-             {
-                 if (gStatuses.pending)
-                 {
-                     display.echoStatusBar(M({ja: 'Twitter へリクエストを送信しています。しばらくお待ち下さい。',
-                                              en: "Requesting to the Twitter ... Please wait."}), 2000);
-                 }
-                 else
-                 {
-                     // rebuild cache
-                     self.updateStatusesCache(
-                         function () {
-                             if (gStatuses.cache)
-                             {
-                                 callSelector(gStatuses.cache);
-                                 setLastID(gStatuses, true);
-                             }
-                         }, updateForced);
-                 }
-             }
-             else
-             {
-                 // use cache
-                 callSelector(gStatuses.cache);
-                 setLastID(gStatuses, true);
-             }
-         }
+        function showMentions(arg) {
+            showCrawlersCache(gMentions, arg);
+        }
 
          function showTargetStatus(target) {
              gOAuth.asyncRequest(
@@ -2652,7 +2619,14 @@ var twitterClient = (
 
              showMentions: function () { showMentions.apply(this, arguments); },
 
-             showDMs: function () { showDMs.apply(this, arguments); },
+             showDMs: function (arg) { showCrawlersCache(gDMs, arg); },
+
+             showCrawledListStatuses: function (id, listName) {
+                 let crawler = gCrawlers[id + "/" + listName];
+
+                 if (crawler)
+                     showCrawlersCache(crawler);
+             },
 
              search: function () {
                  search();
