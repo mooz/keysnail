@@ -2879,7 +2879,8 @@ var twitterClient = (
             },
 
             setUserInfo: setUserInfo,
-            blackUsersManager: blackUsersManager
+            blackUsersManager: blackUsersManager,
+            switchTo: switchTo
         };
 
         // ============================================================ //
@@ -2975,6 +2976,10 @@ ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
 ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
         M({ja: '再認証',
            en: "Reauthorize"}));
+
+ext.add("twitter-client-switch-to", twitterClient.switchTo,
+        M({ja: 'リスト, Home, Mentioins, Favorites などを選択',
+           en: "Select Lists, Home, Mentions, Favirites, ..."}));
 
 // }} ======================================================================= //
 
