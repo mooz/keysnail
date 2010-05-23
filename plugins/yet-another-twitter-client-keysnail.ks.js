@@ -14,7 +14,7 @@ var optionsDefaultValue = {
     "log_level"                    : LOG_LEVEL_MESSAGE,
     "update_interval"              : 60 * 1000,      // 1 minute
     "mentions_update_interval"     : 60 * 1000 * 5,  // 5 minute
-    "dm_update_interval"           : 60 * 1000 * 5,  // 5 minute
+    "dm_update_interval"           : 60 * 1000 * 20, // 20 minute
     "list_update_interval"         : 60 * 1000 * 5,  // 5 minute
     "popup_new_statuses"           : false,
     "popup_new_replies"            : true,
@@ -23,6 +23,7 @@ var optionsDefaultValue = {
     "timeline_count_every_updates" : 20,
     "unread_status_count_style"    : "color:#383838;font-weight:bold;",
     "automatically_begin"          : true,
+    "automatically_begin_list"     : true,
     "prefer_screen_name"           : false,
     "keymap"                       : null,
     "tweet_keymap"                 : null,
@@ -80,9 +81,7 @@ function getBrowserWindows() {
     var enumerator = wm.getEnumerator("navigator:browser");
 
     while (enumerator.hasMoreElements())
-    {
         windows.push(enumerator.getNext());
-    }
 
     return windows;
 }
@@ -95,6 +94,14 @@ function updateAllStatusbars() {
     notifyWindows(function (win) {
                       try {
                           win.KeySnail.modules.plugins.twitterClient.updateStatusbar();
+                      } catch (x) {}
+                  });
+}
+
+function updateAllListButtons() {
+    notifyWindows(function (win) {
+                      try {
+                          win.KeySnail.modules.plugins.twitterClient.updateListButton();
                       } catch (x) {}
                   });
 }
@@ -410,6 +417,7 @@ var twitterClient = (
             this.mapper     = arg.mapper;
             this.countName  = arg.countName || "count";
             this.lastIDHook = arg.lastIDHook;
+            this.beginCount = arg.beginCount;
 
             if (!share.twitterCache)
                 share.twitterCache = {};
@@ -478,14 +486,14 @@ var twitterClient = (
             },
 
             update:
-            function update(after, noRepeat, fromTimer, query) {
+            function update(after, noRepeat, fromTimer) {
                 this.pending = true;
 
                 let self = this;
 
                 this.oauth.asyncRequest(
                     {
-                        action: this.action + (query || ""),
+                        action: this.action + (this.cache ? "" : "?" + this.countName + "=" + this.beginCount),
                         method: "GET"
                     },
                     function (ev, xhr) {
@@ -504,14 +512,16 @@ var twitterClient = (
                                 return;
                             }
 
-                            display.echoStatusBar(M({en: "Failed to get mentions", ja: "言及一覧の取得に失敗しました"}));
+                            display.echoStatusBar(M({en: "Failed to get " + self.name,
+                                                     ja: self.name + "の取得に失敗しました"}));
                         }
                         else
                         {
                             log(LOG_LEVEL_DEBUG, self.name + " => update %s", new Date());
                             let (statuses = decodeJSON(xhr.responseText))
                                 self.cache = self.combineCache(self.mapper ? self.mapper(statuses) : statuses);
-                            updateAllStatusbars();
+                            if (self.lastIDHook)
+                                self.lastIDHook();
                         }
 
                         if (self.interval && (!noRepeat && !self.updater || fromTimer))
@@ -609,8 +619,6 @@ var twitterClient = (
         timelineCountBeginning    = normalizeCount(timelineCountBeginning);
         timelineCountEveryUpdates = normalizeCount(timelineCountEveryUpdates);
 
-        var timelineCount = timelineCountBeginning;
-
         var gCrawlers = {};
 
         getOption("lists").forEach(
@@ -622,11 +630,14 @@ var twitterClient = (
 
                 gCrawlers[name] = new Crawler(
                     {
-                        action    : listAction.action,
-                        name      : name,
-                        interval  : getOption("list_update_interval"),
-                        oauth     : gOAuth,
-                        countName : "per_page"
+                        action     : listAction.action,
+                        name       : name,
+                        interval   : getOption("list_update_interval"),
+                        lastKey    : "extensions.keysnail.plugins.twitter_client.last_id." + name.replace("/", "_"),
+                        oauth      : gOAuth,
+                        countName  : "per_page",
+                        lastIDHook : updateAllListButtons,
+                        beginCount : timelineCountBeginning
                     }
                 );
             });
@@ -638,7 +649,8 @@ var twitterClient = (
                 interval   : getOption("update_interval"),
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_status_id",
                 oauth      : gOAuth,
-                lastIDHook : updateAllStatusbars
+                lastIDHook : updateAllStatusbars,
+                beginCount : timelineCountBeginning
             }
         );
 
@@ -649,18 +661,20 @@ var twitterClient = (
                 interval   : getOption("mentions_update_interval"),
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_mention_id",
                 oauth      : gOAuth,
-                lastIDHook : updateAllStatusbars
+                lastIDHook : updateAllStatusbars,
+                beginCount : timelineCountEveryUpdates
             }
         );
 
         var gDMs = new Crawler(
             {
-                action : twitterAPI.get("getDM").action,
-                name      : M({ en: "DMs", ja: "DMs" }),
-                interval  : getOption("dm_update_interval"),
-                lastKey   : "extensions.keysnail.plugins.twitter_client.last_dm_id",
-                oauth     : gOAuth,
-                mapper    : function (statuses) statuses.map(function (status) (status.user = status.sender, status))
+                action     : twitterAPI.get("getDM").action,
+                name       : M({ en: "DMs", ja: "DMs" }),
+                interval   : getOption("dm_update_interval"),
+                lastKey    : "extensions.keysnail.plugins.twitter_client.last_dm_id",
+                oauth      : gOAuth,
+                mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
+                beginCount : timelineCountEveryUpdates
             }
         );
 
@@ -1101,12 +1115,14 @@ var twitterClient = (
         const CONTAINER_ID      = "keysnail-twitter-client-container";
         const UNREAD_STATUS_ID  = "keysnail-twitter-client-unread-status";
         const UNREAD_MENTION_ID = "keysnail-twitter-client-unread-mention";
+        const UNREAD_DM_ID      = "keysnail-twitter-client-unread-dm";
 
         var statusbar           = document.getElementById("status-bar");
         var statusbarPanel      = document.getElementById("keysnail-status");
         var container           = document.getElementById(CONTAINER_ID);
         var unreadStatusLabel   = document.getElementById(UNREAD_STATUS_ID);
         var unreadMentionLabel  = document.getElementById(UNREAD_MENTION_ID);
+        var unreadDMLabel       = document.getElementById(UNREAD_DM_ID);
 
         var unreadStatusLabelStyle = getOption("unread_status_count_style");
 
@@ -1118,6 +1134,8 @@ var twitterClient = (
             let box, icon;
 
             // ================================================== //
+            // Statuses
+            // ================================================== //
 
             box  = genElem("hbox", { align : "center", flex : 1 });
             icon = genElem("image", { src : TWITTER_ICON });
@@ -1127,13 +1145,26 @@ var twitterClient = (
             container.appendChild(box);
 
             // ================================================== //
+            // Mentions
+            // ================================================== //
 
             box = box.cloneNode(true);
             box.childNodes[0].setAttribute("src", MENTIONS_ICON);
             unreadMentionLabel = box.childNodes[1];
             unreadMentionLabel.setAttribute("id", UNREAD_MENTION_ID);
-
             container.appendChild(box);
+
+            // ================================================== //
+            // DMs
+            // ================================================== //
+
+            box = box.cloneNode(true);
+            box.childNodes[0].setAttribute("src", MESSAGE_ICON);
+            unreadDMLabel = box.childNodes[1];
+            unreadDMLabel.setAttribute("id", UNREAD_DM_ID);
+            container.appendChild(box);
+
+            // ================================================== //
 
             insertAfter(statusbar, container, statusbarPanel);
 
@@ -1155,21 +1186,18 @@ var twitterClient = (
             container.appendChild(menu);
         }
 
-        unreadStatusLabel.setAttribute("style", unreadStatusLabelStyle);
-        unreadStatusLabel.parentNode.onclick = function (ev) {
-            if (ev.button === 2)
-                my.twitterClientStatusBarMenu.openPopupAtScreen(ev.screenX, ev.screenY, true);
-            else
-                self.showTimeline();
-        };
-
-        unreadMentionLabel.setAttribute("style", unreadStatusLabelStyle);
-        unreadMentionLabel.parentNode.onclick = function (ev) {
-            if (ev.button === 2)
-                my.twitterClientStatusBarMenu.openPopupAtScreen(ev.screenX, ev.screenY, true);
-            else
-                self.showMentions();
-        };
+        [[unreadStatusLabel  , function () { self.showTimeline(); }],
+         [unreadMentionLabel , function () { self.showMentions(); }],
+         [unreadDMLabel      , function () { self.showDMs(); }]]
+            .forEach(function ([label, action]) {
+                         label.setAttribute("style", unreadStatusLabelStyle);
+                         label.parentNode.onclick = function (ev) {
+                             if (ev.button === 2)
+                                 my.twitterClientStatusBarMenu.openPopupAtScreen(ev.screenX, ev.screenY, true);
+                             else
+                                 action();
+                         };
+                     });
 
         // }} ======================================================================= //
 
@@ -1192,8 +1220,8 @@ var twitterClient = (
             const HEAD_MENU         = "keysnail-twitter-client-header-menu";
             const HEAD_DYNAMIC_MENU = "keysnail-twitter-client-header-dynamic-menu";
 
-            const HEAD_LIST_ORIGIN   = "keysnail-twitter-client-header-list-origin";
-            const HEAD_TOP_CONTAINER = "keysnail-twitter-client-header-top-container";
+            const HEAD_LIST_ORIGIN = "keysnail-twitter-client-header-list-origin";
+            const HEAD_LIST_BUTTON_CONTAINER = "keysnail-twitter-client-header-list-button-container";
 
             let tooltipTextTwitter = M({ja: "このユーザの Twitter ページへ", en: "Visit this user's page on twitter"});
             let tooltipTextHome    = M({ja: "このユーザのホームページへ", en: "Visit this user's homepage"});
@@ -1206,13 +1234,11 @@ var twitterClient = (
                                <vbox style="margin-left  : 4px;
                                             margin-right : 4px;"
                                      >
-                                   <hbox align="center" flex="1" id={HEAD_TOP_CONTAINER}>
+                                   <hbox align="center" flex="1">
                                        <description style="font-weight : bold;
                                                            margin      : 0px 4px;"
                                                     id={HEAD_USER_NAME} />
                                        <spacer flex="1" />
-                                       <!-- buttons -->
-                                       <toolbarseparator id={HEAD_LIST_ORIGIN} style="height : 16px; margin : 0 4px; padding : 0;" />
                                        <!-- misc -->
                                        <toolbarbutton label="Home"
                                                       image={TWITTER_ICON}
@@ -1238,6 +1264,10 @@ var twitterClient = (
                                        <!-- misc -->
                                        <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
                                                       oncommand="KeySnail.modules.prompt.finish(true);" />
+                                   </hbox>
+                                   <hbox id={HEAD_LIST_BUTTON_CONTAINER}>
+                                       <spacer flex="1" />
+                                       <spacer id={HEAD_LIST_ORIGIN} />
                                    </hbox>
                                    <hbox align="center" flex="1">
                                        <vbox align="center">
@@ -1288,8 +1318,9 @@ var twitterClient = (
             // List
             // ============================================================ //
 
-            let listOrigin = document.getElementById(HEAD_LIST_ORIGIN);
-            let headTopContainer = document.getElementById(HEAD_TOP_CONTAINER);
+            let listOrigin          = document.getElementById(HEAD_LIST_ORIGIN);
+            let listButtonContainer = document.getElementById(HEAD_LIST_BUTTON_CONTAINER);
+            let listButtons         = {};
 
             for (let [, crawler] in Iterator(gCrawlers))
             {
@@ -1302,8 +1333,9 @@ var twitterClient = (
                 button.setAttribute("oncommand",
                                     util.format("%s.showCrawledListStatuses('%s', '%s');",
                                                 root, id, name));
-                headTopContainer.insertBefore(button, listOrigin);
+                listButtonContainer.insertBefore(button, listOrigin);
 
+                listButtons[crawler.name] = button;
             }
 
             my.twitterClientHeader = {
@@ -1319,7 +1351,8 @@ var twitterClient = (
                 buttonHome    : document.getElementById(HEAD_USER_BUTTON_HOME),
                 //
                 normalMenu    : document.getElementById(HEAD_MENU),
-                dynamicMenu   : document.getElementById(HEAD_DYNAMIC_MENU)
+                dynamicMenu   : document.getElementById(HEAD_DYNAMIC_MENU),
+                listButtons   : listButtons
             };
 
             // set up normal menu
@@ -2210,8 +2243,7 @@ var twitterClient = (
                             setLastID(crawler);
                         },
                         updateForced,
-                        false,
-                        crawler.cache && crawler.cache.length ? "" : "?" + crawler.countName + "=" + timelineCountBeginning);
+                        false);
                 }
             }
             else
@@ -2685,13 +2717,15 @@ var twitterClient = (
             // }} ======================================================================= //
 
             updateStatusesCache: function (after, noRepeat, fromTimer) {
-                gStatuses.update(after, noRepeat, fromTimer, "?count=" + timelineCount);
-
-                timelineCount = timelineCountEveryUpdates; // use
+                gStatuses.update(after, noRepeat, fromTimer);
             },
 
             updateMentionsCache: function (after, noRepeat, fromTimer) {
                 gMentions.update(after, noRepeat, fromTimer);
+            },
+
+            updateDMsCache: function (after, noRepeat, fromTimer) {
+                gDMs.update(after, noRepeat, fromTimer);
             },
 
             togglePopupStatus: function () {
@@ -2788,9 +2822,33 @@ var twitterClient = (
                     let unreadMentionCount = getStatusPos(gMentions.cache, gMentions.lastID);
                     unreadMentionLabel.setAttribute("value", unreadMentionCount);
                     unreadMentionLabel.parentNode.setAttribute("tooltiptext",
-                                                               unreadMentionCount + M({ja: " 個のあなた宛メッセージがあります", en: " unread mentions"}));
+                                                               unreadMentionCount + M({ja: " 個のあなたへの @ (言及) があります", en: " unread mentions"}));
 
                     log(1000, "statusbar count updated (mentinos)");
+                }
+
+                if (gDMs.cache)
+                {
+                    let unreadDMCount = getStatusPos(gDMs.cache, gDMs.lastID);
+                    unreadDMLabel.setAttribute("value", unreadDMCount);
+                    unreadDMLabel.parentNode.setAttribute("tooltiptext",
+                                                          unreadDMCount + M({ja: " 個のあなた宛 DM があります", en: " direct messages"}));
+
+                    log(1000, "statusbar count updated (dms)");
+                }
+            },
+
+            updateListButton: function () {
+                let listButtons = my.twitterClientHeader.listButtons;
+
+                for (let [, crawler] in Iterator(gCrawlers))
+                {
+                    if (crawler.name in listButtons && crawler.cache && crawler.cache.length)
+                    {
+                        let unreadCount = getStatusPos(crawler.cache, crawler.lastID);
+                        listButtons[crawler.name].setAttribute("label", crawler.name.split("/")[1] + "(" + unreadCount + ")");
+                        listButtons[crawler.name].setAttribute("style", unreadCount ? "font-weight : bold;" : "");
+                    }
                 }
             },
 
@@ -2819,6 +2877,19 @@ var twitterClient = (
 
                 if (!gMentions.cache)
                     self.updateMentionsCache();
+
+                if (!gDMs.cache)
+                    self.updateDMsCache();
+            }
+
+            if (getOption("automatically_begin_list"))
+            {
+                for (let [, crawler] in Iterator(gCrawlers))
+                {
+                    if (crawler.cache)
+                        continue;
+                    crawler.update();
+                }
             }
         }
 
@@ -2882,7 +2953,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.0.0</version>
+    <version>2.1.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -2912,6 +2983,12 @@ var PLUGIN_INFO =
             <type>boolean</type>
             <description>Automatically begin fetching the statuses</description>
             <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか</description>
+        </option>
+        <option>
+            <name>twitter_client.automatically_begin_list</name>
+            <type>boolean</type>
+            <description>Automatically begin fetching the list statuses</description>
+            <description lang="ja">プラグインロード時、自動的にリストのステータスの取得を開始するかどうか</description>
         </option>
         <option>
             <name>twitter_client.timeline_count_beginning</name>
@@ -3087,6 +3164,7 @@ Here is the example settings. This makes twitter client plugin tweet-only.
 style.register("#keysnail-twitter-client-container{ display:none !important; }");
 plugins.options["twitter_client.popup_new_statuses"]           = false;
 plugins.options["twitter_client.automatically_begin"]          = false;
+plugins.options["twitter_client.automatically_begin_list"]     = false;
 plugins.options["twitter_client.timeline_count_beginning"]     = 0;
 plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 ||<
@@ -3250,6 +3328,7 @@ twitter_client.popup_new_statuses オプションが true に設定されてい�
 style.register("#keysnail-twitter-client-container{ display:none !important; }");
 plugins.options["twitter_client.popup_new_statuses"]           = false;
 plugins.options["twitter_client.automatically_begin"]          = false;
+plugins.options["twitter_client.automatically_begin_list"]     = false;
 plugins.options["twitter_client.timeline_count_beginning"]     = 0;
 plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 ||<
@@ -3261,6 +3340,11 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+//
+// ==== 2.1.0 (2010 05/23) ====
+//
+// * Added "unread count" for each `List'
+// * Made `List' statuses to be fetched automatically
 //
 // ==== 2.0.0 (2010 05/23) ====
 //
