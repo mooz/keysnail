@@ -676,6 +676,7 @@ var twitterClient = (
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_dm_id",
                 oauth      : gOAuth,
                 mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
+                lastIDHook : updateAllStatusbars,
                 beginCount : timelineCountEveryUpdates
             }
         );
@@ -1494,6 +1495,9 @@ var twitterClient = (
                     popupStatus = true;
             }
 
+            if (status.id in share.popUppedIDs)
+                popupStatus = false;
+
             if (!popupStatus)
             {
                 // ignore this status and go to next step
@@ -1502,6 +1506,8 @@ var twitterClient = (
 
                 return;
             }
+
+            share.popUppedIDs[status.id] = true;
 
             function proc() {
                 if (share.unPopUppedStatuses && share.unPopUppedStatuses.length)
@@ -2861,6 +2867,9 @@ var twitterClient = (
         // ============================================================ //
         // Initialize
         // ============================================================ //
+
+        if (!share.popUppedIDs)
+            share.popUppedIDs = {};
 
         if (!share.userInfo)
             self.setUserInfo();
