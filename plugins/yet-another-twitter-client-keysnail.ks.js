@@ -55,7 +55,8 @@ var optionsDefaultValue = {
     // j.mp settings
     "jmp_id"                                : "stillpedant",
     "jmp_key"                               : "R_168719821d1100c59352962dce863251",
-    "lists"                                 : []
+    "lists"                                 : [],
+    "show_sources"                          : true
 };
 
 function getOption(aName) {
@@ -2203,7 +2204,7 @@ var twitterClient = (
 
             function createMap(maps) {
                 let map = {};
-                maps.forEach(function (m) m.forEach(function (s) map[s.id] = s));
+                (maps || []).forEach(function (m) m.forEach(function (s) map[s.id] = s));
                 return map;
             }
 
@@ -2394,6 +2395,7 @@ var twitterClient = (
             function favIconGetter(aRow) aRow[0].favorited ? FAVORITED_ICON : "";
 
             let preferScreenName = getOption("prefer_screen_name");
+            let showSources      = getOption("show_sources");
 
             var collection = statuses.map(
                 function (status) {
@@ -2407,7 +2409,7 @@ var twitterClient = (
                             favIconGetter,
                             util.format("%s %s",
                                         getElapsedTimeString(current - created),
-                                        (matched ? matched[1] : "Web"),
+                                        showSources ? (matched ? matched[1] : "Web") : "",
                                         (status.in_reply_to_screen_name ?
                                          " to " + status.in_reply_to_screen_name : ""))];
                 }
