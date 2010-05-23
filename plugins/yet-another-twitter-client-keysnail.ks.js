@@ -16,6 +16,7 @@ var optionsDefaultValue = {
     "mentions_update_interval"     : 60 * 1000 * 5,  // 5 minute
     "dm_update_interval"           : 60 * 1000 * 20, // 20 minute
     "list_update_interval"         : 60 * 1000 * 5,  // 5 minute
+    "list_update_intervals"        : null,
     "popup_new_statuses"           : false,
     "popup_new_replies"            : true,
     "main_column_width"            : [11, 70, 19],
@@ -517,7 +518,7 @@ var twitterClient = (
                         }
                         else
                         {
-                            log(LOG_LEVEL_DEBUG, self.name + " => update %s", new Date());
+                            log(LOG_LEVEL_DEBUG, self.name + " => update %s (interval %s)", new Date(), self.interval);
                             let (statuses = decodeJSON(xhr.responseText))
                                 self.cache = self.combineCache(self.mapper ? self.mapper(statuses) : statuses);
                             if (self.lastIDHook)
@@ -632,7 +633,8 @@ var twitterClient = (
                     {
                         action     : listAction.action,
                         name       : name,
-                        interval   : getOption("list_update_interval"),
+                        interval   : (getOption("list_update_intervals") && getOption("list_update_intervals")[name])
+                            || getOption("list_update_interval"),
                         lastKey    : "extensions.keysnail.plugins.twitter_client.last_id." + name.replace("/", "_"),
                         oauth      : gOAuth,
                         countName  : "per_page",
