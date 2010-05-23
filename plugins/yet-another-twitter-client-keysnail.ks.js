@@ -234,6 +234,11 @@ var twitterAPI = {
         getDM: {
             action : "http://api.twitter.com/1/direct_messages.json",
             method : "GET"
+        },
+
+        getSentDM: {
+            action : "http://api.twitter.com/1/direct_messages/sent.json",
+            method : "GET"
         }
     }
 };
@@ -677,6 +682,17 @@ var twitterClient = (
                 oauth      : gOAuth,
                 mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
                 lastIDHook : updateAllStatusbars,
+                beginCount : timelineCountEveryUpdates
+            }
+        );
+
+        var gSentDMs = new Crawler(
+            {
+                action     : twitterAPI.get("getSentDM").action,
+                name       : M({ en: "Sent DMs", ja: "Sent DMs" }),
+                interval   : 0,
+                oauth      : gOAuth,
+                mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
                 beginCount : timelineCountEveryUpdates
             }
         );
@@ -2231,7 +2247,7 @@ var twitterClient = (
             trail(id);
         }
 
-        function showCrawlersCache(crawler, arg) {
+        function showCrawlersCache(crawler, arg, cacheFilter) {
             var updateForced = typeof aArg === "number";
 
             if (updateForced || !crawler.cache)
@@ -2247,7 +2263,7 @@ var twitterClient = (
 
                     crawler.update(
                         function () {
-                            callSelector(crawler.cache, crawler.name);
+                            callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache, crawler.name);
                             setLastID(crawler);
                         },
                         updateForced,
@@ -2257,7 +2273,7 @@ var twitterClient = (
             else
             {
                 // use cache
-                callSelector(crawler.cache, crawler.name);
+                callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache, crawler.name);
                 setLastID(crawler);
             }
         }
@@ -2761,7 +2777,9 @@ var twitterClient = (
             showDMs: function (arg) {
                 gPrompt.forced = true;
                 showLoadingMessage();
-                showCrawlersCache(gDMs, arg);
+                showCrawlersCache(gDMs, arg, gSentDMs.cache ?
+                                  function (c) c.concat(gSentDMs.cache).sort(function (a, b) b.id - a.id)
+                                  : null);
             },
 
             showCrawledListStatuses: function (id, listName) {
@@ -2890,7 +2908,10 @@ var twitterClient = (
                     self.updateMentionsCache();
 
                 if (!gDMs.cache)
+                {
+                    gSentDMs.update();
                     self.updateDMsCache();
+                }
             }
 
             if (getOption("automatically_begin_list"))
@@ -2964,7 +2985,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.1.1</version>
+    <version>2.1.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3351,6 +3372,11 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+//
+// ==== 2.1.2 (2010 05/23) ====
+//
+// * Fixed the pop-up bug.
+// * Added *sent* DMs to the `DMs'
 //
 // ==== 2.1.0 (2010 05/23) ====
 //
