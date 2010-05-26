@@ -626,7 +626,7 @@ var twitterClient = (
         timelineCountBeginning    = normalizeCount(timelineCountBeginning);
         timelineCountEveryUpdates = normalizeCount(timelineCountEveryUpdates);
 
-        var gCrawlers = {};
+        var gLists = {};
 
         getOption("lists").forEach(
             function (name) {
@@ -635,7 +635,7 @@ var twitterClient = (
                 // list
                 let listAction = twitterAPI.get("getListStatuses", id, listName);
 
-                gCrawlers[name] = new Crawler(
+                gLists[name] = new Crawler(
                     {
                         action     : listAction.action,
                         name       : name,
@@ -1342,7 +1342,7 @@ var twitterClient = (
             let listButtonContainer = document.getElementById(HEAD_LIST_BUTTON_CONTAINER);
             let listButtons         = {};
 
-            for (let [, crawler] in Iterator(gCrawlers))
+            for (let [, crawler] in Iterator(gLists))
             {
                 let button = document.createElement("toolbarbutton");
 
@@ -2160,7 +2160,7 @@ var twitterClient = (
                                                    self.showCrawledListStatuses.apply(null, name.split("/"));
                                                };
                                            })(name)]
-                         for ([name] in Iterator(gCrawlers))];
+                         for ([name] in Iterator(gLists))];
 
             const ACT_ROW = 2;
 
@@ -2785,7 +2785,7 @@ var twitterClient = (
             },
 
             showCrawledListStatuses: function (id, listName) {
-                let crawler = gCrawlers[id + "/" + listName];
+                let crawler = gLists[id + "/" + listName];
 
                 if (crawler)
                 {
@@ -2869,7 +2869,7 @@ var twitterClient = (
             updateListButton: function () {
                 let listButtons = my.twitterClientHeader.listButtons;
 
-                for (let [, crawler] in Iterator(gCrawlers))
+                for (let [, crawler] in Iterator(gLists))
                 {
                     if (crawler.name in listButtons && crawler.cache && crawler.cache.length)
                     {
@@ -2919,7 +2919,7 @@ var twitterClient = (
 
             if (getOption("automatically_begin_list"))
             {
-                for (let [, crawler] in Iterator(gCrawlers))
+                for (let [, crawler] in Iterator(gLists))
                 {
                     if (crawler.cache)
                         continue;
