@@ -425,6 +425,15 @@ var twitterClient = (
         // ============================================================ //
 
         function Crawler(arg) {
+            if (!share.twitterCache)
+                share.twitterCache = {};
+            if (!share.twitterUpdater)
+                share.twitterUpdater = {};
+            if (!share.twitterDelegator)
+                share.twitterDelegator = {};
+            if (!share.twitterInterval)
+                share.twitterInterval = {};
+
             this.action       = arg.action;
             this.name         = arg.name;
             this.interval     = arg.interval;
@@ -437,16 +446,12 @@ var twitterClient = (
             this.setLastID    = arg.setLastID;
             this.lastIDHook   = arg.lastIDHook;
             this.beginCount   = arg.beginCount;
-
-            if (!share.twitterCache)
-                share.twitterCache = {};
-            if (!share.twitterUpdater)
-                share.twitterUpdater = {};
-            if (!share.twitterDelegator)
-                share.twitterDelegator = {};
         }
 
         Crawler.prototype = {
+            set interval(interval) { share.twitterInterval[this.action] = interval; },
+            get interval() share.twitterInterval[this.action],
+
             set updater(updater) { share.twitterUpdater[this.action] = updater; },
             get updater() share.twitterUpdater[this.action],
 
