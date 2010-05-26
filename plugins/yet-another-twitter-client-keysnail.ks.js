@@ -27,6 +27,7 @@ var optionsDefaultValue = {
     "automatically_begin"          : true,
     "automatically_begin_list"     : true,
     "automatically_begin_tracking" : true,
+    "tracking_langage"             : null,
     "prefer_screen_name"           : false,
     "keymap"                       : null,
     "tweet_keymap"                 : null,
@@ -698,7 +699,9 @@ var twitterClient = (
         var gTrackings = {};
 
         function addTrackingCrawler(query, infoHolder) {
-            let searchAction = twitterAPI.get("search", "?q=" + encodeURIComponent(query));
+            let lang         = getOption("tracking_langage");
+            let searchAction = twitterAPI.get("search", "?" + (lang ? "lang=" + lang + "&" : "")
+                                              + "q=" + encodeURIComponent(query));
 
             return gTrackings[query] = new Crawler(
                 {
