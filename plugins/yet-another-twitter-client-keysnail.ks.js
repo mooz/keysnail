@@ -108,6 +108,14 @@ function updateAllListButtons() {
                   });
 }
 
+function updateAllSearchButtons() {
+    notifyWindows(function (win) {
+                      try {
+                          win.KeySnail.modules.plugins.twitterClient.updateSearchButton();
+                      } catch (x) {}
+                  });
+}
+
 // }} ======================================================================= //
 
 var genCommand = {
@@ -415,16 +423,18 @@ var twitterClient = (
         // ============================================================ //
 
         function Crawler(arg) {
-            this.action     = arg.action;
-            this.name       = arg.name;
-            this.interval   = arg.interval;
-            this.oauth      = arg.oauth;
-            this.lastKey    = arg.lastKey;
-            this.startNext  = arg.startNext;
-            this.mapper     = arg.mapper;
-            this.countName  = arg.countName || "count";
-            this.lastIDHook = arg.lastIDHook;
-            this.beginCount = arg.beginCount;
+            this.action       = arg.action;
+            this.name         = arg.name;
+            this.interval     = arg.interval;
+            this.oauth        = arg.oauth;
+            this.lastKey      = arg.lastKey;
+            this.startNext    = arg.startNext;
+            this.mapper       = arg.mapper;
+            this.countName    = arg.countName || "count";
+            this.getLastID    = arg.getLastID;
+            this.setLastID    = arg.setLastID;
+            this.lastIDHook   = arg.lastIDHook;
+            this.beginCount   = arg.beginCount;
 
             if (!share.twitterCache)
                 share.twitterCache = {};
@@ -444,8 +454,17 @@ var twitterClient = (
             set delegator(delegator) { share.twitterDelegator[this.action] = delegator; },
             get delegator() share.twitterDelegator[this.action],
 
-            get lastID() this.lastKey ? util.getUnicharPref(this.lastKey) : this._lastID,
-            set lastID(id) this.lastKey ? util.setUnicharPref(this.lastKey, id) : this._lastID = id,
+            get lastID() this.getLastID ? this.getLastID()
+                : this.lastKey ? util.getUnicharPref(this.lastKey) : this._lastID,
+            set lastID(id) this.setLastID ? this.setLastID(id)
+                : this.lastKey ? util.setUnicharPref(this.lastKey, id) : this._lastID = id,
+
+            stop:
+            function stop() {
+                if (this.updater)
+                    clearTimeout(this.updater);
+                this.updater = null;
+            },
 
             hasTwitterClient:
             function hasTwitterClient(win) {
@@ -500,7 +519,9 @@ var twitterClient = (
 
                 this.oauth.asyncRequest(
                     {
-                        action: this.action + (this.cache ? "" : "?" + this.countName + "=" + this.beginCount),
+                        action: this.action +
+                            (this.cache ? "" :
+                             (this.action.indexOf("?") === -1 ? "?" : "&") + this.countName + "=" + this.beginCount),
                         method: "GET"
                     },
                     function (ev, xhr) {
@@ -519,8 +540,8 @@ var twitterClient = (
                                 return;
                             }
 
-                            display.echoStatusBar(M({en: "Failed to get " + self.name,
-                                                     ja: self.name + "の取得に失敗しました"}));
+                            display.echoStatusBar(M({ en: "Failed to get " + self.name,
+                                                      ja: self.name + L("の取得に失敗しました") }));
                         }
                         else
                         {
@@ -556,7 +577,7 @@ var twitterClient = (
                 window.addEventListener(
                     "unload",
                     function () {
-                        self.updater = null;
+                        self.stop();
 
                         for (let [, win] in Iterator(getBrowserWindows()))
                         {
@@ -620,11 +641,13 @@ var twitterClient = (
             return n;
         }
 
-        var timelineCountBeginning    = getOption("timeline_count_beginning");
-        var timelineCountEveryUpdates = getOption("timeline_count_every_updates");
+        var gTimelineCountBeginning    = getOption("timeline_count_beginning");
+        var gTimelineCountEveryUpdates = getOption("timeline_count_every_updates");
 
-        timelineCountBeginning    = normalizeCount(timelineCountBeginning);
-        timelineCountEveryUpdates = normalizeCount(timelineCountEveryUpdates);
+        gTimelineCountBeginning    = normalizeCount(gTimelineCountBeginning);
+        gTimelineCountEveryUpdates = normalizeCount(gTimelineCountEveryUpdates);
+
+        // Lists {{ ================================================================= //
 
         var gLists = {};
 
@@ -645,10 +668,69 @@ var twitterClient = (
                         oauth      : gOAuth,
                         countName  : "per_page",
                         lastIDHook : updateAllListButtons,
-                        beginCount : timelineCountBeginning
+                        beginCount : gTimelineCountBeginning
                     }
                 );
             });
+
+        // }} ======================================================================= //
+
+        // Searches {{ ============================================================== //
+
+        function filterSearchResult(status) {
+            status.user = {
+                screen_name             : status.from_user,
+                name                    : status.from_user,
+                profile_image_url       : status.profile_image_url
+            };
+            status.in_reply_to_screen_name = status.to_user;
+
+            return status;
+        }
+
+        var gSearches = {};
+
+        function addSearchCrawler(query, infoHolder) {
+            let searchAction = twitterAPI.get("search", "?q=" + encodeURIComponent(query));
+
+            return gSearches[query] = new Crawler(
+                {
+                    action       : searchAction.action,
+                    name         : query,
+                    interval     : infoHolder["interval"] || getOption("list_update_interval"),
+                    oauth        : gOAuth,
+                    countName    : "rpp",
+                    mapper       : function (response) response.results.map(filterSearchResult),
+                    getLastID    : function () infoHolder["lastID"],
+                    setLastID    : function (v) {
+                        infoHolder["lastID"] = v;
+                        persist.preserve(share.twitterSearchInfo, "yatck_search_info");
+                    },
+                    lastIDHook   : updateAllSearchButtons,
+                    beginCount   : gTimelineCountBeginning
+                }
+            );
+        }
+
+        if (!share.twitterSearchInfo)
+            share.twitterSearchInfo = persist.restore("yatck_search_info") || {};
+
+        for (let [name, info] in Iterator(share.twitterSearchInfo))
+        {
+            if (!share.twitterSearchInfo[name])
+                share.twitterSearchInfo[name] = {};
+
+            addSearchCrawler(name, share.twitterSearchInfo[name]);
+
+            // {
+            //     "#emacs": {
+            //         lastID   : "123432",
+            //         interval : 1000 * 60 * 10
+            //     }, ...
+            // };
+        }
+
+        // }} ======================================================================= //
 
         var gStatuses = new Crawler(
             {
@@ -658,7 +740,7 @@ var twitterClient = (
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_status_id",
                 oauth      : gOAuth,
                 lastIDHook : updateAllStatusbars,
-                beginCount : timelineCountBeginning
+                beginCount : gTimelineCountBeginning
             }
         );
 
@@ -670,7 +752,7 @@ var twitterClient = (
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_mention_id",
                 oauth      : gOAuth,
                 lastIDHook : updateAllStatusbars,
-                beginCount : timelineCountEveryUpdates
+                beginCount : gTimelineCountEveryUpdates
             }
         );
 
@@ -683,7 +765,7 @@ var twitterClient = (
                 oauth      : gOAuth,
                 mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
                 lastIDHook : updateAllStatusbars,
-                beginCount : timelineCountEveryUpdates
+                beginCount : gTimelineCountEveryUpdates
             }
         );
 
@@ -694,7 +776,7 @@ var twitterClient = (
                 interval   : 0,
                 oauth      : gOAuth,
                 mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
-                beginCount : timelineCountEveryUpdates
+                beginCount : gTimelineCountEveryUpdates
             }
         );
 
@@ -911,7 +993,7 @@ var twitterClient = (
             log(LOG_LEVEL_DEBUG, msg);
             display.echoStatusBar(msg);
 
-            persist.preserve("blackusers", gBlackUsers);
+            persist.preserve(gBlackUsers, "blackusers");
         }
 
         function blackUsersManager() {
@@ -926,7 +1008,7 @@ var twitterClient = (
                     message    : M({ja: "ユーザの管理", en: "Manage users"}) +
                         " [ j/k: scroll | d: delete from blacklist | q: quit manager ] :",
                     collection : collection,
-                    onFinish   : function () { if (modified) persist.preserve("blackusers", gBlackUsers); },
+                    onFinish   : function () { if (modified) persist.preserve(gBlackUsers, "blackusers"); },
                     keymap     : {
                         "C-z"   : "prompt-toggle-edit-mode",
                         "SPC"   : "prompt-next-page",
@@ -1132,6 +1214,38 @@ var twitterClient = (
             'ZOOLk8P7j7er2WBhwWY9sdbDeIJnwBjBWBBAhGsCmiZxPD4/7Z98b/0QVWUehjkZ5vQb/Un5e/DI' +
             'sVsAAAAASUVORK5CYII=';
 
+        const SEARCH_ICON =
+            'data:image/png;base64,' +
+            'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
+            'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJGSURBVDjLjdJLSNRBHMDx78yqLZaKS75D' +
+            'PdgDDaFDbdJmde5QlhCJGxgpRJfqEEKnIsJLB7skQYQKZaSmdLaopPCgEvSCShCMzR5a7oq7/3l1' +
+            '2RVtjfzBMA/4fWZ+MyOccwBM3g8HEbIdfCEhfAFnLVapOa28Uevpjrqz/WOsERJgsu9Uq5CZQzgq' +
+            'rJfo9BajNd5irEYn4p3OUiFExtCLmw2tawFi4l5zUMjMIau9u7K+qxeoAcoAA0wDb2OPwmfA16Li' +
+            'iaOHLj1edRLpkO3WmIis7+oBDgJbgQ2AH6gC6jY19N62RkcctKeVIJAhp9QgUA3kJXdONZVcq9Jx' +
+            'PSgQoXRAyIDRth8oAXQyKdWnoCKrTD9CBv4GMqx1WGNZkeRWJKbG2hiD1Cb9FbTnzWFdY/LCdLKl' +
+            'gNQ84gyNKqHm0gDjqVHnxDHgA/B9RQkpaB6YklkZl62np9KBhOqwjpKFgeY2YAz4BESBWHI8Hhs6' +
+            'PVVSvc3v98ye4fP7T676B845nt040ip98qpWJmI9PWiU6bfWgXGN2YHcKwU7tsuc4kpUPMbU0+f8' +
+            '+vKt+Pitl7PLAMDI9cNBoB0hQwICzjqUp6MZvsy8yvp95BRuQUjJ75mPvH4wYo1NlJ64Mza7DPwr' +
+            'hi8cCOeXl/aUB4P4c/NJxKLMvpngycCrzxVFG2v/CwAMnguF80oLe8p27cQh+fnpPV/fTc95S6pi' +
+            'XQDAw7a9YbWkezZXFbAwMx/xPFXb1D3+Y90AQF/L7kAsri9mZ4lrTd0TcYA/Kakr+x2JSPUAAAAA' +
+            'SUVORK5CYII=';
+
+        const SEARCH_ADD_ICON =
+            'data:image/png;base64,' +
+            'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0' +
+            'U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAJnSURBVDjLpZLvSxNxHMf9C3rqw6QHcVaI' +
+            'KHVEKQQuVtuaOrelbldTj5mrliQjYUtreqUrbYaObf6k9oOmTAIz8TbS6c7FdqPChBCLIq64hz0+' +
+            'Pn2/MaI6C6EHLziO7+f1eX8+328RABT9Dz8/+LCJ5CNUnI9YxHy0TeLDLVJ2xixujBvj6TEd+U8B' +
+            'HzHT+ahF4MMUn51pcmYmjMRG0EBsBPROLmDkOZ9RWPXW0rsKcGdcnHvczOQ/fitFNCDsiMsIDeJA' +
+            'ylvLpLw6ITmgliUpyoWpeC5E8egggbiE6EY4EF2ITkQzomRlSMsnBtTxXRJcFLPTjU50qB5xo1B8' +
+            'vVCMU3QgahKMypkc0IgyQT7SImXGjbi77ZeuP0awPjOBZd4Ipmg9LN9SEslBrSQfIWSROL8eC6yF' +
+            'wqsFWfuFOQOENydAN6mC5zcVRIJRywWZqWaR8zXgEZSFwo7Wp41AxRrAsXgFJl+Ngm22FWo8VVDt' +
+            'xjv8Q5D2G9A96/ESSxAGBI0jT732QSA/Asy6Cx68vAuetBuOdpfLBamROnJtVC+sDGvxNe5HnMKR' +
+            'NWMKoCMUeLh+aArqoNJRBmX2Upi3n2yUPaQX987Rq8O1QnJQw7N9Z5xLPaeJRZeCwJFvr7qgousI' +
+            'fMr6YWftPrBuLcy2Hy+WPWW2/yyJiLOMWsTLYvtUEo5c3nkYDtkOwpfNR/B1KwTvlnsh1lYlRVuO' +
+            'Ff8m+Bvz16rNK0Pn4f36MAhvpuED9xAyQQvcURLbexJg5jpOmNm+OthacMHbhR5IeQ0Qs5I7exZg' +
+            'ntBkU8hU+XmpV4lGILdDVMU+/P87L+2y1u3sopMAAAAASUVORK5CYII=';
+
         const CONTAINER_ID      = "keysnail-twitter-client-container";
         const UNREAD_STATUS_ID  = "keysnail-twitter-client-unread-status";
         const UNREAD_MENTION_ID = "keysnail-twitter-client-unread-mention";
@@ -1240,8 +1354,10 @@ var twitterClient = (
             const HEAD_MENU         = "keysnail-twitter-client-header-menu";
             const HEAD_DYNAMIC_MENU = "keysnail-twitter-client-header-dynamic-menu";
 
-            const HEAD_LIST_ORIGIN = "keysnail-twitter-client-header-list-origin";
-            const HEAD_LIST_BUTTON_CONTAINER = "keysnail-twitter-client-header-list-button-container";
+            const HEAD_LIST_ORIGIN   = "keysnail-twitter-client-header-search-origin";
+            const HEAD_SEARCH_ORIGIN = "keysnail-twitter-client-header-list-origin";
+            const HEAD_ADD_SEARCH    = "keysnail-twitter-client-header-add-search";
+            const HEAD_CRAWLER_BUTTON_CONTAINER = "keysnail-twitter-client-header-crawler-button-container";
 
             let tooltipTextTwitter = M({ja: "このユーザの Twitter ページへ", en: "Visit this user's page on twitter"});
             let tooltipTextHome    = M({ja: "このユーザのホームページへ", en: "Visit this user's homepage"});
@@ -1285,9 +1401,11 @@ var twitterClient = (
                                        <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
                                                       oncommand="KeySnail.modules.prompt.finish(true);" />
                                    </hbox>
-                                   <hbox id={HEAD_LIST_BUTTON_CONTAINER}>
+                                   <hbox id={HEAD_CRAWLER_BUTTON_CONTAINER}>
                                        <spacer flex="1" />
-                                       <spacer id={HEAD_LIST_ORIGIN} />
+                                       <toolbarseparator id={HEAD_LIST_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
+                                       <toolbarseparator id={HEAD_SEARCH_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
+                                       <toolbarbutton id={HEAD_ADD_SEARCH} image={SEARCH_ADD_ICON} oncommand={root + ".addSearch();"} />
                                    </hbox>
                                    <hbox align="center" flex="1">
                                        <vbox align="center">
@@ -1334,12 +1452,11 @@ var twitterClient = (
                 container, document.getElementById("keysnail-completion-list")
             );
 
-            // ============================================================ //
-            // List
-            // ============================================================ //
+            let crawlerButtonContainer = document.getElementById(HEAD_CRAWLER_BUTTON_CONTAINER);
+
+            // Lists {{ ================================================================= //
 
             let listOrigin          = document.getElementById(HEAD_LIST_ORIGIN);
-            let listButtonContainer = document.getElementById(HEAD_LIST_BUTTON_CONTAINER);
             let listButtons         = {};
 
             for (let [, crawler] in Iterator(gLists))
@@ -1351,12 +1468,34 @@ var twitterClient = (
                 button.setAttribute("tooltiptext", crawler.name);
                 button.setAttribute("image", TAG_ICON);
                 button.setAttribute("oncommand",
-                                    util.format("%s.showCrawledListStatuses('%s', '%s');",
-                                                root, id, name));
-                listButtonContainer.insertBefore(button, listOrigin);
+                                    util.format("%s.showCrawledListStatuses('%s', '%s');", root, id, name));
+                crawlerButtonContainer.insertBefore(button, listOrigin);
 
                 listButtons[crawler.name] = button;
             }
+
+            // }} ======================================================================= //
+
+            // Search {{ ================================================================ //
+
+            let searchOrigin    = document.getElementById(HEAD_SEARCH_ORIGIN);
+            let searchButtons   = {};
+
+            for (let [, crawler] in Iterator(gSearches))
+            {
+                let button = document.createElement("toolbarbutton");
+
+                button.setAttribute("label", crawler.name);
+                button.setAttribute("tooltiptext", crawler.name);
+                button.setAttribute("image", SEARCH_ICON);
+                button.setAttribute("oncommand", util.format("%s.showCrawledSearchStatuses('%s');", root, crawler.name));
+                button.setAttribute("onclick", root + ".searchButtonClicked(event);");
+                crawlerButtonContainer.insertBefore(button, searchOrigin);
+
+                searchButtons[crawler.name] = button;
+            }
+
+            // }} ======================================================================= //
 
             my.twitterClientHeader = {
                 container     : container,
@@ -1372,7 +1511,9 @@ var twitterClient = (
                 //
                 normalMenu    : document.getElementById(HEAD_MENU),
                 dynamicMenu   : document.getElementById(HEAD_DYNAMIC_MENU),
-                listButtons   : listButtons
+                //
+                listButtons   : listButtons,
+                searchButtons : searchButtons
             };
 
             // set up normal menu
@@ -1832,33 +1973,7 @@ var twitterClient = (
                                 return;
                             }
 
-                            gPrompt.close();
-                            prompt.selector(
-                                {
-                                    message    : "regexp:",
-                                    collection : results.map(
-                                        function (result) [result.profile_image_url, result.from_user, html.unEscapeTag(result.text)]
-                                    ),
-                                    style      : [getOption("search_result_user_name_style"), null],
-                                    width      : [15, 85],
-                                    header     : ["From", 'Search result for "' + aWord + '"'],
-                                    flags      : [ICON | IGNORE, 0, 0],
-                                    filter     : function (aIndex) {
-                                        var result = results[aIndex];
-
-                                        return (aIndex < 0 ) ? [null] :
-                                            [{
-                                                 screen_name : result.from_user,
-                                                 id          : result.id,
-                                                 user_id     : result.from_user_id,
-                                                 text        : html.unEscapeTag(result.text),
-                                                 favorited   : result.favorited,
-                                                 raw         : result
-                                             }];
-                                    },
-                                    keymap  : getOption("keymap"),
-                                    actions : gTwitterCommonActions
-                                });
+                            callSelector(results.map(filterSearchResult), 'Search result for "' + aWord + '"');
                         }
                     }
                 );
@@ -2053,7 +2168,7 @@ var twitterClient = (
 
         function showListStatuses(aScreenName, aListName) {
             gOAuth.asyncRequest(
-                twitterAPI.get("getListStatuses", aScreenName, aListName, "?per_page=" + timelineCountBeginning),
+                twitterAPI.get("getListStatuses", aScreenName, aListName, "?per_page=" + gTimelineCountBeginning),
                 function (aEvent, xhr) {
                     if (xhr.readyState === 4)
                     {
@@ -2289,7 +2404,7 @@ var twitterClient = (
 
         function showTargetStatus(target) {
             gOAuth.asyncRequest(
-                twitterAPI.get("userTimeline", target, "?count=" + timelineCountEveryUpdates),
+                twitterAPI.get("userTimeline", target, "?count=" + gTimelineCountEveryUpdates),
                 function (aEvent, xhr) {
                     if (xhr.readyState === 4)
                     {
@@ -2515,7 +2630,8 @@ var twitterClient = (
                             }
                             else if (status.user.screen_name === selectedUserInReplyToID)
                                 style += getOption("selected_user_reply_to_style");
-                            else if (status.user.in_reply_to_screen_name === selectedUserInReplyToID)
+                            else if (status.user.in_reply_to_screen_name &&
+                                     status.user.in_reply_to_screen_name === selectedUserInReplyToID)
                                 style += getOption("selected_user_reply_to_reply_to_style");
                             else if (status.retweeted_status)
                                 style += getOption("retweeted_status_style");
@@ -2621,6 +2737,16 @@ var twitterClient = (
                                                 [util.format(M({ja: "%s の Twitter ホームへ", en: "%s in twitter"}), userName), "h",
                                                  genCommand.openLink("http://twitter.com/" + userName)]
                                             ]);
+                        }
+                        else if (text[0] === '#')
+                        {
+                            let actions = [
+                                [M({ ja: "このハッシュタグをトラッキングする", en: "Track this hash tag" }),
+                                 null,
+                                 root + util.format(".addSearch('%s');", text)]
+                            ];
+
+                            showDynamicMenu(aEvent, actions);
                         }
                         else
                         {
@@ -2794,6 +2920,18 @@ var twitterClient = (
                 }
             },
 
+            showCrawledSearchStatuses: function (query) {
+                log(LOG_LEVEL_DEBUG, query);
+
+                let crawler = gSearches[query];
+
+                if (crawler)
+                {
+                    gPrompt.forced = true;
+                    showCrawlersCache(crawler);
+                }
+            },
+
             search: function () {
                 search();
             },
@@ -2812,9 +2950,9 @@ var twitterClient = (
             },
 
             showUsersTimeline: function (ev, arg) {
-                let count = arg || timelineCountBeginning;
+                let count = arg || gTimelineCountBeginning;
                 if (count < 0)
-                    count = timelineCountBeginning;
+                    count = gTimelineCountBeginning;
 
                 gOAuth.asyncRequest(
                     twitterAPI.get("myTimeline", "?count=" + Math.min(count, 200)),
@@ -2880,9 +3018,103 @@ var twitterClient = (
                 }
             },
 
-            setUserInfo: setUserInfo,
-            blackUsersManager: blackUsersManager,
-            switchTo: switchTo
+            updateSearchButton: function () {
+                let searchButtons = my.twitterClientHeader.searchButtons;
+
+                for (let [, crawler] in Iterator(gSearches))
+                {
+                    if (crawler.name in searchButtons && crawler.cache && crawler.cache.length)
+                    {
+                        let unreadCount = getStatusPos(crawler.cache, crawler.lastID);
+                        searchButtons[crawler.name].setAttribute("label", crawler.name + "(" + unreadCount + ")");
+                        searchButtons[crawler.name].setAttribute("style", unreadCount ? "font-weight : bold;" : "");
+                    }
+                }
+            },
+
+            addSearch: function (init) {
+                init = init || "";
+
+                let word = window.prompt(M({ en: "Input the word to track (beginning with the # means hash tag)",
+                                             ja: "トラッキングしたい単語を入力してください (# から始めるとハッシュタグになります)" }), init);
+
+                if (!word)
+                    return;
+
+                if (word in gSearches)
+                    return alert(M({ en: "Specified word is already tracked",
+                                     ja: "指定された単語はすでにトラッキング済みです" }));
+
+                if (!share.twitterSearchInfo[word])
+                    share.twitterSearchInfo[word] = {};
+
+                let crawler = addSearchCrawler(word, share.twitterSearchInfo[word]);
+
+                let crawlerButtonContainer = document.getElementById(HEAD_CRAWLER_BUTTON_CONTAINER);
+                let searchOrigin           = document.getElementById(HEAD_SEARCH_ORIGIN);
+                let button                 = document.createElement("toolbarbutton");
+
+                button.setAttribute("label", crawler.name);
+                button.setAttribute("tooltiptext", crawler.name);
+                button.setAttribute("image", SEARCH_ICON);
+                button.setAttribute("oncommand", util.format("%s.showCrawledSearchStatuses('%s');", root, crawler.name));
+                button.setAttribute("onclick", root + ".searchButtonClicked(event);");
+                crawlerButtonContainer.insertBefore(button, searchOrigin);
+
+                my.twitterClientHeader.searchButtons[crawler.name] = button;
+
+                crawler.update();
+            },
+
+            searchButtonClicked: function (ev) {
+                if (ev.button !== 2)
+                    return;
+
+                let name = ev.target.getAttribute("tooltiptext");
+
+                if (name in gSearches)
+                {
+                    showDynamicMenu(ev,
+                                    [[util.format(M({ ja: '"%s" のトラッキングを終了', en: 'Cancel tracking "%s"' }), name),
+                                      null,
+                                      root + util.format(".removeSearch('%s');", name)],
+                                     [util.format(M({ ja: '"%s" のトラッキングを終了', en: 'Cancel tracking "%s"' }), name),
+                                      null,
+                                      root + util.format(".removeSearch('%s');", name)]
+                                    ]);
+                }
+            },
+
+            removeSearch: function (word) {
+                if (!(word in gSearches))
+                    return;
+
+                let confirmed = window.confirm(M({ en: "Cancel tracking word's tracking",
+                                                   ja: "この単語のトラッキングを終了します。よろしいですか？" }));
+
+                if (!confirmed)
+                    return;
+
+                gSearches[word].stop();
+
+                delete share.twitterSearchInfo[word];
+                delete gSearches[word];
+
+                persist.preserve(share.twitterSearchInfo, "yatck_search_info");
+
+                let searchButton = my.twitterClientHeader.searchButtons[word];
+
+                if (searchButton)
+                {
+                    let crawlerButtonContainer = document.getElementById(HEAD_CRAWLER_BUTTON_CONTAINER);
+                    crawlerButtonContainer.removeChild(searchButton);
+                    delete my.twitterClientHeader.searchButtons[word];
+                }
+            },
+
+            setUserInfo       : setUserInfo,
+            blackUsersManager : blackUsersManager,
+            switchTo          : switchTo
         };
 
         // ============================================================ //
@@ -2920,6 +3152,18 @@ var twitterClient = (
             if (getOption("automatically_begin_list"))
             {
                 for (let [, crawler] in Iterator(gLists))
+                {
+                    if (crawler.cache)
+                        continue;
+                    crawler.update();
+                }
+            }
+
+            if (true || getOption("automatically_begin_search"))
+            {
+                inspectObject(gSearches);
+
+                for (let [, crawler] in Iterator(gSearches))
                 {
                     if (crawler.cache)
                         continue;
