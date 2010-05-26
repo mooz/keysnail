@@ -14,6 +14,7 @@ var optionsDefaultValue = {
     "log_level"                    : LOG_LEVEL_MESSAGE,
     "update_interval"              : 60 * 1000,      // 1 minute
     "mentions_update_interval"     : 60 * 1000 * 5,  // 5 minute
+    "tracking_update_interval"     : 60 * 1000 * 5,  // 5 minute
     "dm_update_interval"           : 60 * 1000 * 20, // 20 minute
     "list_update_interval"         : 60 * 1000 * 5,  // 5 minute
     "list_update_intervals"        : null,
@@ -108,10 +109,10 @@ function updateAllListButtons() {
                   });
 }
 
-function updateAllSearchButtons() {
+function updateAllTrackingButtons() {
     notifyWindows(function (win) {
                       try {
-                          win.KeySnail.modules.plugins.twitterClient.updateSearchButton();
+                          win.KeySnail.modules.plugins.twitterClient.updateTrackingButton();
                       } catch (x) {}
                   });
 }
@@ -688,39 +689,39 @@ var twitterClient = (
             return status;
         }
 
-        var gSearches = {};
+        var gTrackings = {};
 
-        function addSearchCrawler(query, infoHolder) {
+        function addTrackingCrawler(query, infoHolder) {
             let searchAction = twitterAPI.get("search", "?q=" + encodeURIComponent(query));
 
-            return gSearches[query] = new Crawler(
+            return gTrackings[query] = new Crawler(
                 {
                     action       : searchAction.action,
                     name         : query,
-                    interval     : infoHolder["interval"] || getOption("list_update_interval"),
+                    interval     : infoHolder["interval"] || getOption("tracking_update_interval"),
                     oauth        : gOAuth,
                     countName    : "rpp",
                     mapper       : function (response) response.results.map(filterSearchResult),
                     getLastID    : function () infoHolder["lastID"],
                     setLastID    : function (v) {
                         infoHolder["lastID"] = v;
-                        persist.preserve(share.twitterSearchInfo, "yatck_search_info");
+                        persist.preserve(share.twitterTrackingInfo, "yatck_tracking_info");
                     },
-                    lastIDHook   : updateAllSearchButtons,
+                    lastIDHook   : updateAllTrackingButtons,
                     beginCount   : gTimelineCountBeginning
                 }
             );
         }
 
-        if (!share.twitterSearchInfo)
-            share.twitterSearchInfo = persist.restore("yatck_search_info") || {};
+        if (!share.twitterTrackingInfo)
+            share.twitterTrackingInfo = persist.restore("yatck_tracking_info") || {};
 
-        for (let [name, info] in Iterator(share.twitterSearchInfo))
+        for (let [name, info] in Iterator(share.twitterTrackingInfo))
         {
-            if (!share.twitterSearchInfo[name])
-                share.twitterSearchInfo[name] = {};
+            if (!share.twitterTrackingInfo[name])
+                share.twitterTrackingInfo[name] = {};
 
-            addSearchCrawler(name, share.twitterSearchInfo[name]);
+            addTrackingCrawler(name, share.twitterTrackingInfo[name]);
 
             // {
             //     "#emacs": {
@@ -1359,10 +1360,11 @@ var twitterClient = (
             const HEAD_ADD_SEARCH    = "keysnail-twitter-client-header-add-search";
             const HEAD_CRAWLER_BUTTON_CONTAINER = "keysnail-twitter-client-header-crawler-button-container";
 
-            let tooltipTextTwitter = M({ja: "このユーザの Twitter ページへ", en: "Visit this user's page on twitter"});
-            let tooltipTextHome    = M({ja: "このユーザのホームページへ", en: "Visit this user's homepage"});
-            let tooltipTextRefresh = M({ja: "更新", en: "Refresh"});
-            let tooltipTextClose   = M({ja: "閉じる", en: "Close"});
+            let tooltipTextTwitter     = M({ja: "このユーザの Twitter ページへ", en: "Visit this user's page on twitter"});
+            let tooltipTextHome        = M({ja: "このユーザのホームページへ", en: "Visit this user's homepage"});
+            let tooltipTextRefresh     = M({ja: "更新", en: "Refresh"});
+            let tooltipTextClose       = M({ja: "閉じる", en: "Close"});
+            let tooltipTextAddTracking = M({ ja: 'トラッキングワードを追加', en: 'Add new tracking word' });
 
             let labelTimeline = M({ja: "タイムライン", en: "Timeline"});
 
@@ -1405,7 +1407,9 @@ var twitterClient = (
                                        <spacer flex="1" />
                                        <toolbarseparator id={HEAD_LIST_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
                                        <toolbarseparator id={HEAD_SEARCH_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
-                                       <toolbarbutton id={HEAD_ADD_SEARCH} image={SEARCH_ADD_ICON} oncommand={root + ".addSearch();"} />
+                                       <toolbarbutton id={HEAD_ADD_SEARCH} image={SEARCH_ADD_ICON}
+                                                      tooltiptext={tooltipTextAddTracking}
+                                                      oncommand={root + ".addTracking();"} />
                                    </hbox>
                                    <hbox align="center" flex="1">
                                        <vbox align="center">
@@ -1479,20 +1483,20 @@ var twitterClient = (
             // Search {{ ================================================================ //
 
             let searchOrigin    = document.getElementById(HEAD_SEARCH_ORIGIN);
-            let searchButtons   = {};
+            let trackingButtons = {};
 
-            for (let [, crawler] in Iterator(gSearches))
+            for (let [, crawler] in Iterator(gTrackings))
             {
                 let button = document.createElement("toolbarbutton");
 
                 button.setAttribute("label", crawler.name);
                 button.setAttribute("tooltiptext", crawler.name);
                 button.setAttribute("image", SEARCH_ICON);
-                button.setAttribute("oncommand", util.format("%s.showCrawledSearchStatuses('%s');", root, crawler.name));
-                button.setAttribute("onclick", root + ".searchButtonClicked(event);");
+                button.setAttribute("oncommand", util.format("%s.showCrawledTrackingStatuses('%s');", root, crawler.name));
+                button.setAttribute("onclick", root + ".trackingButtonClicked(event);");
                 crawlerButtonContainer.insertBefore(button, searchOrigin);
 
-                searchButtons[crawler.name] = button;
+                trackingButtons[crawler.name] = button;
             }
 
             // }} ======================================================================= //
@@ -1513,7 +1517,7 @@ var twitterClient = (
                 dynamicMenu   : document.getElementById(HEAD_DYNAMIC_MENU),
                 //
                 listButtons   : listButtons,
-                searchButtons : searchButtons
+                trackingButtons : trackingButtons
             };
 
             // set up normal menu
@@ -2364,7 +2368,7 @@ var twitterClient = (
         }
 
         function showCrawlersCache(crawler, arg, cacheFilter) {
-            var updateForced = typeof aArg === "number";
+            var updateForced = typeof arg === "number";
 
             if (updateForced || !crawler.cache)
             {
@@ -2743,7 +2747,7 @@ var twitterClient = (
                             let actions = [
                                 [M({ ja: "このハッシュタグをトラッキングする", en: "Track this hash tag" }),
                                  null,
-                                 root + util.format(".addSearch('%s');", text)]
+                                 root + util.format(".addTracking('%s');", text)]
                             ];
 
                             showDynamicMenu(aEvent, actions);
@@ -2920,16 +2924,40 @@ var twitterClient = (
                 }
             },
 
-            showCrawledSearchStatuses: function (query) {
-                log(LOG_LEVEL_DEBUG, query);
-
-                let crawler = gSearches[query];
+            showCrawledTrackingStatuses: function (query, forceUpdate) {
+                let crawler = gTrackings[query];
 
                 if (crawler)
                 {
                     gPrompt.forced = true;
-                    showCrawlersCache(crawler);
+                    showCrawlersCache(crawler, forceUpdate ? 1 : false);
                 }
+            },
+
+            changeTrackingInterval: function (query) {
+                let crawler = gTrackings[query];
+
+                if (!crawler)
+                    return;
+
+                let interval = window.prompt(M({ en: "Input the new tracking interval (minute)",
+                                                 ja: "新しいトラッキング間隔を入力してください (単位: 分)" }),
+                                             crawler.interval / (60 * 1000));
+
+                if (!interval)
+                    return;
+
+                interval = parseFloat(interval);
+
+                if (isNaN(interval))
+                    return;
+
+                interval = ~~(interval * 60 * 1000);
+
+                share.twitterTrackingInfo[query].interval = interval;
+                crawler.interval = interval;
+
+                persist.preserve(share.twitterTrackingInfo, "yatck_tracking_info");
             },
 
             search: function () {
@@ -3018,21 +3046,21 @@ var twitterClient = (
                 }
             },
 
-            updateSearchButton: function () {
-                let searchButtons = my.twitterClientHeader.searchButtons;
+            updateTrackingButton: function () {
+                let trackingButtons = my.twitterClientHeader.trackingButtons;
 
-                for (let [, crawler] in Iterator(gSearches))
+                for (let [, crawler] in Iterator(gTrackings))
                 {
-                    if (crawler.name in searchButtons && crawler.cache && crawler.cache.length)
+                    if (crawler.name in trackingButtons && crawler.cache && crawler.cache.length)
                     {
                         let unreadCount = getStatusPos(crawler.cache, crawler.lastID);
-                        searchButtons[crawler.name].setAttribute("label", crawler.name + "(" + unreadCount + ")");
-                        searchButtons[crawler.name].setAttribute("style", unreadCount ? "font-weight : bold;" : "");
+                        trackingButtons[crawler.name].setAttribute("label", crawler.name + "(" + unreadCount + ")");
+                        trackingButtons[crawler.name].setAttribute("style", unreadCount ? "font-weight : bold;" : "");
                     }
                 }
             },
 
-            addSearch: function (init) {
+            addTracking: function (init) {
                 init = init || "";
 
                 let word = window.prompt(M({ en: "Input the word to track (beginning with the # means hash tag)",
@@ -3041,14 +3069,14 @@ var twitterClient = (
                 if (!word)
                     return;
 
-                if (word in gSearches)
+                if (word in gTrackings)
                     return alert(M({ en: "Specified word is already tracked",
                                      ja: "指定された単語はすでにトラッキング済みです" }));
 
-                if (!share.twitterSearchInfo[word])
-                    share.twitterSearchInfo[word] = {};
+                if (!share.twitterTrackingInfo[word])
+                    share.twitterTrackingInfo[word] = {};
 
-                let crawler = addSearchCrawler(word, share.twitterSearchInfo[word]);
+                let crawler = addTrackingCrawler(word, share.twitterTrackingInfo[word]);
 
                 let crawlerButtonContainer = document.getElementById(HEAD_CRAWLER_BUTTON_CONTAINER);
                 let searchOrigin           = document.getElementById(HEAD_SEARCH_ORIGIN);
@@ -3057,36 +3085,38 @@ var twitterClient = (
                 button.setAttribute("label", crawler.name);
                 button.setAttribute("tooltiptext", crawler.name);
                 button.setAttribute("image", SEARCH_ICON);
-                button.setAttribute("oncommand", util.format("%s.showCrawledSearchStatuses('%s');", root, crawler.name));
-                button.setAttribute("onclick", root + ".searchButtonClicked(event);");
+                button.setAttribute("oncommand", util.format("%s.showCrawledTrackingStatuses('%s');", root, crawler.name));
+                button.setAttribute("onclick", root + ".trackingButtonClicked(event);");
                 crawlerButtonContainer.insertBefore(button, searchOrigin);
 
-                my.twitterClientHeader.searchButtons[crawler.name] = button;
+                my.twitterClientHeader.trackingButtons[crawler.name] = button;
 
                 crawler.update();
             },
 
-            searchButtonClicked: function (ev) {
+            trackingButtonClicked: function (ev) {
                 if (ev.button !== 2)
                     return;
 
                 let name = ev.target.getAttribute("tooltiptext");
 
-                if (name in gSearches)
+                if (name in gTrackings)
                 {
                     showDynamicMenu(ev,
-                                    [[util.format(M({ ja: '"%s" のトラッキングを終了', en: 'Cancel tracking "%s"' }), name),
+                                    [[M({ ja: '更新', en: 'Reflesh' }),
                                       null,
-                                      root + util.format(".removeSearch('%s');", name)],
-                                     [util.format(M({ ja: '"%s" のトラッキングを終了', en: 'Cancel tracking "%s"' }), name),
+                                      root + util.format(".showCrawledTrackingStatuses('%s', true);", name)],
+                                     [M({ ja: 'トラッキング間隔を変更', en: 'Change tracking interval' }),
                                       null,
-                                      root + util.format(".removeSearch('%s');", name)]
-                                    ]);
+                                      root + util.format(".changeTrackingInterval('%s');", name)],
+                                     [M({ ja: 'トラッキングを終了', en: 'Cancel tracking this word' }),
+                                      null,
+                                      root + util.format(".removeTracking('%s');", name)]]);
                 }
             },
 
-            removeSearch: function (word) {
-                if (!(word in gSearches))
+            removeTracking: function (word) {
+                if (!(word in gTrackings))
                     return;
 
                 let confirmed = window.confirm(M({ en: "Cancel tracking word's tracking",
@@ -3095,20 +3125,20 @@ var twitterClient = (
                 if (!confirmed)
                     return;
 
-                gSearches[word].stop();
+                gTrackings[word].stop();
 
-                delete share.twitterSearchInfo[word];
-                delete gSearches[word];
+                delete share.twitterTrackingInfo[word];
+                delete gTrackings[word];
 
-                persist.preserve(share.twitterSearchInfo, "yatck_search_info");
+                persist.preserve(share.twitterTrackingInfo, "yatck_tracking_info");
 
-                let searchButton = my.twitterClientHeader.searchButtons[word];
+                let trackingButton = my.twitterClientHeader.trackingButtons[word];
 
-                if (searchButton)
+                if (trackingButton)
                 {
                     let crawlerButtonContainer = document.getElementById(HEAD_CRAWLER_BUTTON_CONTAINER);
-                    crawlerButtonContainer.removeChild(searchButton);
-                    delete my.twitterClientHeader.searchButtons[word];
+                    crawlerButtonContainer.removeChild(trackingButton);
+                    delete my.twitterClientHeader.trackingButtons[word];
                 }
             },
 
@@ -3159,11 +3189,9 @@ var twitterClient = (
                 }
             }
 
-            if (true || getOption("automatically_begin_search"))
+            if (getOption("automatically_begin_search"))
             {
-                inspectObject(gSearches);
-
-                for (let [, crawler] in Iterator(gSearches))
+                for (let [, crawler] in Iterator(gTrackings))
                 {
                     if (crawler.cache)
                         continue;
@@ -3236,7 +3264,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.1.2</version>
+    <version>2.1.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3623,6 +3651,10 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
+//
+// ==== 2.1.3 (2010 05/26) ====
+//
+// * Added word tracking feature.
 //
 // ==== 2.1.2 (2010 05/23) ====
 //
