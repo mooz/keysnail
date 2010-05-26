@@ -26,6 +26,7 @@ var optionsDefaultValue = {
     "unread_status_count_style"    : "color:#383838;font-weight:bold;",
     "automatically_begin"          : true,
     "automatically_begin_list"     : true,
+    "automatically_begin_tracking" : true,
     "prefer_screen_name"           : false,
     "keymap"                       : null,
     "tweet_keymap"                 : null,
@@ -1403,7 +1404,7 @@ var twitterClient = (
                                        <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
                                                       oncommand="KeySnail.modules.prompt.finish(true);" />
                                    </hbox>
-                                   <hbox id={HEAD_CRAWLER_BUTTON_CONTAINER}>
+                                   <hbox id={HEAD_CRAWLER_BUTTON_CONTAINER} style="overflow:auto;" >
                                        <spacer flex="1" />
                                        <toolbarseparator id={HEAD_LIST_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
                                        <toolbarseparator id={HEAD_SEARCH_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
@@ -2281,6 +2282,13 @@ var twitterClient = (
                                            })(name)]
                          for ([name] in Iterator(gLists))];
 
+            let trackings = [[SEARCH_ICON, name, (function (name) {
+                                               return function () {
+                                                   self.showCrawledTrackingStatuses.call(null, name);
+                                               };
+                                           })(name)]
+                         for ([name] in Iterator(gTrackings))];
+
             const ACT_ROW = 2;
 
             let places = [
@@ -2290,7 +2298,7 @@ var twitterClient = (
                 [MESSAGE_ICON   , "DM", function () { self.showDMs(); }]
             ];
 
-            let collection = lists.concat(places);
+            let collection = lists.concat(trackings).concat(places);
 
             prompt.selector(
                 {
@@ -3091,6 +3099,8 @@ var twitterClient = (
 
                 my.twitterClientHeader.trackingButtons[crawler.name] = button;
 
+                persist.preserve(share.twitterTrackingInfo, "yatck_tracking_info");
+
                 crawler.update();
             },
 
@@ -3157,47 +3167,45 @@ var twitterClient = (
         if (!share.userInfo)
             self.setUserInfo();
 
-        if (gStatuses.cache && gMentions.cache)
+        if (getOption("automatically_begin"))
         {
-            log(LOG_LEVEL_DEBUG, "cache updaters are already arranged");
+            if (!gStatuses.cache)
+                self.updateStatusesCache();
+
+            if (!gMentions.cache)
+                self.updateMentionsCache();
+
+            if (!gDMs.cache)
+            {
+                gSentDMs.update();
+                self.updateDMsCache();
+            }
+
             self.updateStatusbar();
         }
-        else
+
+        if (getOption("automatically_begin_list"))
         {
-            if (getOption("automatically_begin"))
+            for (let [, crawler] in Iterator(gLists))
             {
-                if (!gStatuses.cache)
-                    self.updateStatusesCache();
-
-                if (!gMentions.cache)
-                    self.updateMentionsCache();
-
-                if (!gDMs.cache)
-                {
-                    gSentDMs.update();
-                    self.updateDMsCache();
-                }
+                if (crawler.cache)
+                    continue;
+                crawler.update();
             }
 
-            if (getOption("automatically_begin_list"))
+            self.updateListButton();
+        }
+
+        if (getOption("automatically_begin_tracking"))
+        {
+            for (let [, crawler] in Iterator(gTrackings))
             {
-                for (let [, crawler] in Iterator(gLists))
-                {
-                    if (crawler.cache)
-                        continue;
-                    crawler.update();
-                }
+                if (crawler.cache)
+                    continue;
+                crawler.update();
             }
 
-            if (getOption("automatically_begin_search"))
-            {
-                for (let [, crawler] in Iterator(gTrackings))
-                {
-                    if (crawler.cache)
-                        continue;
-                    crawler.update();
-                }
-            }
+            self.updateTrackingButton();
         }
 
         return self;
