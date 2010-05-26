@@ -2280,19 +2280,24 @@ var twitterClient = (
 
             gPrompt.close();
 
-            let lists = [[TAG_ICON, name, (function (name) {
+            function crawlerToLabel(crawler) {
+                let unreadCount = getStatusPos(crawler.cache, crawler.lastID);
+                return "(" + unreadCount + ") " + crawler.name;
+            }
+
+            let lists = [[TAG_ICON, crawlerToLabel(crawler), (function (name) {
                                                return function () {
                                                    self.showCrawledListStatuses.apply(null, name.split("/"));
                                                };
                                            })(name)]
-                         for ([name] in Iterator(gLists))];
+                         for ([name, crawler] in Iterator(gLists))];
 
-            let trackings = [[SEARCH_ICON, name, (function (name) {
+            let trackings = [[SEARCH_ICON, crawlerToLabel(crawler), (function (name) {
                                                return function () {
                                                    self.showCrawledTrackingStatuses.call(null, name);
                                                };
                                            })(name)]
-                         for ([name] in Iterator(gTrackings))];
+                         for ([name, crawler] in Iterator(gTrackings))];
 
             const ACT_ROW = 2;
 
@@ -2690,6 +2695,9 @@ var twitterClient = (
         }
 
         function getStatusPos(aJSON, aID) {
+            if (!aJSON)
+                return 0;
+
             if (!aID)
                 return aJSON.length;
 
