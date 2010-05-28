@@ -1482,6 +1482,7 @@ var twitterClient = (
                 button.setAttribute("image", TAG_ICON);
                 button.setAttribute("oncommand",
                                     util.format("%s.showCrawledListStatuses('%s', '%s');", root, id, name));
+                button.setAttribute("onclick", root + ".listButtonClicked(event);");
                 crawlerButtonContainer.insertBefore(button, listOrigin);
 
                 listButtons[crawler.name] = button;
@@ -2938,13 +2939,13 @@ var twitterClient = (
                                   : null);
             },
 
-            showCrawledListStatuses: function (id, listName) {
+            showCrawledListStatuses: function (id, listName, forceUpdate) {
                 let crawler = gLists[id + "/" + listName];
 
                 if (crawler)
                 {
                     gPrompt.forced = true;
-                    showCrawlersCache(crawler);
+                    showCrawlersCache(crawler, forceUpdate ? 1 : false);
                 }
             },
 
@@ -3118,6 +3119,24 @@ var twitterClient = (
                 persist.preserve(share.twitterTrackingInfo, "yatck_tracking_info");
 
                 crawler.update();
+            },
+
+            listButtonClicked: function (ev) {
+                if (ev.button !== 2)
+                    return;
+
+                let pair = ev.target.getAttribute("tooltiptext");
+
+                if (pair in gLists)
+                {
+                    let [id, name] = pair.split("/");
+
+                    showDynamicMenu(ev,
+                                    [[M({ ja: '更新', en: 'Reflesh' }),
+                                      null,
+                                      root + util.format(".showCrawledListStatuses('%s', '%s', true);", id, name)]
+                                    ]);
+                }
             },
 
             trackingButtonClicked: function (ev) {
