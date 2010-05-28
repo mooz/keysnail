@@ -149,6 +149,10 @@ function log() {
         util.message.apply(util, Array.slice(arguments, 1));
 }
 
+// ============================================================ //
+// Twitter API
+// ============================================================ //
+
 var twitterAPI = {
     /**
      * ex)
@@ -470,7 +474,11 @@ var twitterClient = (
             stop:
             function stop() {
                 if (this.updater)
-                    clearTimeout(this.updater);
+                {
+                    this.updater.window.clearTimeout(this.updater.timer);
+                    log(LOG_LEVEL_DEBUG, "Updater removed (%s)", this.name);
+                }
+
                 this.updater = null;
             },
 
@@ -562,7 +570,10 @@ var twitterClient = (
 
                         if (self.interval && (!noRepeat && !self.updater || fromTimer))
                         {
-                            self.updater = setTimeout(function () { self.update(null, false, true); }, self.interval);
+                            self.updater = {
+                                window : window,
+                                timer  : setTimeout(function () { self.update(null, false, true); }, self.interval)
+                            };
 
                             if (self.delegator)
                                 return;
