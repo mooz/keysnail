@@ -545,25 +545,32 @@ KeySnail.Util = function () {
         // some method's are borrowed from chrome://global/content/nsUserSettings.js
 
         /**
+         * set preference value
+         */
+        setPref:
+        function setPref(key, value) {
+            switch (typeof value)
+            {
+            case 'string':
+                this.setUnicharPref(key, value);
+                break;
+            case 'number':
+                this.setIntPref(key, value);
+                break;
+            case 'boolean':
+                this.setBoolPref(key, value);
+                break;
+            }
+        },
+
+        /**
          * set preference value at a stroke
          * @param {object} aPrefList {key : value} pair
          */
-        setPrefs: function (aPrefList) {
-            var value;
-            for (var prefKey in aPrefList) {
-                value = aPrefList[prefKey];
-                switch (typeof(value)) {
-                case 'string':
-                    this.setUnicharPref(prefKey, value);
-                    break;
-                case 'number':
-                    this.setIntPref(prefKey, value);
-                    break;
-                case 'boolean':
-                    this.setBoolPref(prefKey, value);
-                    break;
-                }
-            }
+        setPrefs:
+        function setPrefs(aPrefList) {
+            for (let [key, value] in Iterator(aPrefList))
+                this.setPref(key, value);
         },
 
         setBoolPref: function (aPrefName, aPrefValue) {
