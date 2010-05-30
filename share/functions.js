@@ -21,17 +21,17 @@ var ksBuiltin = {
             }, false],
 
         select_next_tab: [
-            function () {
+            function (ev) {
                 getBrowser().mTabContainer.advanceSelectedTab(1, true);
             }, false],
 
         select_previous_tab: [
-            function () {
+            function (ev) {
                 getBrowser().mTabContainer.advanceSelectedTab(-1, true);
             }, false],
 
         move_selected_tab_left: [
-            function () {
+            function (ev) {
                 let browser = getBrowser();
                 if (browser.mCurrentTab.previousSibling) {
                     browser.moveTabTo(browser.mCurrentTab, browser.mCurrentTab._tPos - 1);
@@ -41,7 +41,7 @@ var ksBuiltin = {
             }, false],
 
         move_selected_tab_right: [
-            function () {
+            function (ev) {
                 let browser = getBrowser();
                 if (browser.mCurrentTab.nextSibling) {
                     browser.moveTabTo(browser.mCurrentTab, browser.mCurrentTab._tPos + 1);
@@ -52,13 +52,13 @@ var ksBuiltin = {
 
         // original code by gomita-san
         remove_all_tabs_but: [
-            function () {
+            function (ev) {
                 var browser = getBrowser();
                 browser.removeAllTabsBut(browser.mCurrentTab);
             }, true],
 
         close_all_tabs_on_right: [
-            function () {
+            function (ev) {
                 let browser = getBrowser();
                 let tabs    = browser.mTabContainer.childNodes;
 
@@ -67,7 +67,7 @@ var ksBuiltin = {
         }, true],
 
         close_all_tabs_on_left: [
-        function () {
+        function (ev) {
             let browser = getBrowser();
             let tabs    = browser.mTabContainer.childNodes;
 
@@ -87,23 +87,23 @@ var ksBuiltin = {
             }, false],
 
         close_the_window: [
-            function () {
+            function (ev) {
                 closeWindow(true);
             }, false],
 
         minimize_window: [
-            function () {
+            function (ev) {
                 window.minimize();
             }, true],
 
         maximize_or_restore_window: [
-            function () {
+            function (ev) {
                 (window.windowState == window.STATE_MAXIMIZED)
                     ? window.restore() : window.maximize();
             }, true],
 
         fullscreen: [
-            function () {
+            function (ev) {
                 BrowserFullScreen();
             }, true]
     },
@@ -122,7 +122,7 @@ var ksBuiltin = {
             }, true],
 
         hide_titlebar: [
-            function () {
+            function (ev) {
                 var mainWindow = document.getElementById("main-window");
                 var control = document.getElementById("window-controls");
                 if (mainWindow.getAttribute("hidechrome") == "true") {
@@ -137,17 +137,17 @@ var ksBuiltin = {
             }, true],
 
         text_zoom_reduce: [
-            function () {
+            function (ev) {
                 FullZoom.reduce();
             }, false],
 
         text_zoom_enlarge: [
-            function () {
+            function (ev) {
                 FullZoom.enlarge();
             }, false],
 
         text_zoom_reset: [
-            function () {
+            function (ev) {
                 FullZoom.reset();
             }, false]
     },
@@ -156,42 +156,42 @@ var ksBuiltin = {
         __mode__: 0,
 
         focus_to_the_location_bar: [
-            function () {
+            function (ev) {
                 command.focusToById("urlbar");
             }, true],
 
         focus_to_the_search_bar: [
-            function () {
+            function (ev) {
                 command.focusToById("searchbar");
             }, true],
 
         focus_to_the_first_textarea: [
-            function () {
+            function (ev) {
                 command.focusElement(command.elementsRetrieverTextarea, 0);
             }, true],
 
         focus_to_the_first_button: [
-            function () {
+            function (ev) {
                 command.focusElement(command.elementsRetrieverButton, 0);
             }, true],
 
         focus_to_the_next_button: [
-            function () {
+            function (ev) {
                 command.walkInputElement(command.elementsRetrieverButton, true, true);
             }, false],
 
         focus_to_the_previous_button: [
-            function () {
+            function (ev) {
                 command.walkInputElement(command.elementsRetrieverButton, false, true);
             }, false],
 
         focus_to_the_next_text_area: [
-            function () {
+            function (ev) {
                 command.walkInputElement(command.elementsRetrieverTextarea, true, true);
             }, false],
 
         focus_to_the_previous_text_area: [
-            function () {
+            function (ev) {
                 command.walkInputElement(command.elementsRetrieverTextarea, false, true);
             }, false]
     },
@@ -200,33 +200,33 @@ var ksBuiltin = {
         __mode__: 0,
 
         back: [
-            function () {
+            function (ev) {
                 BrowserBack();
             }, false],
 
         forward: [
-            function () {
+            function (ev) {
                 BrowserForward();
             }, false],
 
         reload_the_page: [
-            function () {
+            function (ev) {
                 BrowserReload();
             }, false],
 
         reload_the_page_ignore_cache: [
-            function () {
+            function (ev) {
                 BrowserReloadSkipCache();
             }, false],
 
         stop_content_loading: [
-            function () {
+            function (ev) {
                 document.getElementById("Browser:Stop").doCommand();
             }
         ],
 
         upper_directory: [
-            function () {
+            function (ev) {
                 // original code by gomita-san
                 var uri = getBrowser().currentURI;
                 if (uri.path == "/")
@@ -238,7 +238,7 @@ var ksBuiltin = {
             }, false],
 
         goto_root: [
-            function () {
+            function (ev) {
                 // original code by silog-san
                 var uri = window._content.location.href;
                 if (uri == null)
@@ -263,7 +263,7 @@ var ksBuiltin = {
             }, false],
 
         restart_firefox: [
-            function () {
+            function (ev) {
                 var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"].getService(Ci.nsIAppStartup);
                 appStartup.quit(appStartup.eRestart | appStartup.eAttemptQuit);
             }, false]
@@ -273,12 +273,12 @@ var ksBuiltin = {
         __mode__: 0,
 
         incremental_search_forward: [
-            function () {
+            function (ev) {
                 command.iSearchForward();
             }, true],
 
         incremental_search_backward: [
-            function () {
+            function (ev) {
                 command.iSearchBackward();
             }, true],
 
@@ -313,12 +313,12 @@ var ksBuiltin = {
             }, false],
 
         open_the_local_file: [
-            function () {
+            function (ev) {
                 BrowserOpenFileWindow();
             }, false],
 
         save_current_page_to_the_file: [
-            function () {
+            function (ev) {
                 saveDocument(window.content.document);
             }, false],
 
@@ -328,17 +328,17 @@ var ksBuiltin = {
             }, false],
 
         display_javascript_console: [
-            function () {
+            function (ev) {
                 toJavaScriptConsole();
             }, false],
 
         clear_javascript_console: [
-            function () {
+            function (ev) {
                 command.clearConsole();
             }, false],
 
         display_page_information: [
-            function () {
+            function (ev) {
                 BrowserPageInfo();
             }, false],
 
@@ -374,27 +374,27 @@ var ksBuiltin = {
             }, false],
 
         scroll_page_up: [
-            function () {
+            function (ev) {
                 goDoCommand("cmd_scrollPageUp");
             }, false],
 
         scroll_page_down: [
-            function () {
+            function (ev) {
                 goDoCommand("cmd_scrollPageDown");
             }, false],
 
         scroll_to_the_top_of_the_page: [
-            function () {
+            function (ev) {
                 goDoCommand("cmd_scrollTop");
             }, false],
 
         scroll_to_the_bottom_of_the_page: [
-            function () {
+            function (ev) {
                 goDoCommand("cmd_scrollBottom");
             }, false],
 
         select_all: [
-            function () {
+            function (ev) {
                 goDoCommand("cmd_selectAll");
             }, false]
     },
@@ -460,13 +460,13 @@ var ksBuiltin = {
             }, false],
 
         undo: [
-            function () {
+            function (ev) {
                 display.echoStatusBar("Undo!", 2000);
                 goDoCommand("cmd_undo");
             }, false],
 
         redo: [
-            function () {
+            function (ev) {
                 display.echoStatusBar("Redo!", 2000);
                 goDoCommand("cmd_redo");
             }, false],
@@ -560,17 +560,17 @@ var ksBuiltin = {
             }, false],
 
         delete_forward_char: [
-            function () {
+            function (ev) {
                 goDoCommand("cmd_deleteCharForward");
             }, false],
 
         delete_backward_char: [
-            function () {
+            function (ev) {
                 goDoCommand("cmd_deleteCharBackward");
             }, false],
 
         delete_forward_word: [
-            function () {
+            function (ev) {
                 command.deleteForwardWord(ev);
             }, false],
 
@@ -666,23 +666,23 @@ var ksBuiltin = {
             }, false],
 
         scroll_line_down_caret: [
-            function () {
+            function (ev) {
                 util.getSelectionController().scrollLine(true);
             }, false],
 
         scroll_line_up_caret: [
-            function () {
+            function (ev) {
                 util.getSelectionController().scrollLine(false);
             }, false],
 
         scroll_right_caret: [
-            function () {
+            function (ev) {
                 goDoCommand("cmd_scrollRight");
                     util.getSelectionController().scrollHorizontal(false);
             }, false],
 
         scroll_left_caret: [
-            function () {
+            function (ev) {
                 util.getSelectionController().scrollHorizontal(true);
                 goDoCommand("cmd_scrollLeft");
             }, false],
@@ -697,17 +697,17 @@ var ksBuiltin = {
         __mode__: 0,
 
         reload_the_initialization_file: [
-            function () {
+            function (ev) {
                 userscript.reload();
             }, false],
 
         list_all_keybindings: [
-            function () {
+            function (ev) {
                 key.listKeyBindings();
             }, false],
 
         command_interpreter: [
-            function () {
+            function (ev) {
                 command.interpreter();
             }, false],
 
@@ -719,6 +719,12 @@ var ksBuiltin = {
         list_command: [
             function (ev, arg) {
                 shell.input(null, arg);
+            }, true],
+
+        fucus_to_prompt: [
+            function (ev, arg) {
+                return !document.getElementById("keysnail-prompt").hidden
+                    && document.getElementById("keysnail-prompt-textbox").focus();
             }, true]
     }
 };
