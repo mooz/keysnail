@@ -815,13 +815,10 @@ KeySnail.UserScript = {
         {
             context.__ksLoaded__ = false;
 
-            // e.stack = e.stack.replace('@chrome://keysnail/content/modules/userscript.js -> ', "@");
-            // e.fileName = this.modules.util.pathToURL(filePath);
-
             let msgstr = this.modules.util
                 .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
 
-            this.message(msgstr + e + " (in " + filePath + ")");
+            this.message(msgstr + "\n" + e + " (in " + filePath + ")");
 
             // Components.utils.reportError(e);
         }
