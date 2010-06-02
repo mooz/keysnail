@@ -2846,26 +2846,13 @@ KeySnail.Prompt = function () {
             case TYPE_READ:
                 break;
             case TYPE_SELECTOR:
-                let index;
-
-                if (compIndexList === null)
+                if (selectorStatus !== SELECTOR_STATE_CANDIDATES)
                 {
-                    setListBoxFromStringList(wholeList);
-                    setRows(wholeList.length);
-
-                    index = Math.min(Math.max(0, wholeListIndex), wholeList.length - 1);
-                    wholeListIndex = index;
-                }
-                else
-                {
-                    setListBoxFromIndexList(wholeList, compIndexList);
-                    setRows(compIndexList.length);
-
-                    index = Math.min(Math.max(0, compIndex), compIndexList.length - 1);
-                    compIndex = index;
+                    restoreSelectorContext(selectorContext[SELECTOR_STATE_CANDIDATES]);
+                    selectorStatus = SELECTOR_STATE_CANDIDATES;
                 }
 
-                setListBoxSelection(typeof aSelectIndex === "number" ? aSelectIndex : index);
+                updateSelector(selectorContext[SELECTOR_STATE_CANDIDATES]);
 
                 break;
             }
