@@ -42,6 +42,38 @@ KeySnail.Key = {
     // switching suspension
     suspendKey: "<f2>",
 
+    // ==== keycodes not defined in nsIDOMKeyEvents ====
+    // ref. http://homepage3.nifty.com/ic/help/rmfunc/vkey.htm
+    keyCode2Name: {
+        0x15: "kana",
+        0x19: "kanji",
+        0x1C: "convert",
+        0x1D: "nonconvert",
+        0x1E: "accept",
+        0x1F: "modechange",
+        0x29: "select",
+        0x2A: "print",
+        0x2B: "execute",
+        0x5B: "l_windows",
+        0x5C: "r_windows"
+    },
+    keyName2Code: {
+        kana:       0x15,
+        hangeul:    0x15,
+        hangul:     0x15,
+        kanji:      0x19,
+        hanja:      0x19,
+        convert:    0x1C,
+        nonconvert: 0x1D,
+        accept:     0x1E,
+        modechange: 0x1F,
+        select:     0x29,
+        print:      0x2A,
+        execute:    0x2B,
+        l_windows:  0x5B,
+        r_windows:  0x5C
+    },
+
     // ==== keyboard macro ====
     currentMacro: [],
     inputtingMacro: false,
@@ -871,6 +903,10 @@ KeySnail.Key = {
                 if (aEvent.ctrlKey)
                     key = "_";
                 break;
+            default:
+                if (aEvent.keyCode in this.keyCode2Name)
+                    key = "<"+this.keyCode2Name[aEvent.keyCode]+">";
+                break;
             }
         }
 
@@ -986,6 +1022,12 @@ KeySnail.Key = {
                     break;
                 case "<delete>":
                     keyCode = KeyEvent.DOM_VK_DELETE;
+                    break;
+                default:
+                    let (keyName = aKey.replace(/^<|>$/g, "")) {
+                        if (keyName in this.keyName2Code)
+                            keyCode = this.keyName2Code[keyName];
+                    }
                     break;
                 }
             }
