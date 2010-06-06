@@ -1192,11 +1192,6 @@ KeySnail.Util = function () {
             xhr.setRequestHeader("Content-length", params.length);
             xhr.setRequestHeader("Connection", "close");
 
-            xhr.onreadystatechange = function () {
-	        if (xhr.readyState === 4 && xhr.status === 200)
-                    typeof callback === "function" && callback();
-            };
-
             xhr.send(params);
 
             return xhr;
