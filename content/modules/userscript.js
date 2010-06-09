@@ -728,8 +728,8 @@ KeySnail.UserScript = {
         var min = aXml.minVersion;
         var max = aXml.maxVersion;
 
-        if ((min && this.compareVersion(KeySnail.version, min) < 0) ||
-            (max && this.compareVersion(KeySnail.version, max) > 0))
+        if ((min.length() && this.compareVersion(KeySnail.version, min) < 0) ||
+            (max.length() && this.compareVersion(KeySnail.version, max) > 0))
         {
             return false;
         }

@@ -1,4 +1,4 @@
-var ksPluginManager = function () {
+let ksPluginManager = function () {
     var modules;
 
     var parserContext;
@@ -51,37 +51,44 @@ var ksPluginManager = function () {
         infoHolder = new Object;
         xulHolder  = new Object;
 
-        var tags = ["name", "description", "version", "author", "updateURL",
+        let tags = ["name", "description", "version", "author", "updateURL",
                     "iconURL", "license", "minVersion", "maxVersion", "detail"];
 
-        for (var pluginPath in modules.plugins.context) {
-            var plugin = modules.plugins.context[pluginPath];
+        for (let pluginPath in modules.plugins.context)
+        {
+            let plugin = modules.plugins.context[pluginPath];
 
-            var isDisabled      = modules.userscript.isDisabledPlugin(pluginPath);
-            var isNotCompatible = plugin.__ksNotCompatible__;
+            let isDisabled      = modules.userscript.isDisabledPlugin(pluginPath);
+            let isNotCompatible = plugin.__ksNotCompatible__;
 
             // for not loaded plugin
             // open script and read it's PLUGIN_INFO value
-            if (!plugin.__ksLoaded__) {
-                try {
-                    var script = modules.util.readTextFile(pluginPath);
-                    var xml = modules.userscript.getPluginInformation(script);
+            if (!plugin.__ksLoaded__)
+            {
+                try
+                {
+                    let script = modules.util.readTextFile(pluginPath);
+                    let xml    = modules.userscript.getPluginInformation(script);
                     plugin.PLUGIN_INFO = xml;
-                } catch (x) {
+                }
+                catch (x)
+                {
+                    modules.util.message("initPluginList : " + x);
                     continue;
                 }
             }
 
-            var pluginInfo = plugin.PLUGIN_INFO;
+            let pluginInfo = plugin.PLUGIN_INFO;
             xmlHolder[pluginPath] = pluginInfo;
 
-            var pluginName;
+            let pluginName;
 
             infoHolder[pluginPath] = new Object();
 
             // get common info
-            if (pluginInfo) {
-                var infoXML = (typeof pluginInfo == "xml") ? pluginInfo
+            if (pluginInfo)
+            {
+                let infoXML = (typeof pluginInfo === "xml") ? pluginInfo
                     : new XML(modules.L((typeof pluginInfo == "string") ? pluginInfo : ""));
 
                 tags.forEach(
@@ -110,7 +117,8 @@ var ksPluginManager = function () {
 
             // set name
             pluginName = infoHolder[pluginPath].name;
-            if (!pluginName) {
+            if (!pluginName)
+            {
                 pluginName = plugin.__ksFileName__;
                 infoHolder[pluginPath].name = pluginName;
             }
@@ -119,30 +127,30 @@ var ksPluginManager = function () {
 
             xulHolder[pluginPath] = new Object();
 
-            var item = document.createElement("richlistitem");
+            let item = document.createElement("richlistitem");
             item.setAttribute("class", "plugin-listitem");
             xulHolder[pluginPath].item = item;
 
-            var pluginWhole = document.createElement("vbox");
+            let pluginWhole = document.createElement("vbox");
             pluginWhole.flex = 1;
 
-            var buttonsContainer = document.createElement("hbox");
+            let buttonsContainer = document.createElement("hbox");
             buttonsContainer.flex = 1;
 
-            var pluginHeader = document.createElement("hbox");
+            let pluginHeader = document.createElement("hbox");
             pluginHeader.setAttribute("align", "center");
             pluginHeader.setAttribute("id", "center");
 
-            var imageContainer = document.createElement("vbox");
+            let imageContainer = document.createElement("vbox");
             imageContainer.setAttribute("align", "center");
 
-            var image = document.createElement("image");
+            let image = document.createElement("image");
             image.setAttribute("class", "plugin-icon");
             image.setAttribute("src", infoHolder[pluginPath].iconURL || defaultIconURL);
             imageContainer.appendChild(image);
 
-            var description;
-            var pluginNameContainer = document.createElement("hbox");
+            let description;
+            let pluginNameContainer = document.createElement("hbox");
 
             description= document.createElement("description");
             description.setAttribute("value", pluginName);
@@ -154,7 +162,7 @@ var ksPluginManager = function () {
             description.setAttribute("class", "plugin-version");
             pluginNameContainer.appendChild(description);
 
-            var infoContainer = document.createElement("vbox");
+            let infoContainer = document.createElement("vbox");
             infoContainer.appendChild(pluginNameContainer);
 
             // plugin description
@@ -172,7 +180,7 @@ var ksPluginManager = function () {
             pluginHeader.appendChild(imageContainer);
             pluginHeader.appendChild(infoContainer);
 
-            var button;
+            let button;
 
             button = document.createElement("button");
             button.setAttribute("label", modules.util.getLocaleString("checkForUpdates"));
@@ -181,7 +189,7 @@ var ksPluginManager = function () {
             buttonsContainer.appendChild(button);
             xulHolder[pluginPath].checkForUpdatesButton = button;
 
-            var spacer = document.createElement("spacer");
+            let spacer = document.createElement("spacer");
             spacer.flex = 1;
             buttonsContainer.appendChild(spacer);
 
@@ -223,7 +231,7 @@ var ksPluginManager = function () {
             // key value
             item.value = pluginPath;
 
-            var status =
+            let status =
                 isNotCompatible ? KS_PLUGIN_NOTCOMPATIBLE :
                 isDisabled      ? KS_PLUGIN_DISABLED : KS_PLUGIN_ENABLED;
 
@@ -240,7 +248,7 @@ var ksPluginManager = function () {
     function setPluginStatus(aPluginPath, aStatus) {
         infoHolder[aPluginPath].status = aStatus;
 
-        var isEnabled = (aStatus == KS_PLUGIN_ENABLED);
+        let isEnabled = (aStatus == KS_PLUGIN_ENABLED);
 
         setElementStatus(xulHolder[aPluginPath].infoContainer, isEnabled);
         setElementStatus(xulHolder[aPluginPath].imageContainer, isEnabled);
@@ -248,87 +256,78 @@ var ksPluginManager = function () {
         xulHolder[aPluginPath].enableButton.hidden = isEnabled;
         xulHolder[aPluginPath].disableButton.hidden = !isEnabled;
 
-        if (aStatus == KS_PLUGIN_NOTCOMPATIBLE) {
+        if (aStatus == KS_PLUGIN_NOTCOMPATIBLE)
             xulHolder[aPluginPath].enableButton.setAttribute("disabled", true);
-        }
     }
 
     function updateInfoBox(aPluginPath) {
-        var title = infoHolder[aPluginPath].name +
-            (infoHolder[aPluginPath].version ? " " + infoHolder[aPluginPath].version : "");
-        var h2 = createElementWithText("h2", title);
+        const xml  = xmlHolder[aPluginPath];
+        const info = infoHolder[aPluginPath];
 
-        var description = createElementWithText("p", infoHolder[aPluginPath].description || "");
+        let title = info.name +
+            (info.version ? " " + info.version : "");
+        let h2 = createElementWithText("h2", title);
+
+        let description = createElementWithText("p", info.description || "");
 
         // ====================================================================== //
 
-        var h3 = createElementWithText("h3", modules.util.getLocaleString("info"));
+        let h3 = createElementWithText("h3", modules.util.getLocaleString("info"));
 
-        var authorCell;
-        if (xmlHolder[aPluginPath].author.length())
+        let authorCell = <></>;
+        if (xml.author.length())
         {
-            var authorMailAddress = xmlHolder[aPluginPath].author.@mail;
-            var authorName = infoHolder[aPluginPath].author;
+            let authorMailAddress = xml.author.@mail;
+            let authorName        = info.author;
             if (authorMailAddress.length())
-            {
                 authorCell = <a href={'mailto:' + authorMailAddress}>{authorName}</a>;
-            }
             else
-            {
                 authorCell = <>{authorName}</>;
-            }
 
-            var authorHomepage = xmlHolder[aPluginPath].author.@homepage;
+            let authorHomepage = xml.author.@homepage;
             if (authorHomepage.length())
-            {
                 authorCell += <> [ <a href={authorHomepage} target="_blank">Home page</a> ]</>;
-            }
         }
 
         // license
-        var licenseCell;
-        if (xmlHolder[aPluginPath].license.length())
+        let licenseCell = <></>;
+        if (xml.license.length())
         {
+            let licenseDocumentURL = xml.license.@document;
 
-            var licenseDocumentURL = xmlHolder[aPluginPath].license.@document;
             if (licenseDocumentURL.length())
-            {
-                licenseCell = <a href={licenseDocumentURL} target="_blank">{infoHolder[aPluginPath].license}</a>;
-            }
+                licenseCell = <a href={licenseDocumentURL} target="_blank">{info.license}</a>;
             else
-            {
-                licenseCell = <>{infoHolder[aPluginPath].license}</>;
-            }
+                licenseCell = <>{info.license}</>;
         }
 
         // compatible version
 
-        var min     = infoHolder[aPluginPath].minVersion;
-        var max     = infoHolder[aPluginPath].maxVersion;
-
-        var versionMsg = "";
-        if (min)
-            versionMsg += modules.util.getLocaleString("compatibleMinVersion", [min]);
-        if (max)
-            versionMsg += (min ? " " : "") + modules.util.getLocaleString("compatibleMinVersion", [max]);
+        let versionMsg = "Not specified";
+        let (min = info.minVersion, max = info.maxVersion)
+        {
+            if (min)
+                versionMsg += modules.util.getLocaleString("compatibleMinVersion", [min]);
+            if (max)
+                versionMsg += (min ? " " : "") + modules.util.getLocaleString("compatibleMinVersion", [max]);
+        };
 
         // ====================================================================== //
 
-        var table = modules.util.xmlToDom(<table>
-                                          <tr>
-                                          <td>{modules.util.getLocaleString("author")}</td>
-                                          <td>{authorCell}</td>
-                                          </tr>
-                                          <tr>
-                                          <td>{modules.util.getLocaleString("license")}</td>
-                                          <td>{licenseCell}</td>
-                                          </tr>
-                                          <tr>
-                                          <td>{modules.util.getLocaleString("compatibleVersion")}</td>
-                                          <td>{versionMsg}</td>
-                                          </tr>
-                                          </table>
-                                          , modules.util.XHTML);
+        let table = modules.util.xmlToDom(<table>
+                                              <tr>
+                                                  <td>{modules.util.getLocaleString("author")}</td>
+                                                  <td>{authorCell}</td>
+                                              </tr>
+                                              <tr>
+                                                  <td>{modules.util.getLocaleString("license")}</td>
+                                                  <td>{licenseCell}</td>
+                                              </tr>
+                                              <tr>
+                                                  <td>{modules.util.getLocaleString("compatibleVersion")}</td>
+                                                  <td>{versionMsg}</td>
+                                              </tr>
+                                          </table>, modules.util.XHTML);
 
         // ====================================================================== //
 
@@ -343,11 +342,11 @@ var ksPluginManager = function () {
 
         // ============================== ext / option ============================== //
 
-        var xml = xmlHolder[aPluginPath];
-        var tr, th, td;
+        let tr, th, td;
 
         // ext
-        if (xml.provides.ext.length()) {
+        if (xml.provides.ext.length())
+        {
             h3 = createElementWithText("h3", modules.util.getLocaleString("ext"));
             table = iframeDoc.createElement("table");
 
@@ -356,9 +355,10 @@ var ksPluginManager = function () {
             tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
             table.appendChild(tr);
 
-            for (let [, ext] in Iterator(xml.provides.ext)) {
-                var extName        = ext.text();
-                var extDescription = modules.ext.description(extName);
+            for (let [, ext] in Iterator(xml.provides.ext))
+            {
+                let extName        = ext.text();
+                let extDescription = modules.ext.description(extName);
 
                 tr = iframeDoc.createElement("tr");
                 tr.appendChild(createElementWithText("td", extName));
@@ -372,7 +372,8 @@ var ksPluginManager = function () {
         }
 
         // option
-        if (xml.options.option.length()) {
+        if (xml.options.option.length())
+        {
             h3 = createElementWithText("h3", modules.util.getLocaleString("option"));
             table = iframeDoc.createElement("table");
 
@@ -382,10 +383,11 @@ var ksPluginManager = function () {
             tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
             table.appendChild(tr);
 
-            for (let [, option] in Iterator(xml.options.option)) {
-                var optionName        = option.name.text();
-                var optionType        = option.type.text();
-                var optionDescription = modules.L(modules.util.xmlGetLocaleString(option.description));
+            for (let [, option] in Iterator(xml.options.option))
+            {
+                let optionName        = option.name.text();
+                let optionType        = option.type.text();
+                let optionDescription = modules.L(modules.util.xmlGetLocaleString(option.description));
 
                 tr = iframeDoc.createElement("tr");
                 tr.appendChild(createElementWithText("td", optionName));
@@ -401,21 +403,25 @@ var ksPluginManager = function () {
     }
 
     function updateDetailBox(aPluginPath) {
-        if (infoHolder[aPluginPath].detail) {
+        const info = infoHolder[aPluginPath];
+
+        if (info.detail)
+        {
             var xml;
 
-            if (infoHolder[aPluginPath].xmlCache) {
-                xml = infoHolder[aPluginPath].xmlCache;
-            } else {
-                var parser = new parserContext.WikiParser(infoHolder[aPluginPath].detail);
+            if (info.xmlCache)
+                xml = info.xmlCache;
+            else
+            {
+                var parser = new parserContext.WikiParser(info.detail);
                 xml = parser.parse();
-                infoHolder[aPluginPath].xmlCache = xml;
+                info.xmlCache = xml;
             }
 
             detailBox.innerHTML = xml;
-        } else {
-            detailBox.innerHTML = "<p>Not documented.</p>";
         }
+        else
+            detailBox.innerHTML = "<p>Not documented.</p>";
     }
 
     function updateDisabledPluginList() {
