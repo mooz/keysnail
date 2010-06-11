@@ -533,11 +533,13 @@ var twitterClient = (
 
                 let self = this;
 
+                let action = this.action +
+                    (this.cache ? "" :
+                     (this.action.indexOf("?") === -1 ? "?" : "&") + this.countName + "=" + this.beginCount);
+
                 this.oauth.asyncRequest(
                     {
-                        action: this.action +
-                            (this.cache ? "" :
-                             (this.action.indexOf("?") === -1 ? "?" : "&") + this.countName + "=" + this.beginCount),
+                        action: action,
                         method: "GET"
                     },
                     function (ev, xhr) {
@@ -561,7 +563,8 @@ var twitterClient = (
                         }
                         else
                         {
-                            log(LOG_LEVEL_DEBUG, self.name + " => update %s (interval %s)", new Date(), self.interval);
+                            log(LOG_LEVEL_DEBUG, self.name + " => update %s (interval %s)\n%s",
+                                new Date(), self.interval, action);
                             let (statuses = decodeJSON(xhr.responseText))
                                 self.cache = self.combineCache(self.mapper ? self.mapper(statuses) : statuses);
                             if (self.lastIDHook)
@@ -2132,14 +2135,15 @@ var twitterClient = (
                                     else
                                     {
                                         // succeeded
-                                        var status = decodeJSON(xhr.responseText);
+                                        let status = decodeJSON(xhr.responseText);
                                         // immediately add
                                         gStatuses.cache.unshift(status);
                                         share.twitterImmediatelyAddedStatuses.push(status);
 
-                                        var icon_url  = status.user.profile_image_url;
-                                        var user_name = status.user.name;
-                                        var message   = html.unEscapeTag(status.text);
+                                        let icon_url  = status.user.profile_image_url;
+                                        let user_name = status.user.name;
+                                        let message   = aTweet;
+
                                         showPopup({
                                                       icon    : icon_url,
                                                       title   : user_name,
@@ -3318,7 +3322,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.1.4</version>
+    <version>2.1.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3706,7 +3710,11 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 
 // ChangeLog {{ ============================================================= //
 //
-// ==== 2.1.3 (2010 05/26) ====
+// ==== 2.1.4 (2010 05/26) ====
+//
+// * Display correct message when user send DM
+//
+// ==== 2.1.3 (2010 05/26) ===
 //
 // * Added word tracking feature.
 //
