@@ -133,6 +133,9 @@ var KeySnail = {
             }
         }
 
+        let modules = this.modules;
+        document.addEventListener("copy", function () { modules.command.clipboardChanged(); }, true);
+
         this.modules.key.updateStatusBar();
 
         this.modules.hook.callHook("KeySnailInitialized");

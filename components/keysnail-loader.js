@@ -7,26 +7,34 @@
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-const prefService = Cc['@mozilla.org/preferences;1']
-    .getService(Ci.nsIPrefBranch);
 
-const CID = Components.ID('{ed3f874d-1b4d-40f2-a19a-e424156ac49b}');
+const prefService = Cc['@mozilla.org/preferences;1'].getService(Ci.nsIPrefBranch);
+
+const CID         = Components.ID('{ed3f874d-1b4d-40f2-a19a-e424156ac49b}');
 const CONTRACT_ID = '@github.com/mooz/keysnail/loader;1';
-const CLASS_NAME = 'KeySnail Loader';
+const CLASS_NAME  = 'KeySnail Loader';
 
 const STARTUP_TOPIC = 'app-startup';
 
-function KeySnailLoader() {
+function loadScript(path, context) {
+    const loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+        .getService(Components.interfaces.mozIJSSubScriptLoader);
+    loader.loadSubScript(path, context);
 }
+
+function loadModule(module, context) {
+    loadScript("chrome://keysnail/content/modules/" + module + ".js", context);
+}
+
+function KeySnailLoader() {}
 
 KeySnailLoader.prototype = {
     observe: function (aSubject, aTopic, aData) {
-        switch (aTopic) {
+        switch (aTopic)
+        {
         case STARTUP_TOPIC:
             // watch all newly opened window from now on
-            Components.classes['@mozilla.org/embedcomp/window-watcher;1']
-                .getService(Components.interfaces.nsIWindowWatcher)
-                .registerNotification(this);
+            Cc['@mozilla.org/embedcomp/window-watcher;1'].getService(Ci.nsIWindowWatcher).registerNotification(this);
             break;
         case 'domwindowopened':
             // overlay at the "load" event (not at this time)
@@ -35,14 +43,19 @@ KeySnailLoader.prototype = {
         }
     },
 
-    handleEvent: function (aEvent) {
-        aEvent.currentTarget.removeEventListener('load', this, false);
+    handleEvent: function (ev) {
+        const doc = ev.target;
+        const win = doc.defaultView;
 
-        switch (aEvent.target.documentURI) {
+        let loadIt = false;
+
+        doc.removeEventListener('load', this, false);
+
+        switch (doc.documentURI)
+        {
             // white list
         case 'chrome://browser/content/browser.xul':
-            aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
-            return;
+            loadIt = true;
             break;
             // black list
         case 'chrome://keysnail/content/rcwizard.xul':
@@ -54,31 +67,55 @@ KeySnailLoader.prototype = {
         case 'chrome://global/content/alerts/alert.xul':
         case 'chrome://browser/content/aboutDialog.xul':
         case 'chrome://mozapps/content/downloads/unknownContentType.xul':
-            return;
             break;
         case 'chrome://global/content/commonDialog.xul':
-            if (this.hasInput(aEvent.target)) {
-                aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
-            }
-            return;
+            if (this.hasInput(doc))
+                loadIt = true;
             break;
         }
 
         // when keysail is enabled globally
-        if (prefService.getBoolPref('extensions.keysnail.keyhandler.global_enabled')) {
-            aEvent.target.loadOverlay('chrome://keysnail/content/keysnail.xul', null);
-            // this.message(aEvent.target.documentURI + " => Enabled");
-        }
+        if (prefService.getBoolPref('extensions.keysnail.keyhandler.global_enabled'))
+            loadIt = true;
+
+        if (loadIt)
+            this.load(win);
+    },
+
+    load: function (win) {
+        loadScript('chrome://keysnail/content/keysnail.js', win);
+        this.loadModules(win);
+        win.KeySnail.init();
+    },
+
+    loadModules: function (win) {
+        const modules = [
+            "util",
+            "html",
+            "display",
+            "command",
+            "style",
+            "key",
+            "hook",
+            "macro",
+            "userscript",
+            "prompt",
+            "ext",
+            "shell"
+        ];
+
+        for (let [, module] in Iterator(modules))
+            loadModule(module, win);
     },
 
     hasInput: function (aDocument) {
-        var ids = ["loginContainer",
-                   "password1Container",
-                   "password2Container"];
+        const ids = ["loginContainer",
+                     "password1Container",
+                     "password2Container"];
 
-        var elem;
-        for (var i = 0; i < ids.length; ++i) {
-            elem = aDocument.getElementById(ids[i]);
+        for (let [, id] in Iterator(ids))
+        {
+            let elem = aDocument.getElementById(ids[i]);
             if (elem && !elem.hidden)
                 return true;
         }
