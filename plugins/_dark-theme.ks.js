@@ -3,11 +3,11 @@ let PLUGIN_INFO =
     <name>Dark Theme</name>
     <description>Dark Theme for KeySnail</description>
     <version>0.0.1</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/dark-theme.ks.js</updateURL>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_dark-theme.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/dark-theme.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
-    <minVersion>1.4.6</minVersion>
+    <minVersion>1.4.7</minVersion>
     <detail><![CDATA[]]></detail>
     <detail lang="ja"><![CDATA[]]></detail>
 </KeySnailPlugin>;
