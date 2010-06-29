@@ -303,7 +303,7 @@ let ksPluginManager = function () {
 
         // compatible version
 
-        let versionMsg = "Not specified";
+        let versionMsg = "";
         let (min = info.minVersion, max = info.maxVersion)
         {
             if (min)
@@ -311,6 +311,7 @@ let ksPluginManager = function () {
             if (max)
                 versionMsg += (min ? " " : "") + modules.util.getLocaleString("compatibleMinVersion", [max]);
         };
+        if (!versionMsg) versionMsg = "Not specified";
 
         // ====================================================================== //
 
