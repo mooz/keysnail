@@ -380,51 +380,53 @@ KeySnail.Command = {
 
     },
 
-    bookMarkToolBarJumpTo: function (aEvent, aArg) {
+    bookMarkToolBarJumpTo: function () {
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
         var items            = toolbarBookMarks.getElementsByTagName('toolbarbutton');
 
-        var urlList = [[this.modules.util.getFaviconPath(item.node.uri),
-                        item.label,
-                        item.node.uri,
-                        item.node.itemId] for each (item in items)
-                                          if (item.node && item.node.uri.match(/^(https?|ftp):/))];
+        var urlList = [[this.modules.util.getFaviconPath(item.node.uri), item.label, item.node.uri, item.node.itemId]
+                       for ([, item] in Iterator(items))
+                       if (item.node && item.node.uri.match(/^(https?|ftp):/))];
 
         with (this.modules)
         {
-            prompt.selector({message: "Pattern: ",
-                             collection: urlList,
-                             // [icon, title, url, id]
-                             flags: [ICON | IGNORE, 0, 0, IGNORE | HIDDEN],
-                             header: ["Title", "URL"],
-                             style: [null, style.prompt.url],
-                             actions: [
-                                 [function (aIndex) {
-                                      if (aIndex >= 0) {
-                                          openUILinkIn(urlList[aIndex][2], "tab");
-                                      }
-                                  }, "Open Link in new tab (foreground)"],
-                                 [function (aIndex) {
-                                      if (aIndex >= 0) {
-                                          openUILinkIn(urlList[aIndex][2], "tabshifted");
-                                      }
-                                  }, "Open Link in new tab (background)"],
-                                 [function (aIndex) {
-                                      if (aIndex >= 0) {
-                                          openUILinkIn(urlList[aIndex][2], "window");
-                                      }
-                                  }, "Open Link in new window"],
-                                 [function (aIndex) {
-                                      if (aIndex >= 0) {
-                                          openUILinkIn(urlList[aIndex][2], "current");
-                                      }
-                                  }, "Open Link in current tab"],
-                                 [function (aIndex) {
-                                      if (aIndex >= 0) {
-                                          PlacesUIUtils.showItemProperties(urlList[aIndex][3], "bookmark");
-                                      }
-                                  }, "Edit bookmark entry"]
-                             ]});
+            prompt.selector(
+                {
+                    message    : "Pattern: ",
+                    collection : urlList,
+                    // [icon, title, url, id]
+                    flags      : [ICON | IGNORE, 0, 0, IGNORE | HIDDEN],
+                    header     : ["Title", "URL"],
+                    style      : [null, style.prompt.url],
+                    actions    : [
+                        [function (aIndex) {
+                             if (aIndex >= 0) {
+                                 openUILinkIn(urlList[aIndex][2], "tab");
+                             }
+                         }, "Open Link in new tab (foreground)"],
+                        [function (aIndex) {
+                             if (aIndex >= 0) {
+                                 openUILinkIn(urlList[aIndex][2], "tabshifted");
+                             }
+                         }, "Open Link in new tab (background)"],
+                        [function (aIndex) {
+                             if (aIndex >= 0) {
+                                 openUILinkIn(urlList[aIndex][2], "window");
+                             }
+                         }, "Open Link in new window"],
+                        [function (aIndex) {
+                             if (aIndex >= 0) {
+                                 openUILinkIn(urlList[aIndex][2], "current");
+                             }
+                         }, "Open Link in current tab"],
+                        [function (aIndex) {
+                             if (aIndex >= 0) {
+                                 PlacesUIUtils.showItemProperties(urlList[aIndex][3], "bookmark");
+                             }
+                         }, "Edit bookmark entry"]
+                    ]
+                }
+            );
         }
     },
 
@@ -938,6 +940,8 @@ KeySnail.Command = {
     },
 
     insertKillRingText: function (aInput, aIndex, aSelect) {
+        let { scrollLeft, scrollTop } = aInput;
+
         if (aIndex < 0)
         {
             // reset to the original text
@@ -962,7 +966,13 @@ KeySnail.Command = {
             }
         }
 
-        this.inputScrollSelectionIntoView(aInput);
+        if (aInput.nodeName === "html:input" && !scrollLeft && !scrollTop)
+            this.inputScrollSelectionIntoView(aInput);
+        else
+        {
+            aInput.scrollLeft = scrollLeft;
+            aInput.scrollTop  = scrollTop;
+        }
     },
 
     /**
