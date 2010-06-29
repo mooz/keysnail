@@ -1426,7 +1426,7 @@ var twitterClient = (
                                        <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
                                                       oncommand="KeySnail.modules.prompt.finish(true);" />
                                    </hbox>
-                                   <hbox id={HEAD_CRAWLER_BUTTON_CONTAINER} style="overflow:auto;" >
+                                   <hbox id={HEAD_CRAWLER_BUTTON_CONTAINER} >
                                        <spacer flex="1" />
                                        <toolbarseparator id={HEAD_LIST_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
                                        <toolbarseparator id={HEAD_SEARCH_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
@@ -2360,7 +2360,7 @@ var twitterClient = (
 
             function createMap(maps) {
                 let map = {};
-                (maps || []).forEach(function (m) m.forEach(function (s) map[s.id] = s));
+                (maps || []).forEach(function (m) (m || []).forEach(function (s) map[s.id] = s));
                 return map;
             }
 
