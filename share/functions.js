@@ -155,6 +155,13 @@ var ksBuiltin = {
     categoryFocus: {
         __mode__: 0,
 
+        focus_to_content: [
+            function (ev, arg) {
+                let (elem = document.commandDispatcher.focusedElement) elem && elem.blur();
+                gBrowser.focus();
+                content.focus();
+            }, true],
+
         focus_to_the_location_bar: [
             function (ev) {
                 command.focusToById("urlbar");
