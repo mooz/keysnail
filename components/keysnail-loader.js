@@ -14,7 +14,12 @@ const CID         = Components.ID('{ed3f874d-1b4d-40f2-a19a-e424156ac49b}');
 const CONTRACT_ID = '@github.com/mooz/keysnail/loader;1';
 const CLASS_NAME  = 'KeySnail Loader';
 
-const STARTUP_TOPIC = 'app-startup';
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
+if (XPCOMUtils.generateNSGetFactory)
+    var STARTUP_TOPIC = 'profile-after-change'; // for gecko 2.0
+else
+    var STARTUP_TOPIC = 'app-startup';
 
 function loadScript(path, context) {
     const loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
@@ -158,7 +163,11 @@ KeySnailLoader.prototype = {
             throw Components.results.NS_ERROR_NO_INTERFACE;
         }
         return this;
-    }
+    },
+
+    classDescription: CLASS_NAME,
+    contractID: CONTRACT_ID,
+    classID: CID
 };
 
 var module = {
@@ -206,6 +215,11 @@ var module = {
     }
 };
 
-function NSGetModule(aCompMgr, aFileSpec) {
-    return module;
-}
+// function NSGetModule(aCompMgr, aFileSpec) {
+//     return module;
+// }
+
+if (XPCOMUtils.generateNSGetFactory)
+    var NSGetFactory = XPCOMUtils.generateNSGetFactory([KeySnailLoader]);
+else
+    var NSGetModule = function (aCompMgr, aFileSpec) { return module; };

@@ -9,3 +9,7 @@ resource	keysnail-share	share/
 resource	keysnail-scheme	schemes/
 
 overlay	chrome://browser/content/browser.xul	chrome://keysnail/content/browser.xul
+
+component	{ed3f874d-1b4d-40f2-a19a-e424156ac49b}	components/keysnail-loader.js
+contract	@github.com/mooz/keysnail/loader;1	{ed3f874d-1b4d-40f2-a19a-e424156ac49b}
+category	profile-after-change	@github.com/mooz/keysnail/loader;1	@github.com/mooz/keysnail/loader;1
