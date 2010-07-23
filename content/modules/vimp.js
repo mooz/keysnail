@@ -382,10 +382,7 @@ shell.add("dia[log]", "Open a dialog",
 
 shell.add(["res[tart]"],
           "Force firefox to restart",
-          function () {
-              let (appStartup = Cc["@mozilla.org/toolkit/app-startup;1"].getService(Ci.nsIAppStartup))
-                  appStartup.quit(appStartup.eRestart | appStartup.eAttemptQuit);
-          },
+          function () { command.restartApp(); },
           { argCount: "0" });
 
 // shell.add(["b[uffer]"],
