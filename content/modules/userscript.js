@@ -806,7 +806,7 @@ KeySnail.UserScript = {
 
         try
         {
-            let code = this.modules.util.readTextFile(filePath);
+            // let code = this.modules.util.readTextFile(filePath);
             // this.modules.util.evalInContext(code, context);
             this.loadSubScript(filePath, context);
             context.__ksLoaded__ = true;
