@@ -442,10 +442,11 @@ KeySnail.Command = {
             else
                 goDoCommand(aCommand);
         }
-        else if (this.modules.util.isMenu())
-        {
-            this.autoCompleteHandleKey(aDOMKey);
-        }
+        // else if (this.modules.util.isMenu())
+        // {
+        //     this.message("is Menu!");
+        //     this.autoCompleteHandleKey(aDOMKey);
+        // }
         else
         {
             this.modules.key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keydown');
