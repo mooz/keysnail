@@ -29,12 +29,7 @@ var KeySnail = {
 
     init:
     function init() {
-        try
-        {
-            var extManager = Components.classes["@mozilla.org/extensions/manager;1"]
-                .createInstance(Components.interfaces.nsIExtensionManager);
-        }
-        catch (x)
+        if ("@mozilla.org/addons/integration;1" in Cc) // Over Gecko 2.0 or not
         {
             let am = {};
             Components.utils.import("resource://gre/modules/AddonManager.jsm", am);
@@ -44,11 +39,14 @@ var KeySnail = {
                                              self.extInfo = addon;
                                              self.doInit();
                                          });
-            return;
         }
-
-        this.extInfo = extManager.getItemForID(this.id);
-        this.doInit();
+        else
+        {
+            var extManager = Components.classes["@mozilla.org/extensions/manager;1"]
+                .createInstance(Components.interfaces.nsIExtensionManager);
+            this.extInfo = extManager.getItemForID(this.id);
+            this.doInit();
+        }
     },
 
     doInit:

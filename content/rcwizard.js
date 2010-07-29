@@ -5,6 +5,9 @@
  * @license The MIT License
  */
 
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+
 var rcWizard = {
     modules: null,
 
@@ -54,43 +57,49 @@ var rcWizard = {
         var defaultIconURL = "chrome://keysnail/skin/icon/empty.png";
         var context        = this.schemeContext = {};
 
-        for (let [, leaf] in Iterator(this.getSchemeFiles().map(function (aFile) aFile.leafName)))
-        {
-            try
-            {
-                if (!leaf.match(".+\\.js$"))
-                    continue;
+        let self = this;
 
-                context[leaf] = {};
-                var path = "resource://keysnail-scheme/" + leaf;
-                Components.utils.import(path, context[leaf]);
-                var scheme = context[leaf].SCHEME;
+        this.getSchemeFiles(
+            function (files) {
+                for (let [, leaf] in Iterator(files.map(function (f) f.leafName)))
+                {
+                    try
+                    {
+                        if (!leaf.match(".+\\.js$"))
+                            continue;
 
-                var listitem = document.createElement("listitem");
-                listitem.setAttribute("class", "listitem-iconic");
-                listitem.setAttribute("style", "padding: 5px;border-bottom: 1px #BBB dotted;");
-                listitem.setAttribute("image", scheme.icon || defaultIconURL);
-                listitem.setAttribute("label", this.getString(scheme.name));
-                listitem.setAttribute("value", leaf);
-                listitem.setAttribute("tooltiptext", this.getString(scheme.description));
+                        context[leaf] = {};
+                        var path = "resource://keysnail-scheme/" + leaf;
+                        Components.utils.import(path, context[leaf]);
+                        var scheme = context[leaf].SCHEME;
 
-                list.appendChild(listitem);
+                        var listitem = document.createElement("listitem");
+                        listitem.setAttribute("class", "listitem-iconic");
+                        listitem.setAttribute("style", "padding: 5px;border-bottom: 1px #BBB dotted;");
+                        listitem.setAttribute("image", scheme.icon || defaultIconURL);
+                        listitem.setAttribute("label", self.getString(scheme.name));
+                        listitem.setAttribute("value", leaf);
+                        listitem.setAttribute("tooltiptext", self.getString(scheme.description));
+
+                        list.appendChild(listitem);
+                    }
+                    catch (x)
+                    {
+                        delete context[leaf];
+                    }
+                }
+
+                var description = document.getElementById("keysnail-rcwizard-scheme-description");
+
+                if (list.firstChild)
+                {
+                    list.selectItem(list.firstChild);
+                    self.schemeListOnSelect();
+                }
+
+                list.ksInitialized = true;
             }
-            catch (x)
-            {
-                delete context[leaf];
-            }
-        }
-
-        var description = document.getElementById("keysnail-rcwizard-scheme-description");
-
-        if (list.firstChild)
-        {
-            list.selectItem(list.firstChild);
-            this.schemeListOnSelect();
-        }
-
-        list.ksInitialized = true;
+        );
     },
 
     updatePageSelect: function () {
@@ -121,17 +130,33 @@ var rcWizard = {
      * returns all available scheme files
      * @returns {[nsILocalFile]} scheme files
      */
-    getSchemeFiles: function () {
-        const ID = "keysnail@mooz.github.com";
-        var installedLocation = Components.classes["@mozilla.org/extensions/manager;1"]
-            .getService(Components.interfaces.nsIExtensionManager)
-            .getInstallLocation(ID);
+    getSchemeFiles: function (next) {
+        const util = this.modules.util;
+        const ID   = util.parent.id;
 
-        var ksSchemeRoot = installedLocation.location;
-        ksSchemeRoot.append(ID);
-        ksSchemeRoot.append("schemes");
+        function doNext(root) {
+            root.append("schemes");
+            next(util.readDirectory(root, true));
+        }
 
-        return this.modules.util.readDirectory(ksSchemeRoot, true);
+        if ("@mozilla.org/addons/integration;1" in Cc) // Over Gecko 2.0 or not
+        {
+            let am = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", am);
+
+            am.AddonManager.getAddonByID(ID, function (addon) {
+                                             doNext(addon.getResourceURI('/').QueryInterface(Ci.nsIFileURL).file.clone());
+                                         });
+        }
+        else
+        {
+            let il = Cc["@mozilla.org/extensions/manager;1"]
+                .getService(Ci.nsIExtensionManager)
+                .getInstallLocation(ID);
+            let location = il.location.clone();
+            location.append(ID);
+            doNext(location);
+        }
     },
 
     // }} ======================================================================= //
