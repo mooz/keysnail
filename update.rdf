@@ -2,15 +2,8 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.6.6">
-    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
-  </RDF:Description>
-  <RDF:Seq RDF:about="rdf:#$mtJrB">
-    <RDF:li RDF:resource="rdf:#$ntJrB"/>
-  </RDF:Seq>
   <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAFkshdJ4ue/i6qyrcse4++0C1hsJ9ySSjOkaCJRbcX6XkAceuyvN5uayQMwrptrDbpThrz6yDMsBA7BHu71oRKStv2rAWpipoXlEiUG5OFVz9BMwxEVdvtSGNlEwZ6WnCTbHBTgHyDQ1y7jNtd4nhWdpw7N5j/mJB5xAokpAX5EX">
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBADb/etd8pAuauYOkkiazQGuFxtsOMO9W6oWwkVnAXKREHU6h3tSSzpmVfHbwehUTZHC9XBlp8thtqGroDIwRK5hqrVA1PI7/6TVF5VsJlbiO9RxOJaR36xBrva5Oeucn1LI2VMEVK6oubkZ6aFBeNlzMx/jbtjeLtclapJvs8zCi">
     <em:updates RDF:resource="rdf:#$mtJrB"/>
   </RDF:Description>
   <RDF:Description RDF:about="rdf:#$qtJrB"
@@ -19,5 +12,12 @@
                    em:maxVersion="4.0b3pre"
                    em:updateLink="http://github.com/mooz/keysnail/raw/master/keysnail.xpi"
                    em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.6.6.xhtml"
-                   em:updateHash="sha1:7105503801d6250f7544b2faf20f0e404bcc4573" />
+                   em:updateHash="sha1:d8974c666ebd867def25e376758ea76be77b9b4b" />
+  <RDF:Seq RDF:about="rdf:#$mtJrB">
+    <RDF:li RDF:resource="rdf:#$ntJrB"/>
+  </RDF:Seq>
+  <RDF:Description RDF:about="rdf:#$ntJrB"
+                   em:version="1.6.6">
+    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
+  </RDF:Description>
 </RDF:RDF>

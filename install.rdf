@@ -14,7 +14,7 @@
         <em:optionsURL>chrome://keysnail/content/preference.xul</em:optionsURL>
 	<em:iconURL>chrome://keysnail/skin/icon.png</em:iconURL>
         <em:updateURL>http://github.com/mooz/keysnail/raw/master/update.rdf</em:updateURL>
-        <em:updateKey>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDTIIo3r67JK6DJIBYyczbI/NrGurO0k5Cwn5rvXlNsRrA0LgAuCnofEdlicwxpmItBuwfdRJdZlKnaupJZPKrLoZz3t3BR4O4rBDKlY5rZM6Doqd5lBHAOXiZ35KsV4se7NKWvAZSqcpt6SLoL/YnjJ/o3Rz86i7E6BePcvutxoQIDAQAB</em:updateKey>
+        <em:updateKey>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGO9hYnSCroKCLRqGbV1czqWsQfZBsuU3EjnvumarZYQ4YE5tp3RCSploa6+qs4GLL7/aqtDnasWlM+cECJDh2XdrhHjm+vxc4X38Ym7BRL1x/Np0ujQ7o0F6hdD9CGPFdOvYMgqszO8GxJg8eshaTy1nr8fStUF9HwVXRfYqT1QIDAQAB</em:updateKey>
         <!-- en-US -->
         <em:description>Bind function to the key sequence!</em:description>
         <!-- ja -->
