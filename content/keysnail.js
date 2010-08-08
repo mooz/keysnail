@@ -29,7 +29,7 @@ var KeySnail = {
 
     init:
     function init() {
-        if ("@mozilla.org/addons/integration;1" in Cc) // Over Gecko 2.0 or not
+        if ("@mozilla.org/addons/integration;1" in Components.classes) // Over Gecko 2.0 or not
         {
             let am = {};
             Components.utils.import("resource://gre/modules/AddonManager.jsm", am);
