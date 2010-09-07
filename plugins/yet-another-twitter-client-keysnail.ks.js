@@ -173,7 +173,46 @@ var twitterAPI = {
         };
     },
 
+    request:
+    function request(name, context) {
+        let { requester } = this;
+
+        if (!requester)
+            return;
+
+        let api = this.get.apply(this, [name].concat(context.args || []));
+
+        requester.asyncRequest({
+            action   : api.action,
+            method   : api.method,
+            host     : api.host
+        }, function (ev, xhr) {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    context.ok(xhr.responseText, xhr);
+                } else {
+                    context.ng(xhr.responseText, xhr);
+                }
+            }
+        });
+    },
+
     _holder: getOption("twitter_api") || {
+        requestToken: {
+            action : "http://api.twitter.com/oauth/request_token",
+            method : "GET"
+        },
+
+        accessToken: {
+            action : "http://api.twitter.com/oauth/access_token",
+            method : "GET"
+        },
+
+        authorize: {
+            action : "http://api.twitter.com/oauth/access_token",
+            method : "GET"
+        },
+
         home: {
             action : "http://api.twitter.com/1/statuses/home_timeline.json",
             method : "GET"
@@ -367,7 +406,7 @@ var twitterClient = (
                     callback(ev, xhr);
                 };
 
-                if (onprogress)
+                if (typeof onprogress === "function")
                     xhr.onprogress = onprogress;
 
                 var accessor = options.accessor ||
@@ -386,7 +425,7 @@ var twitterClient = (
                     ]
                 };
 
-                if (!options.authorize)
+                if (this.tokens.oauth_token)
                     message.parameters.push(["oauth_token", this.tokens.oauth_token]);
 
                 if (options.parameters)
@@ -646,11 +685,15 @@ var twitterClient = (
         };
 
         var _oauthTokens = {
-            oauth_token        : util.getUnicharPref(gPrefKeys.oauth_token, ""),
-            oauth_token_secret : util.getUnicharPref(gPrefKeys.oauth_token_secret, "")
+            get oauth_token() util.getUnicharPref(gPrefKeys.oauth_token, ""),
+            set oauth_token(v) util.setUnicharPref(gPrefKeys.oauth_token, v),
+            get oauth_token_secret() util.getUnicharPref(gPrefKeys.oauth_token_secret, ""),
+            set oauth_token_secret(v) util.setUnicharPref(gPrefKeys.oauth_token_secret, v)
         };
 
         var gOAuth = new OAuth(_oauthInfo, _oauthTokens);
+
+        twitterAPI.requester = gOAuth;
 
         // }} ======================================================================= //
 
@@ -1793,49 +1836,27 @@ var twitterClient = (
         // ================================================================================ //
 
         function authorize() {
-            gOAuth.asyncRequest(
-                {
-                    action   : gOAuth.info.requestToken,
-                    method   : "GET",
-                    accessor : {
-                        consumerSecret : gOAuth.info.consumerSecret,
-                        tokenSecret    : ""
-                    },
-                    authorize : true
+            gOAuth.tokens.oauth_token        = "";
+            gOAuth.tokens.oauth_token_secret = "";
+
+            twitterAPI.request("requestToken", {
+                ok: function (res) {
+                    let parts = res.split("&");
+
+                    gOAuth.tokens.oauth_token        = parts[0].split("=")[1];
+                    gOAuth.tokens.oauth_token_secret = parts[1].split("=")[1];
+
+                    gBrowser.loadOneTab("http://twitter.com/oauth/authorize?oauth_token=" +
+                                        gOAuth.tokens.oauth_token,
+                                        null, null, null, false);
                 },
-                function (aEvent, xhr) {
-                    if (xhr.readyState === 4)
-                    {
-                        if (xhr.status === 200)
-                        {
-                            var parts = xhr.responseText.split("&");
-
-                            try
-                            {
-                                gOAuth.tokens.oauth_token        = parts[0].split("=")[1];
-                                gOAuth.tokens.oauth_token_secret = parts[1].split("=")[1];
-
-                                gBrowser.loadOneTab("http://twitter.com/oauth/authorize?oauth_token=" + gOAuth.tokens.oauth_token,
-                                                    null, null, null, false);
-                            }
-                            catch (e)
-                            {
-                                display.notify(e + xhr.responseText);
-                            }
-                        }
-                        else if (xhr.status >= 500)
-                            display.notify("Whale error :: " + xhr.responseText);
-                        else
-                            display.notify("Unknown error :: " + xhr.responseText);
-                    }
+                ng: function (res) {
+                    display.notify("Failed to request token :: " + xhr.responseText);
                 }
-            );
+            });
         }
 
         function reAuthorize() {
-            util.setUnicharPref(gPrefKeys.oauth_token, "");
-            util.setUnicharPref(gPrefKeys.oauth_token_secret, "");
-
             gStatuses.cache = null;
             gMentions.cache = null;
 
@@ -1846,50 +1867,33 @@ var twitterClient = (
             authorize();
 
             gPrompt.close();
+            prompt.read(
+                M({ ja: "認証が終了したら Enter キーを押してください",
+                    en: "Press Enter When Authorization Finished:"}),
+                function (str) {
+                    if (str === null)
+                        return;
 
-            prompt.read(M({ja: "認証が終了したら Enter キーを押してください", en: "Press Enter When Authorization Finished:"}),
-                        function (str) {
-                            if (str === null)
-                                return;
-
-                            getAccessToken(function () { showFollowersStatus(); });
-                        });
-        }
-
-        function getAccessToken(aCallBack) {
-            gOAuth.asyncRequest(
-                {
-                    action : gOAuth.info.accessToken,
-                    method : "GET"
-                },
-                function (aEvent, xhr) {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status === 200)
-                        {
-                            try
-                            {
-                                var parts = xhr.responseText.split("&");
-
-                                gOAuth.tokens.oauth_token = parts[0].split("=")[1];
-                                gOAuth.tokens.oauth_token_secret = parts[1].split("=")[1];
-                                util.setUnicharPref(gPrefKeys.oauth_token, gOAuth.tokens.oauth_token);
-                                util.setUnicharPref(gPrefKeys.oauth_token_secret, gOAuth.tokens.oauth_token_secret);
-
-                                if (typeof aCallBack === "function")
-                                    aCallBack();
-                            }
-                            catch (e)
-                            {
-                                display.notify(e +  xhr.responseText);
-                            }
-                        }
-                        else if (xhr.status >= 500)
-                            log(LOG_LEVEL_ERROR, "whale error :: " + xhr.responseText);
-                        else
-                            log(LOG_LEVEL_ERROR, "unknown error :: " + xhr.responseText);
-                    }
+                    getAccessToken(function () { showFollowersStatus(); });
                 }
             );
+        }
+
+        function getAccessToken(next) {
+            twitterAPI.request("accessToken", {
+                ok: function (res) {
+                    let parts = res.split("&");
+
+                    gOAuth.tokens.oauth_token        = parts[0].split("=")[1];
+                    gOAuth.tokens.oauth_token_secret = parts[1].split("=")[1];
+
+                    if (typeof next === "function")
+                        next();
+                },
+                ng: function (res) {
+                    display.notify("Failed to get access token :: " + xhr.responseText);
+                }
+            });
         }
 
         // }} ======================================================================= //
