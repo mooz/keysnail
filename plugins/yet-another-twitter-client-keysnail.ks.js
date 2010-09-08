@@ -454,12 +454,12 @@ const twitterAPI = {
         // Timeline
         // ============================================================ //
 
-        home: {
+        "statuses/home_timeline": {
             action : "http://api.twitter.com/1/statuses/home_timeline.json",
             method : "GET"
         },
 
-        mentions: {
+        "statuses/mentions": {
             action : "http://api.twitter.com/1/statuses/mentions.json",
             method : "GET"
         },
@@ -525,12 +525,12 @@ const twitterAPI = {
             method : "GET"
         },
 
-        getDM: {
+        "direct_messages": {
             action : "http://api.twitter.com/1/direct_messages.json",
             method : "GET"
         },
 
-        getSentDM: {
+        "direct_messages/sent": {
             action : "http://api.twitter.com/1/direct_messages/sent.json",
             method : "GET"
         }
@@ -913,7 +913,7 @@ var twitterClient =
 
         var gStatuses = new Crawler(
             {
-                action     : twitterAPI.get("home").action,
+                action     : twitterAPI.get("statuses/home_timeline").action,
                 name       : M({ en: "Timeline", ja: "タイムライン" }),
                 interval   : getOption("update_interval"),
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_status_id",
@@ -925,7 +925,7 @@ var twitterClient =
 
         var gMentions = new Crawler(
             {
-                action     : twitterAPI.get("mentions").action,
+                action     : twitterAPI.get("statuses/mentions").action,
                 name       : M({ en: "mentions", ja: "言及一覧" }),
                 interval   : getOption("mentions_update_interval"),
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_mention_id",
@@ -937,7 +937,7 @@ var twitterClient =
 
         var gDMs = new Crawler(
             {
-                action     : twitterAPI.get("getDM").action,
+                action     : twitterAPI.get("direct_messages").action,
                 name       : M({ en: "DMs", ja: "DMs" }),
                 interval   : getOption("dm_update_interval"),
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_dm_id",
@@ -950,7 +950,7 @@ var twitterClient =
 
         var gSentDMs = new Crawler(
             {
-                action     : twitterAPI.get("getSentDM").action,
+                action     : twitterAPI.get("direct_messages/sent").action,
                 name       : M({ en: "Sent DMs", ja: "Sent DMs" }),
                 interval   : 0,
                 oauth      : gOAuth,
