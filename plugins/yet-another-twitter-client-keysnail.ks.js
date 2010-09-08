@@ -371,10 +371,12 @@ const twitterAPI = {
         let action = proto.action;
 
         for (let [k, v] in Iterator(args))
-            action = action.replace(util.format("{%s}", k), encodeURIComponent(v), "g");
+            if (typeof v !== "undefined")
+                action = action.replace(util.format("{%s}", k), encodeURIComponent(v), "g");
 
         let query = [k + "=" + encodeURIComponent(v)
-                     for ([k, v] in Iterator(params))].join("&");
+                     for ([k, v] in Iterator(params))
+                     if (typeof v !== "undefined")].join("&");
 
         if (query.length)
             action += "?" + query;
@@ -476,7 +478,7 @@ const twitterAPI = {
             method : "GET"
         },
 
-        verification: {
+        "account/verify_credentials": {
             action: "http://api.twitter.com/1/account/verify_credentials.json",
             method: "GET"
         },
@@ -2761,28 +2763,14 @@ var twitterClient =
         }
 
         function setUserInfo() {
-            gOAuth.asyncRequest(
-                twitterAPI.get("verification"),
-                function (aEvent, xhr) {
-                    if (xhr.readyState === 4)
-                    {
-                        if (isRetryable(xhr))
-                        {
-                            log(LOG_LEVEL_DEBUG, "setUserInfo: retry");
-                            setUserInfo();
-                            return;
-                        }
+            twitterAPI.request("account/verify_credentials", {
+                ok: function (res, xhr) {
+                    var account = $U.decodeJSON("(" + xhr.responseText + ")");
 
-                        if (xhr.status !== 200)
-                            return;
-
-                        var account = $U.decodeJSON("(" + xhr.responseText + ")");
-
-                        share.userInfo = account;
-
-                        log(LOG_LEVEL_DEBUG, "user info successfully set");
-                    }
-                });
+                    share.userInfo = account;
+                    log(LOG_LEVEL_DEBUG, "user info successfully set");
+                }
+            });
         }
 
         /**
