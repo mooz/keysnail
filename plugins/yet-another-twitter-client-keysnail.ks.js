@@ -524,13 +524,8 @@ const twitterAPI = {
             method : "GET"
         },
 
-        userTimeline: {
-            action : "http://api.twitter.com/1/statuses/user_timeline/{arg1}.json{arg2}",
-            method : "GET"
-        },
-
-        myTimeline: {
-            action : "http://api.twitter.com/1/statuses/user_timeline.json{arg1}",
+        "statuses/user_timeline": {
+            action : "http://api.twitter.com/1/statuses/user_timeline.json",
             method : "GET"
         },
 
@@ -2472,29 +2467,22 @@ var twitterClient =
         }
 
         function showTargetStatus(target) {
-            gOAuth.asyncRequest(
-                twitterAPI.get("userTimeline", target, "?count=" + gTimelineCountEveryUpdates),
-                function (aEvent, xhr) {
-                    if (xhr.readyState === 4)
-                    {
-                        if (isRetryable(xhr))
-                        {
-                            showTargetStatus(target);
-                            return;
-                        }
-
-                        if (xhr.status !== 200)
-                        {
-                            display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
-                                                     en: "Failed to get statuses"}), 2000);
-                            return;
-                        }
-
-                        var statuses = $U.decodeJSON(xhr.responseText) || [];
-                        callSelector(statuses, M({ja: target + " のつぶやき一覧", en: "Tweets from " + target}));
-                    }
+            twitterAPI.request("statuses/user_timeline", {
+                params: {
+                    screen_name : target,
+                    count       : gTimelineCountEveryUpdates
+                },
+                ok: function (res, xhr) {
+                    var statuses = $U.decodeJSON(xhr.responseText) || [];
+                    callSelector(statuses, M({ja: target + " のつぶやき一覧", en: "Tweets from " + target}));
+                },
+                ng: function (res, xhr) {
+                    display.echoStatusBar(M({
+                        ja: 'ステータスの取得に失敗しました。',
+                        en: "Failed to get statuses"
+                    }), 2000);
                 }
-            );
+            });
         }
 
         // ================================================================================ //
@@ -3037,25 +3025,7 @@ var twitterClient =
             },
 
             showUsersTimeline: function (ev, arg) {
-                let count = arg || gTimelineCountBeginning;
-                if (count < 0)
-                    count = gTimelineCountBeginning;
-
-                gOAuth.asyncRequest(
-                    twitterAPI.get("myTimeline", "?count=" + Math.min(count, 200)),
-                    function (aEvent, xhr) {
-                        if (xhr.readyState === 4)
-                        {
-                            if (xhr.status !== 200)
-                            {
-                                display.echoStatusBar(M({en: "Failed to get your statuses", ja: "ステータスの取得に失敗しました"}));
-                                return;
-                            }
-
-                            var statuses = $U.decodeJSON(xhr.responseText);
-                            callSelector(statuses);
-                        }
-                    });
+                showTargetStatus();
             },
 
             updateStatusbar: function () {
