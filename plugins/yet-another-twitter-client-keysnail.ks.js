@@ -1248,7 +1248,12 @@ var twitterClient =
                     item = $U.createElement("menuitem", {
                         "label"     : label,
                         "accesskey" : accessKey
-                    }, command ? { oncommand : command } : { disabled : true });
+                    });
+
+                    if (command)
+                        item.setAttribute("oncommand", command);
+                    else
+                        item.disabled = true;
                 } else {
                     item = $U.createElement("menuseparator");
                 }
