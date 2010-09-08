@@ -478,10 +478,9 @@ const twitterAPI = {
             method : "GET"
         },
 
-        "account/verify_credentials": {
-            action: "http://api.twitter.com/1/account/verify_credentials.json",
-            method: "GET"
-        },
+        // ============================================================ //
+        // Tweets
+        // ============================================================ //
 
         "statuses/update": {
             action : "http://api.twitter.com/1/statuses/update.json",
@@ -497,6 +496,10 @@ const twitterAPI = {
             action : "http://api.twitter.com/1/statuses/retweet/{id}.json",
             method : "POST"
         },
+
+        // ============================================================ //
+        // Favorites
+        // ============================================================ //
 
         "favorites": {
             action : "http://api.twitter.com/1/favorites.json",
@@ -518,6 +521,10 @@ const twitterAPI = {
             method : "POST"
         },
 
+        // ============================================================ //
+        // Lists
+        // ============================================================ //
+
         "lists/index": {
             action : "http://api.twitter.com/1/{user}/lists.json",
             method : "GET"
@@ -534,10 +541,18 @@ const twitterAPI = {
             method : "GET"
         },
 
-        search: {
+        // ============================================================ //
+        // Search
+        // ============================================================ //
+
+        "search": {
             action : "http://search.twitter.com/search.json",
             method : "GET"
         },
+
+        // ============================================================ //
+        // Direct messages
+        // ============================================================ //
 
         "direct_messages": {
             action : "http://api.twitter.com/1/direct_messages.json",
@@ -547,7 +562,16 @@ const twitterAPI = {
         "direct_messages/sent": {
             action : "http://api.twitter.com/1/direct_messages/sent.json",
             method : "GET"
-        }
+        },
+
+        // ============================================================ //
+        // Account
+        // ============================================================ //
+
+        "account/verify_credentials": {
+            action: "http://api.twitter.com/1/account/verify_credentials.json",
+            method: "GET"
+        },
     }
 };
 
