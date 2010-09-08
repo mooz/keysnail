@@ -2893,28 +2893,6 @@ var twitterClient =
                     copy(html.unEscapeTag(status.text));
             },
 
-            listRelationShips: function () {
-                gOAuth.asyncRequest(
-                    twitterAPI.get("friends"),
-                    function (aEvent, xhr) {
-                        if (xhr.readyState === 4)
-                        {
-                            if (xhr.status !== 200)
-                            {
-                                if (isRetryable(xhr))
-                                {
-                                    log(LOG_LEVEL_DEBUG, "listRelationShips: retry %s", new Date());
-                                    self.listRelationShips();
-                                    return;
-                                }
-                            }
-
-                            let relationships = $U.decodeJSON(xhr.responseText);
-                        }
-                    }
-                );
-            },
-
             // }} ======================================================================= //
 
             updateStatusesCache: function (after, noRepeat, fromTimer) {
