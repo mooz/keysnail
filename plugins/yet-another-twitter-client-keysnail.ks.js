@@ -498,8 +498,13 @@ const twitterAPI = {
             method : "POST"
         },
 
-        getFavorites: {
+        "favorites": {
             action : "http://api.twitter.com/1/favorites.json",
+            method : "GET"
+        },
+
+        "favorites/user": {
+            action : "http://api.twitter.com/1/favorites/{user}.json",
             method : "GET"
         },
 
@@ -2007,8 +2012,10 @@ var twitterClient =
         // Actions {{ =============================================================== //
 
         function showFavorites(aTargetID) {
-            twitterAPI.request("getFavorites", {
-                args: [aTargetID ? ("?id=" + aTargetID) : ""],
+            twitterAPI.request(aTargetID ? "favorites/user" : "favorites", {
+                args: {
+                    user : aTargetID
+                },
                 ok: function (res, xhr) {
                     callSelector($U.decodeJSON(res), M({ ja: "お気に入り一覧", en: "Favorites" }));
                 },
