@@ -499,9 +499,8 @@ const twitterAPI = {
             method : "POST"
         },
 
-        getLists: {
-            action : "http://api.twitter.com/1/{arg1}/lists.json",
-            host   : "http://api.twitter.com/",
+        "lists/index": {
+            action : "http://api.twitter.com/1/{user}/lists.json",
             method : "GET"
         },
 
@@ -2254,32 +2253,23 @@ var twitterClient =
             }
             else
             {
-                gOAuth.asyncRequest(
-                    twitterAPI.get("getLists", aScreenName),
-                    function (aEvent, xhr) {
-                        if (xhr.readyState === 4)
-                        {
-                            if (isRetryable(xhr))
-                            {
-                                showLists(aScreenName);
-                                return;
-                            }
-
-                            if (xhr.status !== 200)
-                            {
-                                display.echoStatusBar(M({ja: 'リスト一覧の取得に失敗しました。',
-                                                         en: "Failed to get lists"}), 2000);
-                                return;
-                            }
-
-                            let result = $U.decodeJSON(xhr.responseText);
+                twitterAPI.request("lists/index", {
+                    args: {
+                        user : aScreenName
+                    },
+                    ok: function (res) {
+                            let result = $U.decodeJSON(res);
                             if (!share.twitterListCache)
                                 share.twitterListCache = {};
                             share.twitterListCache[aScreenName] = result;
 
                             showListsInPrompt(result);
-                        }
-                    });
+                    },
+                    ng: function (res) {
+                        display.echoStatusBar(M({ja: 'リスト一覧の取得に失敗しました。',
+                                                 en: "Failed to get lists"}), 2000);
+                    }
+                });
             }
 
             function showListsInPrompt(cache) {
