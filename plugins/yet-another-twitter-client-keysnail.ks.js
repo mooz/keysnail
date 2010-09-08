@@ -94,7 +94,7 @@ function log() {
 
 const $U = {
     bind: function (f, self) {
-        return function () { f.call(self); }
+        return function () { f.call(self); };
     },
 
     decodeJSON:
