@@ -571,9 +571,11 @@ const twitterAPI = {
         "account/verify_credentials": {
             action: "http://api.twitter.com/1/account/verify_credentials.json",
             method: "GET"
-        },
+        }
     }
 };
+
+plugins.twitterAPI = twitterAPI;
 
 // ============================================================ //
 // Object : Twitter Client (Main)
