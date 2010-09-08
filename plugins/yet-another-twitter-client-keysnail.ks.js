@@ -828,18 +828,16 @@ var twitterClient =
                         headers[pair.shift()] = pair.join('');
                 });
 
-                if (typeof self.headerHandler === "function")
+                if ("X-RateLimit-Remaining" in headers) {
+                    let remain = +headers["X-RateLimit-Remaining"];
+                    let limit  = +headers["X-RateLimit-Limit"];
+                    let reset  = +headers["X-RateLimit-Reset"];
 
-                    if ("X-RateLimit-Remaining" in headers) {
-                        let remain = +headers["X-RateLimit-Remaining"];
-                        let limit  = +headers["X-RateLimit-Limit"];
-                        let reset  = +headers["X-RateLimit-Reset"];
-
-                        share.twitterAPIUsage.set(remain, limit, reset * 1000);
-                    }
+                    share.twitterAPIUsage.set(remain, limit, reset * 1000);
+                }
             }
             catch (x) {}
-        }
+        };
 
         // }} ======================================================================= //
 
