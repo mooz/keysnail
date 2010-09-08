@@ -3184,19 +3184,20 @@ var twitterClient =
                     return;
 
                 let name = ev.target.getAttribute("tooltiptext");
+                let escapedName = $U.escapeSingleQuote(name);
 
                 if (name in gTrackings)
                 {
                     showDynamicMenu(ev, [
                         [M({ ja: '更新', en: 'Reflesh' }),
                          null,
-                         root + util.format(".showCrawledTrackingStatuses('%s', true);", name)],
+                         root + util.format(".showCrawledTrackingStatuses('%s', true);", escapedName)],
                         [M({ ja: 'トラッキング間隔を変更', en: 'Change tracking interval' }),
                          null,
-                         root + util.format(".changeTrackingInterval('%s');", name)],
+                         root + util.format(".changeTrackingInterval('%s');", escapedName)],
                         [M({ ja: 'トラッキングを終了', en: 'Cancel tracking this word' }),
                          null,
-                         root + util.format(".removeTracking('%s');", name)]
+                         root + util.format(".removeTracking('%s');", escapedName)]
                     ]);
                 }
             },
