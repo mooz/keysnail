@@ -390,6 +390,18 @@ const twitterAPI = {
         return requestArg;
     },
 
+    /*
+     twitterAPI.request("template", {
+         args: {
+         },
+         params: {
+         },
+         ok: function (res, xhr) {
+         },
+         ng: function (res, xhr) {
+         }
+     });
+    */
     request:
     function request(name, context) {
         let caller = arguments.callee.caller;
