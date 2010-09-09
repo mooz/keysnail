@@ -28,6 +28,8 @@ KeySnail.Prompt = function () {
 
     // ==================== Common objects between each context ==================== //
 
+    var sessionSuspended = false;
+
     // DOM Objects
     var promptbox;
     var container;
@@ -592,6 +594,9 @@ KeySnail.Prompt = function () {
      * @param {KeyBoardEvent} aEvent event which called this handler
      */
     function handleKeyUpSelector(aEvent) {
+        if (sessionSuspended)
+            return;
+
         /**
          * Without this cause exception about selection
          */
@@ -662,6 +667,9 @@ KeySnail.Prompt = function () {
      * @param {KeyBoardEvent} aEvent event which called this handler
      */
     function handleKeyPressSelector(aEvent) {
+        if (sessionSuspended)
+            return;
+
         if (promptEditMode &&
             modules.key.isDisplayableKey(aEvent) &&
             !modules.key.isMetaKey(aEvent) &&
@@ -843,6 +851,9 @@ KeySnail.Prompt = function () {
     }
 
     function handleMouseDownSelector(aEvent) {
+        if (sessionSuspended)
+            return;
+
         var before = listbox.selectedIndex;
 
         setTimeout(
@@ -863,6 +874,9 @@ KeySnail.Prompt = function () {
     }
 
     function handleMouseScrollSelector(aEvent) {
+        if (sessionSuspended)
+            return;
+
         selectNextCompletion(aEvent.detail < 0 ? -1 : 1, true);
     }
 
@@ -2842,6 +2856,9 @@ KeySnail.Prompt = function () {
                 options.actionsListStyle = style;
         },
 
+        get suspended() sessionSuspended,
+        set suspended(v) sessionSuspended = v,
+
         doNthAction: function (aNumber, aContinuous) {
             var action = selectorContext[SELECTOR_STATE_ACTION];
             action.wholeListIndex = aNumber;
@@ -2935,6 +2952,8 @@ KeySnail.Prompt = function () {
             }
 
             // ==================== reset states ==================== //
+
+            sessionSuspended = false;
 
             /**
              * We need to call focus() here
