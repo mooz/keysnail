@@ -2264,7 +2264,7 @@ var twitterClient =
         }
 
         function showListStatuses(aScreenName, aListName) {
-            twitterRequest("lists/statuses", {
+            twitterAPI.request("lists/statuses", {
                 args: {
                     user : aScreenName,
                     id   : aListName
