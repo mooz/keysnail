@@ -473,6 +473,11 @@ const twitterAPI = {
             method : "GET"
         },
 
+        "statuses/user_timeline": {
+            action : "http://api.twitter.com/1/statuses/user_timeline.json",
+            method : "GET"
+        },
+
         "statuses/mentions": {
             action : "http://api.twitter.com/1/statuses/mentions.json",
             method : "GET"
@@ -533,11 +538,6 @@ const twitterAPI = {
         "lists/statuses": {
             action : "http://api.twitter.com/1/{user}/lists/{id}/statuses.json",
             host   : "http://api.twitter.com/",
-            method : "GET"
-        },
-
-        "statuses/user_timeline": {
-            action : "http://api.twitter.com/1/statuses/user_timeline.json",
             method : "GET"
         },
 
