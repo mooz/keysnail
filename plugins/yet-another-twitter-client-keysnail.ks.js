@@ -1929,7 +1929,7 @@ var twitterClient =
 
         // Utils {{ ================================================================= //
 
-        function showLoadingMessage() {
+        function showLoadingMessage(msg) {
             if (my.twitterClientHeader)
             {
                 let header = my.twitterClientHeader;
@@ -1937,7 +1937,7 @@ var twitterClient =
                 let loading = $U.createElement("description", {
                     "class" : "ks-loading-message"
                 }, [
-                    document.createTextNode(".......... Loading ..........")
+                    document.createTextNode(msg || ".......... Loading ..........")
                 ]);
 
                 header.userTweet.replaceChild(loading, header.userTweet.firstChild);
@@ -2684,6 +2684,16 @@ var twitterClient =
             if (headerEnabled)
                 header.container.setAttribute("hidden", false);
 
+            let lastIndex     = collection.length - 1;
+            let beforeIndex   = 0;
+            let { fetchNext } = options;
+            let fetchingNext  = false;
+
+            function doFetchNext(status, i) {
+                fetchingNext = true;
+                prompt.refresh();
+            }
+
             prompt.selector(
                 {
                     message    : "pattern:",
@@ -2694,10 +2704,17 @@ var twitterClient =
                     style      : getOption("fancy_mode") ? null : ["color:#0e0067;", "", "color:#660025;"],
                     width      : getOption("main_column_width"),
                     beforeSelection : function (arg) {
-                        if (!arg.row)
+                        if (!arg.row || fetchingNext)
                             return;
 
                         let status = arg.row[0];
+
+                        if (fetchNext && arg.i === lastIndex) {
+                            showLoadingMessage("Fetching next");
+                            doFetchNext(status, arg.i);
+                        }
+
+                        beforeIndex = arg.i;
 
                         // accessible from out of this closure
                         my.twitterSelectedStatus = status;
