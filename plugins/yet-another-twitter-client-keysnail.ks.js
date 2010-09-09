@@ -2827,6 +2827,8 @@ var twitterClient =
 
                 fetchingPreviousNow = true;
 
+                prompt.suspended = true;
+
                 let promptInput = document.getElementById("keysnail-prompt-textbox");
                 promptInput.blur();
 
