@@ -2355,7 +2355,7 @@ var twitterClient =
 
             function crawlerToLabel(crawler) {
                 let unreadCount = getStatusPos(crawler.cache, crawler.lastID);
-                return "(" + unreadCount + ") " + crawler.name;
+                return "(" + (unreadCount < 0 ? "-" : unreadCount) + ") " + crawler.name;
             }
 
             let lists = [[TAG_ICON, crawlerToLabel(crawler), (function (name) {
@@ -2767,7 +2767,7 @@ var twitterClient =
 
         function getStatusPos(aJSON, aID) {
             if (!aJSON)
-                return 0;
+                return -1;
 
             if (!aID)
                 return aJSON.length;
