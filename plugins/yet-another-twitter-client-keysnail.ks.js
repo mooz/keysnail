@@ -2772,7 +2772,6 @@ var twitterClient =
                 // status, icon, name, message, fav-icon, info
                 flags      : [hid, ico, 0, 0, ico, 0],
                 header     : [M({ja: 'ユーザ', en: "User"}), aMessage, M({ja : "情報", en: 'Info'})],
-                style      : ["color:#0e0067;", "", "color:#660025;"],
                 width      : getOption("main_column_width"),
                 beforeSelection : function (arg) {
                     if (!arg.row || fetchingPrevious)
