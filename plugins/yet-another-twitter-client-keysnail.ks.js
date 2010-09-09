@@ -2098,18 +2098,37 @@ var twitterClient =
         // Actions {{ =============================================================== //
 
         function showFavorites(aTargetID) {
-            twitterAPI.request(aTargetID ? "favorites/user" : "favorites", {
-                args: {
-                    user : aTargetID
-                },
-                ok: function (res, xhr) {
-                    callSelector($U.decodeJSON(res), M({ ja: "お気に入り一覧", en: "Favorites" }));
-                },
-                ng: function (res, xhr) {
-                    display.echoStatusBar(M({ en: "Failed to get favorites",
-                                              ja: "お気に入り一覧の取得に失敗しました" }));
-                }
+            processFavorites(function (favorites) {
+                callSelector(favorites, M({ ja: "お気に入り一覧", en: "Favorites" }), {
+                    lastID        : favorites[favorites.length - 1].id,
+                    fetchPrevious : fetchPrevious
+                });
             });
+
+            function processFavorites(callback, params) {
+                twitterAPI.request(aTargetID ? "favorites/user" : "favorites", {
+                    args: {
+                        user : aTargetID
+                    },
+                    params: params,
+                    ok: function (res, xhr) {
+                        callback($U.decodeJSON(res));
+                    },
+                    ng: function (res, xhr) {
+                        display.echoStatusBar(M({ en: "Failed to get favorites",
+                                                  ja: "お気に入り一覧の取得に失敗しました" }));
+                    }
+                });
+            }
+
+            function fetchPrevious(status, after) {
+                processFavorites(function (favorites) {
+                    favorites.shift();
+                    after(favorites);
+                }, {
+                    max_id: status.id
+                });
+            }
         }
 
         function addFavorite(aStatusID, aDelete) {
