@@ -48,6 +48,7 @@ var optionsDefaultValue = {
     "my_tweet_style"                        : "color:#0a00d5;",
     "reply_to_me_style"                     : "color:#930c00;",
     "retweeted_status_style"                : "color:#134f00;",
+    "unread_message_style"                  : "font-weight:bold;",
     "selected_row_style"                    : "background-color:#93c6ff; color:black; outline: 1px solid #93c6ff !important;",
     "selected_user_style"                   : "background-color:#ddedff; color:black;",
     "selected_user_reply_to_style"          : "background-color:#ffd4ff; color:black;",
@@ -2513,7 +2514,10 @@ var twitterClient =
             else
             {
                 // use cache
-                callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache, crawler.name);
+                callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache,
+                             crawler.name, {
+                                 lastID : crawler.lastID
+                             });
                 setLastID(crawler);
             }
         }
@@ -2617,14 +2621,16 @@ var twitterClient =
             return message;
         }
 
-        function callSelector(aStatuses, aMessage, aNoFilter) {
+        function callSelector(aStatuses, aMessage, options) {
             if (!aStatuses)
                 return;
+
+            options = options || {};
 
             var current = new Date();
 
             // ignore black users
-            var statuses = aNoFilter ? aStatuses :
+            var statuses = options.supressFilter ? aStatuses :
                 aStatuses.filter(
                     function (status) gBlackUsers.every(function (name) status.user.screen_name !== name)
                 );
@@ -2660,6 +2666,7 @@ var twitterClient =
             let currentID               = statuses[0] ? statuses[0].id : null;
             let selectedUserID          = statuses[0] ? statuses[0].user.screen_name : null;
             let selectedUserInReplyToID = statuses[0] ? statuses[0].in_reply_to_screen_name : null;
+            let { lastID }              = options;
 
             let header = my.twitterClientHeader;
             let headerEnabled = getOption("enable_header");
@@ -2757,6 +2764,9 @@ var twitterClient =
                                 style += getOption("selected_user_reply_to_reply_to_style");
                             else if (status.retweeted_status)
                                 style += getOption("retweeted_status_style");
+
+                            if (lastID && status.id > lastID)
+                                style += getOption("unread_message_style");
 
                             return style;
                         } : null,
