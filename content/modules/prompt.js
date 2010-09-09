@@ -433,8 +433,18 @@ KeySnail.Prompt = function () {
             }
         }
 
-        if (beforeSelection)
-            beforeSelection({row: currentRow, i: currentIndex});
+        if (beforeSelection) {
+            let args = {
+                row : currentRow,
+                i   : currentIndex
+            };
+
+            beforeSelection(args);
+
+            // user can override the value of `i'
+            if (typeof args.i === "number")
+                aIndex = args.i;
+        }
 
         var center = Math.round(listboxRows / 2);
         var pos;
