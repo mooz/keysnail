@@ -2504,7 +2504,10 @@ var twitterClient =
 
                     crawler.update(
                         function () {
-                            callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache, crawler.name);
+                            callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache,
+                                         crawler.name, {
+                                             lastID : crawler.lastID
+                                         });
                             setLastID(crawler);
                         },
                         updateForced,
