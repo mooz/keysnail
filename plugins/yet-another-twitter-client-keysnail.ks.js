@@ -615,6 +615,7 @@ var twitterClient =
             this.startNext    = arg.startNext;
             this.mapper       = arg.mapper;
             this.countName    = arg.countName || "count";
+            this.maxIDName    = arg.maxIDName || "max_id";
             this.getLastID    = arg.getLastID;
             this.setLastID    = arg.setLastID;
             this.lastIDHook   = arg.lastIDHook;
@@ -697,67 +698,124 @@ var twitterClient =
                 return latestTimeline;
             },
 
+            request:
+            function request(context) {
+                context = context || {};
+
+                let { action } = this;
+
+                if (context.params) {
+                    let query = [k + "=" + encodeURIComponent(v)
+                                 for ([k, v] in Iterator(context.params))
+                                 if (typeof v !== "undefined")].join("&");
+                    if (query.length)
+                        action += (action.indexOf("?") < 0 ? "?" : "&") + query;
+                }
+
+                log(LOG_LEVEL_DEBUG, this.name + " => " + action);
+
+                this.oauth.asyncRequest({
+                    action: action,
+                    method: "GET"
+                }, function (ev, xhr) {
+                    if (xhr.readyState !== 4)
+                        return;
+
+                    switch (xhr.status) {
+                    case 200:
+                        if (typeof context.ok === "function")
+                            context.ok(xhr.responseText, xhr);
+                        break;
+                    default:
+                        if (typeof context.ng === "function")
+                            context.ng(xhr.responseText, xhr);
+                        break;
+                    }
+                });
+            },
+
             update:
             function update(after, noRepeat, fromTimer) {
                 this.pending = true;
 
                 let self = this;
 
-                let action = this.action +
-                    (this.cache ? "" :
-                     (this.action.indexOf("?") === -1 ? "?" : "&") + this.countName + "=" + this.beginCount);
+                let params = {};
 
-                this.oauth.asyncRequest(
-                    {
-                        action: action,
-                        method: "GET"
-                    },
-                    function (ev, xhr) {
-                        if (xhr.readyState !== 4)
-                            return;
+                if (!this.cache)
+                    params[this.countName] = this.beginCount;
 
+                this.request({
+                    params : params,
+                    ok: function (res, xhr) {
                         self.pending = false;
 
-                        if (xhr.status !== 200)
-                        {
-                            if (isRetryable(xhr))
-                            {
-                                log(LOG_LEVEL_DEBUG, self.name + " => Crawler#update: retry %s", new Date());
-                                self.update(after, noRepeat, fromTimer);
+                        let statuses = $U.decodeJSON(xhr.responseText);
+                        self.cache   = self.combineCache(self.mapper ? self.mapper(statuses) : statuses);
 
-                                return;
-                            }
+                        if (self.lastIDHook)
+                            self.lastIDHook();
 
-                            display.echoStatusBar(M({ en: "Failed to get " + self.name,
-                                                      ja: self.name + L("の取得に失敗しました") }));
-                        }
-                        else
-                        {
-                            log(LOG_LEVEL_DEBUG, self.name + " => update %s (interval %s)\n%s",
-                                new Date(), self.interval, action);
-                            let (statuses = $U.decodeJSON(xhr.responseText))
-                                self.cache = self.combineCache(self.mapper ? self.mapper(statuses) : statuses);
-                            if (self.lastIDHook)
-                                self.lastIDHook();
-                        }
-
-                        if (self.interval && (!noRepeat && !self.updater || fromTimer))
-                        {
+                        if (self.interval && (!noRepeat && !self.updater || fromTimer)) {
                             self.updater = {
                                 window : window,
-                                timer  : setTimeout(function () { self.update(null, false, true); }, self.interval)
+                                timer  : setTimeout(function () {
+                                    self.update(null, false, true);
+                                }, self.interval)
                             };
 
-                            if (self.delegator)
-                                return;
-
-                            self.setDelegator();
+                            if (!self.delegator)
+                                self.setDelegator();
                         }
 
                         if (typeof after === "function")
                             after();
+                    },
+                    ng: function (res, xhr) {
+                        self.pending = false;
+
+                        if (isRetryable(xhr)) {
+                            log(LOG_LEVEL_DEBUG, self.name + " => Crawler#update: retry %s", new Date());
+                            self.update(after, noRepeat, fromTimer);
+                        }
                     }
-                );
+                });
+            },
+
+            updatePrevious: function (status, after) {
+                this.pending = true;
+
+                let self = this;
+
+                let params = {};
+                params[this.maxIDName] = status.id;
+                params[this.countName] = this.beginCount;
+
+                this.request({
+                    params : params,
+                    ok: function (res, xhr) {
+                        self.pending = false;
+
+                        let statuses = $U.decodeJSON(res);
+
+                        if (statuses) {
+                            statuses = self.mapper ? self.mapper(statuses) : statuses;
+                            statuses.shift();
+                            self.cache = self.cache.concat(statuses);
+                        }
+
+                        if (typeof after === "function")
+                            after(statuses);
+                    },
+                    ng: function (res, xhr) {
+                        self.pending = false;
+
+                        if (isRetryable(xhr)) {
+                            log(LOG_LEVEL_DEBUG, self.name + " => Crawler#updatePrevious: retry %s", new Date());
+                            self.updatePrevious(status, after);
+                        }
+                    }
+                });
             },
 
             setDelegator:
@@ -2491,6 +2549,17 @@ var twitterClient =
         function showCrawlersCache(crawler, arg, cacheFilter) {
             var updateForced = typeof arg === "number";
 
+            function displayCache() {
+                callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache,
+                             crawler.name, {
+                                 lastID        : crawler.lastID,
+                                 fetchPrevious : crawler.maxIDName ? function (status, after) {
+                                     return crawler.updatePrevious(status, after);
+                                 } : null
+                             });
+                setLastID(crawler);
+            }
+
             if (updateForced || !crawler.cache)
             {
                 if (crawler.pending)
@@ -2502,26 +2571,13 @@ var twitterClient =
                 {
                     showLoadingMessage();
 
-                    crawler.update(
-                        function () {
-                            callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache,
-                                         crawler.name, {
-                                             lastID : crawler.lastID
-                                         });
-                            setLastID(crawler);
-                        },
-                        updateForced,
-                        false);
+                    crawler.update(displayCache, updateForced, false);
                 }
             }
             else
             {
                 // use cache
-                callSelector(cacheFilter ? cacheFilter(crawler.cache) : crawler.cache,
-                             crawler.name, {
-                                 lastID : crawler.lastID
-                             });
-                setLastID(crawler);
+                displayCache();
             }
         }
 
@@ -2632,39 +2688,48 @@ var twitterClient =
 
             var current = new Date();
 
+            // ============================================================ //
+
+            function notBlack(status) {
+                return gBlackUsers.every(function (name) {
+                    return status.user.screen_name !== name;
+                });
+            }
+
             // ignore black users
-            var statuses = options.supressFilter ? aStatuses :
-                aStatuses.filter(
-                    function (status) gBlackUsers.every(function (name) status.user.screen_name !== name)
-                );
+            var statuses = options.supressFilter ? aStatuses : aStatuses.filter(notBlack);
+
+            // ============================================================ //
 
             function favIconGetter(aRow) aRow[0].favorited ? FAVORITED_ICON : "";
-
             let preferScreenName = getOption("prefer_screen_name");
             let showSources      = getOption("show_sources");
 
-            var collection = statuses.map(
-                function (status) {
-                    var created = Date.parse(status.created_at);
-                    var matched = status.source ? status.source.match(">(.*)</a>") : "";
+            function statusMapper(status) {
+                var created = Date.parse(status.created_at);
+                var matched = status.source ? status.source.match(">(.*)</a>") : "";
 
-                    return [status,
-                            status.user.profile_image_url,
-                            preferScreenName ? status.user.screen_name : status.user.name,
-                            html.unEscapeTag(status.text),
-                            favIconGetter,
-                            util.format("%s %s",
-                                        getElapsedTimeString(current - created),
-                                        showSources ? (matched ? matched[1] : "Web") : "",
-                                        (status.in_reply_to_screen_name ?
-                                         " to " + status.in_reply_to_screen_name : ""))];
-                }
-            );
+                return [status,
+                        status.user.profile_image_url,
+                        preferScreenName ? status.user.screen_name : status.user.name,
+                        html.unEscapeTag(status.text),
+                        favIconGetter,
+                        util.format("%s %s",
+                                    getElapsedTimeString(current - created),
+                                    showSources ? (matched ? matched[1] : "Web") : "",
+                                    (status.in_reply_to_screen_name ?
+                                     " to " + status.in_reply_to_screen_name : ""))];
+            }
+
+            var collection = statuses.map(statusMapper);
+
+            // ============================================================ //
 
             const ico = ICON   | IGNORE;
             const hid = HIDDEN | IGNORE;
 
-            if (!aMessage) aMessage = M({ja: "タイムライン", en: "Timeline"});
+            if (!aMessage)
+                aMessage = M({ja: "タイムライン", en: "Timeline"});
 
             let currentID               = statuses[0] ? statuses[0].id : null;
             let selectedUserID          = statuses[0] ? statuses[0].user.screen_name : null;
@@ -2684,128 +2749,148 @@ var twitterClient =
             if (headerEnabled)
                 header.container.setAttribute("hidden", false);
 
-            let lastIndex     = collection.length - 1;
-            let beforeIndex   = 0;
-            let { fetchNext } = options;
-            let fetchingNext  = false;
+            let beforeIndex       = 0;
+            let { fetchPrevious } = options;
+            let fetchingPrevious  = false;
 
-            function doFetchNext(status, i) {
-                fetchingNext = true;
-                prompt.refresh();
+            function doFetchPrevious(status, i) {
+                if (fetchingPrevious)
+                    return;
+
+                fetchingPrevious = true;
+
+                fetchPrevious(status, function (statuses) {
+                    fetchingPrevious = false;
+
+                    gPrompt.forced = true;
+
+                    options.initialIndex = collection.length - 1;
+                    callSelector(aStatuses.concat(statuses),
+                                 aMessage,
+                                 options);
+                });
             }
 
-            prompt.selector(
-                {
-                    message    : "pattern:",
-                    collection : collection,
-                    // status, icon, name, message, fav-icon, info
-                    flags      : [hid, ico, 0, 0, ico, 0],
-                    header     : [M({ja: 'ユーザ', en: "User"}), aMessage, M({ja : "情報", en: 'Info'})],
-                    style      : getOption("fancy_mode") ? null : ["color:#0e0067;", "", "color:#660025;"],
-                    width      : getOption("main_column_width"),
-                    beforeSelection : function (arg) {
-                        if (!arg.row || fetchingNext)
-                            return;
+            prompt.selector({
+                message    : "pattern:",
+                collection : collection,
+                // status, icon, name, message, fav-icon, info
+                flags      : [hid, ico, 0, 0, ico, 0],
+                header     : [M({ja: 'ユーザ', en: "User"}), aMessage, M({ja : "情報", en: 'Info'})],
+                style      : getOption("fancy_mode") ? null : ["color:#0e0067;", "", "color:#660025;"],
+                width      : getOption("main_column_width"),
+                beforeSelection : function (arg) {
+                    if (!arg.row || fetchingPrevious)
+                        return;
 
-                        let status = arg.row[0];
+                    let status = arg.row[0];
 
-                        if (fetchNext && arg.i === lastIndex) {
-                            showLoadingMessage("Fetching next");
-                            doFetchNext(status, arg.i);
+                    if (fetchPrevious &&
+                        arg.i === 0 &&
+                        beforeIndex === collection.length - 1) {
+                        // fetch previous messages
+                        let lastStatus = collection[collection.length - 1][0];
+                        doFetchPrevious(lastStatus, arg.i);
+                        showLoadingMessage(M({
+                            ja: "過去のメッセージを取得しています",
+                            en: "Fetching previous messages"
+                        }));
+                        return;
+                    }
+
+                    beforeIndex = arg.i;
+
+                    // accessible from out of this closure
+                    my.twitterSelectedStatus = status;
+
+                    selectedUserID          = status.user.screen_name;
+                    currentID               = status.id;
+                    selectedUserInReplyToID = status.in_reply_to_screen_name;
+
+                    if (headerEnabled)
+                    {
+                        if (my.twitterClientHeaderUpdater)
+                            clearTimeout(my.twitterClientHeaderUpdater);
+
+                        function updateHeader() {
+                            header.userIcon.setAttribute("src", arg.row[1]);
+                            header.userIcon.setAttribute("tooltiptext", status.user.description);
+                            header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
+                            header.userName.setAttribute("tooltiptext", status.user.description);
+
+                            setIconStatus(header.buttonHome, !!status.user.url);
+                            if (status.user.url)
+                                header.buttonHome.setAttribute("onclick", Commands.openLink(status.user.url));
+                            else
+                                header.buttonHome.removeAttribute("onclick");
+
+                            header.buttonTwitter.setAttribute("onclick", Commands.openLink('http://twitter.com/' + status.user.screen_name));
+
+                            header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text), status), header.userTweet.firstChild);
+
+                            my.twitterClientHeaderUpdater = null;
                         }
 
-                        beforeIndex = arg.i;
+                        // add delay
+                        my.twitterClientHeaderUpdater = setTimeout(updateHeader, 90);
+                    }
+                },
+                onFinish : onFinish,
+                stylist  : getOption("fancy_mode") ?
+                    function (args, n, current) {
+                        if (current !== collection)
+                            return null;
 
-                        // accessible from out of this closure
-                        my.twitterSelectedStatus = status;
+                        let status = args[0];
 
-                        selectedUserID          = status.user.screen_name;
-                        currentID               = status.id;
-                        selectedUserInReplyToID = status.in_reply_to_screen_name;
+                        let style = "";
 
-                        if (headerEnabled)
+                        if (share.userInfo)
                         {
-                            if (my.twitterClientHeaderUpdater)
-                                clearTimeout(my.twitterClientHeaderUpdater);
+                            if (status.user.screen_name === share.userInfo.screen_name)
+                                style += getOption("my_tweet_style");
 
-                            function updateHeader() {
-                                header.userIcon.setAttribute("src", arg.row[1]);
-                                header.userIcon.setAttribute("tooltiptext", status.user.description);
-                                header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
-                                header.userName.setAttribute("tooltiptext", status.user.description);
-
-                                setIconStatus(header.buttonHome, !!status.user.url);
-                                if (status.user.url)
-                                    header.buttonHome.setAttribute("onclick", Commands.openLink(status.user.url));
-                                else
-                                    header.buttonHome.removeAttribute("onclick");
-
-                                header.buttonTwitter.setAttribute("onclick", Commands.openLink('http://twitter.com/' + status.user.screen_name));
-
-                                header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text), status), header.userTweet.firstChild);
-
-                                my.twitterClientHeaderUpdater = null;
-                            }
-
-                            // add delay
-                            my.twitterClientHeaderUpdater = setTimeout(updateHeader, 90);
+                            if (status.in_reply_to_screen_name === share.userInfo.screen_name)
+                                style += getOption("reply_to_me_style");
                         }
-                    },
-                    onFinish : onFinish,
-                    stylist  : getOption("fancy_mode") ?
-                        function (args, n, current) {
-                            if (current !== collection)
-                                return null;
 
-                            let status = args[0];
+                        if (status.user.screen_name === selectedUserID)
+                        {
+                            if (status.id === currentID)
+                                style += getOption("selected_row_style");
+                            else
+                                style += getOption("selected_user_style");
+                        }
+                        else if (status.user.screen_name === selectedUserInReplyToID)
+                            style += getOption("selected_user_reply_to_style");
+                        else if (status.user.in_reply_to_screen_name &&
+                                 status.user.in_reply_to_screen_name === selectedUserInReplyToID)
+                            style += getOption("selected_user_reply_to_reply_to_style");
+                        else if (status.retweeted_status)
+                            style += getOption("retweeted_status_style");
 
-                            let style = "";
+                        if (lastID && status.id > lastID)
+                            style += getOption("unread_message_style");
 
-                            if (share.userInfo)
-                            {
-                                if (status.user.screen_name === share.userInfo.screen_name)
-                                    style += getOption("my_tweet_style");
+                        return style;
+                    } : null,
+                filter : function (aIndex) {
+                    var status = statuses[aIndex];
 
-                                if (status.in_reply_to_screen_name === share.userInfo.screen_name)
-                                    style += getOption("reply_to_me_style");
-                            }
-
-                            if (status.user.screen_name === selectedUserID)
-                            {
-                                if (status.id === currentID)
-                                    style += getOption("selected_row_style");
-                                else
-                                    style += getOption("selected_user_style");
-                            }
-                            else if (status.user.screen_name === selectedUserInReplyToID)
-                                style += getOption("selected_user_reply_to_style");
-                            else if (status.user.in_reply_to_screen_name &&
-                                     status.user.in_reply_to_screen_name === selectedUserInReplyToID)
-                                style += getOption("selected_user_reply_to_reply_to_style");
-                            else if (status.retweeted_status)
-                                style += getOption("retweeted_status_style");
-
-                            if (lastID && status.id > lastID)
-                                style += getOption("unread_message_style");
-
-                            return style;
-                        } : null,
-                    filter : function (aIndex) {
-                        var status = statuses[aIndex];
-
-                        return (aIndex < 0 ) ? [null] :
-                            [{
-                                 screen_name : status.user.screen_name,
-                                 id          : status.id,
-                                 user_id     : status.user.id,
-                                 text        : html.unEscapeTag(status.text),
-                                 favorited   : status.favorited,
-                                 raw         : status
-                             }];
-                    },
-                    keymap  : getOption("keymap"),
-                    actions : gTwitterCommonActions
-                });
+                    return (aIndex < 0 ) ? [null] :
+                        [{
+                            screen_name : status.user.screen_name,
+                            id          : status.id,
+                            user_id     : status.user.id,
+                            text        : html.unEscapeTag(status.text),
+                            favorited   : status.favorited,
+                            raw         : status
+                        }];
+                },
+                keymap       : getOption("keymap"),
+                actions      : gTwitterCommonActions,
+                initialIndex : options.initialIndex
+            });
         }
 
         function modifyCache(aId, proc) {
