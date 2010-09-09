@@ -41,9 +41,7 @@ var optionsDefaultValue = {
         "o"     : "prompt-decide"
     },
     "black_users"                           : [],
-    "enable_header"                         : true,
     // fancy mode settings
-    "fancy_mode"                            : true,
     "normal_tweet_style"                    : "color:black;",
     "my_tweet_style"                        : "color:#0a00d5;",
     "reply_to_me_style"                     : "color:#930c00;",
@@ -1616,7 +1614,7 @@ var twitterClient =
 
         // Header {{ ================================================================ //
 
-        if (getOption("enable_header") && !my.twitterClientHeader)
+        if (!my.twitterClientHeader)
         {
             const HEAD_CONTAINER_ID  = "keysnail-twitter-client-head-container";
             const HEAD_USER_ICON     = "keysnail-twitter-client-user-icon";
@@ -2737,17 +2735,14 @@ var twitterClient =
             let { lastID }              = options;
 
             let header = my.twitterClientHeader;
-            let headerEnabled = getOption("enable_header");
 
             gPrompt.close();
 
             function onFinish() {
-                if (headerEnabled)
-                    header.container.setAttribute("hidden", true);
+                header.container.setAttribute("hidden", true);
             }
 
-            if (headerEnabled)
-                header.container.setAttribute("hidden", false);
+            header.container.setAttribute("hidden", false);
 
             let beforeIndex       = 0;
             let { fetchPrevious } = options;
@@ -2777,7 +2772,7 @@ var twitterClient =
                 // status, icon, name, message, fav-icon, info
                 flags      : [hid, ico, 0, 0, ico, 0],
                 header     : [M({ja: 'ユーザ', en: "User"}), aMessage, M({ja : "情報", en: 'Info'})],
-                style      : getOption("fancy_mode") ? null : ["color:#0e0067;", "", "color:#660025;"],
+                style      : ["color:#0e0067;", "", "color:#660025;"],
                 width      : getOption("main_column_width"),
                 beforeSelection : function (arg) {
                     if (!arg.row || fetchingPrevious)
@@ -2807,73 +2802,69 @@ var twitterClient =
                     currentID               = status.id;
                     selectedUserInReplyToID = status.in_reply_to_screen_name;
 
-                    if (headerEnabled)
-                    {
-                        if (my.twitterClientHeaderUpdater)
-                            clearTimeout(my.twitterClientHeaderUpdater);
+                    if (my.twitterClientHeaderUpdater)
+                        clearTimeout(my.twitterClientHeaderUpdater);
 
-                        function updateHeader() {
-                            header.userIcon.setAttribute("src", arg.row[1]);
-                            header.userIcon.setAttribute("tooltiptext", status.user.description);
-                            header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
-                            header.userName.setAttribute("tooltiptext", status.user.description);
+                    function updateHeader() {
+                        header.userIcon.setAttribute("src", arg.row[1]);
+                        header.userIcon.setAttribute("tooltiptext", status.user.description);
+                        header.userName.setAttribute("value", status.user.screen_name + " / " + status.user.name);
+                        header.userName.setAttribute("tooltiptext", status.user.description);
 
-                            setIconStatus(header.buttonHome, !!status.user.url);
-                            if (status.user.url)
-                                header.buttonHome.setAttribute("onclick", Commands.openLink(status.user.url));
-                            else
-                                header.buttonHome.removeAttribute("onclick");
+                        setIconStatus(header.buttonHome, !!status.user.url);
+                        if (status.user.url)
+                            header.buttonHome.setAttribute("onclick", Commands.openLink(status.user.url));
+                        else
+                            header.buttonHome.removeAttribute("onclick");
 
-                            header.buttonTwitter.setAttribute("onclick", Commands.openLink('http://twitter.com/' + status.user.screen_name));
+                        header.buttonTwitter.setAttribute("onclick", Commands.openLink('http://twitter.com/' + status.user.screen_name));
 
-                            header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text), status), header.userTweet.firstChild);
+                        header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text), status), header.userTweet.firstChild);
 
-                            my.twitterClientHeaderUpdater = null;
-                        }
-
-                        // add delay
-                        my.twitterClientHeaderUpdater = setTimeout(updateHeader, 90);
+                        my.twitterClientHeaderUpdater = null;
                     }
+
+                    // add delay
+                    my.twitterClientHeaderUpdater = setTimeout(updateHeader, 90);
                 },
                 onFinish : onFinish,
-                stylist  : getOption("fancy_mode") ?
-                    function (args, n, current) {
-                        if (current !== collection)
-                            return null;
+                stylist  : function (args, n, current) {
+                    if (current !== collection)
+                        return null;
 
-                        let status = args[0];
+                    let status = args[0];
 
-                        let style = "";
+                    let style = "";
 
-                        if (share.userInfo)
-                        {
-                            if (status.user.screen_name === share.userInfo.screen_name)
-                                style += getOption("my_tweet_style");
+                    if (share.userInfo)
+                    {
+                        if (status.user.screen_name === share.userInfo.screen_name)
+                            style += getOption("my_tweet_style");
 
-                            if (status.in_reply_to_screen_name === share.userInfo.screen_name)
-                                style += getOption("reply_to_me_style");
-                        }
+                        if (status.in_reply_to_screen_name === share.userInfo.screen_name)
+                            style += getOption("reply_to_me_style");
+                    }
 
-                        if (status.user.screen_name === selectedUserID)
-                        {
-                            if (status.id === currentID)
-                                style += getOption("selected_row_style");
-                            else
-                                style += getOption("selected_user_style");
-                        }
-                        else if (status.user.screen_name === selectedUserInReplyToID)
-                            style += getOption("selected_user_reply_to_style");
-                        else if (status.user.in_reply_to_screen_name &&
-                                 status.user.in_reply_to_screen_name === selectedUserInReplyToID)
-                            style += getOption("selected_user_reply_to_reply_to_style");
-                        else if (status.retweeted_status)
-                            style += getOption("retweeted_status_style");
+                    if (status.user.screen_name === selectedUserID)
+                    {
+                        if (status.id === currentID)
+                            style += getOption("selected_row_style");
+                        else
+                            style += getOption("selected_user_style");
+                    }
+                    else if (status.user.screen_name === selectedUserInReplyToID)
+                        style += getOption("selected_user_reply_to_style");
+                    else if (status.user.in_reply_to_screen_name &&
+                             status.user.in_reply_to_screen_name === selectedUserInReplyToID)
+                        style += getOption("selected_user_reply_to_reply_to_style");
+                    else if (status.retweeted_status)
+                        style += getOption("retweeted_status_style");
 
-                        if (lastID && status.id > lastID)
-                            style += getOption("unread_message_style");
+                    if (lastID && status.id > lastID)
+                        style += getOption("unread_message_style");
 
-                        return style;
-                    } : null,
+                    return style;
+                },
                 filter : function (aIndex) {
                     var status = statuses[aIndex];
 
@@ -3569,18 +3560,6 @@ var PLUGIN_INFO =
             <type>object</type>
             <description>Local keymap for tweet input box</description>
             <description lang="ja">つぶやき入力部分のローカルキーマップ</description>
-        </option>
-        <option>
-            <name>twitter_client.fancy_mode</name>
-            <type>boolean</type>
-            <description>Enable fancy mode</description>
-            <description lang="ja">TL に色付けを行うかどうか</description>
-        </option>
-        <option>
-            <name>twitter_client.enable_header</name>
-            <type>boolean</type>
-            <description>Enable header</description>
-            <description lang="ja">ヘッダを表示するかどうか</description>
         </option>
         <option>
             <name>twitter_client.jmp_id</name>
