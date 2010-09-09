@@ -2177,26 +2177,36 @@ var twitterClient =
             });
         }
 
-        function search() {
-            function doSearch(aWord) {
-                if (!aWord)
+        function searchWord(word) {
+            doSearchWord(word, function (results) {
+                results = results.map(filterSearchResult);
+
+                if (!results.length) {
+                    display.echoStatusBar(M({
+                        ja: word + L(" に対する検索結果はありません"),
+                        en: "No results for " + word
+                    }), 3000);
                     return;
+                }
+
+                callSelector(results, 'Search result for "' + word + '"', {
+                    lastID        : results[results.length - 1].id,
+                    fetchPrevious : fetchPrevious
+                });
+            });
+
+            function doSearchWord(word, next, opts) {
+                opts = opts || {};
 
                 twitterAPI.request("search", {
                     params: {
-                        rpp : 100,
-                        q   : aWord
+                        rpp    : 100,
+                        q      : word,
+                        max_id : opts.max_id
                     },
                     ok: function (res, xhr) {
-                        var results = ($U.decodeJSON( xhr.responseText) || {"results":[]}).results;
-
-                        if (!results || !results.length) {
-                            display.echoStatusBar(M({ja: aWord + L(" に対する検索結果はありません"),
-                                                     en: "No results for " + aWord}), 3000);
-                            return;
-                        }
-
-                        callSelector(results.map(filterSearchResult), 'Search result for "' + aWord + '"');
+                        let results = ($U.decodeJSON( xhr.responseText) || {"results":[]}).results;
+                        next(results);
                     },
                     ng: function (res, xhr) {
                         display.echoStatusBar(M({ja: "検索に失敗しました",
@@ -2205,8 +2215,23 @@ var twitterClient =
                 });
             }
 
+            function fetchPrevious(status, after) {
+                doSearchWord(word, function (results) {
+                    results = results.map(filterSearchResult);
+                    results.shift();
+                    after(results);
+                }, {
+                    max_id: status.id
+                });
+            }
+        }
+
+        function search() {
             gPrompt.close();
-            prompt.read("search:", doSearch, null, null, null, 0, "twitter_search");
+            prompt.read("search:", function (word) {
+                if (word)
+                    searchWord(word);
+            }, null, null, null, 0, "twitter_search");
         }
 
         function copy(aMsg) {
@@ -2607,22 +2632,46 @@ var twitterClient =
         }
 
         function showTargetStatus(target) {
-            twitterAPI.request("statuses/user_timeline", {
-                params: {
-                    screen_name : target,
-                    count       : gTimelineCountEveryUpdates
-                },
-                ok: function (res, xhr) {
-                    var statuses = $U.decodeJSON(xhr.responseText) || [];
-                    callSelector(statuses, M({ja: target + " のつぶやき一覧", en: "Tweets from " + target}));
-                },
-                ng: function (res, xhr) {
-                    display.echoStatusBar(M({
-                        ja: 'ステータスの取得に失敗しました。',
-                        en: "Failed to get statuses"
-                    }), 2000);
-                }
+            processTargetStatuses(target, function (statuses) {
+                callSelector(statuses, M({
+                    ja: target + " のつぶやき一覧",
+                    en: "Tweets from " + target
+                }), {
+                    lastID        : statuses[statuses.length - 1].id,
+                    fetchPrevious : fetchPrevious
+                });
             });
+
+            function processTargetStatuses(target, next, opts) {
+                opts = opts || {};
+
+                twitterAPI.request("statuses/user_timeline", {
+                    params: {
+                        screen_name : target,
+                        count       : gTimelineCountEveryUpdates,
+                        max_id      : opts.max_id
+                    },
+                    ok: function (res, xhr) {
+                        var statuses = $U.decodeJSON(xhr.responseText) || [];
+                        next(statuses);
+                    },
+                    ng: function (res, xhr) {
+                        display.echoStatusBar(M({
+                            ja: 'ステータスの取得に失敗しました。',
+                            en: "Failed to get statuses"
+                        }), 2000);
+                    }
+                });
+            }
+
+            function fetchPrevious(status, after) {
+                processTargetStatuses(target, function (statuses) {
+                    statuses.shift();
+                    after(statuses);
+                }, {
+                    max_id: status.id
+                });
+            }
         }
 
         // ================================================================================ //
@@ -2763,18 +2812,26 @@ var twitterClient =
 
             header.container.setAttribute("hidden", false);
 
-            let beforeIndex       = 0;
-            let { fetchPrevious } = options;
-            let fetchingPrevious  = false;
+            const fetchingPreviousMessage = M({
+                ja: "過去のメッセージを取得しています",
+                en: "Fetching previous messages"
+            });
+
+            let beforeIndex         = 0;
+            let { fetchPrevious }   = options;
+            let fetchingPreviousNow = false;
 
             function doFetchPrevious(status, i) {
-                if (fetchingPrevious)
+                if (fetchingPreviousNow)
                     return;
 
-                fetchingPrevious = true;
+                fetchingPreviousNow = true;
+
+                let promptInput = document.getElementById("keysnail-prompt-textbox");
+                promptInput.blur();
 
                 fetchPrevious(status, function (statuses) {
-                    fetchingPrevious = false;
+                    fetchingPreviousNow = false;
 
                     gPrompt.forced = true;
 
