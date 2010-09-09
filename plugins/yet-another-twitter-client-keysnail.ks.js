@@ -502,6 +502,11 @@ const twitterAPI = {
             method : "POST"
         },
 
+        "statuses/show": {
+            action : "http://api.twitter.com/1/statuses/show/{id}.json",
+            method : "GET"
+        },
+
         // ============================================================ //
         // Favorites
         // ============================================================ //
@@ -2439,17 +2444,41 @@ var twitterClient =
                 }
                 else
                 {
+                    function processResponse(xhr) {
+                        let result = $U.decodeJSON("(" + xhr.responseText + ")");
+                        conversations.push(result);
+
+                        display.echoStatusBar(util.format(M({
+                            ja: "会話リストを取得中... (%s)",
+                            en: "Fetching conversations ... (%s)"
+                        }), conversations.length));
+
+                        next(result);
+                    }
+
                     util.httpGet(
                         "http://api.twitter.com/1/statuses/show/" + from + ".json",
                         false,
                         function (xhr) {
-                            let result = $U.decodeJSON("(" + xhr.responseText + ")");
-                            conversations.push(result);
-
-                            display.echoStatusBar(util.format(M({ja: "会話リストを取得中... (%s)",
-                                                                 en: "Fetching conversations ... (%s)"}),
-                                                              conversations.length));
-                            next(result);
+                            if (xhr.status === 200) {
+                                processResponse(xhr);
+                            } else {
+                                // protected user?
+                                twitterAPI.request("statuses/show", {
+                                    args: {
+                                        id : from
+                                    },
+                                    ok: function (res, xhr) {
+                                        processResponse(xhr);
+                                    },
+                                    ng: function (res, xhr) {
+                                        display.echoStatusBar(M({
+                                            ja: "会話リストの取得に失敗しました",
+                                            en: "Failed to fetch conversations"
+                                        }));
+                                    }
+                                });
+                            }
                         }
                     );
                 }
