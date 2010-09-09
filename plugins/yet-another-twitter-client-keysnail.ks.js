@@ -2850,22 +2850,26 @@ var twitterClient =
                 header     : [M({ja: 'ユーザ', en: "User"}), aMessage, M({ja : "情報", en: 'Info'})],
                 width      : getOption("main_column_width"),
                 beforeSelection : function (arg) {
-                    if (!arg.row || fetchingPrevious)
+                    if (!arg.row || fetchingPreviousNow)
                         return;
 
                     let status = arg.row[0];
 
-                    if (fetchPrevious &&
-                        arg.i === 0 &&
+                    if (fetchPrevious         &&
+                        collection.length > 1 &&
+                        arg.i === 0           &&
                         beforeIndex === collection.length - 1) {
                         // fetch previous messages
                         let lastStatus = collection[collection.length - 1][0];
+
                         doFetchPrevious(lastStatus, arg.i);
-                        showLoadingMessage(M({
-                            ja: "過去のメッセージを取得しています",
-                            en: "Fetching previous messages"
-                        }));
-                        return;
+
+                        if (my.twitterClientHeaderUpdater)
+                            clearTimeout(my.twitterClientHeaderUpdater);
+
+                        arg.i = collection.length - 1;
+
+                        return showLoadingMessage(fetchingPreviousMessage);
                     }
 
                     beforeIndex = arg.i;
