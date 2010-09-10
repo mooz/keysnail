@@ -2100,7 +2100,6 @@ var twitterClient =
         function showFavorites(aTargetID) {
             processFavorites(function (favorites) {
                 callSelector(favorites, M({ ja: "お気に入り一覧", en: "Favorites" }), {
-                    lastID        : favorites[favorites.length - 1].id,
                     fetchPrevious : fetchPrevious
                 });
             });
@@ -2190,7 +2189,6 @@ var twitterClient =
                 }
 
                 callSelector(results, 'Search result for "' + word + '"', {
-                    lastID        : results[results.length - 1].id,
                     fetchPrevious : fetchPrevious
                 });
             });
@@ -2637,7 +2635,6 @@ var twitterClient =
                     ja: target + " のつぶやき一覧",
                     en: "Tweets from " + target
                 }), {
-                    lastID        : statuses[statuses.length - 1].id,
                     fetchPrevious : fetchPrevious
                 });
             });
