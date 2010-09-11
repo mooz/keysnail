@@ -99,6 +99,8 @@ KeySnail.Prompt = function () {
     // In action view, we do not want stylist to work.
     var selectorStylist;
 
+    var cyclicMode = false;
+
     function createSelectorContext() {
         return {
             compIndex        : null,
@@ -840,7 +842,7 @@ KeySnail.Prompt = function () {
 
         if (next !== 0)
         {
-            selectNextCompletion(next, true);
+            selectNextCompletion(next, cyclicMode);
         }
 
         if (stopEventPropagation)
@@ -862,7 +864,7 @@ KeySnail.Prompt = function () {
 
                 var after = listbox.selectedIndex;
                 if ((after - before) != 0)
-                    selectNextCompletion(after - before, true);
+                    selectNextCompletion(after - before, cyclicMode);
 
                 textbox.focus();
 
@@ -877,7 +879,7 @@ KeySnail.Prompt = function () {
         if (sessionSuspended)
             return;
 
-        selectNextCompletion(aEvent.detail < 0 ? -1 : 1, true);
+        selectNextCompletion(aEvent.detail < 0 ? -1 : 1, cyclicMode);
     }
 
     function saveSelectorContext(aTo) {
@@ -2982,6 +2984,8 @@ KeySnail.Prompt = function () {
 
             cellStylist = null;
 
+            cyclicMode = false;
+
             gFlags = null;
 
             // -------------------- prompt.selector (and prompt.reader) -------------------- //
@@ -3240,6 +3244,8 @@ KeySnail.Prompt = function () {
             userOnFinish    = aContext.onFinish;
             beforeSelection = aContext.beforeSelection;
             afterSelection  = aContext.afterSelection;
+
+            cyclicMode = !aContext.acyclic;
 
             // set up stylist
             selectorStylist = aContext.stylist;
