@@ -2843,6 +2843,7 @@ var twitterClient =
 
             prompt.selector({
                 message    : "pattern:",
+                acyclic    : true,
                 collection : collection,
                 // status, icon, name, message, fav-icon, info
                 flags      : [hid, ico, 0, 0, ico, 0],
@@ -2856,17 +2857,15 @@ var twitterClient =
 
                     if (fetchPrevious         &&
                         collection.length > 1 &&
-                        arg.i === 0           &&
-                        beforeIndex === collection.length - 1) {
+                        arg.i === collection.length - 1 &&
+                        arg.i === beforeIndex) {
                         // fetch previous messages
-                        let lastStatus = collection[collection.length - 1][0];
+                        let lastStatus = collection[arg.i][0];
 
                         doFetchPrevious(lastStatus, arg.i);
 
                         if (my.twitterClientHeaderUpdater)
                             clearTimeout(my.twitterClientHeaderUpdater);
-
-                        arg.i = collection.length - 1;
 
                         return showLoadingMessage(fetchingPreviousMessage);
                     }
@@ -3541,13 +3540,13 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.1.6</version>
+    <version>2.1.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.4.6</minVersion>
+    <minVersion>1.6.8</minVersion>
     <include>main</include>
     <provides>
         <ext>twitter-client-display-timeline</ext>
