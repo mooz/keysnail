@@ -2253,6 +2253,9 @@ var twitterClient =
 
         function retweet(aID) {
             twitterAPI.request("statuses/retweet", {
+                args: {
+                    id : aID
+                },
                 ok: function (res, xhr) {
                     // succeeded
                     var status    = $U.decodeJSON(res);
