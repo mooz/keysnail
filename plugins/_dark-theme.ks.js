@@ -49,6 +49,7 @@ let PLUGIN_INFO =
 
      let ooo = {
          "twitter_client": {
+             "unread_message_style"                  : "text-decoration:underline;",
              "normal_tweet_style"                    : "color:%FG%;",
              "my_tweet_style"                        : "color:#7ad3f2;",
              "reply_to_me_style"                     : "color:#f279d2;",
