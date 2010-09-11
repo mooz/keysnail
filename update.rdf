@@ -6,18 +6,18 @@
     <RDF:li RDF:resource="rdf:#$ntJrB"/>
   </RDF:Seq>
   <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAA165f8QCEHw322xRydQ9tmeNhaOiOX/pKqh+XfFsuQ7TufTNEo61PN/pQAPxRBGCVQDA6mRQ8EGSRvXQtaQqhhEB57jfdywWRTC89F9mc6GaRNYmVdrNriRWh6E8swW3VOd2XhYjeGi2EB7v0mcJLrpXeQ/O45PNt2OSXL7QbH2">
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBADRENt43qaEgxWxjNVcmG2kEMrUsXEJCIIeOuqISrECQMoyH25erXwlz/0yExzsed5AvM/GVr7Nh62joY9n5X397ZeizUMyaXxkASP6WRHuMISEjGLfp6Md+drqJa6BPXgCQvaLGX9QQA2/KjMVgZMffoL+A3UqbxnWJU190+E81">
     <em:updates RDF:resource="rdf:#$mtJrB"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="rdf:#$ntJrB"
+                   em:version="1.6.9">
+    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
   </RDF:Description>
   <RDF:Description RDF:about="rdf:#$qtJrB"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.0"
                    em:maxVersion="4.0b3pre"
                    em:updateLink="http://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.6.8.xhtml"
-                   em:updateHash="sha1:baa2c82303f5735dd1e4c30c07a2bf59888a316c" />
-  <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.6.8">
-    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
-  </RDF:Description>
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.6.9.xhtml"
+                   em:updateHash="sha1:f2f2c63ef53999cc887d4f4a2e09d7098f168f54" />
 </RDF:RDF>

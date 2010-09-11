@@ -446,8 +446,8 @@ KeySnail.Prompt = function () {
             beforeSelection(args);
 
             // user can override the value of `i'
-            if (typeof args.i === "number")
-                aIndex = args.i;
+            if (typeof args.nextIndex === "number")
+                aIndex = args.nextIndex;
         }
 
         var center = Math.round(listboxRows / 2);

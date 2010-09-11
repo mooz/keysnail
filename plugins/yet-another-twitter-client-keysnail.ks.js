@@ -2867,8 +2867,10 @@ var twitterClient =
 
                         doFetchPrevious(lastStatus, arg.i);
 
-                        if (my.twitterClientHeaderUpdater)
+                        if (my.twitterClientHeaderUpdater) {
                             clearTimeout(my.twitterClientHeaderUpdater);
+                            my.twitterClientHeaderUpdater = null;
+                        }
 
                         return showLoadingMessage(fetchingPreviousMessage);
                     }
