@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.2.5</version>
+    <version>1.2.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -106,13 +106,30 @@ a を入力することで現在閲覧中のページをブックマークする
 
 var hblist;
 
-ext.add("list-hateb-comments", listHBComments, M({ja: 'このページのはてなブックマークコメントを一覧表示',
-                                                  en: 'List hatena bookmark comments of this page'}));
-ext.add("list-hateb-items"   , listHBItems,    M({ja: "はてなブックマークのアイテムを一覧表示しジャンプ",
-                                                  en: 'List all hatena bookmark entries in prompt.selector'}));
+ext.add("list-hateb-comments", listHBComments, M({
+    ja: 'このページのはてなブックマークコメントを一覧表示',
+    en: 'List hatena bookmark comments of this page'
+}));
 
-ext.add("hateb-bookmark-this-page", addBookMark, M({ja: "このページをはてなブックマークに追加",
-                                                    en: 'Add this page to the hatena bookmark'}));
+ext.add("list-hateb-items" , listHBItems, M({
+    ja: "はてなブックマークのアイテムを一覧表示しジャンプ",
+    en: 'List all hatena bookmark entries in prompt.selector'
+}));
+
+ext.add("hateb-bookmark-this-page", addBookMark, M({
+    ja: "このページをはてなブックマークに追加",
+    en: 'Add this page to the hatena bookmark'
+}));
+
+ext.add("hatebnail-login", loginWithPrompt, M({
+    ja: "ユーザ名を入力してはてなにログイン",
+    en: 'Login to Hatena by inputting user name'
+}));
+
+ext.add("hatebnail-logout", logout, M({
+    ja: "はてなからログアウト",
+    en: 'Log out from Hatena'
+}));
 
 let alertsService = null;
 try {
@@ -131,6 +148,53 @@ function showPopup(arg) {
                                         arg.observer);
 }
 
+function doLogin(username, password, next) {
+    display.echoStatusBar(M({
+        ja: "ログアウト中です…",
+        en: "Logout..."
+    }));
+
+    function afterLogout() {
+        display.echoStatusBar(M({
+            ja: "ログアウトしました",
+            en: "Logged out"
+        }));
+
+        util.httpPost("https://www.hatena.ne.jp/login", {
+            "name"     : username,
+            "password" : password
+        }, function () {
+            display.echoStatusBar(M({
+                ja: "ログインしました",
+                en: "Logged in"
+            }));
+
+            while (!isLoggedIn())
+                util.sleep(100);
+
+            if (typeof next === "function")
+                next();
+        });
+    }
+
+    if (isLoggedIn())
+        logout(afterLogout);
+    else
+        afterLogout();
+}
+
+function loginWithPrompt(next) {
+    prompt.read("user: ", function (user) {
+        if (!user) return;
+
+        prompt.read("password: ", function (pass) {
+            if (!pass) return;
+
+            doLogin(user, pass, next);
+        });
+    });
+}
+
 function login(args) {
     let callback = args.callee;
 
@@ -143,42 +207,22 @@ function login(args) {
     if (logins && logins.length)
         doLogin(logins[0].username, logins[0].password);
     else
-    {
-        prompt.read("user: ", function (user) {
-                        if (!user) return;
-
-                        prompt.read("password: ", function (pass) {
-                                        if (!pass) return;
-
-                                        util.message("type %s", typeof callback);
-
-                                        doLogin(user, pass);
-                                    });
-                    });
-    }
-
-    function doLogin(username, password) {
-        logout(function () {
-                   util.httpPost("https://www.hatena.ne.jp/login", {
-                                     "name"     : username,
-                                     "password" : password
-                                 },
-                                 function () { callback(); });
-               });
-    }
+        loginWithPrompt(function () {
+            callback.apply(this, args);
+        });
 }
 
 function logout(callback) {
     util.httpPost("https://www.hatena.ne.jp/logout", {}, callback);
 }
 
-function isLogined() !!hBookmark.User.user;
+function isLoggedIn() !!hBookmark.User.user;
 
 function addBookMark() {
     if (KeySnail.windowType != "navigator:browser" || !("hBookmark" in window))
         return;
 
-    if (!isLogined())
+    if (!isLoggedIn())
     {
         login(arguments);
         return;
@@ -280,7 +324,7 @@ function showCommentOfPage(aPageURL, aArg) {
     if (KeySnail.windowType != "navigator:browser" || !("hBookmark" in window))
         return;
 
-    if (!isLogined())
+    if (!isLoggedIn())
     {
         login(arguments);
         return;
@@ -402,7 +446,7 @@ function listHBItems(aEvent, aArg) {
     if (KeySnail.windowType != "navigator:browser" || !("hBookmark" in window))
         return;
 
-    if (!isLogined())
+    if (!isLoggedIn())
     {
         login(arguments);
         return;
