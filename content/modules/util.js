@@ -1120,7 +1120,7 @@ KeySnail.Util = function () {
                     timer = setTimeout(function () {
                                            self.message("Aborted");
                                            req.abort();
-                                       }, 0);
+                                       }, aTimeOut);
                 }
 
                 if (async)
