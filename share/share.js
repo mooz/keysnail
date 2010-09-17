@@ -256,10 +256,16 @@ function hookApplicationQuit() {
 };
 
 function init() {
-    let promptHistory = persist.restore("prompt_history") || {};
+    let promptHistory;
 
-    persist.promptHistory = promptHistory;
-    persist.register(promptHistory, "prompt_history");
+    try {
+        promptHistory = persist.restore("prompt_history") || {};
+    } catch (_) {
+        util.log("Failed to restore prompt history : " + x);
+        promptHistory = {};
+    }
+
+    persist.register(persist.promptHistory = promptHistory, "prompt_history");
 }
 
 init();
