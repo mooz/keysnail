@@ -35,7 +35,7 @@ var PLUGIN_INFO =
     <name>Caret hint</name>
     <description>Move caret by hitting hints</description>
     <description lang="ja">ヒントを使ってキャレット移動</description>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/caret-hint.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/caret-hint.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -112,11 +112,11 @@ C-SPC を押してマークを設定し C-f C-n などのキーを使って選�
 // }} ======================================================================= //
 
 // Change Log {{ ============================================================ //
-// 
+//
 // ==== 0.0.3 (2009 12/20) ====
-// 
+//
 // * Removed unnecessary codes
-// 
+//
 // }} ======================================================================= //
 
 var optionsDefaultValue = {
@@ -152,7 +152,7 @@ function getOption(aName) {
 
          let [a, f] = [[s.anchorNode, s.anchorOffset], [s.focusNode, s.focusOffset]];
          s.collapse.apply(s, f);
-         s.extend.apply(s, a);             
+         s.extend.apply(s, a);
 
          /*
          if (util.isWritable(ev))
@@ -237,7 +237,7 @@ function getOption(aName) {
                             [tailMode, M({ja: "キャレットを要素の末尾へ移動", en: "Move caret to the tail of the selected element"}),
                              function (e) moveCaret(e, false, false)],
                             [selectHeadMode, M({ja: "要素を選択してキャレットを先頭へ移動", en: "Select element and move caret to the head"}),
-                             function (e) moveCaret(e, false, true)],
+                             function (e) moveCaret(e, true, true)],
                             [selectTailMode, M({ja: "要素を選択してキャレットを末尾へ移動", en: "Select element and move caret to the tail"}),
                              function (e) moveCaret(e, false, true)]
                         ];
