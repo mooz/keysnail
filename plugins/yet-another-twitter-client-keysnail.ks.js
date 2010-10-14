@@ -9,6 +9,8 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 
 var optionsDefaultValue = {
+    "retry_count"                  : -1,
+    "retry_interval"               : 2000,
     "log_level"                    : LOG_LEVEL_MESSAGE,
     "update_interval"              : 60 * 1000,      // 1 minute
     "mentions_update_interval"     : 60 * 1000 * 5,  // 5 minute
@@ -18,6 +20,7 @@ var optionsDefaultValue = {
     "list_update_intervals"        : null,
     "popup_new_statuses"           : false,
     "popup_new_replies"            : true,
+    "popup_on_tweet"               : true,
     "main_column_width"            : [11, 70, 19],
     "timeline_count_beginning"     : 80,
     "timeline_count_every_updates" : 20,
@@ -414,15 +417,16 @@ const twitterAPI = {
 
         let requestArg = this.get(name, context.params, context.args);
 
-        let retryCount = 5;
+        let retryCount = getOption("retry_count");
+        let retryInterval = getOption("retry_interval");
         function retry() {
-            if (--retryCount < 0)
+            if (--retryCount)
                 return;
 
             setTimeout(function () {
                 log(LOG_LEVEL_DEBUG, "Retry (%s) [remains %s]", caller.name, retryCount);
                 caller.apply(null, caller.arguments);
-            }, 1000);
+            }, retryInterval);
         }
 
         requester.asyncRequest(requestArg, function (ev, xhr) {
@@ -2314,26 +2318,32 @@ var twitterClient =
                     if (aReplyID)
                         params["in_reply_to_status_id"] = aReplyID.toString();
 
+                    function showPopupMayBe() {
+                        if (getOption("popup_on_tweet"))
+                            showPopup.apply(this, arguments);
+                    }
+
                     twitterAPI.request("statuses/update", {
                         params: params,
                         ok: function (res, xhr) {
                             let status = $U.decodeJSON(res);
-                            // immediately add
-                            gStatuses.cache.unshift(status);
-                            share.twitterImmediatelyAddedStatuses.push(status);
 
                             let icon_url  = status.user.profile_image_url;
                             let user_name = status.user.name;
                             let message   = aTweet;
 
-                            showPopup({
+                            showPopupMayBe({
                                 icon    : icon_url,
                                 title   : user_name,
                                 message : message
                             });
+
+                            // immediately add
+                            gStatuses.cache.unshift(status);
+                            share.twitterImmediatelyAddedStatuses.push(status);
                         },
                         ng: function (res, xhr) {
-                            showPopup({
+                            showPopupMayBe({
                                 title   : M({ja: "ごめんなさい", en: "I'm sorry..."}),
                                 message : M({ja: "つぶやけませんでした",
                                              en: "Failed to tweet"}) + " (" + xhr.status + ")"
@@ -3545,7 +3555,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.1.7</version>
+    <version>2.1.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
