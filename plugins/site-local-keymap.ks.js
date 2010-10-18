@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -413,10 +413,8 @@ var siteLocalKeymap =
              var url = aNsURI.spec;
              var keymap;
 
-             for (var regexp in localKeyMaps)
-             {
-                 if (url.match(regexp))
-                 {
+             for (var regexp in localKeyMaps) if (localKeyMaps.hasOwnProperty(regexp)) {
+                 if (url.match(regexp)) {
                      keymap = localKeyMaps[regexp];
                      break;
                  }
@@ -479,8 +477,7 @@ var siteLocalKeymap =
 
              for (var pattern in keyMapDefinition)
              {
-                 var regexp = pattern.replace(".", "\\.", "g");
-                 regexp     = regexp.replace("*", ".*", "g");
+                 var regexp = pattern.replace(/\./g, "\\.").replace(/\*/g, ".*");
 
                  if (!localKeyMaps[regexp])
                      localKeyMaps[regexp] = {};
