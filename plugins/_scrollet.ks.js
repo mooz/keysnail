@@ -28,9 +28,13 @@ the terms of any one of the MPL, the GPL or the LGPL.
 
 // ChangeLog {{ ============================================================= //
 //
+// ==== 0.0.7 (2010 10/24) ====
+//
+// * Made `scrollet-scroll-percent` work properly. Thx to harnack.
+//
 // ==== 0.0.6 (2010 04/02) ====
 //
-// * Made scroll commands works properly
+// * Made scroll commands work properly
 //
 // ==== 0.0.5 (2010 03/24) ====
 //
@@ -352,7 +356,7 @@ var scrollet =
               */
              get scrollXPercent()
              {
-                 return scrollXPercentForWin();
+                 return self.scrollXPercentForWin();
              },
 
              /**
@@ -654,7 +658,8 @@ ext.add("scrollet-scroll-percent", function (ev, arg) {
 
             if (arg > 0 && arg <= 100)
                 scrollet.scrollToPercentiles(scrollet.scrollXPercent, arg);
-        }, M({en: "Scroll document to the left", ja: "前置引数で指定した割合までページをスクロール"}));
+        }, M({en: "Scroll document to the specified percent",
+              ja: "前置引数で指定した割合までページをスクロール"}));
 
 ext.add("scrollet-set-mark", function (ev, arg) {
             var description = {};
@@ -773,7 +778,7 @@ var PLUGIN_INFO =
     <name>Scrollet!</name>
     <description>Provides various scroll commands and mark system</description>
     <description lang="ja">強力なマークシステムと様々なスクロールコマンドを提供します</description>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
