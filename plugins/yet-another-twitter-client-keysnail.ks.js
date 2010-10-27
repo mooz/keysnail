@@ -2339,7 +2339,8 @@ var twitterClient =
                             });
 
                             // immediately add
-                            gStatuses.cache.unshift(status);
+                            if (gStatuses.cache)
+                                gStatuses.cache.unshift(status);
                             share.twitterImmediatelyAddedStatuses.push(status);
                         },
                         ng: function (res, xhr) {
@@ -2361,14 +2362,16 @@ var twitterClient =
                 },
                 ok: function (res, xhr) {
                     // delete from cache
-                    for (var i = 0; i < gStatuses.cache.length; ++i) {
-                        if (gStatuses.cache[i].id === aStatusID) {
-                            gStatuses.cache.splice(i, 1);
-                            break;
+                    if (gStatuses.cache) {
+                        for (var i = 0; i < gStatuses.cache.length; ++i) {
+                            if (gStatuses.cache[i].id === aStatusID) {
+                                gStatuses.cache.splice(i, 1);
+                                break;
+                            }
                         }
-                    }
 
-                    setLastID(gStatuses);
+                        setLastID(gStatuses);
+                    }
 
                     display.echoStatusBar(M({ja: 'ステータスが削除されました',
                                              en: "Status deleted"}), 2000);
