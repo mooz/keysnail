@@ -111,8 +111,8 @@ const $U = {
         }[s]));
     },
 
-    escapeSingleQuote: function (str) {
-        return str.replace(/'/, "\\'");
+    toEscapedString: function (str) {
+        return str.replace(/[^\\]'/g, "\\'").replace(/[\n\r]/g, "");
     },
 
     createElement: function (name, attrs, childs) {
@@ -642,7 +642,7 @@ var twitterClient =
             set lastID(id) this.setLastID ? this.setLastID(id)
                 : this.lastKey ? util.setUnicharPref(this.lastKey, id) : this._lastID = id,
 
-            get nameEscaped() $U.escapeSingleQuote(this.name),
+            get nameEscaped() $U.toEscapedString(this.name),
 
             stop:
             function stop() {
@@ -3393,7 +3393,7 @@ var twitterClient =
                     return;
 
                 let name = ev.target.getAttribute("tooltiptext");
-                let escapedName = $U.escapeSingleQuote(name);
+                let escapedName = $U.toEscapedString(name);
 
                 if (name in gTrackings)
                 {
