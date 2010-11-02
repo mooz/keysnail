@@ -439,7 +439,7 @@ const twitterAPI = {
                     // Failed
                     if (xhr.status === 401) {
                         if (res.indexOf("expired") !== -1)
-                            return reAuthorize();
+                            return twitterClient.reAuthorize();
 
                         if ((res.indexOf("Could not authenticate you") !== -1) ||
                             (res.indexOf("This method requires authentication") !== -1))
