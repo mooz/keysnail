@@ -2560,7 +2560,7 @@ var twitterClient =
                 else
                 {
                     function processResponse(xhr) {
-                        let result = $U.decodeJSON("(" + xhr.responseText + ")");
+                        let result = $U.decodeJSON(xhr.responseText);
                         conversations.push(result);
 
                         display.echoStatusBar(util.format(M({
@@ -3014,7 +3014,7 @@ var twitterClient =
         function setUserInfo() {
             twitterAPI.request("account/verify_credentials", {
                 ok: function (res, xhr) {
-                    var account = $U.decodeJSON("(" + res + ")");
+                    var account = $U.decodeJSON(res);
 
                     share.userInfo = account;
                     log(LOG_LEVEL_DEBUG, "user info successfully set");
