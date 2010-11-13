@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>KKK</name>
     <description>Kill keyup and keydown event</description>
     <description lang="ja">keyup, keydown イベントが特定のサイトへ渡らないように</description>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kkk.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kkk.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -25,13 +25,13 @@ This plugin prevents certain sites from handling keyup and keydown event.
 For example, the setting below kills shortcut keys of GitHub Wiki.
 
 >||
-plugins.options["kkk.sites"] = ["^http://wiki\\.github\\.com/"];
+plugins.options["kkk.sites"] = ["^https?://wiki\\.github\\.com/"];
 ||<
 
 If you want to kill shortcut keys of everywhere in GitHub, paste the code below to the PRESERVE area in your .keysnail.js file.
 
 >||
-plugins.options["kkk.sites"] = ["^http://([0-9a-zA-Z]+\\.)?github\\.com/"];
+plugins.options["kkk.sites"] = ["^https?://([0-9a-zA-Z]+\\.)?github\\.com/"];
 ||<
 	       ]]></detail>
     <detail lang="ja"><![CDATA[
@@ -42,13 +42,13 @@ plugins.options["kkk.sites"] = ["^http://([0-9a-zA-Z]+\\.)?github\\.com/"];
 例えば GitHub の Wiki ページで KeySnail のショートカットキーを使いたければ、次のような設定を .keysnail.js の PRESERVE エリアへ張り付けておくと良いでしょう。
 
 >||
-plugins.options["kkk.sites"] = ["^http://wiki\\.github\\.com/"];
+plugins.options["kkk.sites"] = ["^https?://wiki\\.github\\.com/"];
 ||<
 
 GitHub 全体でショートカットキーを無効にさせたい場合は、次のようにします。
 
 >||
-plugins.options["kkk.sites"] = ["^http://([0-9a-zA-Z]+\\.)?github\\.com/"];
+plugins.options["kkk.sites"] = ["^https?://([0-9a-zA-Z]+\\.)?github\\.com/"];
 ||<
 
 ご利用は計画的に。
@@ -76,7 +76,7 @@ function getOption(aName) {
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
 }
 
-let kkk = 
+let kkk =
     (function () {
          let eventType = ["keydown", "keyup"];
 
