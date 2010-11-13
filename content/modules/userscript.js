@@ -173,7 +173,7 @@ KeySnail.UserScript = {
         plugins.lib     = {};
         plugins.optionGetter = function (prefix, defaults) {
             return function (name) {
-                let fullName = prefix + aName;
+                let fullName = prefix + "." + aName;
 
                 if (typeof plugins.options[fullName] !== "undefined")
                     return plugins.options[fullName];
