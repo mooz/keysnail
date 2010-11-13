@@ -167,10 +167,20 @@ KeySnail.UserScript = {
         };
 
         // Arrange plugin scope, option holder, and lib area
-        this.modules.plugins         = {};
-        this.modules.plugins.context = {};
-        this.modules.plugins.options = {};
-        this.modules.plugins.lib     = {};
+        let plugins = this.modules.plugins = {};
+        plugins.context = {};
+        plugins.options = {};
+        plugins.lib     = {};
+        plugins.optionGetter = function (prefix, defaults) {
+            return function (name) {
+                let fullName = prefix + aName;
+
+                if (typeof plugins.options[fullName] !== "undefined")
+                    return plugins.options[fullName];
+                else
+                    return aName in defaults ? defaults[aName] : undefined;
+            };
+        };
 
         if (this.pluginDir)
             this.addLoadPath(this.pluginDir);
