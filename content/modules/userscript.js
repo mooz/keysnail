@@ -171,15 +171,50 @@ KeySnail.UserScript = {
         plugins.context = {};
         plugins.options = {};
         plugins.lib     = {};
-        plugins.optionGetter = function (prefix, defaults) {
-            return function (name) {
-                let fullName = prefix + "." + aName;
+        plugins.setupOptions = function (prefix, defaults, info) {
+            let options = {};
 
-                if (typeof plugins.options[fullName] !== "undefined")
-                    return plugins.options[fullName];
-                else
-                    return aName in defaults ? defaults[aName] : undefined;
-            };
+            if (info && !("options" in info))
+                info.appendChild(<options></options>);
+
+            for (let [name, { "default"     : value,
+                              "description" : description,
+                              "type"        : type }]
+                 in Iterator(defaults)) {
+                let fullName = prefix + "." + name;
+
+                options.__defineGetter__ = function () {
+                    return (fullName in plugins.options) ?
+                        plugins.options[fullName] : value;
+                };
+
+                options.__defineSetter__ = function (val) {
+                    plugins.options[fullName] = val;
+                };
+
+                if (info) {
+                    info.options.appendChild(
+                            <option>
+                                <name>{fullName}</name>
+                                <type>{type || typeof value}</type>
+                                <description>{description}</description>
+                            </option>
+                    );
+                }
+            }
+        };
+
+        let ext = this.modules.ext;
+        plugins.withProvides = function (context, info) {
+            if (info && !("provides" in info))
+                info.appendChild(<provides></provides>);
+
+            function provide(name, action, description) {
+                ext.add.apply(ext, arguments);
+                info.provides.appendChild(<ext>{name}</ext>);
+            }
+
+            context(provide);
         };
 
         if (this.pluginDir)
