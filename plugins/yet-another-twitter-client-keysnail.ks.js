@@ -785,9 +785,9 @@ var twitterClient =
                             self.update(after, noRepeat, fromTimer);
                         } else if (!noRepeat) {
                             log(LOG_LEVEL_DEBUG, self.name + " => Crawler#update: retry (actually) %s", new Date());
-                            $U.delayed(function () {
+                            setTimeout(function () {
                                 self.update(after, noRepeat, fromTimer);
-                            });
+                            }, self.interval);
                         }
                     }
                 });
