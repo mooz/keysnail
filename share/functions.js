@@ -728,7 +728,7 @@ var ksBuiltin = {
                 shell.input(null, arg);
             }, true],
 
-        fucus_to_prompt: [
+        focus_to_prompt: [
             function (ev, arg) {
                 return !document.getElementById("keysnail-prompt").hidden
                     && document.getElementById("keysnail-prompt-textbox").focus();
