@@ -153,6 +153,10 @@ const $U = {
 
             next(url);
         });
+    },
+
+    delayed: function (f) {
+        return setTimeout(f, 0);
     }
 };
 
@@ -779,6 +783,11 @@ var twitterClient =
                         if (isRetryable(xhr)) {
                             log(LOG_LEVEL_DEBUG, self.name + " => Crawler#update: retry %s", new Date());
                             self.update(after, noRepeat, fromTimer);
+                        } else if (!noRepeat) {
+                            log(LOG_LEVEL_DEBUG, self.name + " => Crawler#update: retry (actually) %s", new Date());
+                            $U.delayed(function () {
+                                self.update(after, noRepeat, fromTimer);
+                            });
                         }
                     }
                 });
@@ -1226,7 +1235,7 @@ var twitterClient =
              }, M({ja: "会話を表示 : ", en: ""}) + "Show conversations",
              "show-conversations,c"],
             [function (status) {
-                 window.setTimeout(function () { self.showTimeline(); }, 0);
+                $U.delayed(function () { self.showTimeline(); });
              }, M({ja: "更新 / TL へ戻る", en: "Refresh / Display TL"}),
              "refresh-or-back-to-timeline"],
             [function (status) {
