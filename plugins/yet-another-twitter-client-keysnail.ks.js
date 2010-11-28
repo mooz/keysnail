@@ -762,7 +762,7 @@ var twitterClient =
                         if (self.lastIDHook)
                             self.lastIDHook();
 
-                        if (self.interval && (!noRepeat && !self.updater || fromTimer)) {
+                        if (self.interval && (!noRepeat && (!self.updater || fromTimer))) {
                             self.updater = {
                                 window : window,
                                 timer  : setTimeout(function () {
