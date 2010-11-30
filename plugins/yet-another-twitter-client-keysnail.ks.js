@@ -783,8 +783,10 @@ var twitterClient =
                         if (isRetryable(xhr)) {
                             log(LOG_LEVEL_DEBUG, self.name + " => Crawler#update: retry %s", new Date());
                             self.update(after, noRepeat, fromTimer);
-                        } else if (!noRepeat) {
-                            log(LOG_LEVEL_DEBUG, self.name + " => Crawler#update: retry (actually) %s", new Date());
+                        } else {
+                            log(LOG_LEVEL_DEBUG,
+                                self.name + " => Crawler#update: retry (noRepeat: %s, fromTimer: %s) %s",
+                                noRepeat, fromTimer, new Date());
                             setTimeout(function () {
                                 self.update(after, noRepeat, fromTimer);
                             }, self.interval);
@@ -3567,7 +3569,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.2.0</version>
+    <version>2.2.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
