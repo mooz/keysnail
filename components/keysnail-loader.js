@@ -120,7 +120,7 @@ KeySnailLoader.prototype = {
 
         for (let [, id] in Iterator(ids))
         {
-            let elem = aDocument.getElementById(ids[i]);
+            let elem = aDocument.getElementById(id);
             if (elem && !elem.hidden)
                 return true;
         }
