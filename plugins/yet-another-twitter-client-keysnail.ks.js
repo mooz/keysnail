@@ -2974,10 +2974,12 @@ var twitterClient =
                 filter : function (aIndex) {
                     var status = statuses[aIndex];
 
+                    // XXX: もう少し仕様変更に強固な方が良い
                     return (aIndex < 0 ) ? [null] :
                         [{
                             screen_name : status.user.screen_name,
-                            id          : status.id_str,
+                            id          : status.id,
+                            id_str      : status.id_str,
                             user_id     : status.user.id_str,
                             text        : html.unEscapeTag(status.text),
                             favorited   : status.favorited,
