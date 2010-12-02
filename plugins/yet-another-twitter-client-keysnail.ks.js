@@ -1763,7 +1763,7 @@ var twitterClient =
             {
                 let button = document.createElement("toolbarbutton");
 
-                let [id, name] = crawler.name.split("/");
+                let [id, name] = crawler.nameEscaped.split("/");
                 button.setAttribute("label", name);
                 button.setAttribute("tooltiptext", crawler.name);
                 button.setAttribute("image", TAG_ICON);
