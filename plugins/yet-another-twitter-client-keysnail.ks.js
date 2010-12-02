@@ -3015,8 +3015,6 @@ var twitterClient =
             if (!aID)
                 return aJSON.length;
 
-            aID = +aID;        // string => number
-
             for (var i = 0; i < aJSON.length; ++i)
                 if (aJSON[i].id_str === aID)
                     return i;
