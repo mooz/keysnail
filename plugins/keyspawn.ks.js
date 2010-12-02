@@ -11,9 +11,6 @@ const PLUGIN_INFO =
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.0.0</minVersion>
     <include>main</include>
-    <provides>
-        <ext></ext>
-    </provides>
     <detail><![CDATA[
 ]]></detail>
     <detail lang="ja"><![CDATA[
@@ -23,24 +20,16 @@ const PLUGIN_INFO =
 
 const { classes: Cc, interfaces: Ci } = Components;
 
-let optionsDefaultValue = {
-    launcher_path    : "/bin/sh",
-    launcher_options : ["-c"]
-};
-
-function getOption(aName) {
-    let fullName = "keyspawn." + aName;
-
-    if (typeof plugins.options[fullName] !== "undefined")
-        return plugins.options[fullName];
-    else
-        return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
-}
-
-// let getOption = plugins.optionGetter("keyspawn", {
-//     launcher_path: "/bin/sh",
-//     launcher_options: ["-c"]
-// });
+let options = plugins.setupOptions("keyspawn", {
+    "shell": {
+        "default"     : "/bin/sh",
+        "description" : M({ja: "シェルのパス", en: "Path to the shell"})
+    },
+    "shell_flag": {
+        "default"     : ["-c"],
+        "description" : M({ja: "シェルへ渡すオプション", en: "Optional flags"})
+    }
+}, PLUGIN_INFO);
 
 function Observer(handlers) {
     this.handlers = handlers;
@@ -84,18 +73,60 @@ let KeySpawn = {
         process.runAsync(args, args.length, observer);
     },
 
+    withTempFiles: function (f, self) {
+        let tmpFiles = [i for (i in util.range(0, f.length))].map(this.createTempFile);
+
+        try {
+            return f.apply(self || this, tmpFiles);
+        } finally {
+            tmpFiles.forEach(function (f) f.remove(false));
+        }
+    },
+
+    system: function (command, input) {
+        return this.withTempFiles(function (stdin, stdout, cmd) {
+            if (input)
+                this.writeFile(stdin, input);
+
+            let cwd = share.pwd;
+
+            if (WINDOWS) {
+                command = "cd /D " + cwd.path + " && " + command + " > " + stdout.path + " 2>&1" + " < " + stdin.path;
+                var res = this.run(options["shell"], options["shellcmdflag"].split(/\s+/).concat(command), true);
+            } else {
+                this.writeFile(cmd,
+                               "cd " + escape(cwd.path) + "\n" +
+                               ["exec", ">" + escape(stdout.path), "2>&1", "<" + escape(stdin.path),
+                                escape(options["shell"]), options["shellcmdflag"], escape(command)].join(" "));
+                res = this.run("/bin/sh", ["-e", cmd.path], true);
+
+                // writeFile: function (file, buf, mode, perms, encoding)
+            }
+
+            let output = self.readFile(stdout);
+            if (res > 0)
+                output += "\nshell returned " + res;
+            // if there is only one \n at the end, chop it off
+            else if (output && output.indexOf("\n") == output.length - 1)
+                output = output.substr(0, output.length - 1);
+
+            return output;
+        }) || "";
+    },
+
+    createTempFile: function () {
+        let tmp = util.getSpecialDir("TmpD");
+        tmp.append("keyspawn.tmp");
+        tmp.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0666);
+        return tmp;
+    },
+
     launch: function (cmd, callback, charset) {
         const launcher = util.openFile(getOption("launcher_path"));
 
         let args = (getOption("launcher_options") || []).concat(cmd);
 
         if (callback) {
-            var stdout = util.getSpecialDir("TmpD");
-            stdout.append("keyspawn_stdout.tmp");
-
-            stdout.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0666);
-            util.message("stdout :: " + stdout.path);
-
             cmd = cmd + " > " + stdout.path;
 
             util.message("finally, execute :: " + cmd);
@@ -113,21 +144,34 @@ let KeySpawn = {
     }
 };
 
-ext.add("keyspawn-command", function () {
-    prompt.read("command: ", function (command) {
-        display.prettyPrint("Execute " + command);
-
-        KeySpawn.launch(command, function (result) {
-            alert(result);
-        });
+shell.add(["spawn"], "Execute shell command", function (args, extra) {
+    let command = args.join(" ");
+    alert(command);
+    KeySpawn.launch(command, function (result) {
+        alert("Got result :: " + result);
     });
+}, {
+    bang    : true,
+    literal : 0
 });
 
-ext.add("keyspawn-reload", function () {
-    let plugin = util.readDirectory(userscript.pluginDir, true)
-        .reduce(function (found, cand)
-                (found ? found : (cand.leafName === "keyspawn.ks.js") ? cand : null),
-                null);
-    if (plugin)
-        userscript.loadPlugin(plugin);
-}, "Load keyspawn");
+plugins.withProvides(function (provide) {
+    provide("keysnail-swapn", function () {
+        prompt.read("command: ", function (command) {
+            display.prettyPrint("Execute " + command);
+
+            KeySpawn.launch(command, function (result) {
+                alert(result);
+            });
+        });
+    }, "swapn Command");
+
+    provide("keyspawn-reload", function () {
+        let plugin = util.readDirectory(userscript.pluginDir, true)
+            .reduce(function (found, cand)
+                    (found ? found : (cand.leafName === "keyspawn.ks.js") ? cand : null),
+                    null);
+        if (plugin)
+            userscript.loadPlugin(plugin);
+    }, "reload KeySpawn");
+}, PLUGIN_INFO);
