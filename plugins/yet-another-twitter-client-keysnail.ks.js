@@ -686,8 +686,8 @@ var twitterClient =
                 share.twitterImmediatelyAddedStatuses = [];
 
                 // search
-                var oldid = aOld[0].id;
-                var newStatusCount = aNew.map(function (status) status.id).indexOf(oldid);
+                var oldid = aOld[0].id_str;
+                var newStatusCount = aNew.map(function (status) status.id_str).indexOf(oldid);
 
                 var newStatuses;
 
@@ -801,7 +801,7 @@ var twitterClient =
                 let self = this;
 
                 let params = {};
-                params[this.maxIDName] = status.id;
+                params[this.maxIDName] = status.id_str;
                 params[this.countName] = this.beginCount;
 
                 this.request({
@@ -1117,7 +1117,7 @@ var twitterClient =
              "tweet"],
             // ======================================== //
             [function (status) {
-                 if (status) reply(status.screen_name, status.id);
+                 if (status) reply(status.screen_name, status.id_str);
              }, M({ja: "このつぶやき => 返信 : ", en: ""}) + "Send reply message",
              "reply"],
             // ======================================== //
@@ -1136,23 +1136,23 @@ var twitterClient =
              "retweet,c"],
             // ======================================== //
             [function (status) {
-                 if (status) retweet(status.id);
+                 if (status) retweet(status.id_str);
              }, M({ja: "このつぶやき => 公式 ", en: ""}) + "RT : Official Retweet",
              "official-retweet,c"],
             // ======================================== //
             [function (status) {
-                 if (status) deleteStatus(status.id);
+                 if (status) deleteStatus(status.id_str);
              }, M({ja: "このつぶやき => 削除 : ", en: ""}) + "Delete this status",
              "delete-tweet"],
             // ======================================== //
             [function (status) {
-                 if (status) addFavorite(status.id, status.favorited);
+                 if (status) addFavorite(status.id_str, status.favorited);
              }, M({ja: "このつぶやき => お気に入りへ追加 / 削除 : ", en: ""}) + "Add / Remove this status to favorites",
              "add-to-favorite,c"],
             // ======================================== //
             [function (status) {
                  if (status) gBrowser.loadOneTab("http://twitter.com/" + status.screen_name
-                                                 + "/status/" + status.id, null, null, null, false);
+                                                 + "/status/" + status.id_str, null, null, null, false);
              }, M({ja: "このつぶやき => Twitter で見る : ", en: ""}) + "Show status in web page",
              "view-in-twitter,c"],
             // ======================================== //
@@ -1175,7 +1175,7 @@ var twitterClient =
              "show-target-status,c"],
             // ======================================== //
             [function (status) {
-                 if (status) sendDM(status.screen_name, status.id);
+                 if (status) sendDM(status.screen_name, status.id_str);
              }, M({ja: "このユーザ => ダイレクトメッセージ (DM) を送信 : ", en: ""}) + "Send Direct Message (DM)",
              "send-direct-message"],
             // ======================================== //
@@ -1951,7 +1951,7 @@ var twitterClient =
                     popupStatus = true;
             }
 
-            if (status.id in share.popUppedIDs)
+            if (status.id_str in share.popUppedIDs)
                 popupStatus = false;
 
             if (!popupStatus)
@@ -1963,7 +1963,7 @@ var twitterClient =
                 return;
             }
 
-            share.popUppedIDs[status.id] = true;
+            share.popUppedIDs[status.id_str] = true;
 
             function proc() {
                 if (share.unPopUppedStatuses && share.unPopUppedStatuses.length)
@@ -1974,7 +1974,7 @@ var twitterClient =
                           icon     : status.user.profile_image_url,
                           title    : status.user.name,
                           message  : html.unEscapeTag(status.text),
-                          link     : "http://twitter.com/" + status.user.screen_name + "/status/" + status.id,
+                          link     : "http://twitter.com/" + status.user.screen_name + "/status/" + status.id_str,
                           callback : proc,
                           observer : {
                               observe: function (subject, topic, data) {
@@ -2140,7 +2140,7 @@ var twitterClient =
                     favorites.shift();
                     after(favorites);
                 }, {
-                    max_id: status.id
+                    max_id: status.id_str
                 });
             }
         }
@@ -2178,7 +2178,7 @@ var twitterClient =
                         link    : null
                     });
 
-                    modifyCache(status.id, function (status) {
+                    modifyCache(status.id_str, function (status) {
                         status.favorited = !aDelete;
                     });
 
@@ -2234,7 +2234,7 @@ var twitterClient =
                     results.shift();
                     after(results);
                 }, {
-                    max_id: status.id
+                    max_id: status.id_str
                 });
             }
         }
@@ -2375,7 +2375,7 @@ var twitterClient =
                     // delete from cache
                     if (gStatuses.cache) {
                         for (var i = 0; i < gStatuses.cache.length; ++i) {
-                            if (gStatuses.cache[i].id === aStatusID) {
+                            if (gStatuses.cache[i].id_str === aStatusID) {
                                 gStatuses.cache.splice(i, 1);
                                 break;
                             }
@@ -2545,7 +2545,7 @@ var twitterClient =
 
             function createMap(maps) {
                 let map = {};
-                (maps || []).forEach(function (m) (m || []).forEach(function (s) map[s.id] = s));
+                (maps || []).forEach(function (m) (m || []).forEach(function (s) map[s.id_str] = s));
                 return map;
             }
 
@@ -2693,7 +2693,7 @@ var twitterClient =
                     statuses.shift();
                     after(statuses);
                 }, {
-                    max_id: status.id
+                    max_id: status.id_str
                 });
             }
         }
@@ -2821,7 +2821,7 @@ var twitterClient =
             if (!aMessage)
                 aMessage = M({ja: "タイムライン", en: "Timeline"});
 
-            let currentID               = statuses[0] ? statuses[0].id : null;
+            let currentID               = statuses[0] ? statuses[0].id_str : null;
             let selectedUserID          = statuses[0] ? statuses[0].user.screen_name : null;
             let selectedUserInReplyToID = statuses[0] ? statuses[0].in_reply_to_screen_name : null;
             let { lastID }              = options;
@@ -2905,7 +2905,7 @@ var twitterClient =
                     my.twitterSelectedStatus = status;
 
                     selectedUserID          = status.user.screen_name;
-                    currentID               = status.id;
+                    currentID               = status.id_str;
                     selectedUserInReplyToID = status.in_reply_to_screen_name;
 
                     if (my.twitterClientHeaderUpdater)
@@ -2953,7 +2953,7 @@ var twitterClient =
 
                     if (status.user.screen_name === selectedUserID)
                     {
-                        if (status.id === currentID)
+                        if (status.id_str === currentID)
                             style += getOption("selected_row_style");
                         else
                             style += getOption("selected_user_style");
@@ -2966,7 +2966,7 @@ var twitterClient =
                     else if (status.retweeted_status)
                         style += getOption("retweeted_status_style");
 
-                    if (lastID && status.id > lastID)
+                    if (lastID && status.id_str > lastID)
                         style += getOption("unread_message_style");
 
                     return style;
@@ -2977,8 +2977,8 @@ var twitterClient =
                     return (aIndex < 0 ) ? [null] :
                         [{
                             screen_name : status.user.screen_name,
-                            id          : status.id,
-                            user_id     : status.user.id,
+                            id          : status.id_str,
+                            user_id     : status.user.id_str,
                             text        : html.unEscapeTag(status.text),
                             favorited   : status.favorited,
                             raw         : status
@@ -2992,14 +2992,14 @@ var twitterClient =
 
         function modifyCache(aId, proc) {
             for (let [, status] in Iterator(gStatuses.cache))
-                if (status.id === aId)
+                if (status.id_str === aId)
                     proc(status);
         }
 
         function setLastID(crawler) {
             if (crawler.cache && crawler.cache.length)
             {
-                crawler.lastID = crawler.cache[0].id;
+                crawler.lastID = crawler.cache[0].id_str;
 
                 if (typeof crawler.lastIDHook === "function")
                     crawler.lastIDHook();
@@ -3016,7 +3016,7 @@ var twitterClient =
             aID = +aID;        // string => number
 
             for (var i = 0; i < aJSON.length; ++i)
-                if (aJSON[i].id === aID)
+                if (aJSON[i].id_str === aID)
                     return i;
 
             return aJSON.length;
@@ -3115,7 +3115,7 @@ var twitterClient =
                 if (status)
                 {
                     gPrompt.forced = true;
-                    reply(status.user.screen_name, status.id);
+                    reply(status.user.screen_name, status.id_str);
                 }
             },
 
@@ -3207,7 +3207,7 @@ var twitterClient =
                 gPrompt.forced = true;
                 showLoadingMessage();
                 showCrawlersCache(gDMs, arg, gSentDMs.cache ?
-                                  function (c) c.concat(gSentDMs.cache).sort(function (a, b) b.id - a.id)
+                                  function (c) c.concat(gSentDMs.cache).sort()
                                   : null);
             },
 
