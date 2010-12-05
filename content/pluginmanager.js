@@ -1,4 +1,4 @@
-let ksPluginManager = function () {
+let ksPluginManager = (function () {
     var modules;
 
     var parserContext;
@@ -443,23 +443,29 @@ let ksPluginManager = function () {
         if (!item)
             return;
 
+        let { util, userscript, display } = modules;
+
         var pluginPath = item.value;
 
-        try
-        {
-            var updated = modules.userscript.updatePlugin(pluginPath);
+        let button = aEvent.target;
 
-            if (updated)
-            {
+        button.disabled = true;
+        userscript.updatePlugin(pluginPath, function (updated) {
+            button.disabled = false;
+
+            if (updated) {
                 initPluginList();
                 updateInfoBox(pluginPath);
                 updateDetailBox(pluginPath);
+
+                let info = infoHolder[pluginPath];
+
+                display.notify(util.getLocaleString("pluginUpdated", [
+                    util.xmlGetLocaleString(info.name),
+                    util.xmlGetLocaleString(info.version)
+                ]));
             }
-        }
-        catch (x)
-        {
-            modules.display.notify(x);
-        }
+        });
     }
 
     function disableButtonClicked(aEvent) {
@@ -694,12 +700,15 @@ let ksPluginManager = function () {
             }
 
             try {
-                modules.userscript.installPluginFromURL(modules.util.pathToURL(fp.file.path));
-                initPluginList();
-                if (modules.userscript.newlyInstalledPlugin) {
-                    selectNewlyInstalledPlugin();
-                    modules.userscript.newlyInstalledPlugin = null;
-                }
+                modules.userscript.installPluginFromURL(modules.util.pathToURL(fp.file.path), function (succeeded) {
+                    if (succeeded) {
+                        initPluginList();
+                        if (modules.userscript.newlyInstalledPlugin) {
+                            selectNewlyInstalledPlugin();
+                            modules.userscript.newlyInstalledPlugin = null;
+                        }
+                    }
+                });
             } catch (x) {
                 modules.display.notify(x);
             }
@@ -715,7 +724,7 @@ let ksPluginManager = function () {
     };
 
     return self;
-}();
+})();
 
 (function () {
      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]

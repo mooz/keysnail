@@ -402,9 +402,9 @@ KeySnail.UserScript = {
      * - Images
      * @param {nsIFile} aFile file which will be installed
      * @throws {string} error message when keysnail failed to install <aFile>
-     * @returns {nsIFile} newly instaled file
+     * @returns {nsIFile} newly installed file
      */
-    installFile: function (aFile) {
+    installFile: function (aFile, force) {
         if (!this.pluginDir)
         {
             this.setDefaultPluginDirectory();
@@ -427,10 +427,11 @@ KeySnail.UserScript = {
                         return destinationFile;
                     }
 
-                    let overwriteConfirmed = util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
-                                                          util.getLocaleString("overWriteConfirmation", [destinationFile.path]));
+                    let confirmed = force ||
+                        util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
+                                     util.getLocaleString("overWriteConfirmation", [destinationFile.path]));
 
-                    if (!overwriteConfirmed)
+                    if (!confirmed)
                         throw util.getLocaleString("canceledByUser");
                 }
 
@@ -449,36 +450,105 @@ KeySnail.UserScript = {
         aFile.remove(false);
     },
 
-    installRequiredFiles: function (aXml) {
-        if (!aXml || !aXml.require.length())
-            return;
+    /**
+     * Install required files for plugin specified by <b>info</b>
+     * @param {xml} info
+     * @param {function} next
+     */
+    installRequiredFiles: function (info, next) {
+        let { util, userscript } = this.modules;
 
-        let scripts = aXml.require.script;
+        function finish(succeeded) {
+            return void (typeof next === "function" ? next(succeeded) : 0);
+        }
 
-        for (let [, script] in Iterator(scripts))
-        {
+        if (!info)
+            return finish(false);
+
+        if(!info.require.length())
+            return finish(true);
+
+        let scripts = util.xmlToArray(info.require.script);
+
+        (function installNext() {
+            if (!scripts.length)
+                return finish(true);
+
+            let script = scripts.pop();
             let url = script.text();
-            let xhr = this.modules.util.httpGet(url);
 
-            if (xhr && xhr.responseText)
-            {
-                try
-                {
-                    let fileName  = this.modules.util.getLeafNameFromURL(url);
-                    let tmpFile   = this.writeTextTmp(fileName, xhr.responseText);
-                    let installed = this.installFile(tmpFile);
-                    this.message(installed.path + " installed");
+            util.httpGet(url, false, function (req) {
+                if (req.status !== 200) {
+                    util.message(req.responseText);
+                    return finish(false);
                 }
-                catch (x)
-                {
-                    this.modules.display.notify("Error occurred while installing the required file :: " + x);
+
+                try {
+                    let name = util.getLeafNameFromURL(url);
+                    let file = userscript.writeTextTmp(name, req.responseText);
+                    let installed = userscript.installFile(file);
+                    util.message(installed.path + " installed");
+                } catch (x) {
+                    util.message("An error occured while installing required scripts :: " + x.message);
+                } finally {
+                    installNext();
                 }
-            }
-            else
-            {
-                this.message(url + " skipped");
+            });
+        })();
+    },
+
+    installPluginAndRequiredFiles: function (context) {
+        let { util, userscript, key } = this.modules;
+        let { code, name, next, info } = context;
+        if (!info)
+            info = userscript.getPluginInformation(code);
+
+        function doNext(status, installed) {
+            if (typeof next === "function")
+                next(status, installed);
+        }
+
+        if (!userscript.checkCompatibility(info)) {
+            // Not compatible with the current keysnail
+            if (!context.force) {
+                let forced = false;
+
+                if (context.promptNotCompatible) {
+                    forced = util.confirm(util.getLocaleString("installingNotCompatiblePlugin"),
+                                          util.getLocaleString("installingNotCompatiblePluginPrompt", [
+                                              util.xmlGetLocaleString(info.name),
+                                              info.version,
+                                              KeySnail.version
+                                          ]));
+                }
+
+                if (!forced)
+                    return doNext(false);
             }
         }
+
+        let file = userscript.writeTextTmp(name, code);
+        let installed;
+        try {
+            installed = userscript.installFile(file);
+        } catch (x) {
+            return doNext(false);
+        }
+
+        userscript.installRequiredFiles(info, function (succeeded) {
+            if (!succeeded)
+                return doNext(succeeded);
+
+            try {
+                if (!userscript.isDisabledPlugin(installed.path) && !context.suppressLoad) {
+                    userscript.loadPlugin(installed);
+                }
+            } catch (x) {
+                util.message("An error occured while updating plugin :: " + x.message);
+            } finally {
+                doNext(true, installed);
+            }
+        });
     },
 
     /**
@@ -525,101 +595,93 @@ KeySnail.UserScript = {
      * @returns {nsIFile} created tmp file
      */
     writeTextTmp: function (aFileName, aText) {
-        var tmpFile  = this.modules.util.getSpecialDir("TmpD");
+        let { util } = this.modules;
+
+        let tmpFile  = util.getSpecialDir("TmpD");
         tmpFile.append(aFileName);
 
-        this.modules.util.writeTextFile(this.modules.util.convertCharCodeFrom(aText, "UTF-8"),
-                                        tmpFile.path, true);
+        util.writeTextFile(util.convertCharCodeFrom(aText, "UTF-8"), tmpFile.path, true);
 
         return tmpFile;
     },
 
+    doesPluginHasUpdate: function (pluginPath, next) {
+        let { util, userscript } = this.modules;
+
+        // local file
+        let localCode = util.readTextFile(pluginPath);
+        let localInfo = userscript.getPluginInformation(localCode);
+
+        let updateURL = util.xmlGetLocaleString(localInfo.updateURL);
+
+        if (!updateURL)
+            return void typeof next === "function" ? next(false) : 0;
+
+        util.httpGet(updateURL, false, function (req) {
+            let { responseText : remoteCode } = req;
+            let remoteInfo = userscript.getPluginInformation(remoteCode);
+
+            let hasUpdate = false;
+
+            if (req.status === 200) {
+                if (remoteInfo) {
+                    let localVersion  = util.xmlGetLocaleString(localInfo.version);
+                    let remoteVersion = util.xmlGetLocaleString(remoteInfo.version);
+
+                    hasUpdate = localVersion && remoteVersion &&
+                        (userscript.compareVersion(localVersion, remoteVersion) < 0);
+                }
+            }
+
+            if (typeof next === "function")
+                next(hasUpdate, { code : remoteCode, info : remoteInfo });
+        });
+    },
+
     /**
      * Check for updates and ask for install it when newer version is found
-     * @param {string} aPluginPath plugin's full path (plugin.context[aPluginPath])
-     * @returns {boolean} true when plugin is updated. false when updates not found.
-     * @throws {string} error message when keysnail failed to update the plugin
+     * @param {string} pluginPath plugin's full path (plugin.context[pluginPath])
+     * @param {function} next callback. 1st argument for this function is the boolean
+     * which indicates whether update is found or not.
      */
-    updatePlugin: function (aPluginPath) {
-        var localContent, localInfo;
-        var remoteContent, remoteInfo;
+    updatePlugin: function (pluginPath, next) {
+        let { util, userscript, display } = this.modules;
 
-        with (this.modules)
-        {
-            // local file
-            localContent = util.readTextFile(aPluginPath);
-            localInfo    = this.getPluginInformation(localContent);
-
-            var updateURL = util.xmlGetLocaleString(localInfo.updateURL);
-
-            if (!updateURL)
-            {
-                throw "This plugin does not have a update url";
+        userscript.doesPluginHasUpdate(pluginPath, function (hasUpdate, context) {
+            function doNext(status) {
+                if (typeof next === "function")
+                    next(status);
             }
 
-            // http
-            var xhr       = util.httpGet(updateURL);
-            remoteContent = xhr.responseText;
-
-            if (!remoteContent)
-            {
-                throw "Failed to get update info";
+            if (!hasUpdate) {
+                return doNext(false);
             }
 
-            remoteInfo = this.getPluginInformation(remoteContent);
-
-            if (!remoteInfo)
-            {
-                // not a valid keysnail plugin
-                throw "Failed to get update info";
-            }
-
-            var localVersion = util.xmlGetLocaleString(localInfo.version);
-            var remoteVersion = util.xmlGetLocaleString(remoteInfo.version);
-
-            if (!localVersion || !remoteVersion)
-            {
-                throw "Plugin does not have an verison information";
-            }
-
-            if (this.compareVersion(localVersion, remoteVersion) >= 0)
-            {
-                // local one is equal or newer than remote one
-                display.echoStatusBar(util.getLocaleString("updateNotFound",
-                                                           [util.xmlGetLocaleString(remoteInfo.name)]), 2000);
-                return false;
-            }
-
-            if (!this.checkCompatibility(remoteInfo) &&
-                !util.confirm(util.getLocaleString("installingNotCompatiblePlugin"),
-                              util.getLocaleString("installingNotCompatiblePluginPrompt",
-                                                   [util.xmlGetLocaleString(remoteInfo.name),
-                                                    remoteVersion,
-                                                    KeySnail.version])))
-            {
-                // The file to be installed is not compatible with the current KeySnail
-                return false;
-            }
+            let { code, info } = context;
 
             /**
              * TODO: It's better to display the diff file of local and remote ones.
              * Are there good diff implementation on JavaScript?
              */
-            if (util.confirm(util.getLocaleString("updateFoundTitle"),
-                             util.getLocaleString("updateFoundMessage",
-                                                  [util.xmlGetLocaleString(remoteInfo.name), remoteVersion])))
-            {
-                util.writeTextFile(util.convertCharCodeFrom(remoteContent, "UTF-8"), aPluginPath, true);
-                this.installRequiredFiles(remoteInfo);
-                var installed = util.openFile(aPluginPath);
-                if (!this.isDisabledPlugin(aPluginPath))
-                    this.loadPlugin(installed);
-                display.notify(util.getLocaleString("pluginUpdated",
-                                                    [util.xmlGetLocaleString(remoteInfo.name), remoteVersion]));
+            let name    = util.xmlGetLocaleString(info.name);
+            let version = util.xmlGetLocaleString(info.version);
 
-                return true;
+            let confirmed = util.confirm(
+                util.getLocaleString("updateFoundTitle"),
+                util.getLocaleString("updateFoundMessage", [name, version])
+            );
+
+            if (confirmed) {
+                userscript.installPluginAndRequiredFiles({
+                    name : util.getLeafNameFromURL(pluginPath),
+                    code : code,
+                    info : info,
+                    next : doNext
+                });
+            } else {
+                doNext(false);
             }
-        }
+        });
     },
 
     /**
@@ -629,62 +691,29 @@ KeySnail.UserScript = {
      * @param {string} aURL plugin's url which can be http:// and file://
      * @throws
      */
-    installPluginFromURL: function (aURL) {
-        var source;
-        var isLocalFile = (aURL.indexOf("file://") == 0);
+    installPluginFromURL: function (aURL, next) {
+        let isLocalFile = aURL.indexOf("file://") === 0;
 
-        with (this.modules)
-        {
-            if (isLocalFile)
-            {
-                // local file
-                try {
-                    source = util.readTextFile(util.urlToPath(aURL));
-                } catch (x) {
-                    throw "Failed to read plugin from '" + aURL + "'";
-                }
-            }
-            else
-            {
-                // http
-                var xhr     = util.httpGet(aURL);
-                var headers = {};
-                source  = xhr.responseText;
+        let { util, userscript, key } = this.modules;
 
-                if (!source)
-                {
-                    throw "Failed to get plugin from '" + aURL + "'";
-                }
+        function doNext(status) {
+            if (typeof next === "function")
+                next(status);
+        }
 
-                try
-                {
-                    xhr.getAllResponseHeaders()
-                        .split(/\r?\n/).forEach(
-                            function (h) {
-                                var pair = h.split(': ');
-                                if (pair && pair.length > 1)
-                                {
-                                    headers[pair.shift()] = pair.join('');
-                                }
-                            });
-                }
-                catch (e)
-                {
-                    this.message(e);
-                }
-            }
+        function displayPromptAndInstall(code) {
+            let info = userscript.getPluginInformation(code);
 
-            var arg = {
-                xml: this.getPluginInformation(source),
-                pluginURL: aURL,
-                type: null
+            let arg = {
+                xml       : info,
+                pluginURL : aURL,
+                type      : null
             };
 
-            if (!arg.xml)
-            {
+            if (!info) {
                 // not a valid keysnail plugin
                 display.notify(util.getLocaleString("invalidPlugin"));
-                return;
+                return doNext(false);
             }
 
             window.openDialog("chrome://keysnail/content/installplugindialog.xul",
@@ -692,54 +721,45 @@ KeySnail.UserScript = {
                               "chrome,titlebar,modal,dialog,centerscreen,resizable,scrollbars",
                               arg);
 
-            // canceled?
-            if (!arg.type)
-                return;
-
-            var fileName   = util.getLeafNameFromURL(aURL);
-            var pluginFile = this.writeTextTmp(fileName, source);
-
-            if (arg.type == "install")
-            {
-                // install
-                if (!this.checkCompatibility(arg.xml))
-                {
-                    // Not compatible with the current keysnail
-                    this.modules.key.viewURI("http://wiki.github.com/mooz/keysnail");
-
-                    if (!util.confirm(util.getLocaleString("installingNotCompatiblePlugin"),
-                                      util.getLocaleString("installingNotCompatiblePluginPrompt",
-                                                           [util.xmlGetLocaleString(arg.xml.name),
-                                                            arg.xml.version,
-                                                            KeySnail.version])))
-                        {
-                            // user canceled
-                            return;
+            switch (arg.type) {
+            case "install":
+                userscript.installPluginAndRequiredFiles({
+                    name : util.getLeafNameFromURL(aURL),
+                    code : code,
+                    info : info,
+                    next : function (succeeded, installed) {
+                        if (succeeded) {
+                            userscript.newlyInstalledPlugin = installed.path;
+                            userscript.openPluginManager();
                         }
-                }
 
-                try
-                {
-                    var installed = this.installFile(pluginFile);
-                    // install required files
-                    this.installRequiredFiles(arg.xml);
-                    // successfully finished
-                    this.loadPlugin(installed);
-                    this.newlyInstalledPlugin = installed.path;
-                    if (!isLocalFile)
-                    {
-                        this.openPluginManager();
+                        doNext(succeeded);
                     }
-                }
-                catch (x)
-                {
-                    display.notify(x, 2000);
-                }
-            }
-            else if (arg.type == "viewsource")
-            {
+                });
+                break;
+            case "viewsource":
                 gBrowser.loadOneTab(util.pathToURL(pluginFile.path), null, null, null, false);
+                doNext(false);
+                break;
+            default:
+                doNext(false);
+                break;
             }
+        }
+
+        if (isLocalFile) {
+            try {
+                displayPromptAndInstall(util.readTextFile(util.urlToPath(aURL)));
+            } catch (x) {
+                return doNext(false);
+            }
+        } else {
+            util.httpGet(aURL, false, function (req) {
+                if (req.status !== 200)
+                    return doNext(false);
+
+                displayPromptAndInstall(req.responseText);
+            });
         }
     },
 

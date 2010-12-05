@@ -1281,6 +1281,10 @@ KeySnail.Util = function () {
             return aNodes[0].text();
         },
 
+        xmlToArray: function (xml) {
+            return [xml[i] for (i in this.range(0, xml.length()))];
+        },
+
         // }} ======================================================================= //
 
         // Bookmarks / Places {{ ==================================================== //
