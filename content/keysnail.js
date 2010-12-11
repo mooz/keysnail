@@ -228,9 +228,21 @@ var KeySnail = {
 
         KeySnail._pluginsWithUpdate = null;
 
+        let interval   = 1000 * 60 * 12; // 12 hour
+        var lastUpdate = parseInt(
+            util.getUnicharPref("extensions.keysnail.plugin.last_update", "0"),
+            10
+        );
+
+        if ((Date.now() - lastUpdate) < interval) {
+            util.message("skip checking");
+            return;
+        }
+
         (function checkNext() {
             if (!paths.length) {
                 // finish
+                util.setUnicharPref("extensions.keysnail.plugin.last_update", "" + Date.now());
                 KeySnail._pluginsWithUpdate = hasUpdates;
                 if (hasUpdates.length)
                     notification.hidden = false;
