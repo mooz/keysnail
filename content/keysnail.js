@@ -66,7 +66,7 @@ var KeySnail = {
                              "Shell",
                              // UserScript must be the last
                              "UserScript"];
-        this.modules.modules = this.modules;
+        let modules = this.modules.modules = this.modules;
 
         // local namespace for user
         this.My = {};
@@ -74,69 +74,27 @@ var KeySnail = {
 
         // global namespace for user
         try {
-            Components.utils.import("resource://keysnail-share/share.js", this.modules);
+            Components.utils.import("resource://keysnail-share/share.js", modules);
         } catch (x) {}
 
-        var i;
-        var len = moduleObjects.length;
-        for (i = 0; i < len; ++i)
-        {
-            this.registerModule.call(this, moduleObjects[i]);
-        }
-
-        for (i = 0; i < len; ++i)
-        {
-            this.initModule.call(this, moduleObjects[i]);
-        }
+        let self = this;
+        moduleObjects.forEach(function (name) { self.registerModule(name); });
+        moduleObjects.forEach(function (name) { self.initModule(name); });
 
         // }} ======================================================================= //
 
         // now, run the keyhandler
-        if (this.modules.key.status &&
-            this.modules.userscript.initFileLoaded)
-        {
-            this.modules.key.run();
+        if (modules.key.status && modules.userscript.initFileLoaded)
+            modules.key.run();
+
+        // main-window specific settings
+        if (this.windowType === "navigator:browser") {
+            this.settingsForBrowserWindow();
+            modules.key.updateStatusBar();
         }
 
-        // arrange hook points when window is the main browser-window
-        if (this.windowType === "navigator:browser")
-        {
-            gBrowser.addProgressListener(KeySnail.urlBarListener,
-                                         Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
-
-            // add context menu
-            this.createInstallPluginMenu();
-
-            // hook window unload event
-            window.addEventListener("unload", function () { KeySnail.Hook.callHook("Unload"); }, false);
-
-            this.modules.key.inExternalFile = true;
-            this.modules.hook.addToHook("Unload", function () { gBrowser.removeProgressListener(KeySnail.urlBarListener); });
-            this.workAroundPopup();
-            this.modules.key.inExternalFile = false;
-
-            // hook location bar copy / cut event
-            try
-            {
-                let controller        = document.getElementById("urlbar")._copyCutController;
-                let originalDoCommand = controller.doCommand;
-                controller.doCommand = function (aCommand) {
-                    originalDoCommand.apply(this, arguments);
-                    KeySnail.modules.command.clipboardChanged();
-                };
-            }
-            catch (x)
-            {
-                this.message(x);
-            }
-        }
-
-        let modules = this.modules;
         document.addEventListener("copy", function () { modules.command.clipboardChanged(); }, true);
-
-        this.modules.key.updateStatusBar();
-
-        this.modules.hook.callHook("KeySnailInitialized");
+        modules.hook.callHook("KeySnailInitialized");
     },
 
     /**
@@ -222,6 +180,161 @@ var KeySnail = {
         }
     },
 
+    settingsForBrowserWindow: function () {
+        let modules = this.modules;
+
+        gBrowser.addProgressListener(KeySnail.urlBarListener,
+                                     Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
+
+        // add context menu
+        this.createInstallPluginMenu();
+
+        // start plugin's update checker
+        this.startUpdatePluginChecker();
+
+        // hook window unload event
+        window.addEventListener("unload", function () { KeySnail.Hook.callHook("Unload"); }, false);
+
+        modules.key.inExternalFile = true;
+        modules.hook.addToHook("Unload", function () { gBrowser.removeProgressListener(KeySnail.urlBarListener); });
+        this.workAroundPopup();
+        modules.key.inExternalFile = false;
+
+        // hook location bar copy / cut event
+        try
+        {
+            let controller        = document.getElementById("urlbar")._copyCutController;
+            let originalDoCommand = controller.doCommand;
+            controller.doCommand = function (aCommand) {
+                originalDoCommand.apply(this, arguments);
+                KeySnail.modules.command.clipboardChanged();
+            };
+        }
+        catch (x)
+        {
+            this.message(x);
+        }
+    },
+
+    startUpdatePluginChecker: function () {
+        let modules = this.modules;
+        let { userscript, util, plugins } = modules;
+
+        let notification = document.getElementById("keysnail-plugin-notification");
+
+        let paths = [path for ([path, plugin] in Iterator(plugins.context))];
+
+        let hasUpdates = [];
+
+        KeySnail._pluginsWithUpdate = null;
+
+        (function checkNext() {
+            if (!paths.length) {
+                // finish
+                KeySnail._pluginsWithUpdate = hasUpdates;
+                if (hasUpdates.length)
+                    notification.hidden = false;
+                return;
+            }
+
+            let path = paths.pop();
+
+            util.message("Checking " + path + " ... ");
+
+            userscript.doesPluginHasUpdate(path, function (hasUpdate, context) {
+                util.message("=> " + hasUpdate);
+                if (hasUpdate) {
+                    context.path = path;
+                    hasUpdates.push(context);
+                }
+                return checkNext();
+            });
+        })();
+    },
+
+    updatePluginNotificationMenu: function () {
+        let modules = this.modules;
+        let { userscript, util, plugins } = modules;
+
+        let menu = document.getElementById("keysnail-plugin-notification-menu");
+
+        while (menu.hasChildNodes())
+            menu.removeChild(menu.firstChild);
+
+        if (!KeySnail._pluginsWithUpdate || !KeySnail._pluginsWithUpdate.length) {
+            util.message("no updates found");
+            return;
+        }
+
+        for (let [, { code, info, path }] in Iterator(KeySnail._pluginsWithUpdate)) {
+            function getInfo(name) {
+                return modules.L(util.xmlGetLocaleString(info[name]));
+            }
+
+            let item = util.xmlToDom(<menuitem label={getInfo("name")}
+                                               class="menuitem-iconic"
+                                               src={getInfo("iconURL")}/>
+            );
+
+            item.setAttribute("oncommand", util.format("KeySnail.updatePlugin('%s')", path));
+
+            menu.appendChild(item);
+        }
+
+        menu.appendChild(document.createElement("menuseparator"));
+        menu.appendChild(util.xmlToDom(<menuitem label="Update all plugins"
+	                                         oncommand="KeySnail.updatePlugins();"/>));
+    },
+
+    updatePlugin: function (path, next) {
+        let modules = this.modules;
+        let { userscript, util, plugins } = modules;
+
+        let scripts = KeySnail._pluginsWithUpdate || [];
+
+        if (scripts.some(function ({ path : p }) path === p)) {
+            userscript.updatePlugin(path, function (succeeded) {
+                if (succeeded) {
+                }
+            });
+        }
+    },
+
+    updatePlugins: function () {
+        let modules = this.modules;
+        let { userscript, util, plugins } = modules;
+
+        if (KeySnail._pluginsWithUpdate && KeySnail._pluginsWithUpdate.length) {
+            let scripts = KeySnail._pluginsWithUpdate;
+
+            (function updateNext() {
+                if (!scripts.length) {
+                    return alert("Finished!");
+                }
+
+                let script = scripts.pop();
+
+                userscript.updatePlugin(script.path, function (succeeded) {
+                    if (succeeded) {
+                        util.message("updated " + script.path);
+                        updateNext();
+                    } else {
+                        alert("Failed to update plugin");
+                        scripts.push(script);
+                    }
+                });
+            })();
+        }
+    },
+
+    onUpdateNotificationClick: function (ev) {
+        if (!KeySnail._pluginsWithUpdate || !KeySnail._pluginsWithUpdate.length)
+            return;
+
+        document.getElementById("keysnail-plugin-notification-menu")
+            .openPopup(ev.target, "after_start", 0, 0, true);
+    },
+
     /**
      * Open preference dialog
      */
@@ -241,12 +354,6 @@ var KeySnail = {
                               "chrome=yes,titlebar=yes,toolbar=yes,centerscreen=yes,resizable=yes,scrollbars=yes",
                               "prefpane-rcfile");
         }
-    },
-
-    showElapsedTime: function (aTag) {
-        var now = new Date();
-        this.message(aTag + " :: " + (now - _ksLast));
-        _ksLast = now;
     },
 
     message: function (aFormat) {

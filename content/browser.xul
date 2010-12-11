@@ -60,9 +60,19 @@
         <statusbarpanel id="keysnail-status" context="keysnail-menu">
             <image id="keysnail-statusbar-icon"
 	           src="chrome://keysnail/skin/icon16gray.png"
-                   onmouseup="if (event.button == 0)
-                              KeySnail.Key.toggleStatus();"/>
+                   onmouseup="if (event.button == 0) KeySnail.Key.toggleStatus();"/>
         </statusbarpanel>
+
+        <statusbarpanel id="keysnail-plugin-notification"
+                        hidden="true"
+                        insertafter="keysnail-status">
+            <image id="keysnail-statusbar-update-notification"
+	           src="chrome://keysnail/skin/icon/update-notification.png"
+                   onclick="KeySnail.onUpdateNotificationClick(event);" />
+        </statusbarpanel>
+
+        <!-- menu -->
+
         <menupopup id="keysnail-menu"
                    onpopupshowing="KeySnail.Key.updateMenu();">
 	    <menuitem id="keysnail-menu-reload-userscript"
@@ -114,6 +124,10 @@
                       accesskey="t"
                       type="checkbox"
 		      oncommand="KeySnail.Key.toggleStatus();"/>
+        </menupopup>
+
+        <menupopup id="keysnail-plugin-notification-menu"
+                   onpopupshowing="KeySnail.updatePluginNotificationMenu();">
         </menupopup>
     </statusbar>
 
