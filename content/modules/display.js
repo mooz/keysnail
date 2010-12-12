@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-KeySnail.Display = function () {
+KeySnail.Display = (function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
     const NOTIFY_ID = "ks-notify-message";
@@ -60,14 +60,14 @@ KeySnail.Display = function () {
 
         open: function () {
             if (echo.container.collapsed)
-                echo.container.collapsed = false;  
+                echo.container.collapsed = false;
 
             statusBar.label = echo.help;
         },
 
         close: function () {
             if (!echo.container.collapsed)
-                echo.container.collapsed = true;  
+                echo.container.collapsed = true;
         },
 
         updateHeight: function (percent) {
@@ -78,13 +78,13 @@ KeySnail.Display = function () {
 
             echo.container.height = percent ?
                 availableHeight * (Math.max(Math.min(percent, 100), 0) / 100) :
-                Math.min(echo.document.height, availableHeight) + "px";                
-         
+                Math.min(echo.document.height, availableHeight) + "px";
+
             echo.open();
         },
 
         createElement: function (name) {
-            return echo.document.createElement(name);            
+            return echo.document.createElement(name);
         },
 
         createTextNode : function (text) {
@@ -99,7 +99,7 @@ KeySnail.Display = function () {
 
         html: function (text, options) {
             options = options || {};
-            
+
             echo.document = echoArea.contentDocument;
 
             echo.document.body.innerHTML = text;
@@ -120,7 +120,7 @@ KeySnail.Display = function () {
 
                 if (k === "ESC")
                 {
-                    echo.close();                    
+                    echo.close();
                 }
                 else if (typeof echo.keyhandler === "function")
                 {
@@ -335,6 +335,24 @@ KeySnail.Display = function () {
             }
         },
 
+        showPopup: function (title, message, options) {
+            try {
+                const as = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
+            } catch (x) {
+                return false;
+            }
+
+            options = options || {};
+
+            as.showAlertNotification(options.icon,
+                                     title,
+                                     message,
+                                     !!options.link,
+                                     options.link,
+                                     options.observer);
+            return true;
+        },
+
         message: function (msg) {
             Application.console.log(msg);
         }
@@ -342,4 +360,4 @@ KeySnail.Display = function () {
     };
 
     return self;
-}();
+})();
