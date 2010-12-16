@@ -179,18 +179,17 @@ KeySnail.UserScript = {
 
             for (let [name, { "default"     : value,
                               "description" : description,
-                              "type"        : type }]
-                 in Iterator(defaults)) {
+                              "type"        : type }] in Iterator(defaults)) {
                 let fullName = prefix + "." + name;
 
-                options.__defineGetter__ = function () {
+                options.__defineGetter__(fullName, function () {
                     return (fullName in plugins.options) ?
                         plugins.options[fullName] : value;
-                };
+                });
 
-                options.__defineSetter__ = function (val) {
+                options.__defineSetter__(fullName, function (val) {
                     plugins.options[fullName] = val;
-                };
+                });
 
                 if (info) {
                     info.options.appendChild(
@@ -202,6 +201,8 @@ KeySnail.UserScript = {
                     );
                 }
             }
+
+            return options;
         };
 
         let ext = this.modules.ext;
