@@ -157,6 +157,11 @@ const $U = {
 
     delayed: function (f) {
         return setTimeout(f, 0);
+    },
+
+    extractLinks: function (str) {
+        return Array.slice(str.match(/(?:(?:http|ftp)s?\:\/\/|www\.)[^\s]+/g))
+            .map(function (url) url.indexOf("www") ? url : "http://" + url);
     }
 };
 
@@ -1211,20 +1216,10 @@ var twitterClient =
              "search-word"],
             // ======================================== //
             [function (status) {
-                 if (status)
-                 {
-                     var matched;
-
-                     while ((matched = status.text.match("(h?t?tps?|ftp)(://[a-zA-Z0-9/?;#_*,.:/=&%\\-]+)")))
-                     {
-                         var prefix = (matched[1] === "ftp") ? "ftp" : "http";
-                         if (matched[1][matched[1].length - 1] === 's')
-                             prefix += "s";
-
-                         gBrowser.loadOneTab(prefix + matched[2], null, null, null, false);
-
-                         status.text = status.text.slice(status.text.indexOf(matched[2]) + matched[2].length);
-                     }
+                 if (status) {
+                     extractLinks(status.text).forEach(function (url) {
+                         gBrowser.loadOneTab(url, null, null, null, false);
+                     });
                  }
              }, M({ja: "メッセージ中の URL を開く : ", en: ""}) + "Visit URL in the message",
              "open-url,c"],
