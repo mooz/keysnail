@@ -1225,8 +1225,8 @@ var twitterClient =
              "open-url,c"],
             // ======================================== //
             [function (status) {
-                 if (status.raw.in_reply_to_status_id)
-                     showConversations(status.raw.in_reply_to_status_id, status.raw);
+                 if (status.raw.in_reply_to_status_id_str)
+                     showConversations(status.raw.in_reply_to_status_id_str, status.raw);
                  else
                      display.echoStatusBar("Oops. No conversations found.", 2000);
              }, M({ja: "会話を表示 : ", en: ""}) + "Show conversations",
@@ -2554,8 +2554,8 @@ var twitterClient =
                     gPrompt.forced = true;
                     callSelector(conversations);
 
-                    if (status.in_reply_to_status_id)
-                        trail(status.in_reply_to_status_id);
+                    if (status.in_reply_to_status_id_str)
+                        trail(status.in_reply_to_status_id_str);
                 }
 
                 if (from in map)
@@ -2752,9 +2752,9 @@ var twitterClient =
                 message.appendChild(document.createTextNode(msg));
             }
 
-            if (status.in_reply_to_status_id)
+            if (status.in_reply_to_status_id_str)
             {
-                let url = "http:twitter.com/" + status.in_reply_to_screen_name + "/status/" + status.in_reply_to_status_id;
+                let url = "http://twitter.com/" + status.in_reply_to_screen_name + "/status/" + status.in_reply_to_status_id_str;
                 message.appendChild($U.createElement("description", {
                     "class"       : gLinkClass,
                     "tooltiptext" : url,
@@ -3564,7 +3564,7 @@ var PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.2.2</version>
+    <version>2.2.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
