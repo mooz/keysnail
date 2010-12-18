@@ -714,6 +714,15 @@ let ksPluginManager = (function () {
             }
         },
 
+        checkForAllUpdates: function () {
+            let { pluginUpdater } = modules.share;
+
+            if (pluginUpdater.checking) // XXX: locale
+                modules.display.echoStatusBar("Update checker is already running", 3000);
+            else
+                pluginUpdater.check();
+        },
+
         onFinish: function () {
             return true;
         },

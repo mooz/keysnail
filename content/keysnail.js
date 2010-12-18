@@ -249,8 +249,31 @@
             if (!share.pluginUpdater)
                 share.pluginUpdater = getPluginUpdater();
 
-            if (share.pluginUpdater.shouldCheck)
-                share.pluginUpdater.check();
+            if (share.pluginUpdater.shouldCheck) {
+                share.pluginUpdater.check(function (hasUpdate) {
+                    if (hasUpdate) {
+                        let count = share.pluginUpdater.pluginsWithUpdate.length;
+
+                        display.showPopup(
+                            "KeySnail Plugin",
+                            count + " updates found (click to see details)", {
+                                icon      : "chrome://keysnail/skin/icon/update-notification-large.png"
+                                // cookie    : true,
+                                // clickable : true,
+                                // observer  : {
+                                //     observe : function (subject, topic, data) {
+                                //         const win = Cc["@mozilla.org/appshell/window-mediator;1"]
+                                //             .getService(Ci.nsIWindowMediator)
+                                //             .getMostRecentWindow("navigator:browser");
+
+                                //         win.KeySnail.onUpdateNotificationClick();
+                                //     }
+                                // }
+                            }
+                        );
+                    }
+                });
+            }
 
             share.pluginUpdater.updateNotification();
         },
@@ -259,8 +282,11 @@
             if (!share.pluginUpdater.hasUpdates)
                 return;
 
+            let target = ev ? ev.target
+                : document.getElementById("keysnail-plugin-update-notification-icon");
+
             document.getElementById("keysnail-plugin-notification-menu")
-                .openPopup(ev.target, "after_start", 0, 0, true);
+                .openPopup(target, "after_start", 0, 0, true);
         },
 
         updatePluginNotificationMenu: function () {
@@ -272,7 +298,7 @@
             if (!share.pluginUpdater.hasUpdates)
                 return;
 
-            for (let [, { code, info, path }] in Iterator(share.pluginUpdater.pluginsWithUpdate)) {
+            for (let [n, { code, info, path }] in Iterator(share.pluginUpdater.pluginsWithUpdate)) {
                 function getInfo(name) {
                     return L(util.xmlGetLocaleString(info[name]));
                 }
@@ -281,7 +307,7 @@
                                                    class="menuitem-iconic"
                                                    src={getInfo("iconURL")}/>);
 
-                item.setAttribute("oncommand", util.format("KeySnail.updatePlugin('%s')", path));
+                item.setAttribute("oncommand", util.format("KeySnail.updateNthPlugin(%s)", n));
 
                 menu.appendChild(item);
             }
@@ -293,7 +319,9 @@
             ));
         },
 
-        updatePlugin: function (path) {
+        updateNthPlugin: function (n) {
+            let { path } = share.pluginUpdater.pluginsWithUpdate[n];
+
             share.pluginUpdater.updatePlugin(path, function (succeeded, script) {
                 if (succeeded) {
                     let info = script.info;
@@ -388,10 +416,49 @@
         const pluginUpdater = {
             pluginsWithUpdate : [],
 
+            eachNotificationElems: function (action) {
+                util.getBrowserWindows().forEach(function ({ document : doc }) {
+                    let notification = doc.getElementById("keysnail-plugin-notification");
+                    let notifyIcon   = doc.getElementById("keysnail-plugin-update-notification-icon");
+                    let checkingIcon = doc.getElementById("keysnail-plugin-update-checking-icon");
+                    let checkingLabel = doc.getElementById("keysnail-plugin-update-checking-label");
+
+                    action({
+                        notification  : notification,
+                        checkingIcon  : checkingIcon,
+                        notifyIcon    : notifyIcon,
+                        checkingLabel : checkingLabel
+                    });
+                });
+            },
+
+            get checkAutomatically() {
+                return util.getBoolPref(
+                    "extensions.keysnail.plugin.run_update_checker_automatically",
+                    true
+                );
+            },
+
             _checking : false,
             get checking() pluginUpdater._checking,
-            set checking(v) {
-                pluginUpdater._checking = v;
+            set checking(isChecking) {
+                pluginUpdater._checking = isChecking;
+
+                pluginUpdater.eachNotificationElems(function ({
+                    notification, checkingIcon, checkingLabel, notifyIcon
+                }) {
+                    if (isChecking) {
+                        notifyIcon.hidden    = true;
+                        checkingIcon.hidden  = false;
+                        checkingLabel.hidden = false;
+                        notification.hidden  = false;
+                    } else {
+                        notifyIcon.hidden    = true;
+                        checkingIcon.hidden  = true;
+                        checkingLabel.hidden = true;
+                        notification.hidden  = true;
+                    }
+                });
             },
 
             get hasUpdates() {
@@ -406,13 +473,14 @@
                     util.getLocaleString("updaterUpdatesFound", [count]) :
                     util.getLocaleString("updaterNoUpdatesFound");
 
-                util.getBrowserWindows().forEach(function ({ document : doc }) {
-                    let notification = doc.getElementById("keysnail-plugin-notification");
-                    if (notification)
-                        notification.hidden = !visible;
+                pluginUpdater.eachNotificationElems(function ({
+                    notification, notifyIcon
+                }) {
+                    notification.hidden = !visible;
+                    notifyIcon.hidden   = !visible;
 
                     if (visible)
-                        notification.setAttribute("tooltiptext", tooltipText);
+                        notifyIcon.setAttribute("tooltiptext", tooltipText);
                 });
             },
 
@@ -435,7 +503,7 @@
             },
 
             setLastUpdateTimeStamp: function () {
-                util.message("keysnail :: Update last update timestamp");
+                // util.message("keysnail :: Update last update timestamp");
                 pluginUpdater.lastUpdate = Date.now();
             },
 
@@ -445,10 +513,11 @@
 
                 return (Date.now() - pluginUpdater.lastUpdate) >= interval
                     && !pluginUpdater.pluginsWithUpdate.length
-                    && !pluginUpdater.checking;
+                    && !pluginUpdater.checking
+                    && pluginUpdater.checkAutomatically;
             },
 
-            check: function () {
+            check: function (next) {
                 // avoid confliction
                 if (pluginUpdater.checking)
                     return;
@@ -458,6 +527,25 @@
                 pluginUpdater.checking = true;
                 pluginUpdater.pluginsWithUpdate = [];
 
+                const total = paths.length;
+
+                function updateStatus(path) {
+                    let current     = total - paths.length;
+                    let name        = util.getLeafNameFromURL(util.pathToURL(path));
+                    let countText   = util.format("(%s / %s)", current, total);
+                    let tooltipText = util.format("Checking update for %s %s", name, countText);
+
+                    pluginUpdater.eachNotificationElems(function ({
+                        notification, checkingIcon, checkingLabel
+                    }) {
+                        checkingIcon.hidden  = false;
+                        checkingLabel.hidden = false;
+                        notification.hidden  = false;
+                        notification.setAttribute("tooltiptext", tooltipText);
+                        checkingLabel.setAttribute("value", countText);
+                    });
+                }
+
                 (function checkNext() {
                     if (!paths.length) {
                         // finish
@@ -465,10 +553,14 @@
                         pluginUpdater.updateNotification();
                         if (!pluginUpdater.hasUpdates)
                             pluginUpdater.setLastUpdateTimeStamp();
+                        if (typeof next === "function")
+                            next(pluginUpdater.hasUpdates);
                         return;
                     }
 
                     let path = paths.pop();
+
+                    updateStatus(path);
 
                     // util.message("--------------------------------------------------");
                     // util.message("Checking " + path + " ... ");

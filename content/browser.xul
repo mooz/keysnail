@@ -57,18 +57,24 @@
 
     <!-- status bar overlay -->
     <statusbar id="status-bar">
+        <statusbarpanel id="keysnail-plugin-notification"
+                        hidden="true"
+                        insertbefore="keysnail-status">
+            <image id="keysnail-plugin-update-notification-icon"
+                   hidden="true"
+	           src="chrome://keysnail/skin/icon/update-notification.png"
+                   onclick="KeySnail.onUpdateNotificationClick(event);" />
+            <image id="keysnail-plugin-update-checking-icon"
+                   hidden="true"
+	           src="chrome://keysnail/skin/icon/checking.png" />
+            <label id="keysnail-plugin-update-checking-label"
+                   hidden="true" />
+        </statusbarpanel>
+
         <statusbarpanel id="keysnail-status" context="keysnail-menu">
             <image id="keysnail-statusbar-icon"
 	           src="chrome://keysnail/skin/icon16gray.png"
                    onmouseup="if (event.button == 0) KeySnail.Key.toggleStatus();"/>
-        </statusbarpanel>
-
-        <statusbarpanel id="keysnail-plugin-notification"
-                        hidden="true"
-                        insertafter="keysnail-status">
-            <image id="keysnail-statusbar-update-notification"
-	           src="chrome://keysnail/skin/icon/update-notification.png"
-                   onclick="KeySnail.onUpdateNotificationClick(event);" />
         </statusbarpanel>
 
         <!-- menu -->

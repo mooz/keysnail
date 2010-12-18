@@ -347,8 +347,8 @@ KeySnail.Display = (function () {
             as.showAlertNotification(options.icon,
                                      title,
                                      message,
-                                     !!options.link,
-                                     options.link,
+                                     !!options.clickable,
+                                     options.cookie,
                                      options.observer);
             return true;
         },

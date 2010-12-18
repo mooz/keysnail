@@ -1,9 +1,10 @@
 <!ENTITY keySnail.pluginManager.title "Plugin manager">
 
 <!ENTITY keySnail.pluginManager.enabled "Enabled">
-<!ENTITY keySnail.pluginManager.checkForUpdates "Check for updates">
+<!ENTITY keySnail.pluginManager.checkForUpdates "Check for update">
 <!ENTITY keySnail.pluginManager.reloadPlugins "Reload plugins">
 <!ENTITY keySnail.pluginManager.installPlugin "Install plugin">
+<!ENTITY keySnail.pluginManager.checkForAllUpdates "Check for all updates">
 
 <!-- help -->
 <!ENTITY keySnail.pluginManager.howto.title "How to install plugins">

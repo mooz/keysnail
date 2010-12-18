@@ -18,13 +18,18 @@
                          onselect="ksPluginManager.pluginListboxOnSelect(event);"
                          >
             </richlistbox>
-            <hbox align="center" id="plugin-button-container">
+            <hbox align="center">
                 <button label="&keySnail.pluginManager.reloadPlugins;"
                         oncommand="ksPluginManager.reloadPlugin();"
                         accesskey="r"/>
                 <button label="&keySnail.pluginManager.installPlugin;"
                         oncommand="ksPluginManager.installPlugin();"
                         accesskey="i"/>
+            </hbox>
+            <hbox align="center">
+                <button label="&keySnail.pluginManager.checkForAllUpdates;"
+                        oncommand="ksPluginManager.checkForAllUpdates();"
+                        accesskey="u"/>
             </hbox>
         </vbox>
         <!-- plugin detail -->

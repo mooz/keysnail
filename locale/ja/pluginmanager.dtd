@@ -4,6 +4,7 @@
 <!ENTITY keySnail.pluginManager.checkForUpdates "更新を確認">
 <!ENTITY keySnail.pluginManager.reloadPlugins "プラグインをリロード">
 <!ENTITY keySnail.pluginManager.installPlugin "プラグインをインストール">
+<!ENTITY keySnail.pluginManager.checkForAllUpdates "全ての更新を確認">
 
 <!-- help -->
 <!ENTITY keySnail.pluginManager.howto.title "プラグインのインストール方法">
