@@ -289,6 +289,8 @@ KeySnail.Util = function () {
             const PR_UINT32_MAX = 0xffffffff;
             ch.updateFromStream(istream, PR_UINT32_MAX);
 
+            istream.close();
+
             // if false is given, binary data will be returend
             let hash = ch.finish(preferAscii);
 
