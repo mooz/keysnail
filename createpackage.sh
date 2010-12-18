@@ -6,7 +6,7 @@ setopt extended_glob
 
 # create jar file
 rm -f chrome/keysnail.jar
-jar cvf0 chrome/keysnail.jar \
+zip -r -0 chrome/keysnail.jar \
     content/*.{js,xul,xhtml}~(*~|.svn/*) \
     content/resources/*~*~ \
     content/modules/*.js~(*~|.svn/*) \
