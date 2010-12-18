@@ -1342,6 +1342,22 @@ KeySnail.Util = function () {
 
         sortMultiple: function ([a], [b]) { return (a < b) ? -1 : (a > b) ? 1 : 0; },
 
+        find: function (array, pred) {
+            for (let [i, v] in Iterator(array))
+                if (pred(v, i))
+                    return v;
+        },
+
+        findAll: function (array, pred) {
+            let res = [];
+
+            for (let [i, v] in Iterator(array))
+                if (pred(v, i))
+                    res.push(v);
+
+            return res.length ? res : null;
+        },
+
         // }} ======================================================================= //
 
         // Range / Iterator {{ ====================================================== //
