@@ -531,7 +531,7 @@ KeySnail.UserScript = {
         let file = userscript.writeTextTmp(name, code);
         let installed;
         try {
-            installed = userscript.installFile(file);
+            installed = userscript.installFile(file, context.forceOverWrite);
         } catch (x) {
             return doNext(false);
         }
@@ -674,7 +674,7 @@ KeySnail.UserScript = {
 
             if (confirmed) {
                 userscript.installPluginAndRequiredFiles({
-                    name : util.getLeafNameFromURL(pluginPath),
+                    name : util.getLeafNameFromURL(util.pathToURL(pluginPath)),
                     code : code,
                     info : info,
                     next : doNext
