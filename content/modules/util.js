@@ -367,6 +367,20 @@ KeySnail.Util = function () {
 
         // Misc utils {{ ============================================================ //
 
+        getBrowserWindows:
+        function getBrowserWindows() {
+            let windows = [];
+
+            const wm = Cc["@mozilla.org/appshell/window-mediator;1"]
+                .getService(Ci.nsIWindowMediator);
+            const enumerator = wm.getEnumerator("navigator:browser");
+
+            while (enumerator.hasMoreElements())
+                windows.push(enumerator.getNext());
+
+            return windows;
+        },
+
         /**
          * list all properties of the object
          * @param {object} aObject target object
