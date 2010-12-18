@@ -286,7 +286,7 @@ KeySnail.Display = (function () {
             displayMessage();
         },
 
-        notify: function (aMsg, aButtons) {
+        notify: function (aMsg, aButtons, aIcon) {
             if (typeof gBrowser == 'undefined')
             {
                 window.alert(aMsg);
@@ -316,7 +316,7 @@ KeySnail.Display = (function () {
 
             notifyBox.appendNotification(aMsg,
                                          NOTIFY_ID,
-                                         "chrome://keysnail/skin/notify-icon16.png",
+                                         aIcon || "chrome://keysnail/skin/notify-icon16.png",
                                          "PRIORITY_WARNING_HIGH",
                                          aButtons);
         },
