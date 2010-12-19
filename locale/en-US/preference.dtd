@@ -16,6 +16,7 @@
 <!ENTITY keySnail.preference.plugin.location "Location: ">
 <!ENTITY keySnail.preference.plugin.globalEnabled "Load plugins in every window">
 <!ENTITY keySnail.preference.plugin.checkUpdateAutomatically "Run update checker automatically on startup">
+<!ENTITY keySnail.preference.plugin.checkUpdateInterval "Check interval (hour)">
 
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "Key Handler Settings">

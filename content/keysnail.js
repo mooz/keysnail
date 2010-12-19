@@ -510,11 +510,12 @@
                 return (Date.now() - pluginUpdater.lastUpdate) / (1000 * 60 * 60);
             },
 
-            get shouldCheck() {
-                // TODO: Make this interval customizable
-                let interval = 24; // 24 hour.
+            get updateCheckInterval() {
+                return util.getIntPref("extensions.keysnail.plugin.update_checker_interval", 24);
+            },
 
-                return this.elapsedHours >= interval
+            get shouldCheck() {
+                return this.elapsedHours >= this.updateCheckInterval
                     && !pluginUpdater.pluginsWithUpdate.length
                     && !pluginUpdater.checking
                     && pluginUpdater.checkAutomatically;

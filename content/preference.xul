@@ -44,6 +44,10 @@
                  name="extensions.keysnail.plugin.run_update_checker_automatically"
                  type="bool"/>
             <preference
+                 id="extensions.keysnail.plugin.update_checker_interval"
+                 name="extensions.keysnail.plugin.update_checker_interval"
+                 type="int"/>
+            <preference
                  id="extensions.keysnail.vimp.enabled"
                  name="extensions.keysnail.vimp.enabled"
                  type="bool"/>
@@ -130,13 +134,14 @@
             <!-- update checker -->
             <checkbox label="&keySnail.preference.plugin.checkUpdateAutomatically;"
                       preference="extensions.keysnail.plugin.run_update_checker_automatically" />
-            <!-- <vbox> -->
-            <!--     <hbox align="center" id="plugin-updater-interval"> -->
-            <!--         <spacer width="30px" /> -->
-            <!--         <label>Update interval (hour): </label> -->
-            <!--         <textbox type="number" min="1" max="10000" value="24" /> -->
-            <!--     </hbox> -->
-            <!-- </vbox> -->
+            <vbox>
+                <hbox align="center" id="plugin-updater-interval">
+                    <spacer width="30px" />
+                    <label>&keySnail.preference.plugin.checkUpdateInterval;: </label>
+                    <textbox type="number" min="1" max="10000" value="24"
+                             preference="extensions.keysnail.plugin.update_checker_interval" />
+                </hbox>
+            </vbox>
         </groupbox>
 
         <!-- Vimperator -->
