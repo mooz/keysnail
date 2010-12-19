@@ -133,7 +133,9 @@
                       preference="extensions.keysnail.plugin.global_enabled" />
             <!-- update checker -->
             <checkbox label="&keySnail.preference.plugin.checkUpdateAutomatically;"
-                      preference="extensions.keysnail.plugin.run_update_checker_automatically" />
+                      preference="extensions.keysnail.plugin.run_update_checker_automatically"
+                      oncommand="ksPreference.toggleCheckUpdateAutomatically(event);"
+                      />
             <vbox>
                 <hbox align="center" id="plugin-updater-interval">
                     <spacer width="30px" />

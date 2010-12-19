@@ -40,13 +40,13 @@ var ksPreference = {
         this.prefixArgumentCheckBox   = document.getElementById("use-prefix-argument-checkbox");
 
         if (!this.modules.util.getUnicharPref(this.editorKey))
-        {
             this.modules.userscript.syncEditorWithGM();
-        }
         this.updateAllFileFields();
 
         var usePrefixArgument = this.modules.util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", false);
         this.setDigitArgumentFieldState(usePrefixArgument);
+
+        this.setPluginUpdaterIntervalFieldState(this.modules.share.pluginUpdater.checkAutomatically);
 
         this.digitArgumentList.selectedIndex = {
             "C"     : 1,
@@ -63,7 +63,19 @@ var ksPreference = {
 
     toggleEmacsLikePrefixArgument: function (aEvent) {
         var enabled = this.prefixArgumentCheckBox.checked;
-        this.setDigitArgumentFieldState(!enabled);
+        this.setDigitArgumentFieldState(enabled);
+    },
+
+    setPluginUpdaterIntervalFieldState: function (enabled) {
+        let box = document.getElementById("plugin-updater-interval");
+
+        for (let [, elem] in Iterator(box.childNodes))
+            elem.disabled = !enabled;
+    },
+
+    toggleCheckUpdateAutomatically: function (ev) {
+        let enabled = ev.target.checked;
+        this.setPluginUpdaterIntervalFieldState(enabled);
     },
 
     /**
