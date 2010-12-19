@@ -31,8 +31,8 @@
         ondialogaccept="return ksUpdatePluginDialog.onAccept();"
         ondialogcancel="return ksUpdatePluginDialog.onCancel();"
         >
-    <vbox flex="1">
-        <hbox flex="1" align="center">
+    <vbox>
+        <hbox align="center">
             <hbox align="center">
                 <image src="chrome://keysnail/skin/icon/update-notification-large.png" />
             </hbox>
@@ -44,8 +44,10 @@
 
         <spacer height="10px" />
 
-        <richlistbox id="plugin-list" flex="1" rows="5">
-        </richlistbox>
+        <hbox id="plugin-list-container">
+            <richlistbox id="plugin-list" flex="1" rows="5">
+            </richlistbox>
+        </hbox>
 
         <hbox>
             <button label="&keySnail.updatePluginDialog.uncheckAll;"

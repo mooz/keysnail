@@ -1,3 +1,8 @@
+#plugin-list-container {
+    max-height : 300px;
+    overflow   : auto;
+}
+
 .plugin-info-box {
     padding       : 8px 5px;
     border-bottom : 1px #BBB dotted;

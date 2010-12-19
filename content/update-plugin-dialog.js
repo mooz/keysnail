@@ -39,24 +39,26 @@ let ksUpdatePluginDialog = (function () {
         let description = getString("description");
 
         let elem = util.xmlToDom(
-            <hbox class="plugin-info-box">
-                <checkbox class="plugin-install-or-not-checkbox" checked="true" />
-                <hbox align="center">
-                    <!-- icon -->
-                    <vbox align="center">
-                        <image src={iconURL} class="plugin-icon" />
-                    </vbox>
-                    <vbox>
-                        <!-- name, version -->
-                        <hbox align="center">
-                            <description class="plugin-name">{name}</description>
-                            <description class="plugin-version">{version}</description>
-                        </hbox>
-                        <!-- description -->
-                        <description class="plugin-description">{description}</description>
-                    </vbox>
+            <richlistitem class="plugin-info-box">
+                <hbox>
+                    <checkbox class="plugin-install-or-not-checkbox" checked="true" />
+                    <hbox align="center">
+                        <!-- icon -->
+                        <vbox align="center">
+                            <image src={iconURL} class="plugin-icon" />
+                        </vbox>
+                        <vbox>
+                            <!-- name, version -->
+                            <hbox align="center">
+                                <description class="plugin-name">{name}</description>
+                                <description class="plugin-version">{version}</description>
+                            </hbox>
+                            <!-- description -->
+                            <description class="plugin-description">{description}</description>
+                        </vbox>
+                    </hbox>
                 </hbox>
-            </hbox>
+            </richlistitem>
         , null, document);
 
         return elem;
