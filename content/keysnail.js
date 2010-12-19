@@ -555,8 +555,7 @@
                         // finish
                         pluginUpdater.checking = false;
                         pluginUpdater.updateNotification();
-                        if (!pluginUpdater.hasUpdates)
-                            pluginUpdater.setLastUpdateTimeStamp();
+                        pluginUpdater.setLastUpdateTimeStamp();
                         if (typeof next === "function")
                             next(pluginUpdater.hasUpdates);
                         return;
@@ -636,9 +635,6 @@
                         );
                     }
 
-                    if (!pluginUpdater.hasUpdates)
-                        pluginUpdater.setLastUpdateTimeStamp();
-
                     pluginUpdater.updateNotification();
 
                     if (typeof next === "function")
@@ -652,9 +648,6 @@
 
                 (function updateNext() {
                     if (!paths.length) {
-                        if (!pluginUpdater.hasUpdates)
-                            pluginUpdater.setLastUpdateTimeStamp();
-
                         pluginUpdater.updateNotification();
 
                         if (typeof next === "function")
@@ -711,9 +704,6 @@
                 (function updateNext() {
                     if (!scripts.length) {
                         pluginUpdater.pluginsWithUpdate = failed;
-
-                        if (!pluginUpdater.hasUpdates)
-                            pluginUpdater.setLastUpdateTimeStamp();
 
                         pluginUpdater.updateNotification();
 
