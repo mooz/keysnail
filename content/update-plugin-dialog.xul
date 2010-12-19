@@ -32,7 +32,7 @@
         ondialogcancel="return ksUpdatePluginDialog.onCancel();"
         >
     <vbox flex="1">
-        <hbox flex="1">
+        <hbox flex="1" align="center">
             <hbox align="center">
                 <image src="chrome://keysnail/skin/icon/update-notification-large.png" />
             </hbox>
