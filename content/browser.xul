@@ -63,7 +63,7 @@
             <image id="keysnail-plugin-update-notification-icon"
                    hidden="true"
 	           src="chrome://keysnail/skin/icon/update-notification.png"
-                   onclick="KeySnail.onUpdateNotificationClick(event);" />
+                   onclick="KeySnail.openUpdatePluginDialog();" />
             <image id="keysnail-plugin-update-checking-icon"
                    hidden="true"
 	           src="chrome://keysnail/skin/icon/checking.png" />
@@ -130,10 +130,6 @@
                       accesskey="t"
                       type="checkbox"
 		      oncommand="KeySnail.Key.toggleStatus();"/>
-        </menupopup>
-
-        <menupopup id="keysnail-plugin-notification-menu"
-                   onpopupshowing="KeySnail.updatePluginNotificationMenu();">
         </menupopup>
     </statusbar>
 

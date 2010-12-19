@@ -68,6 +68,7 @@ KeySnailLoader.prototype = {
         case 'chrome://keysnail/content/builtinviewer.xul':
         case 'chrome://keysnail/content/keyGrabber.xul':
         case 'chrome://keysnail/content/installplugindialog.xul':
+        case 'chrome://keysnail/content/update-plugin-dialog.xul':
             // some
         case 'chrome://global/content/alerts/alert.xul':
         case 'chrome://browser/content/aboutDialog.xul':

@@ -15,6 +15,7 @@
 <!ENTITY keySnail.preference.plugin "プラグイン">
 <!ENTITY keySnail.preference.plugin.location "読み込み元: ">
 <!ENTITY keySnail.preference.plugin.globalEnabled "ブラウズ画面以外でもプラグインを読み込む">
+<!ENTITY keySnail.preference.plugin.checkUpdateAutomatically "起動時にプラグインの更新を確認する">
 
 <!-- Key Handler Status -->
 <!ENTITY keySnail.preference.keyhandler "キーハンドラ">

@@ -128,7 +128,7 @@
             <checkbox label="&keySnail.preference.plugin.globalEnabled;"
                       preference="extensions.keysnail.plugin.global_enabled" />
             <!-- update checker -->
-            <checkbox label="Run update checker automatically on startup"
+            <checkbox label="&keySnail.preference.plugin.checkUpdateAutomatically;"
                       preference="extensions.keysnail.plugin.run_update_checker_automatically" />
             <!-- <vbox> -->
             <!--     <hbox align="center" id="plugin-updater-interval"> -->

@@ -4,47 +4,59 @@
 <?xml-stylesheet href="chrome://keysnail/skin/css/update-plugin-dialog.css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/update-plugin-dialog.dtd">
+<!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/preference.dtd">
 
-<dialog id="keysnail-update-plugin-dialog"
-        title="&keySnail.installPluginDialog.title;"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
 
-        onload="ksInstallPluginDialog.onLoad();"
-        buttons="accept,cancel,disclosure"
+        windowtype="KeySnail:UpdatePlugin"
 
-        buttonlabelaccept="&keySnail.installPluginDialog.install;"
+        id="keysnail-update-plugin-dialog"
+        title="&keySnail.updatePluginDialog.title;"
+
+        onload="ksUpdatePluginDialog.onLoad();"
+        buttons="accept,cancel"
+
+        buttonlabelaccept="&keySnail.updatePluginDialog.install;"
         buttonaccesskeyaccept="i"
-
-        buttonlabeldisclosure="&keySnail.installPluginDialog.viewSourceCode;"
-        buttonaccesskeydisclosure="v"
 
         buttonaccesskeycancel="c"
 
-        ondialogaccept="return ksInstallPluginDialog.onAccept();"
-        ondialogcancel="return ksInstallPluginDialog.onCancel();"
-        ondialogdisclosure="return ksInstallPluginDialog.onViewSource();"
+        ondialogaccept="return ksUpdatePluginDialog.onAccept();"
+        ondialogcancel="return ksUpdatePluginDialog.onCancel();"
         >
     <vbox flex="1">
         <hbox flex="1">
             <hbox align="center">
-                <image id="plugin-info-icon" />
+                <image src="chrome://keysnail/skin/icon/update-notification-large.png" />
             </hbox>
             <vbox>
-                <hbox align="center">
-                    <description id="plugin-info-name" />
-                    <description id="plugin-info-version" />
-                </hbox>
-                <description id="plugin-info-description" />
+                <description>&keySnail.updatePluginDialog.updateFoundMessage;</description>
+                <description>&keySnail.updatePluginDialog.updateFoundInstruction;</description>
             </vbox>
         </hbox>
+
         <spacer height="10px" />
-        <caption>&keySnail.installPluginDialog.theseFilesWillBeInstalled;:</caption>
-        <richlistbox id="plugin-script-list" flex="1">
+
+        <richlistbox id="plugin-list" flex="1" rows="5">
         </richlistbox>
-        <description class="notice">&keySnail.installPluginDialog.notice1;</description>
-        <description class="notice">&keySnail.installPluginDialog.notice2;</description>
+
+        <hbox>
+            <button label="keySnail.updatePluginDialog.uncheckAll"
+                    oncommand="ksUpdatePluginDialog.setAllChecked(false);"
+                    accesskey="u" />
+            <button label="&keySnail.updatePluginDialog.checkAll;"
+                    oncommand="ksUpdatePluginDialog.setAllChecked(true);"
+                    accesskey="a" />
+        </hbox>
+
+        <hbox>
+            <spacer flex="1" />
+            <checkbox id="checkbox-automatically-check"
+                      label="&keySnail.preference.plugin.checkUpdateAutomatically;"
+                      oncommand="ksUpdatePluginDialog.toggleAutomaticallyCheck();" />
+        </hbox>
     </vbox>
 
-    <script type="application/x-javascript" src="chrome://keysnail/content/installplugindialog.js"/>
+    <script type="application/x-javascript" src="chrome://keysnail/content/update-plugin-dialog.js"/>
 </dialog>

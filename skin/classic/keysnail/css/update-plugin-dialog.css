@@ -1,0 +1,34 @@
+.plugin-info-box {
+    padding       : 8px 5px;
+    border-bottom : 1px #BBB dotted;
+}
+
+.plugin-info-box:last-child {
+    border-bottom : none;
+}
+
+/* info item */
+
+.plugin-install-or-not-checkbox {
+}
+
+.plugin-install-or-not-checkbox[checked=true] + hbox * {
+    opacity : 1.0;
+}
+
+.plugin-install-or-not-checkbox[checked=false] + hbox * {
+    opacity : 0.7;
+}
+
+.plugin-icon {
+    margin : 0 7px;
+    width  : 32px;
+    height : 32px;
+}
+
+.plugin-name {
+    font-weight : bold;
+}
+
+.plugin-description {
+}

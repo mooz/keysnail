@@ -12,6 +12,8 @@
 
     const { classes : Cc, interfaces : Ci } = Components;
 
+    const logs = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
+
     const KeySnail = {
         modules: {},
 
@@ -255,20 +257,23 @@
                         let count = share.pluginUpdater.pluginsWithUpdate.length;
 
                         display.showPopup(
-                            "KeySnail Plugin",
-                            count + " updates found (click to see details)", {
-                                icon      : "chrome://keysnail/skin/icon/update-notification-large.png"
-                                // cookie    : true,
-                                // clickable : true,
-                                // observer  : {
-                                //     observe : function (subject, topic, data) {
-                                //         const win = Cc["@mozilla.org/appshell/window-mediator;1"]
-                                //             .getService(Ci.nsIWindowMediator)
-                                //             .getMostRecentWindow("navigator:browser");
+                            util.getLocaleString("keySnailPlugin"),
+                            util.getLocaleString("updaterUpdatesFound", [count]), {
+                                icon      : "chrome://keysnail/skin/icon/update-notification-large.png",
+                                cookie    : true,
+                                clickable : true,
+                                observer  : {
+                                    observe : function (subject, topic, data) {
+                                        if (topic !== "alertclickcallback")
+                                            return;
 
-                                //         win.KeySnail.onUpdateNotificationClick();
-                                //     }
-                                // }
+                                        const win = Cc["@mozilla.org/appshell/window-mediator;1"]
+                                            .getService(Ci.nsIWindowMediator)
+                                            .getMostRecentWindow("navigator:browser");
+
+                                        win.KeySnail.openUpdatePluginDialog();
+                                    }
+                                }
                             }
                         );
                     }
@@ -278,88 +283,65 @@
             share.pluginUpdater.updateNotification();
         },
 
-        onUpdateNotificationClick: function (ev) {
+        openUpdatePluginDialog: function () {
             if (!share.pluginUpdater.hasUpdates)
                 return;
 
-            let target = ev ? ev.target
-                : document.getElementById("keysnail-plugin-update-notification-icon");
+            const windowType = 'KeySnail:Preference';
 
-            document.getElementById("keysnail-plugin-notification-menu")
-                .openPopup(target, "after_start", 0, 0, true);
+            const dialog = Cc['@mozilla.org/appshell/window-mediator;1']
+                .getService(Ci.nsIWindowMediator)
+                .getMostRecentWindow(windowType);
+
+            if (dialog)
+                dialog.focus();
+            else
+                window.openDialog("chrome://keysnail/content/update-plugin-dialog.xul",
+                                  windowType,
+                                  "chrome,titlebar,modal,dialog,centerscreen,resizable,scrollbars");
         },
 
-        updatePluginNotificationMenu: function () {
-            let menu = document.getElementById("keysnail-plugin-notification-menu");
+        // updateNthPlugin: function (n) {
+        //     let { path } = share.pluginUpdater.pluginsWithUpdate[n];
 
-            while (menu.hasChildNodes())
-                menu.removeChild(menu.firstChild);
+        //     share.pluginUpdater.updatePlugin(path, function (succeeded, script) {
+        //         if (succeeded) {
+        //             let info = script.info;
+        //             alert(util.getLocaleString("pluginUpdated", [
+        //                 util.xmlGetLocaleString(info.name),
+        //                 util.xmlGetLocaleString(info.version)
+        //             ]));
+        //         } else {
+        //             alert(util.getLocaleString("updaterStatusFailed"));
+        //         }
+        //     });
+        // },
 
-            if (!share.pluginUpdater.hasUpdates)
-                return;
+        // updateAllPlugins: function () {
+        //     let status2string = {};
+        //     status2string[share.pluginUpdater.STATUS.CHECKING]
+        //         = util.getLocaleString("updaterStatusUpdating");
+        //     status2string[share.pluginUpdater.STATUS.SUCCEEDED]
+        //         = util.getLocaleString("updaterStatusUpdated");
+        //     status2string[share.pluginUpdater.STATUS.FAILED]
+        //         = util.getLocaleString("updaterStatusFailed");
 
-            for (let [n, { code, info, path }] in Iterator(share.pluginUpdater.pluginsWithUpdate)) {
-                function getInfo(name) {
-                    return L(util.xmlGetLocaleString(info[name]));
-                }
-
-                let item = util.xmlToDom(<menuitem label={getInfo("name")}
-                                                   class="menuitem-iconic"
-                                                   src={getInfo("iconURL")}/>);
-
-                item.setAttribute("oncommand", util.format("KeySnail.updateNthPlugin(%s)", n));
-
-                menu.appendChild(item);
-            }
-
-            menu.appendChild(document.createElement("menuseparator"));
-            menu.appendChild(util.xmlToDom(
-                    <menuitem label={util.getLocaleString("updateAllPlugins")}
-	                      oncommand="KeySnail.updateAllPlugins();"/>
-            ));
-        },
-
-        updateNthPlugin: function (n) {
-            let { path } = share.pluginUpdater.pluginsWithUpdate[n];
-
-            share.pluginUpdater.updatePlugin(path, function (succeeded, script) {
-                if (succeeded) {
-                    let info = script.info;
-                    alert(util.getLocaleString("pluginUpdated", [
-                        util.xmlGetLocaleString(info.name),
-                        util.xmlGetLocaleString(info.version)
-                    ]));
-                } else {
-                    alert(util.getLocaleString("updaterStatusFailed"));
-                }
-            });
-        },
-
-        updateAllPlugins: function () {
-            let status2string = {};
-            status2string[share.pluginUpdater.STATUS.CHECKING]
-                = util.getLocaleString("updaterStatusUpdating");
-            status2string[share.pluginUpdater.STATUS.SUCCEEDED]
-                = util.getLocaleString("updaterStatusUpdated");
-            status2string[share.pluginUpdater.STATUS.FAILED]
-                = util.getLocaleString("updaterStatusFailed");
-
-            share.pluginUpdater.updateAllPlugins(
-                function ({ current, total, status, script: { info } }) {
-                    display.echoStatusBar(
-                        util.format("%s ... %s (%s / %s)",
-                                    util.xmlGetLocaleString(info.name),
-                                    status2string[status],
-                                    current, total)
-                    );
-                }, function (succeeded) {
-                    if (succeeded)
-                        alert(util.getLocaleString("updatedAllPlugins"));
-                    else
-                        alert(util.getLocaleString("updaterStatusFailed"));
-                }
-            );
-        },
+        //     share.pluginUpdater.updateAllPlugins(
+        //         function ({ current, total, status, script: { info } }) {
+        //             display.echoStatusBar(
+        //                 util.format("%s ... %s (%s / %s)",
+        //                             util.xmlGetLocaleString(info.name),
+        //                             status2string[status],
+        //                             current, total)
+        //             );
+        //         }, function (succeeded) {
+        //             if (succeeded)
+        //                 alert(util.getLocaleString("updatedAllPlugins"));
+        //             else
+        //                 alert(util.getLocaleString("updaterStatusFailed"));
+        //         }
+        //     );
+        // },
 
         /**
          * Open preference dialog
@@ -382,8 +364,12 @@
             }
         },
 
-        message: function (aFormat) {
-            Application.console.log(util.format.apply(null, arguments));
+        message: function (msg) {
+            try {
+                logs.logStringMessage(util.format.apply(null, arguments));
+            } catch (x) {
+                logs.logStringMessage("KeySnail.message :: " + x);
+            }
         },
 
         /**
@@ -533,7 +519,8 @@
                     let current     = total - paths.length;
                     let name        = util.getLeafNameFromURL(util.pathToURL(path));
                     let countText   = util.format("(%s / %s)", current, total);
-                    let tooltipText = util.format("Checking update for %s %s", name, countText);
+                    let tooltipText = util.getLocaleString("checkingPluginUpdate", [name])
+                        + " " + countText;
 
                     pluginUpdater.eachNotificationElems(function ({
                         notification, checkingIcon, checkingLabel
@@ -613,6 +600,41 @@
                 });
             },
 
+            updatePlugins: function (paths, next) {
+                if (!pluginUpdater.hasUpdates)
+                    return;
+
+                (function updateNext() {
+                    if (!paths.length) {
+                        if (!pluginUpdater.hasUpdates)
+                            pluginUpdater.setLastUpdateTimeStamp();
+
+                        pluginUpdater.updateNotification();
+
+                        if (typeof next === "function")
+                            next(true);
+
+                        return;
+                    }
+
+                    let path   = paths.pop();
+                    let script = util.find(pluginUpdater.pluginsWithUpdate,
+                                           function ({ path : p }) path === p);
+
+                    if (!script)
+                        updateNext();
+
+                    pluginUpdater.installScript(script, function (succeeded) {
+                        if (succeeded)
+                            pluginUpdater.pluginsWithUpdate.splice(
+                                pluginUpdater.pluginsWithUpdate.indexOf(script), 1
+                            );
+
+                        updateNext();
+                    });
+                })();
+            },
+
             STATUS: {
                 CHECKING  : 0,
                 SUCCEEDED : 1,
@@ -651,6 +673,8 @@
 
                         if (typeof next === "function")
                             next(true);
+
+                        return;
                     }
 
                     let script = scripts.pop();
