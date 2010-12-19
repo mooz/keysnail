@@ -224,7 +224,9 @@
             this.startPluginUpdater();
 
             // hook window unload event
-            window.addEventListener("unload", function () { KeySnail.Hook.callHook("Unload"); }, false);
+            window.addEventListener("unload", function (ev) {
+                KeySnail.Hook.callHook("Unload", ev);
+            }, false);
 
             key.inExternalFile = true;
             hook.addToHook("Unload", function () { gBrowser.removeProgressListener(KeySnail.urlBarListener); });
@@ -248,13 +250,39 @@
         },
 
         startPluginUpdater: function () {
-            if (!share.pluginUpdater)
+            if (!share.pluginUpdater) {
                 share.pluginUpdater = getPluginUpdater();
+
+                this.setUpPluginUpdaterDelegator();
+            }
 
             if (share.pluginUpdater.shouldCheck)
                 share.pluginUpdater.checkAndAlert();
 
             share.pluginUpdater.updateNotification();
+        },
+
+        setUpPluginUpdaterDelegator: function () {
+            hook.addToHook("Unload", function () {
+                // delegation
+
+                util.getBrowserWindows().some(function (win) {
+                    if (win === window)
+                        return false;
+
+                    const ks = win.KeySnail;
+
+                    // create new plugin updater
+                    share.pluginUpdater = ks.getPluginUpdater(
+                        share.pluginUpdater.pluginsWithUpdate
+                    );
+
+                    // and set up delegator for new plugin updater
+                    ks.setUpPluginUpdaterDelegator();
+
+                    return true;
+                });
+            });
         },
 
         openUpdatePluginDialog: function () {
@@ -369,12 +397,14 @@
             onStatusChange: function () {},
             onSecurityChange: function () {},
             onLinkIconAvailable: function () {}
-        }
+        },
+
+        getPluginUpdater: getPluginUpdater
     };
 
-    function getPluginUpdater() {
+    function getPluginUpdater(pluginList) {
         const pluginUpdater = {
-            pluginsWithUpdate : [],
+            pluginsWithUpdate : pluginList || [],
 
             eachNotificationElems: function (action) {
                 util.getBrowserWindows().forEach(function ({ document : doc }) {
