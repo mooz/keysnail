@@ -182,12 +182,12 @@ KeySnail.UserScript = {
                               "type"        : type }] in Iterator(defaults)) {
                 let fullName = prefix + "." + name;
 
-                options.__defineGetter__(fullName, function () {
+                options.__defineGetter__(name, function () {
                     return (fullName in plugins.options) ?
                         plugins.options[fullName] : value;
                 });
 
-                options.__defineSetter__(fullName, function (val) {
+                options.__defineSetter__(name, function (val) {
                     plugins.options[fullName] = val;
                 });
 
