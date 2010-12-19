@@ -3,8 +3,14 @@
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
 <?xml-stylesheet href="chrome://keysnail/skin/css/update-plugin-dialog.css"?>
 
-<!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/update-plugin-dialog.dtd">
-<!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/preference.dtd">
+<!DOCTYPE dialog [
+          <!ENTITY % updatePluginDialogDTD SYSTEM
+                   "chrome://keysnail/locale/update-plugin-dialog.dtd">
+          %updatePluginDialogDTD;
+          <!ENTITY % preferenceDTD SYSTEM
+                   "chrome://keysnail/locale/preference.dtd">
+          %preferenceDTD;
+          ]>
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
@@ -42,7 +48,7 @@
         </richlistbox>
 
         <hbox>
-            <button label="keySnail.updatePluginDialog.uncheckAll"
+            <button label="&keySnail.updatePluginDialog.uncheckAll;"
                     oncommand="ksUpdatePluginDialog.setAllChecked(false);"
                     accesskey="u" />
             <button label="&keySnail.updatePluginDialog.checkAll;"
