@@ -251,34 +251,8 @@
             if (!share.pluginUpdater)
                 share.pluginUpdater = getPluginUpdater();
 
-            if (share.pluginUpdater.shouldCheck) {
-                share.pluginUpdater.check(function (hasUpdate) {
-                    if (hasUpdate) {
-                        let count = share.pluginUpdater.pluginsWithUpdate.length;
-
-                        display.showPopup(
-                            util.getLocaleString("keySnailPlugin"),
-                            util.getLocaleString("updaterUpdatesFound", [count]), {
-                                icon      : "chrome://keysnail/skin/icon/update-notification-large.png",
-                                cookie    : true,
-                                clickable : true,
-                                observer  : {
-                                    observe : function (subject, topic, data) {
-                                        if (topic !== "alertclickcallback")
-                                            return;
-
-                                        const win = Cc["@mozilla.org/appshell/window-mediator;1"]
-                                            .getService(Ci.nsIWindowMediator)
-                                            .getMostRecentWindow("navigator:browser");
-
-                                        win.KeySnail.openUpdatePluginDialog();
-                                    }
-                                }
-                            }
-                        );
-                    }
-                });
-            }
+            if (share.pluginUpdater.shouldCheck)
+                share.pluginUpdater.checkAndAlert();
 
             share.pluginUpdater.updateNotification();
         },
@@ -466,7 +440,7 @@
                     notifyIcon.hidden   = !visible;
 
                     if (visible)
-                        notifyIcon.setAttribute("tooltiptext", tooltipText);
+                        notification.setAttribute("tooltiptext", tooltipText);
                 });
             },
 
@@ -493,11 +467,15 @@
                 pluginUpdater.lastUpdate = Date.now();
             },
 
+            get elapsedHours() {
+                return (Date.now() - pluginUpdater.lastUpdate) / (1000 * 60 * 60);
+            },
+
             get shouldCheck() {
                 // TODO: Make this interval customizable
-                let interval = 1000 * 60 * 24; // 24 hour.
+                let interval = 24; // 24 hour.
 
-                return (Date.now() - pluginUpdater.lastUpdate) >= interval
+                return this.elapsedHours >= interval
                     && !pluginUpdater.pluginsWithUpdate.length
                     && !pluginUpdater.checking
                     && pluginUpdater.checkAutomatically;
@@ -560,6 +538,35 @@
                         return checkNext();
                     });
                 })();
+            },
+
+            checkAndAlert: function () {
+                pluginUpdater.check(function (hasUpdate) {
+                    if (hasUpdate) {
+                        let count = share.pluginUpdater.pluginsWithUpdate.length;
+
+                        display.showPopup(
+                            util.getLocaleString("keySnailPlugin"),
+                            util.getLocaleString("updaterUpdatesFound", [count]), {
+                                icon      : "chrome://keysnail/skin/icon/update-notification-large.png",
+                                cookie    : true,
+                                clickable : true,
+                                observer  : {
+                                    observe : function (subject, topic, data) {
+                                        if (topic !== "alertclickcallback")
+                                            return;
+
+                                        const win = Cc["@mozilla.org/appshell/window-mediator;1"]
+                                            .getService(Ci.nsIWindowMediator)
+                                            .getMostRecentWindow("navigator:browser");
+
+                                        win.KeySnail.openUpdatePluginDialog();
+                                    }
+                                }
+                            }
+                        );
+                    }
+                });
             },
 
             installScript: function (script, next) {
