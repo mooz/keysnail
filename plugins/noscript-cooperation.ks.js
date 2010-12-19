@@ -4,15 +4,13 @@ const PLUGIN_INFO =
     <description>Manipulate NoScript with KeySnail</description>
     <description lang="ja">NoScript を Keysnail から操作</description>
     <version>0.0.1</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/noscript-cooperation.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/noscript-cooperation.icon.png</iconURL>
+    <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/noscript-cooperation.ks.js</updateURL>
+    <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/noscript-cooperation.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.7.2</minVersion>
     <include>main</include>
-    <options></options>
-    <provides></provides>
     <detail><![CDATA[
 === Example key settings ===
 
@@ -32,7 +30,7 @@ key.defineKey([key.modes.VIEW, key.modes.CARET],
 ]]></detail>
 </KeySnailPlugin>;
 
-let options = plugins.setupOptions({
+let options = plugins.setupOptions("noscript_cooperation", {
     "keymap": {
         "default": {
             "C-z"   : "prompt-toggle-edit-mode",
