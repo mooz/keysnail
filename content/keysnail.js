@@ -300,7 +300,7 @@
             else
                 window.openDialog("chrome://keysnail/content/update-plugin-dialog.xul",
                                   windowType,
-                                  "chrome,titlebar,modal,dialog,centerscreen,resizable,scrollbars");
+                                  "chrome,titlebar,dialog,centerscreen,resizable,scrollbars");
         },
 
         // updateNthPlugin: function (n) {

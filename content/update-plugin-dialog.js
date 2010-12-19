@@ -92,20 +92,28 @@ let ksUpdatePluginDialog = (function () {
                 = this.checkBoxAutomaticallyCheck.checked;
         },
 
+        toggleAllChecked: function () {
+            this.setAllChecked(!this.plugins.some(function (p) p.updateThisPlugin));
+        },
+
         setAllChecked: function (checked) {
             this.plugins.forEach(function (plugin) {
                 plugin.updateThisPlugin = checked;
             });
         },
 
-        onAccept: function () {
+        onAccept: function (ev) {
             let paths = this.plugins
                 .filter(function (p) p.updateThisPlugin)
                 .map(function (p) p.path);
 
             let count = paths.length;
 
+            ev.target.disabled = true;
             share.pluginUpdater.updatePlugins(paths, function (succeeded) {
+                ev.target.disabled = false;
+                window.close();
+
                 if (succeeded) {
                     let message = util.getLocaleString("updatedPlugins", [count]);
                     let title   = util.getLocaleString("keySnailPlugin");
@@ -117,12 +125,10 @@ let ksUpdatePluginDialog = (function () {
                     alert(util.getLocaleString("updaterStatusFailed"));
                 }
             });
-
-            return true;
         },
 
-        onCancel: function () {
-            return true;
+        onCancel: function (ev) {
+            window.close();
         }
     };
 

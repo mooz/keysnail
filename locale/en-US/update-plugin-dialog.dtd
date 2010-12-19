@@ -1,6 +1,7 @@
 <!ENTITY keySnail.updatePluginDialog.title "KeySnail plugin updates">
 
 <!ENTITY keySnail.updatePluginDialog.install "Install">
+<!ENTITY keySnail.updatePluginDialog.cancel "Cancel">
 
 <!ENTITY keySnail.updatePluginDialog.updateFoundMessage
          "Updates found for installed KeySnail plugins">
@@ -9,3 +10,4 @@
 
 <!ENTITY keySnail.updatePluginDialog.checkAll "Check all">
 <!ENTITY keySnail.updatePluginDialog.uncheckAll "check none">
+<!ENTITY keySnail.updatePluginDialog.toggleAllChecked "Check all / none">

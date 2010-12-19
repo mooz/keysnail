@@ -1,27 +1,30 @@
-#plugin-list-container {
-    max-height : 300px;
-    overflow   : auto;
+#keysnail-update-plugin-dialog {
+    padding : 5px;
+}
+
+#plugin-list {
+    max-height : 350px;
+    margin-top : 10px;
 }
 
 .plugin-info-box {
-    padding       : 8px 5px;
-    border-bottom : 1px #BBB dotted;
+    padding          : 8px 5px;
+    border-bottom    : 1px #BBB dotted;
+    background-color : white;
 }
 
 .plugin-info-box:last-child {
     border-bottom : none;
 }
 
-/* info item */
-
 .plugin-install-or-not-checkbox {
 }
 
-.plugin-install-or-not-checkbox[checked=true] + hbox * {
+.plugin-install-or-not-checkbox[checked="true"] + hbox {
     opacity : 1.0;
 }
 
-.plugin-install-or-not-checkbox[checked=false] + hbox * {
+.plugin-install-or-not-checkbox[checked="false"] + hbox {
     opacity : 0.7;
 }
 
@@ -36,4 +39,18 @@
 }
 
 .plugin-description {
+}
+
+/*  */
+
+#bottom-box {
+    margin-top : 10px;
+}
+
+/* listitem */
+
+richlistitem,
+richlistitem[selected="true"] {
+    color            : black;
+    background-color : white;
 }

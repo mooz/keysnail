@@ -3,7 +3,7 @@
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
 <?xml-stylesheet href="chrome://keysnail/skin/css/update-plugin-dialog.css"?>
 
-<!DOCTYPE dialog [
+<!DOCTYPE window [
           <!ENTITY % updatePluginDialogDTD SYSTEM
                    "chrome://keysnail/locale/update-plugin-dialog.dtd">
           %updatePluginDialogDTD;
@@ -12,7 +12,7 @@
           %preferenceDTD;
           ]>
 
-<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
 
         windowtype="KeySnail:UpdatePlugin"
@@ -20,18 +20,8 @@
         id="keysnail-update-plugin-dialog"
         title="&keySnail.updatePluginDialog.title;"
 
-        onload="ksUpdatePluginDialog.onLoad();"
-        buttons="accept,cancel"
-
-        buttonlabelaccept="&keySnail.updatePluginDialog.install;"
-        buttonaccesskeyaccept="i"
-
-        buttonaccesskeycancel="c"
-
-        ondialogaccept="return ksUpdatePluginDialog.onAccept();"
-        ondialogcancel="return ksUpdatePluginDialog.onCancel();"
-        >
-    <vbox>
+        onload="ksUpdatePluginDialog.onLoad();">
+    <vbox id="keysnail-update-plugin-container" flex="0">
         <hbox align="center">
             <hbox align="center">
                 <image src="chrome://keysnail/skin/icon/update-notification-large.png" />
@@ -42,19 +32,12 @@
             </vbox>
         </hbox>
 
-        <spacer height="10px" />
-
-        <hbox id="plugin-list-container">
-            <richlistbox id="plugin-list" flex="1" rows="5">
-            </richlistbox>
-        </hbox>
+        <richlistbox id="plugin-list" flex="0">
+        </richlistbox>
 
         <hbox>
-            <button label="&keySnail.updatePluginDialog.uncheckAll;"
-                    oncommand="ksUpdatePluginDialog.setAllChecked(false);"
-                    accesskey="u" />
-            <button label="&keySnail.updatePluginDialog.checkAll;"
-                    oncommand="ksUpdatePluginDialog.setAllChecked(true);"
+            <button label="&keySnail.updatePluginDialog.toggleAllChecked;"
+                    oncommand="ksUpdatePluginDialog.toggleAllChecked(false);"
                     accesskey="a" />
         </hbox>
 
@@ -64,7 +47,22 @@
                       label="&keySnail.preference.plugin.checkUpdateAutomatically;"
                       oncommand="ksUpdatePluginDialog.toggleAutomaticallyCheck();" />
         </hbox>
+
+        <hbox id="bottom-box">
+            <spacer flex="1" />
+            <button label="&keySnail.updatePluginDialog.cancel;"
+                    accesskey="c"
+                    icon="cancel"
+                    class="dialog-button"
+                    oncommand="ksUpdatePluginDialog.onCancel(event);" />
+            <button label="&keySnail.updatePluginDialog.install;"
+                    accesskey="i"
+                    icon="apply"
+                    default="true"
+                    oncommand="ksUpdatePluginDialog.onAccept(event);"
+                    class="dialog-button" />
+        </hbox>
     </vbox>
 
     <script type="application/x-javascript" src="chrome://keysnail/content/update-plugin-dialog.js"/>
-</dialog>
+</window>

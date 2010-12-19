@@ -1,6 +1,7 @@
 <!ENTITY keySnail.updatePluginDialog.title "KeySnail プラグインの更新">
 
 <!ENTITY keySnail.updatePluginDialog.install "インストール">
+<!ENTITY keySnail.updatePluginDialog.cancel "キャンセル">
 
 <!ENTITY keySnail.updatePluginDialog.updateFoundMessage
          "インストール済みの KeySnail プラグインに更新が見つかりました">
@@ -9,3 +10,4 @@
 
 <!ENTITY keySnail.updatePluginDialog.checkAll "全てチェック">
 <!ENTITY keySnail.updatePluginDialog.uncheckAll "全て解除">
+<!ENTITY keySnail.updatePluginDialog.toggleAllChecked "全てチェック / 解除">
