@@ -472,7 +472,11 @@
                     notification, notifyIcon
                 }) {
                     notification.hidden = !visible;
-                    notifyIcon.hidden   = !visible;
+
+                    if (pluginUpdater.checking)
+                        notifyIcon.hidden = true;
+                    else
+                        notifyIcon.hidden = !visible;
 
                     if (visible)
                         notification.setAttribute("tooltiptext", tooltipText);
