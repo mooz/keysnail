@@ -394,8 +394,13 @@
 
             get checkAutomatically() {
                 return util.getBoolPref(
-                    "extensions.keysnail.plugin.run_update_checker_automatically",
-                    true
+                    "extensions.keysnail.plugin.run_update_checker_automatically", true
+                );
+            },
+
+            set checkAutomatically(v) {
+                util.setBoolPref(
+                    "extensions.keysnail.plugin.run_update_checker_automatically", v
                 );
             },
 
