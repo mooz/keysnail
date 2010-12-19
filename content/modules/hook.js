@@ -51,13 +51,17 @@ KeySnail.Hook = {
         }
     },
 
-    callHook: function (aHookName, aArgument) {
-        if (this.hookList[aHookName])
-        {
-            var hook = this.hookList[aHookName];
-            for (var i = 0; i < hook.length; ++i)
-            {
-                hook[i].apply(KeySnail, [aArgument]);
+    callHook: function (name, arg) {
+        let hook = this.hookList[name];
+
+        if (!hook)
+            return;
+
+        for (let [, action] in Iterator(hook)) {
+            try {
+                action(arg);
+            } catch (x) {
+                this.modules.util.message("callHook :: " + x);
             }
         }
     }
