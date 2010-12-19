@@ -101,9 +101,11 @@ let ksUpdatePluginDialog = (function () {
                 .filter(function (p) p.updateThisPlugin)
                 .map(function (p) p.path);
 
+            let count = paths.length;
+
             share.pluginUpdater.updatePlugins(paths, function (succeeded) {
                 if (succeeded) {
-                    let message = util.getLocaleString("updatedPlugins", [paths.length]);
+                    let message = util.getLocaleString("updatedPlugins", [count]);
                     let title   = util.getLocaleString("keySnailPlugin");
 
                     display.showPopup(title, message, {
