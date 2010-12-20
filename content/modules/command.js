@@ -1019,11 +1019,12 @@ let command = {
 
     // ==================== Select ==================== //
 
-    selectAll: function (aEvent) {
-        var orig = aEvent.originalTarget;
+    selectAll: function (ev) {
+        let orig = ev.originalTarget || ev.target;
         goDoCommand('cmd_moveBottom');
         goDoCommand('cmd_selectTop');
-        orig.ksMarked = orig.selectionEnd;
+        if (orig)
+            orig.ksMarked = orig.selectionEnd;
     },
 
     // ==================== By line ==================== //
@@ -1319,30 +1320,35 @@ let command = {
     // http://www.mew.org/~kazu/proj/firemacs/
 
     // predicative
-    marked: function (aEvent) {
-        var orig = aEvent.originalTarget;
+    marked: function (ev) {
+        let orig = ev.originalTarget || ev.target;
 
-        return (typeof orig.ksMarked === 'number' ||
-                typeof orig.ksMarked === 'boolean');
+        return (orig && (typeof orig.ksMarked === 'number' ||
+                         typeof orig.ksMarked === 'boolean'));
     },
 
-    setMark: function (aEvent) {
-        var orig = aEvent.originalTarget;
+    setMark: function (ev) {
+        let orig = ev.originalTarget || ev.target;
 
-        if (typeof(orig.selectionStart) == 'number')
-            orig.ksMarked = orig.selectionStart;
-        else
-            orig.ksMarked = true;
+        if (orig) {
+            if (typeof orig.selectionStart === 'number')
+                orig.ksMarked = orig.selectionStart;
+            else
+                orig.ksMarked = true;
+        }
 
         display.echoStatusBar('Mark set', 2000);
     },
 
-    resetMark: function (aEvent) {
-        var orig = aEvent.originalTarget;
-        var mark = orig.ksMarked;
+    resetMark: function (ev) {
+        let orig = ev.originalTarget || ev.target;
 
-        if (mark == undefined)
-        {
+        if (!orig)
+            return;
+
+        let mark = orig.ksMarked;
+
+        if (mark === void 0) {
             try {
                 goDoCommand('cmd_selectNone');
             } catch (x) {}
@@ -1352,31 +1358,19 @@ let command = {
 
         orig.ksMarked = null;
 
-        try
-        {
-            if (typeof(orig.selectionStart) == 'number' && orig.selectionStart >= 0)
-            {
-                if (mark && (orig.selectionStart < mark))
-                {
+        try {
+            if (typeof orig.selectionStart === 'number' && orig.selectionStart >= 0) {
+                if (mark && (orig.selectionStart < mark)) {
                     // [cursor] <=========== [mark]
                     orig.selectionEnd = orig.selectionStart;
-                }
-                else
-                {
+                } else {
                     // [mark] ===========> [cursor]
                     orig.selectionStart = orig.selectionEnd;
                 }
-            }
-            else
-            {
+            } else {
                 goDoCommand('cmd_selectNone');
             }
-        } catch (e)
-        {
-            // on find bar
-            // [nsIDOMNSHTMLInputElement.selectionStart]"
-            //  nsresult: "0x80004005 (NS_ERROR_FAILURE)"
-        }
+        } catch (e) {}
     },
 
     // ==================== frame ==================== //
