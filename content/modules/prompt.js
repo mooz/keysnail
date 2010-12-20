@@ -5,6 +5,11 @@
  * @license The MIT License
  */
 
+// flags
+const HIDDEN = 1;
+const IGNORE = 2;
+const ICON   = 4;
+
 let prompt = function () {
     /**
      * @private
@@ -12,8 +17,6 @@ let prompt = function () {
 
     const Cc = Components.classes;
     const Ci = Components.interfaces;
-
-    var modules;
 
     // defalut key settings
     var actionKeys      = {};
@@ -192,7 +195,7 @@ let prompt = function () {
     function getActualCols(aCols) {
         if (gFlags)
             for (let [, flag] in Iterator(gFlags))
-                if (flag & (modules.HIDDEN | modules.ICON)) aCols--;
+                if (flag & (HIDDEN | ICON)) aCols--;
         return aCols;
     }
 
@@ -243,7 +246,7 @@ let prompt = function () {
         {
             for (let [, flag] in Iterator(gFlags))
             {
-                if (flag & (modules.HIDDEN | modules.ICON))
+                if (flag & (HIDDEN | ICON))
                     aColumn--;
             }
         }
@@ -298,7 +301,7 @@ let prompt = function () {
             return aCurrentIndex;
 
         for (var i = aCurrentIndex + 1; i < gFlags.length; ++i)
-            if (!(gFlags[i] & modules.HIDDEN))
+            if (!(gFlags[i] & HIDDEN))
                 break;
         return i;
     }
@@ -308,7 +311,7 @@ let prompt = function () {
             return 0;
 
         for (var i = 0; i < aFlags.length; ++i)
-            if (!(aFlags[i] & (modules.HIDDEN | modules.ICON)))
+            if (!(aFlags[i] & (HIDDEN | ICON)))
                 break;
         return i;
     }
@@ -333,12 +336,12 @@ let prompt = function () {
         let i, j;
         for (i = 0, j = 0; i < aRowData.length; ++i)
         {
-            if (isFlagOn(i, modules.HIDDEN))
+            if (isFlagOn(i, HIDDEN))
                 continue;
 
             cell = document.createElement("listcell");
 
-            if (isFlagOn(i, modules.ICON))
+            if (isFlagOn(i, ICON))
             {
                 cell.setAttribute("class", "listcell-iconic");
                 cell.setAttribute("image", getCellValue(aRowData, i));
@@ -381,10 +384,10 @@ let prompt = function () {
         let i, j;
         for (i = 0, j = 0; i < aRowData.length; ++i)
         {
-            if (isFlagOn(i, modules.HIDDEN))
+            if (isFlagOn(i, HIDDEN))
                 continue;
 
-            if (isFlagOn(i, modules.ICON))
+            if (isFlagOn(i, ICON))
             {
                 cell.setAttribute("class", "listcell-iconic");
                 cell.setAttribute("image", getCellValue(aRowData, i));
@@ -673,18 +676,18 @@ let prompt = function () {
             return;
 
         if (promptEditMode &&
-            modules.key.isDisplayableKey(aEvent) &&
-            !modules.key.isMetaKey(aEvent) &&
-            !modules.key.isControlKey(aEvent))
+            key.isDisplayableKey(aEvent) &&
+            !key.isMetaKey(aEvent) &&
+            !key.isControlKey(aEvent))
         {
             return;
         }
 
-        var key = modules.key.keyEventToString(aEvent);
+        var kStr = key.keyEventToString(aEvent);
 
         var stopEventPropagation = true;
         var keymap  = selectorKeymap;
-        var command = keymap[key] || "";
+        var command = keymap[kStr] || "";
 
         // gFlags is the global value
         var opts;
@@ -860,7 +863,7 @@ let prompt = function () {
 
         setTimeout(
             function () {
-                modules.util.stopEventPropagation(aEvent);
+                util.stopEventPropagation(aEvent);
 
                 var after = listbox.selectedIndex;
                 if ((after - before) != 0)
@@ -956,12 +959,12 @@ let prompt = function () {
     function selectorDisplayStatusbarLine(aQuery, aIndex, aTotalLength) {
         if (aIndex < 0)
         {
-            modules.display.echoStatusBar("No match for [" + aQuery + "]");
+            display.echoStatusBar("No match for [" + aQuery + "]");
         }
         else
         {
-            modules.display.echoStatusBar(modules.util.format("Completion Regexp Match for [%s] (%s / %s)",
-                                                              aQuery, (aIndex + 1), aTotalLength));
+            display.echoStatusBar(util.format("Completion Regexp Match for [%s] (%s / %s)",
+                                              aQuery, (aIndex + 1), aTotalLength));
         }
     }
 
@@ -997,11 +1000,11 @@ let prompt = function () {
         removeAllChilds(listbox);
 
         listbox.appendChild(
-            modules.util.xmlToDom(<listcols>
-                                  <listcol flex="1" width="10%" />
-                                  <listcol flex="4" width="40%" />
-                                  <listcol flex="5" width="50%" />
-                                  </listcols>)
+            util.xmlToDom(<listcols>
+                          <listcol flex="1" width="10%" />
+                          <listcol flex="4" width="40%" />
+                          <listcol flex="5" width="50%" />
+                          </listcols>)
         );
 
         function stick(keymap) {
@@ -1070,7 +1073,7 @@ let prompt = function () {
 
         if (!currentList || !currentList.length)
         {
-            modules.display.echoStatusBar("No completion found", 1000);
+            display.echoStatusBar("No completion found", 1000);
             wholeListIndex = -1;
             return;
         }
@@ -1110,7 +1113,7 @@ let prompt = function () {
     function createCompletionList() {
         if (!wholeList || !wholeList.length)
         {
-            modules.display.echoStatusBar("No completion found", 1000);
+            display.echoStatusBar("No completion found", 1000);
             wholeListIndex = -1;
             return;
         }
@@ -1147,7 +1150,7 @@ let prompt = function () {
             else
                 keywords = keywords.map(function (s) (new RegExp(s, "i")));
 
-            var cellForSearch = gFlags ? [i for (i in gFlags) if ((gFlags[i] & modules.IGNORE) === 0)] : null;
+            var cellForSearch = gFlags ? [i for (i in gFlags) if ((gFlags[i] & IGNORE) === 0)] : null;
 
             // reduce prototype chaine
             let list  = wholeList;
@@ -1338,7 +1341,7 @@ let prompt = function () {
     function createTextGetter(aStringList, aFlags, aMultiple) {
         return isMultipleList(aStringList) ?
             aMultiple ? function (r) r.reduce(
-                function (a, s, i) aFlags[i] & (modules.HIDDEN | modules.ICON) ? a : a + " " + s
+                function (a, s, i) aFlags[i] & (HIDDEN | ICON) ? a : a + " " + s
                 , "")
         : function (r) r[getFirstTextColIndex(aFlags)]
         : function (r) r;
@@ -1550,7 +1553,7 @@ let prompt = function () {
             },
 
             normalizePath: function (aPath, aDelimiter) {
-                let delimiter = aDelimiter || modules.userscript.directoryDelimiter;
+                let delimiter = aDelimiter || userscript.directoryDelimiter;
 
                 let isWindows = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS === "WINNT";
 
@@ -1559,13 +1562,13 @@ let prompt = function () {
 
                 if (aPath.indexOf("~" + delimiter) === 0)
                 {
-                    aPath = modules.userscript.prefDirectory + aPath.slice(1);
+                    aPath = userscript.prefDirectory + aPath.slice(1);
                 }
 
                 if ((isWindows && !aPath.match(/^[a-zA-Z]:\\/)) ||
                     (!isWindows && (aPath[0] !== delimiter)))
                 {
-                    aPath = modules.share.pwd + delimiter + aPath;
+                    aPath = share.pwd + delimiter + aPath;
                 }
 
                 return aPath;
@@ -1575,12 +1578,12 @@ let prompt = function () {
             directoryDelimiter: '/',
 
             parseDirectoryQuery: function parseDirectoryQuery(text) {
-                let [home, delimiter] = modules.userscript.getPrefDirectory();
+                let [home, delimiter] = userscript.getPrefDirectory();
 
-                if (!modules.share.pwd)
-                    modules.share.pwd = home;
+                if (!share.pwd)
+                    share.pwd = home;
 
-                let pwd = modules.share.pwd;
+                let pwd = share.pwd;
 
                 let originalText = text;
 
@@ -1609,7 +1612,7 @@ let prompt = function () {
                 let dir;
                 try
                 {
-                    dir = modules.util.openFile(path);
+                    dir = util.openFile(path);
                 }
                 catch (e)
                 {
@@ -1620,9 +1623,9 @@ let prompt = function () {
                 if (!dir.exists() || !dir.isDirectory())
                 {
                     if (!dir.exists())
-                        result.errorMsg = modules.util.format("%s not exists", dir.path);
+                        result.errorMsg = util.format("%s not exists", dir.path);
                     else
-                        result.errorMsg = modules.util.format("%s is not a directory", dir.path);
+                        result.errorMsg = util.format("%s is not a directory", dir.path);
 
                     return result;
                 }
@@ -1630,7 +1633,7 @@ let prompt = function () {
                 let files;
                 try
                 {
-                    files = modules.util.readDirectory(dir, true);
+                    files = util.readDirectory(dir, true);
                 }
                 catch (x)
                 {
@@ -1762,7 +1765,7 @@ let prompt = function () {
                                       for ([, tab] in Iterator(Array.slice(tabs)))];
 
                     let cc    = completer.matcher.migemo(collection, {multiple:true})(left, whole);
-                    cc.flags  = [modules.ICON | modules.IGNORE, 0, 0];
+                    cc.flags  = [ICON | IGNORE, 0, 0];
                     cc.header = ["Title", "URL"];
 
                     return cc;
@@ -1770,7 +1773,6 @@ let prompt = function () {
             },
 
             suggest: function (aEngines, aWithDescription) {
-                let util = modules.util;
                 let engines = aEngines ? util.suggest.filterEngines(aEngines) : [];
 
                 return function (currentText, text) {
@@ -1837,7 +1839,7 @@ let prompt = function () {
                     }
 
                     result.collection  = collection;
-                    result.flags       = [modules.ICON | modules.IGNORE, 0];
+                    result.flags       = [ICON | IGNORE, 0];
 
                     return result;
                 };
@@ -1856,7 +1858,7 @@ let prompt = function () {
                     // if you want to begin with specific object,
                     // try something like completer.fetch.javascript({root: window});
                     let root = context.root || {
-                        __proto__ : modules.util.userContext,
+                        __proto__ : util.userContext,
                         window    : window,
                         content   : content,
                         document  : document
@@ -2131,13 +2133,13 @@ let prompt = function () {
                     let cc = {
                         origin  : origin,
                         query   : query,
-                        flags   : [0, 0, modules.IGNORE | modules.HIDDEN],
+                        flags   : [0, 0, IGNORE | HIDDEN],
                         style   : ["", "font-weight:bold;"],
                         stylist : function (row, n) {
                             if (n !== 1)
                                 return null;
 
-                            return modules.style.js[row[2]] || modules.style.prompt.default;
+                            return style.js[row[2]] || style.prompt.default;
                         },
                         rightText : right
                     };
@@ -2429,7 +2431,7 @@ let prompt = function () {
         if (typeof userOnChange === "function")
         {
             let (arg = {
-                     key     : modules.key.keyEventToString(aEvent),
+                     key     : key.keyEventToString(aEvent),
                      textbox : textbox,
                      event   : aEvent,
                      finish  : self.finish
@@ -2440,7 +2442,7 @@ let prompt = function () {
     function handleKeyPressRead(aEvent) {
         let stopEventPropagation = true;
 
-        let key    = modules.key.keyEventToString(aEvent);
+        let key    = key.keyEventToString(aEvent);
         let keymap = readerKeymap;
 
         let direction = 0;
@@ -2451,12 +2453,12 @@ let prompt = function () {
         {
         case "prompt-cancel":
             self.finish(true);
-            modules.util.stopEventPropagation(aEvent);
+            util.stopEventPropagation(aEvent);
             return;
             break;
         case "prompt-decide":
             self.finish();
-            modules.util.stopEventPropagation(aEvent);
+            util.stopEventPropagation(aEvent);
             return;
             break;
         case "prompt-next-line":
@@ -2519,7 +2521,7 @@ let prompt = function () {
                     cc = readerCC = readerCurrentCompleter(currentText, textbox.value);
 
                     if (cc)
-                        noCompletionMsg = cc.errorMsg || modules.util.format("No completion found for [%s]", cc.query);
+                        noCompletionMsg = cc.errorMsg || util.format("No completion found for [%s]", cc.query);
                     break;
                 case READER_ST_HIST:
                     cc = readerCC = completer.matcher.header(readerHistory, {}, {
@@ -2527,7 +2529,7 @@ let prompt = function () {
                                                                stopCaret          : true
                                                            })(currentText, textbox.value) || {};
 
-                    noCompletionMsg = modules.util.format("No history found for [%s]", currentText);
+                    noCompletionMsg = util.format("No history found for [%s]", currentText);
                     break;
                 }
 
@@ -2536,7 +2538,7 @@ let prompt = function () {
                     // No completion found
                     readerResetState();
                     readerState = READER_ST_NEUT;
-                    modules.display.echoStatusBar(noCompletionMsg, 3000);
+                    display.echoStatusBar(noCompletionMsg, 3000);
                 }
                 else
                 {
@@ -2627,7 +2629,7 @@ let prompt = function () {
                     (typeof readerCC.cursorEnd === "number") ? readerCC.cursorEnd : (readerLeftContext + text).length;
 
                 statusBar.label =
-                    modules.util.format("match (%s / %s)", readerCurrentIndex + 1, readerCurrentCollection.length);
+                    util.format("match (%s / %s)", readerCurrentIndex + 1, readerCurrentCollection.length);
             }
         }
 
@@ -2643,7 +2645,7 @@ let prompt = function () {
 
     //     setTimeout(
     //         function () {
-    //             modules.util.stopEventPropagation(aEvent);
+    //             util.stopEventPropagation(aEvent);
     //             var after = listbox.selectedIndex;
 
     //             if ((after - before) !== 0)
@@ -2716,8 +2718,6 @@ let prompt = function () {
 
             statusBar = $('statusbar-display');
 
-            modules = self.modules;
-
             promptbox  = $("keysnail-prompt");
             leftLabel  = $("keysnail-prompt-left-label");
             rightLabel = $("keysnail-prompt-right-label");
@@ -2727,14 +2727,9 @@ let prompt = function () {
             listbox   = $("keysnail-completion-list");
 
             // this holds all history and
-            historyHolder = modules.persist.promptHistory;
+            historyHolder = persist.promptHistory;
             if (!("default" in historyHolder))
                 historyHolder["default"] = [];
-
-            // set up flags
-            modules.__defineGetter__("HIDDEN", function () { return 1; });
-            modules.__defineGetter__("IGNORE", function () { return 2; });
-            modules.__defineGetter__("ICON"  , function () { return 4; });
 
             self.setActionKey("read", "ESC"    , "prompt-cancel");
             self.setActionKey("read", "RET"    , "prompt-decide");
@@ -2758,10 +2753,10 @@ let prompt = function () {
             self.setActionKey("selector", "C-i"    , "prompt-select-action");
             self.setActionKey("selector", "C-?"    , "prompt-display-keymap-help");
 
-            modules.hook.addToHook(
+            hook.addToHook(
                 'KeySnailInitialized',
                 function () {
-                    modules.hook.removeHook('KeySnailInitialized', arguments.callee);
+                    hook.removeHook('KeySnailInitialized', arguments.callee);
                     let displayHelpKey = [];
 
                     for (let [k, act] in Iterator(actionKeys.selector))
@@ -2771,10 +2766,10 @@ let prompt = function () {
                     }
 
                     $("keysnail-prompt-selector-help-title")
-                        .setAttribute("value", modules.util.getLocaleString("promptSelectorKeymapHelpTitle", [displayHelpKey.join(", ")]));
+                        .setAttribute("value", util.getLocaleString("promptSelectorKeymapHelpTitle", [displayHelpKey.join(", ")]));
                 });
 
-            KeySnail.modules["completer"] = completer;
+            modules.completer = completer;
 
             // }} ======================================================================= //
         },
@@ -2788,10 +2783,10 @@ let prompt = function () {
 
             var button      = $("keysnail-prompt-toggle-edit-mode-button");
             var iconURL     = "chrome://keysnail/skin/icon/prompt-" + (value ? "edit" : "view") + "-mode.png";
-            var tooltipText = modules.util.getLocaleString("promptEditMode" + (value ? "Enabled" : "Disabled"));
+            var tooltipText = util.getLocaleString("promptEditMode" + (value ? "Enabled" : "Disabled"));
             button.setAttribute("image", iconURL);
             button.setAttribute("tooltiptext", tooltipText);
-            modules.display.echoStatusBar(tooltipText, 2000);
+            display.echoStatusBar(tooltipText, 2000);
         },
 
         toggleSelectorHelpDisplay: function () {
@@ -3034,7 +3029,7 @@ let prompt = function () {
 
             // if canceled or error occurred in callback, reset statusbar
             if (aCanceled)
-                modules.display.echoStatusBar("");
+                display.echoStatusBar("");
 
             if (typeof savedOnFinish === 'function')
                 savedOnFinish();
@@ -3061,7 +3056,7 @@ let prompt = function () {
 
             if (currentCallback)
             {
-                modules.display.echoStatusBar("Prompt is already used by another command");
+                display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
 
@@ -3100,17 +3095,17 @@ let prompt = function () {
             // add event listener
             textbox.addEventListener('keypress', handleKeyPressRead, false);
             textbox.addEventListener('keyup', handleKeyUpRead, false);
-            listbox.addEventListener('click', modules.util.stopEventPropagation, true);
+            listbox.addEventListener('click', util.stopEventPropagation, true);
             // listbox.addEventListener('mousedown', handleMouseDownRead, true);
             eventListenerRemover = function () {
                 textbox.removeEventListener('keypress', handleKeyPressRead, false);
                 textbox.removeEventListener('keyup', handleKeyUpRead, false);
-                listbox.removeEventListener('click', modules.util.stopEventPropagation, true);
+                listbox.removeEventListener('click', util.stopEventPropagation, true);
                 // listbox.removeEventListener('mousedown', handleMouseDownRead, true);
             };
 
-            modules.display.echoStatusBar(modules.util.getLocaleString("promptKeyDescription"));
-            modules.display.echo.close();
+            display.echoStatusBar(util.getLocaleString("promptKeyDescription"));
+            display.echo.close();
 
             currentPromptContext = {};
         },
@@ -3124,7 +3119,7 @@ let prompt = function () {
 
             if (currentCallback)
             {
-                modules.display.echoStatusBar("Prompt is already used by another command");
+                display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
 
@@ -3190,15 +3185,15 @@ let prompt = function () {
             // add event listener
             textbox.addEventListener('keypress', handleKeyPressRead, false);
             textbox.addEventListener('keyup', handleKeyUpRead, false);
-            listbox.addEventListener('click', modules.util.stopEventPropagation, true);
+            listbox.addEventListener('click', util.stopEventPropagation, true);
             eventListenerRemover = function () {
                 textbox.removeEventListener('keypress', handleKeyPressRead, false);
                 textbox.removeEventListener('keyup', handleKeyUpRead, false);
-                listbox.removeEventListener('click', modules.util.stopEventPropagation, true);
+                listbox.removeEventListener('click', util.stopEventPropagation, true);
             };
 
-            modules.display.echoStatusBar(aContext.description || modules.util.getLocaleString("promptKeyDescription"));
-            modules.display.echo.close();
+            display.echoStatusBar(aContext.description || util.getLocaleString("promptKeyDescription"));
+            display.echo.close();
 
             currentPromptContext = aContext;
         },
@@ -3217,7 +3212,7 @@ let prompt = function () {
 
             if (currentCallback)
             {
-                modules.display.echoStatusBar("Prompt is already used by another command");
+                display.echoStatusBar("Prompt is already used by another command");
                 return;
             }
 
@@ -3263,7 +3258,7 @@ let prompt = function () {
             textbox.focus();
 
             function singleClickHandler(aEvent) {
-                modules.util.stopEventPropagation(aEvent);
+                util.stopEventPropagation(aEvent);
             }
 
             function dblClickHandler() {
@@ -3297,7 +3292,7 @@ let prompt = function () {
             selectorContext[SELECTOR_STATE_ACTION]            = createSelectorContext();
             selectorContext[SELECTOR_STATE_ACTION].listHeader = ["Actions"];
             selectorContext[SELECTOR_STATE_ACTION].listStyle  = options.actionsListStyle;
-            selectorContext[SELECTOR_STATE_ACTION].flags      = [modules.IGNORE | modules.HIDDEN, 0];
+            selectorContext[SELECTOR_STATE_ACTION].flags      = [IGNORE | HIDDEN, 0];
 
             selectorKeymap = combineObject(actionKeys["selector"], aContext.keymap || {});
 
@@ -3328,7 +3323,7 @@ let prompt = function () {
                 setListBoxSelection(wholeListIndex);
             }
 
-            modules.display.echo.close();
+            display.echo.close();
 
             currentPromptContext = aContext;
         },
