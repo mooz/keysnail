@@ -9,6 +9,7 @@ rm -f chrome/keysnail.jar
 zip -r -0 chrome/keysnail.jar \
     content/*.{js,xul,xhtml}~(*~|.svn/*) \
     content/resources/*~*~ \
+    content/prettifier/*~*~ \
     content/modules/*.js~(*~|.svn/*) \
     locale/**/*.*~(*~|.svn/*) \
     skin/**/*.*~(*~|*.svg|.svn/*)

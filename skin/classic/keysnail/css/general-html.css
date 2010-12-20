@@ -114,12 +114,14 @@ line-height:120%;
 }
 
 pre {
--moz-border-radius:5px;
-border:1px #BBB solid;
-padding:15px;
-margin:6px 3px;
-font-size:95%;
-background-color:#f9eefa;
+    font-family        : Monaco, Consolas, "Bitstream Vera Sans Mono", monospace;
+    -moz-border-radius : 5px;
+    border             : 1px #BBB solid;
+    padding            : 15px;
+    margin             : 6px 3px;
+    font-size          : 95%;
+    background-color   : #fef7ff;
+    overflow           : auto;
 }
 
 table {
@@ -160,4 +162,35 @@ p#annotation {
     font-weight: bold;
     text-align: center;
     font-size: x-large;
+}
+
+/* ============================================================
+   plugin manager
+   ============================================================ */
+
+tr[data-no-description=hide] {
+    display : none;
+}
+
+.centerize {
+    text-align : center;
+}
+
+.button {
+    display            : inline-block;
+    font-weight        : bold;
+    margin             : 5px;
+    padding            : 4px 7px;
+    border             : 1px solid #b3babd;
+    cursor             : pointer;
+    background-color   : #d3dbde;
+    -moz-border-radius : 2px;
+}
+
+.button:hover {
+    opacity : 0.9;
+}
+
+.button:active {
+    opacity : 0.6;
 }

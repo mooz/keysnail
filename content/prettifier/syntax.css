@@ -1,0 +1,33 @@
+pre.code {
+    color      : #666666;
+    background : #efefef;
+}
+
+pre.code .comment {
+    color: #04523b;
+}
+
+pre.code .string {
+    color: #355c1a;
+}
+
+pre.code .number {
+    color: #a74207;
+}
+
+pre.code .regexp {
+    color: #7c0087;
+}
+
+pre.code .identifier {
+    color: #1a355c;
+}
+
+pre.code .identifier-special {
+    color: #890918;
+}
+
+pre.code .reserved {
+    font-weight : bold;
+    color       : #333333;
+}

@@ -384,6 +384,8 @@ let ksPluginManager = (function () {
             tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
             table.appendChild(tr);
 
+            let hasOptionsWithNoDescription = false;
+
             for (let [, option] in Iterator(xml.options.option))
             {
                 let optionName        = option.name.text();
@@ -395,12 +397,36 @@ let ksPluginManager = (function () {
                 tr.appendChild(createElementWithText("td", optionType));
                 tr.appendChild(createElementWithText("td", optionDescription));
 
+                if (!optionDescription) {
+                    hasOptionsWithNoDescription = true;
+                    tr.setAttribute("data-no-description", "hide");
+                }
+
                 table.appendChild(tr);
             }
 
             infoBox.appendChild(h3);
+
+            if (hasOptionsWithNoDescription) {
+                let buttonContainer = iframeDoc.createElement("div");
+                buttonContainer.setAttribute("class", "centerize");
+
+                let toggler = createElementWithText("span", modules.util.getLocaleString("toggleOptionsWithNoDescription"));
+                toggler.setAttribute("class", "button");
+                toggler.setAttribute("onclick", "pluginManagerContent.toggleOptions(event);");
+
+                buttonContainer.appendChild(toggler);
+                infoBox.appendChild(buttonContainer);
+            }
+
             infoBox.appendChild(table);
         }
+    }
+
+    function prettifyAll() {
+        let ev = document.createEvent("CommandEvent");
+        ev.initCommandEvent("PrettifyAll", true, false, "pre");
+        iframeDoc.dispatchEvent(ev);
     }
 
     function updateDetailBox(aPluginPath) {
@@ -423,6 +449,8 @@ let ksPluginManager = (function () {
         }
         else
             detailBox.innerHTML = "<p>Not documented.</p>";
+
+        prettifyAll();
     }
 
     function updateDisabledPluginList() {
@@ -617,6 +645,8 @@ let ksPluginManager = (function () {
             if (modules.userscript.newlyInstalledPlugin) {
                 selectNewlyInstalledPlugin();
                 modules.userscript.newlyInstalledPlugin = null;
+            } else {
+                prettifyAll();
             }
         },
 
