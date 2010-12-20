@@ -348,12 +348,7 @@ let display = (function () {
                                      options.cookie,
                                      options.observer);
             return true;
-        },
-
-        message: function (msg) {
-            Application.console.log(msg);
         }
-
     };
 
     return self;
