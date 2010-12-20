@@ -225,7 +225,7 @@
 
             // hook window unload event
             window.addEventListener("unload", function (ev) {
-                KeySnail.Hook.callHook("Unload", ev);
+                hook.callHook("Unload", ev);
             }, false);
 
             key.inExternalFile = true;
@@ -389,7 +389,7 @@
             },
 
             onLocationChange: function (aProgress, aRequest, aURI) {
-                KeySnail.Hook.callHook("LocationChange", aURI);
+                hook.callHook("LocationChange", aURI);
             },
 
             onStateChange: function () {},

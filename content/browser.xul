@@ -13,13 +13,13 @@
               insertbefore="devToolsSeparator"
               accesskey="k"
               >
-            <menupopup onpopupshowing="KeySnail.Key.updateToolMenu();"
+            <menupopup onpopupshowing="KeySnail.modules.key.updateToolMenu();"
                        >
 	        <menuitem id="keysnail-tool-menu-status"
                           label="&keySnail.statusbar.isEnabled;"
                           accesskey="t"
                           type="checkbox"
-		          oncommand="KeySnail.Key.toggleStatus();"/>
+		          oncommand="KeySnail.modules.key.toggleStatus();"/>
 	        <menuitem id="keysnail-tool-menu-open-preference"
 	                  label="&keySnail.statusbar.openPreference;"
                           accesskey="c"
@@ -28,28 +28,28 @@
 	        <menuitem id="keysnail-tool-menu-open-plugin-manager"
 	                  label="&keySnail.statusbar.openPluginManager;"
 	                  accesskey="o"
-	                  oncommand="KeySnail.UserScript.openPluginManager();"
+	                  oncommand="KeySnail.modules.userscript.openPluginManager();"
 	                  />
                 <menuseparator/>
 	        <menuitem id="keysnail-tool-menu-reload-userscript"
 		          label="&keySnail.statusbar.reloadUserScript;"
                           accesskey="r"
-		          oncommand="KeySnail.UserScript.reload();"
+		          oncommand="KeySnail.modules.userscript.reload();"
                           />
 	        <menuitem id="keysnail-tool-menu-list-keybinds"
 		          label="&keySnail.statusbar.listKeyBindings;"
                           accesskey="v"
-		          oncommand="KeySnail.Key.listKeyBindings();"/>
+		          oncommand="KeySnail.modules.key.listKeyBindings();"/>
                 <menuseparator/>
 	        <menuitem id="keysnail-tool-menu-edit-init-file"
 	                  label="&keySnail.statusbar.editInitFile;"
                           accesskey="e"
-	                  oncommand="KeySnail.UserScript.editInitFile();"
+	                  oncommand="KeySnail.modules.userscript.editInitFile();"
                           />
 	        <menuitem id="keysnail-tool-menu-open-wizard"
 	                  label="&keySnail.statusbar.wizard;"
                           accesskey="w"
-	                  oncommand="KeySnail.UserScript.beginRcFileWizard();"
+	                  oncommand="KeySnail.modules.userscript.beginRcFileWizard();"
                           />
             </menupopup>
         </menu>
@@ -74,24 +74,24 @@
         <statusbarpanel id="keysnail-status" context="keysnail-menu">
             <image id="keysnail-statusbar-icon"
 	           src="chrome://keysnail/skin/icon16gray.png"
-                   onmouseup="if (event.button == 0) KeySnail.Key.toggleStatus();"/>
+                   onmouseup="if (event.button == 0) KeySnail.modules.key.toggleStatus();"/>
         </statusbarpanel>
 
         <!-- menu -->
 
         <menupopup id="keysnail-menu"
-                   onpopupshowing="KeySnail.Key.updateMenu();">
+                   onpopupshowing="KeySnail.modules.key.updateMenu();">
 	    <menuitem id="keysnail-menu-reload-userscript"
 		      label="&keySnail.statusbar.reloadUserScript;"
                       accesskey="r"
-		      oncommand="KeySnail.UserScript.reload();"
+		      oncommand="KeySnail.modules.userscript.reload();"
                       class="menuitem-iconic"
                       src="chrome://keysnail/skin/icon/reload.png"/>
             <menuseparator/>
 	    <menuitem id="keysnail-menu-list-keybinds"
 		      label="&keySnail.statusbar.listKeyBindings;"
                       accesskey="v"
-		      oncommand="KeySnail.Key.listKeyBindings();"/>
+		      oncommand="KeySnail.modules.key.listKeyBindings();"/>
             <!-- init file -->
             <menu id="keysnail-menu-init-file" label="&keySnail.statusbar.initFile;"
                   accesskey="i">
@@ -99,13 +99,13 @@
 	            <menuitem id="keysnail-menu-edit-init-file"
 	                      label="&keySnail.statusbar.editInitFile;"
 	                      accesskey="e"
-	                      oncommand="KeySnail.UserScript.editInitFile();"
+	                      oncommand="KeySnail.modules.userscript.editInitFile();"
 	                      class="menuitem-iconic"
 	                      src="chrome://keysnail/skin/icon/edit.png"/>
 	            <menuitem id="keysnail-menu-open-wizard"
 	                      label="&keySnail.statusbar.wizard;"
 	                      accesskey="w"
-	                      oncommand="KeySnail.UserScript.beginRcFileWizard();"
+	                      oncommand="KeySnail.modules.userscript.beginRcFileWizard();"
 	                      class="menuitem-iconic"
 	                      src="chrome://keysnail/skin/icon/create.png"/>
                 </menupopup>
@@ -114,7 +114,7 @@
 	    <menuitem id="keysnail-menu-open-plugin-manager"
 	              label="&keySnail.statusbar.openPluginManager;"
 	              accesskey="o"
-	              oncommand="KeySnail.UserScript.openPluginManager();"
+	              oncommand="KeySnail.modules.userscript.openPluginManager();"
                       class="menuitem-iconic"
                       src="chrome://keysnail/skin/icon/plugin.png"
 	              />
@@ -129,7 +129,7 @@
                       label="&keySnail.statusbar.isEnabled;"
                       accesskey="t"
                       type="checkbox"
-		      oncommand="KeySnail.Key.toggleStatus();"/>
+		      oncommand="KeySnail.modules.key.toggleStatus();"/>
         </menupopup>
     </statusbar>
 
