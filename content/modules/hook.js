@@ -58,7 +58,7 @@ let hook = {
             try {
                 action(arg);
             } catch (x) {
-                util.message("callHook :: " + x);
+                util.message("callHook (name = %s) :: %s\n%s", name, x, action);
             }
         }
     }
