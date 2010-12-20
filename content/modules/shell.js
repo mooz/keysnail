@@ -3,8 +3,6 @@ let shell =
          const Cc = Components.classes;
          const Ci = Components.interfaces;
 
-         let modules;
-         let completer, ext, prompt, util, display, style;
          let localCommands;
          let commands = {};
 
@@ -355,22 +353,13 @@ let shell =
              add  : add,
              init : function () {
                  if (KeySnail.windowType !== "navigator:browser" ||
-                     !self.modules.util.getBoolPref("extensions.keysnail.vimp.enabled", true))
+                     !util.getBoolPref("extensions.keysnail.vimp.enabled", true))
                      return;
-
-                 modules = self.modules;
-
-                 ext       = modules.ext;
-                 completer = modules.completer;
-                 prompt    = modules.prompt;
-                 util      = modules.util;
-                 display   = modules.display;
-                 style     = modules.style;
 
                  try
                  {
-                     modules.vimp = { __proto__ : KeySnail.modules };
-                     modules.userscript.loadSubScript("chrome://keysnail/content/modules/vimp.js", modules.vimp);
+                     modules.vimp = { __proto__ : modules };
+                     userscript.loadSubScript("chrome://keysnail/content/modules/vimp.js", modules.vimp);
                  }
                  catch (x)
                  {
@@ -395,7 +384,7 @@ let shell =
                      });
 
                  add("pw[d]", "Display present working directory",
-                     function (args) { display.echoStatusBar(modules.share.pwd); },
+                     function (args) { display.echoStatusBar(share.pwd); },
                      { argCount : "0" }
                     );
 
@@ -409,7 +398,7 @@ let shell =
                          completer : function (args, extra) completer.fetch.directory()(extra.query || "", extra.query || "")
                          // completer : function (args, extra) implant(
                          //     {
-                         //         rmessage: util.format("[%s]", modules.share.pwd)
+                         //         rmessage: util.format("[%s]", share.pwd)
                          //     },
                          //     completer.fetch.directory()(extra.query || "", extra.query || "")
                          // ),
