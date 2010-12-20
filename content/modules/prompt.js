@@ -1587,7 +1587,7 @@ let prompt = function () {
 
                 let originalText = text;
 
-                let text = text || (pwd + delimiter);
+                text = text || (pwd + delimiter);
                 text = completer.utils.normalizePath(text, delimiter);
 
                 let directories = text.split(delimiter);
