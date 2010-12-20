@@ -6,17 +6,15 @@
  */
 
 let userscript = {
-    modules: null,
-
     /**
      * load js file and execute its content under *KeySnail.modules* scope
      * @param {string} aScriptPath
      */
     jsFileLoader: function (aScriptPath, aPreserve) {
-        var code = this.modules.util.readTextFile(aScriptPath);
+        var code = util.readTextFile(aScriptPath);
         if (this.parent.windowType === "navigator:browser" && aPreserve)
             this.preserveCode(code);
-        this.modules.util.evalInContext(code);
+        util.evalInContext(code);
     },
 
     // ==== user configuration file name ====
@@ -44,16 +42,16 @@ let userscript = {
     },
 
     get pluginDir() {
-        return this.modules.util.getUnicharPref("extensions.keysnail.plugin.location");
+        return util.getUnicharPref("extensions.keysnail.plugin.location");
     },
 
     set pluginDir(aPath) {
-        this.modules.util.setUnicharPref("extensions.keysnail.plugin.location", aPath);
+        util.setUnicharPref("extensions.keysnail.plugin.location", aPath);
         this.addLoadPath(aPath);
     },
 
     get disabledPlugins() {
-        return (this.modules.util.getUnicharPref("extensions.keysnail.plugin.disabled_plugins")
+        return (util.getUnicharPref("extensions.keysnail.plugin.disabled_plugins")
                 || "").split(",");
     },
 
@@ -68,8 +66,8 @@ let userscript = {
      * @throws {string} error message
      */
     initFileLoader: function (aInitFilePath) {
-        var savedStatus = this.modules.key.inExternalFile;
-        this.modules.key.inExternalFile = false;
+        var savedStatus = key.inExternalFile;
+        key.inExternalFile = false;
         try
         {
             var start = Date.now();
@@ -80,23 +78,21 @@ let userscript = {
         {
             e.fileName = aInitFilePath;
 
-            this.modules.key.inExternalFile = savedStatus;
+            key.inExternalFile = savedStatus;
             throw e;
         }
-        this.modules.key.inExternalFile = savedStatus;
+        key.inExternalFile = savedStatus;
 
         this.initFilePath = aInitFilePath;
 
-        this.modules.display
-            .echoStatusBar("KeySnail :: [" + aInitFilePath + "] :: " +
-                           this.modules.util
-                           .getLocaleString("initFileLoaded", [(end - start) / 1000]),
-                           3000);
+        display.echoStatusBar("KeySnail :: [" + aInitFilePath + "] :: " +
+                              util.getLocaleString("initFileLoaded", [(end - start) / 1000]),
+                              3000);
     },
 
     loadSubScript: function (aURI, aContext) {
         if (aURI.indexOf("://") == -1)
-            aURI = this.modules.util.pathToURL(aURI);
+            aURI = util.pathToURL(aURI);
 
         Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
             .getService(Components.interfaces.mozIJSSubScriptLoader)
@@ -114,15 +110,14 @@ let userscript = {
         [this.prefDirectory, this.directoryDelimiter]
             = this.getPrefDirectory();
 
-        this.modules.share.pwd = this.prefDirectory;
+        share.pwd = this.prefDirectory;
 
-        this.userPath = this.modules.util
-            .getUnicharPref("extensions.keysnail.userscript.location");
+        this.userPath = util.getUnicharPref("extensions.keysnail.userscript.location");
 
         if (!this.userPath)
         {
             this.userPath = this.prefDirectory;
-            this.modules.util.setUnicharPref("extensions.keysnail.userscript.location", this.userPath);
+            util.setUnicharPref("extensions.keysnail.userscript.location", this.userPath);
         }
 
         /**
@@ -131,7 +126,7 @@ let userscript = {
          * So author of the plugin have to use this function like below.
          * L("日本語")
          */
-        this.modules.L = function (aStr) {
+        modules.L = function (aStr) {
             try {
                 return decodeURIComponent(escape(aStr));
             } catch (x) {
@@ -146,8 +141,8 @@ let userscript = {
          * M({ja: "こんにちは",
          *    en: "Hello"})
          */
-        this.modules.M = function (aMultiLang) {
-            var msg = aMultiLang[this.modules.util.userLocale];
+        modules.M = function (aMultiLang) {
+            var msg = aMultiLang[util.userLocale];
 
             if (msg === undefined)
             {
@@ -163,11 +158,11 @@ let userscript = {
                 }
             }
 
-            return this.modules.L(msg);
+            return L(msg);
         };
 
         // Arrange plugin scope, option holder, and lib area
-        let plugins = this.modules.plugins = {};
+        let plugins = modules.plugins = {};
         plugins.context = {};
         plugins.options = {};
         plugins.lib     = {};
@@ -205,7 +200,6 @@ let userscript = {
             return options;
         };
 
-        let ext = this.modules.ext;
         plugins.withProvides = function (context, info) {
             if (info && !("provides" in info))
                 info.appendChild(<provides></provides>);
@@ -260,10 +254,10 @@ let userscript = {
             this.initFileLoaded = true;
 
             if (this.parent.windowType == "navigator:browser" ||
-                this.modules.util.getBoolPref("extensions.keysnail.plugin.global_enabled", false))
+                util.getBoolPref("extensions.keysnail.plugin.global_enabled", false))
             {
                 this.loadPlugins();
-                this.modules.hook.callHook("PluginLoaded");
+                hook.callHook("PluginLoaded");
             }
         }
         else
@@ -271,9 +265,9 @@ let userscript = {
             // failed. disable the keysnail.
             this.initFileLoaded = false;
 
-            this.modules.key.stop();
-            this.modules.key.updateMenu();
-            this.modules.key.updateStatusBar();
+            key.stop();
+            key.updateMenu();
+            key.updateStatusBar();
         }
 
         return this.initFileLoaded;
@@ -284,13 +278,13 @@ let userscript = {
      */
     reload: function () {
         // clear current keymaps
-        this.modules.key.keyMapHolder = {};
-        this.modules.key.blackList    = [];
-        this.modules.hook.hookList    = {};
+        key.keyMapHolder = {};
+        key.blackList    = [];
+        hook.hookList    = {};
 
-        this.userPath = this.modules.util.getUnicharPref("extensions.keysnail.userscript.location");
+        this.userPath = util.getUnicharPref("extensions.keysnail.userscript.location");
 
-        this.modules.key.init();
+        key.init();
         return this.load();
     },
 
@@ -312,7 +306,7 @@ let userscript = {
         {
             filePath = prefix + aUserScriptNames[i];
 
-            if (!this.modules.util.openFile(filePath).exists())
+            if (!util.openFile(filePath).exists())
             {
                 // not exist. skip
                 continue;
@@ -327,8 +321,8 @@ let userscript = {
             catch (e)
             {
                 // userscript error
-                var msgstr = this.modules.util
-                    .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
+                var msgstr = util.getLocaleString("userScriptError",
+                                                  [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
                 msgstr += " :: " + e.message;
 
                 var buttons;
@@ -336,7 +330,7 @@ let userscript = {
                 {
                     let self = this;
                     buttons = [{
-                                   label     : this.modules.util.getLocaleString("openErrorOccurredPlace"),
+                                   label     : util.getLocaleString("openErrorOccurredPlace"),
                                    callback  : function (aNotification) {
                                        self.editFile(e.fileName, e.lineNumber);
                                        aNotification.close();
@@ -344,7 +338,7 @@ let userscript = {
                                    accessKey : "o"
                                }];
                 }
-                this.modules.display.notify(msgstr, buttons);
+                display.notify(msgstr, buttons);
                 return -2;
             }
         }
@@ -356,7 +350,7 @@ let userscript = {
     // ============================== Plugin ============================== //
 
     setDefaultPluginDirectory: function () {
-        var pluginDir  = this.modules.util.getExtensionLocalDirectory("plugins");
+        var pluginDir  = util.getExtensionLocalDirectory("plugins");
         this.pluginDir = pluginDir.path;
     },
 
@@ -365,7 +359,7 @@ let userscript = {
         var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
         fp.init(window,
-                this.modules.util.getLocaleString("selectPluginDirectory"),
+                util.getLocaleString("selectPluginDirectory"),
                 nsIFilePicker.modeGetFolder);
 
         var response;
@@ -388,7 +382,7 @@ let userscript = {
     },
 
     getPluginInformationFromPath: function (aPath) {
-        var read = this.modules.util.readTextFile(aPath);
+        var read = util.readTextFile(aPath);
         if (!read)
             return null;
 
@@ -411,39 +405,36 @@ let userscript = {
             this.setDefaultPluginDirectory();
         }
 
-        with (this.modules)
+        try
         {
-            try
+            let destinationDir  = util.openFile(this.pluginDir);
+            let destinationFile = util.openFile(this.pluginDir);
+
+            destinationFile.append(aFile.leafName);
+
+            if (destinationFile.exists())
             {
-                let destinationDir  = util.openFile(this.pluginDir);
-                let destinationFile = util.openFile(this.pluginDir);
-
-                destinationFile.append(aFile.leafName);
-
-                if (destinationFile.exists())
+                if (util.hashFile(aFile) === util.hashFile(destinationFile))
                 {
-                    if (util.hashFile(aFile) === util.hashFile(destinationFile))
-                    {
-                        // no need to install this file
-                        return destinationFile;
-                    }
-
-                    let confirmed = force ||
-                        util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
-                                     util.getLocaleString("overWriteConfirmation", [destinationFile.path]));
-
-                    if (!confirmed)
-                        throw util.getLocaleString("canceledByUser");
+                    // no need to install this file
+                    return destinationFile;
                 }
 
-                aFile.moveTo(destinationDir, "");
+                let confirmed = force ||
+                    util.confirm(util.getLocaleString("overWriteConfirmationTitle"),
+                                 util.getLocaleString("overWriteConfirmation", [destinationFile.path]));
 
-                return destinationFile;
+                if (!confirmed)
+                    throw util.getLocaleString("canceledByUser");
             }
-            catch (x)
-            {
-                throw util.getLocaleString("failedToInstallFile", [aFile.leafName]) + " :: " + x;
-            }
+
+            aFile.moveTo(destinationDir, "");
+
+            return destinationFile;
+        }
+        catch (x)
+        {
+            throw util.getLocaleString("failedToInstallFile", [aFile.leafName]) + " :: " + x;
         }
     },
 
@@ -457,8 +448,6 @@ let userscript = {
      * @param {function} next
      */
     installRequiredFiles: function (info, next) {
-        let { util, userscript } = this.modules;
-
         function finish(succeeded) {
             return void (typeof next === "function" ? next(succeeded) : 0);
         }
@@ -499,7 +488,6 @@ let userscript = {
     },
 
     installPluginAndRequiredFiles: function (context) {
-        let { util, userscript, key } = this.modules;
         let { code, name, next, info } = context;
         if (!info)
             info = userscript.getPluginInformation(code);
@@ -596,8 +584,6 @@ let userscript = {
      * @returns {nsIFile} created tmp file
      */
     writeTextTmp: function (aFileName, aText) {
-        let { util } = this.modules;
-
         let tmpFile  = util.getSpecialDir("TmpD");
         tmpFile.append(aFileName);
 
@@ -607,8 +593,6 @@ let userscript = {
     },
 
     doesPluginHasUpdate: function (pluginPath, next) {
-        let { util, userscript } = this.modules;
-
         // local file
         let localCode = util.readTextFile(pluginPath);
         let localInfo = userscript.getPluginInformation(localCode);
@@ -646,8 +630,6 @@ let userscript = {
      * which indicates whether update is found or not.
      */
     updatePlugin: function (pluginPath, next) {
-        let { util, userscript, display } = this.modules;
-
         userscript.doesPluginHasUpdate(pluginPath, function (hasUpdate, context) {
             function doNext(status) {
                 if (typeof next === "function")
@@ -694,8 +676,6 @@ let userscript = {
      */
     installPluginFromURL: function (aURL, next) {
         let isLocalFile = aURL.indexOf("file://") === 0;
-
-        let { util, userscript, key } = this.modules;
 
         function doNext(status) {
             if (typeof next === "function")
@@ -837,8 +817,8 @@ let userscript = {
         var context;
 
         // create context
-        this.modules.plugins.context[filePath] = {__proto__ : KeySnail.modules};
-        context = this.modules.plugins.context[filePath];
+        plugins.context[filePath] = {__proto__ : KeySnail.modules};
+        context = plugins.context[filePath];
         context.__ksFileName__ = aFile.leafName;
 
         if (this.isDisabledPlugin(aFile.path))
@@ -853,14 +833,14 @@ let userscript = {
         {
             context.__ksLoaded__        = false;
             context.__ksNotCompatible__ = true;
-            // this.message("keysnail :: plugin " + aFile.leafName + " is not compatible with KeySnail " + KeySnail.version);
+            // util.message("keysnail :: plugin " + aFile.leafName + " is not compatible with KeySnail " + KeySnail.version);
             return;
         }
         context.__ksNotCompatible__ = false;
 
         if (!this.checkDocumentURI(xml))
         {
-            // this.message("keysnail :: plugin " + aFile.leafName + " will not be loaded on this URI ... skip");
+            // util.message("keysnail :: plugin " + aFile.leafName + " will not be loaded on this URI ... skip");
             context.__ksLoaded__ = false;
             return;
         }
@@ -868,12 +848,12 @@ let userscript = {
         // add self reference
         context.__ksSelf__   = context;
 
-        this.modules.key.inExternalFile = true;
+        key.inExternalFile = true;
 
         try
         {
-            // let code = this.modules.util.readTextFile(filePath);
-            // this.modules.util.evalInContext(code, context);
+            // let code = util.readTextFile(filePath);
+            // util.evalInContext(code, context);
             this.loadSubScript(filePath, context);
             context.__ksLoaded__ = true;
         }
@@ -881,15 +861,16 @@ let userscript = {
         {
             context.__ksLoaded__ = false;
 
-            let msgstr = this.modules.util
-                .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
+            let msgstr = util.getLocaleString("userScriptError", [
+                e.fileName || "Unknown", e.lineNumber || "Unknown"
+            ]);
 
-            this.message(msgstr + "\n" + e + " (in " + filePath + ")");
+            util.message(msgstr + "\n" + e + " (in " + filePath + ")");
 
             // Components.utils.reportError(e);
         }
 
-        this.modules.key.inExternalFile = false;
+        key.inExternalFile = false;
     },
 
     /**
@@ -903,11 +884,11 @@ let userscript = {
 
         try
         {
-            var files = this.modules.util.readDirectory(aPath, true);
+            var files = util.readDirectory(aPath, true);
         }
         catch (x)
         {
-            this.message(x);
+            util.message(x);
             return;
         }
 
@@ -935,11 +916,11 @@ let userscript = {
         // load plugins in sorted order
         try
         {
-            var files = this.modules.util.readDirectory(aPath, true);
+            var files = util.readDirectory(aPath, true);
         }
         catch (x)
         {
-            this.message(x);
+            util.message(x);
             return;
         }
 
@@ -966,13 +947,13 @@ let userscript = {
         var file, filePath;
         var loaded = false;
 
-        aContext = aContext || this.modules;
+        aContext = aContext || modules;
 
-        this.modules.key.inExternalFile = true;
+        key.inExternalFile = true;
         for (var i = 0; i < this.loadPath.length; ++i)
         {
             filePath = this.loadPath[i] + this.directoryDelimiter + aFileName;
-            file = this.modules.util.openFile(filePath);
+            file = util.openFile(filePath);
 
             if (!file.exists())
                 continue;
@@ -985,12 +966,13 @@ let userscript = {
             }
             catch (e)
             {
-                var msgstr = this.modules.util
-                    .getLocaleString("userScriptError", [e.fileName || "Unknown", e.lineNumber || "Unknown"]);
-                this.modules.display.notify(msgstr + "\n" + e);
+                var msgstr = util.getLocaleString("userScriptError", [
+                    e.fileName || "Unknown", e.lineNumber || "Unknown"
+                ]);
+                display.notify(msgstr + "\n" + e);
             }
         }
-        this.modules.key.inExternalFile = false;
+        key.inExternalFile = false;
 
         return loaded;
     },
@@ -1011,7 +993,7 @@ let userscript = {
 
         // avoid duplication / not existing directory
         if (!this.loadPath.some(function (aContainedPath) { return aContainedPath == aPath; } )
-            && this.modules.util.openFile(aPath).exists())
+            && util.openFile(aPath).exists())
         {
             this.loadPath.push(aPath);
         }
@@ -1020,10 +1002,10 @@ let userscript = {
     // ==================== edit ==================== //
 
     syncEditorWithGM: function () {
-        var gmEditor = this.modules.util.getUnicharPref("greasemonkey.editor");
+        var gmEditor = util.getUnicharPref("greasemonkey.editor");
         if (gmEditor)
         {
-            this.modules.util.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
+            util.setUnicharPref("extensions.keysnail.userscript.editor", gmEditor);
         }
 
         return gmEditor;
@@ -1050,19 +1032,16 @@ let userscript = {
 
         if (!aFilePath)
         {
-            this.modules.display.notify(this.modules.util
-                                        .getLocaleString("invalidFilePath"));
+            display.notify(util.getLocaleString("invalidFilePath"));
             return;
         }
 
-        var editorPath = this.modules.util
-            .getUnicharPref("extensions.keysnail.userscript.editor");
+        var editorPath = util.getUnicharPref("extensions.keysnail.userscript.editor");
 
         if (!editorPath &&
             !(editorPath = this.syncEditorWithGM()))
         {
-            this.modules.display.notify(this.modules.util
-                                        .getLocaleString("noEditorSelected"));
+            display.notify(util.getLocaleString("noEditorSelected"));
             return;
         }
 
@@ -1085,19 +1064,17 @@ let userscript = {
         {
             try
             {
-                editorFile = this.modules.util.openFile(editorPath);
+                editorFile = util.openFile(editorPath);
             }
             catch (e)
             {
-                this.modules.display.notify(this.modules.util
-                                            .getLocaleString("editorErrorOccurred"));
+                display.notify(util.getLocaleString("editorErrorOccurred"));
                 return;
             }
 
             if (!editorFile.exists())
             {
-                this.modules.display.notify(this.modules.util
-                                            .getLocaleString("editorNotFound", [editorFile.path]));
+                display.notify(util.getLocaleString("editorNotFound", [editorFile.path]));
                 return;
             }
         }
@@ -1138,17 +1115,17 @@ let userscript = {
     getPrefDirectory: function () {
         var pref = null;
         var delimiter = null;
-        var osName = this.modules.util.getSystemInfo()
+        var osName = util.getSystemInfo()
             .getProperty("name");
 
         if (osName.search(/windows/i) != -1)
         {
-            pref = this.modules.util.getEnv("USERPROFILE");
+            pref = util.getEnv("USERPROFILE");
             delimiter = "\\";
         }
         else
         {
-            pref = this.modules.util.getEnv("HOME");
+            pref = util.getEnv("HOME");
             delimiter = "/";
         }
 
@@ -1169,9 +1146,9 @@ let userscript = {
         if (loadStatus == 0)
         {
             this.initFileLoaded = true;
-            this.modules.key.run();
-            this.modules.key.updateMenu();
-            this.modules.key.updateStatusBar();
+            key.run();
+            key.updateMenu();
+            key.updateStatusBar();
         }
 
         return loadStatus;
@@ -1183,7 +1160,7 @@ let userscript = {
     openRcFileWizard: function () {
         var params = {
             inn: {
-                modules: this.modules
+                modules: modules
             },
             out: null
         };
@@ -1216,11 +1193,11 @@ let userscript = {
 
             try
             {
-                this.modules.util.writeTextFile(code, rcFilePlace + this.directoryDelimiter + configFileName);
+                util.writeTextFile(code, rcFilePlace + this.directoryDelimiter + configFileName);
             }
             catch (e)
             {
-                this.modules.display.notify(this.modules.util.getLocaleString("failedToWriteText"));
+                display.notify(util.getLocaleString("failedToWriteText"));
                 return false;
             }
 
@@ -1236,42 +1213,42 @@ let userscript = {
                     prefs[prefBase + prefLeaf] = scheme.prefs[prefLeaf];
                 }
 
-                this.modules.util.setPrefs(prefs);
+                util.setPrefs(prefs);
             }
 
             // }} ======================================================================= //
         }
 
-        this.modules.util.setUnicharPref("extensions.keysnail.userscript.location", rcFilePlace);
+        util.setUnicharPref("extensions.keysnail.userscript.location", rcFilePlace);
         this.userPath = rcFilePlace;
 
         return true;
     },
 
     createInitFileFromScheme: function (aScheme) {
-        var contentHolder = [this.modules.util.createSeparator("KeySnail Init File")];
+        var contentHolder = [util.createSeparator("KeySnail Init File")];
 
         // Preserved code {{ ======================================================== //
 
         contentHolder.push("");
-        contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription1"));
-        contentHolder.push("// " + this.modules.util.getLocaleString("preserveDescription2"));
+        contentHolder.push("// " + util.getLocaleString("preserveDescription1"));
+        contentHolder.push("// " + util.getLocaleString("preserveDescription2"));
 
-        contentHolder.push(this.modules.util.createSeparator());
+        contentHolder.push(util.createSeparator());
         contentHolder.push(this.preserve.beginSign);
         if (aScheme.preserved)
             contentHolder.push(aScheme.preserved);
         else
-            contentHolder.push("// " + this.modules.util.getLocaleString("putYourCodesHere"));
+            contentHolder.push("// " + util.getLocaleString("putYourCodesHere"));
         contentHolder.push(this.preserve.endSign);
-        contentHolder.push(this.modules.util.createSeparator());
+        contentHolder.push(util.createSeparator());
 
         // }} ======================================================================= //
 
         // Special keys {{ ========================================================== //
 
         contentHolder.push("");
-        contentHolder.push(this.modules.util.createSeparator("Special key settings"));
+        contentHolder.push(util.createSeparator("Special key settings"));
         contentHolder.push("");
         this.generateSpecialKeySettingsFromScheme(aScheme, contentHolder);
         contentHolder.push("");
@@ -1280,7 +1257,7 @@ let userscript = {
 
         // Hooks {{ ================================================================= //
 
-        contentHolder.push(this.modules.util.createSeparator("Hooks"));
+        contentHolder.push(util.createSeparator("Hooks"));
         this.generateHookSettingsFromScheme(aScheme, contentHolder);
         contentHolder.push("");
 
@@ -1288,14 +1265,14 @@ let userscript = {
 
         // Key bindings {{ ========================================================== //
 
-        contentHolder.push(this.modules.util.createSeparator("Key bindings"));
+        contentHolder.push(util.createSeparator("Key bindings"));
         contentHolder.push("");
         this.generateKeyBindingsFromScheme(aScheme, contentHolder);
         contentHolder.push("");
 
         // }} ======================================================================= //
 
-        var output = this.modules.util.convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
+        var output = util.convertCharCodeFrom(contentHolder.join('\n'), "UTF-8");
 
         return output;
     },
@@ -1340,7 +1317,7 @@ let userscript = {
 
             aContentHolder.push("");
 
-            aContentHolder.push("hook.addToHook(" + this.modules.util.toStringForm(name) + ", "
+            aContentHolder.push("hook.addToHook(" + util.toStringForm(name) + ", "
                                 + body.toString() + ");");
         }
     },
@@ -1425,17 +1402,15 @@ let userscript = {
                 let [keys, command, ksNoRepeat] = setting;
 
                 var keyStr = (typeof keys === "string") ?
-                    this.modules.util.toStringForm(keys) :
+                    util.toStringForm(keys) :
                     keys.toSource().replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
                 var func = getFunction(command);
-                var desc = this.modules.util.toStringForm(getDescription(command));
+                var desc = util.toStringForm(getDescription(command));
 
                 aContentHolder.push("key.set" + modes[mode] + "Key(" + keyStr +
                                     ", " + func + ", " + desc + ", " + !!ksNoRepeat + ");\n");
             }
         }
-    },
-
-    message: KeySnail.message
+    }
 };
