@@ -5,88 +5,465 @@
  * @license The MIT License
  */
 
+// PLUGIN_INFO {{ =========================================================== //
+
+const PLUGIN_INFO =
+<KeySnailPlugin>
+    <name>Yet Another Twitter Client KeySnail</name>
+    <description>Make KeySnail behave like Twitter client</description>
+    <description lang="ja">KeySnail を Twitter クライアントに</description>
+    <version>2.2.4</version>
+    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
+    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
+    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
+    <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
+    <license lang="ja">MIT ライセンス</license>
+    <minVersion>1.8.0</minVersion>
+    <include>main</include>
+    <require>
+        <script>http://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
+    </require>
+    <detail><![CDATA[
+=== Usage ===
+==== Launching ====
+Call twitter-client-display-timeline from ext.select() and twitter client will launch.
+
+You can bind twitter client to some key like below.
+
+>||
+key.setViewKey("t",
+    function (ev, arg) {
+        ext.exec("twitter-client-display-timeline", arg);
+    }, "Display your timeline", true);
+||<
+
+Your timeline will be displayed when &apos;t&apos; key is pressed in the browser window.
+
+If you want to tweet directly, paste code like below to your .keysnail.js.
+
+>||
+key.setGlobalKey(["C-c", "t"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet", arg);
+    }, "Tweet", true);
+||<
+
+You can tweet by pressing C-c t.
+
+Next code allows you to tweet with the current page&apos;s title and URL by pressing C-c T.
+
+>||
+key.setGlobalKey(["C-c", "T"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet-this-page", arg);
+    }, "Tweet with the title and URL of this page", true);
+||<
+
+==== Keybindings ====
+
+By inserting the code below to PRESERVE area in your .keysnail.js, you can manipulate this client more easily.
+
+>||
+plugins.options["twitter_client.keymap"] = {
+    "C-z"   : "prompt-toggle-edit-mode",
+    "SPC"   : "prompt-next-page",
+    "b"     : "prompt-previous-page",
+    "j"     : "prompt-next-completion",
+    "k"     : "prompt-previous-completion",
+    "g"     : "prompt-beginning-of-candidates",
+    "G"     : "prompt-end-of-candidates",
+    "q"     : "prompt-cancel",
+    // twitter client specific actions
+    "t"     : "tweet",
+    "r"     : "reply",
+    "R"     : "retweet",
+    "D"     : "delete-tweet",
+    "f"     : "add-to-favorite",
+    "v"     : "display-entire-message",
+    "V"     : "view-in-twitter",
+    "c"     : "copy-tweet",
+    "s"     : "show-target-status",
+    "@"     : "show-mentions",
+    "/"     : "search-word",
+    "o"     : "open-url"
+};
+||<
+
+When you want to input the alphabet key, press C-z or click earth icon and switch to the edit mode.
+
+==== Actions ====
+Twitter client displays your time line. If you press **Enter** key, you can go to the **tweet** area.
+
+You can select more actions like reply, retweet, search, et al by pressing the Ctrl + i key.
+
+=== Customizing ===
+You can set options through your .keysnail.js.
+
+Here is the example settings. This makes twitter client plugin tweet-only.
+
+>||
+style.register("#keysnail-twitter-client-container{ display:none !important; }");
+plugins.options["twitter_client.popup_new_statuses"]           = false;
+plugins.options["twitter_client.automatically_begin"]          = false;
+plugins.options["twitter_client.automatically_begin_list"]     = false;
+plugins.options["twitter_client.timeline_count_beginning"]     = 0;
+plugins.options["twitter_client.timeline_count_every_updates"] = 0;
+||<
+    ]]></detail>
+    <detail lang="ja"><![CDATA[
+=== 使い方 ===
+
+==== 起動 ====
+
+ステータスバーの Twitter アイコンを左クリックすることで Twitter の TimeLine が表示されます。
+
+これは M-x などのキーから ext.select() を呼び出し twitter-client-display-timeline を選ぶのと同じことです。
+
+次のようにして任意のキーへコマンドを割り当てておくことも可能です。
+
+>||
+key.setViewKey("t",
+    function (ev, arg) {
+        ext.exec("twitter-client-display-timeline", arg);
+    }, "TL を表示", true);
+||<
+
+上記のようなコードを .keysnail.js へ記述しておくことにより (以下 「設定を行う」 と表記)、ブラウズ画面において t キーを押すことでこのクライアントを起動させることが可能となります。
+
+タイムラインを表示させず即座につぶやきたいという場合には、次のような設定がおすすめです。
+
+>||
+key.setGlobalKey(["C-c", "t"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet", arg);
+    }, "つぶやく", true);
+||<
+
+こうした設定を行っておくと C-c t を押すことで即座につぶやき画面を表示することが可能となります。
+
+閲覧しているページのタイトルと URL をつぶやくことも可能です。以下のような設定を行っておきましょう。
+
+>||
+key.setGlobalKey(["C-c", "T"],
+    function (ev, arg) {
+        ext.exec("twitter-client-tweet-this-page", arg);
+    }, "このページのタイトルと URL を使ってつぶやく", true);
+||<
+
+==== キーバインドの設定 ====
+
+次のような設定を .keysnail.js の PRESERVE エリアへ貼り付けておくと、格段に操作がしやすくなります。
+(先ほどとは異なり .keysnail.js 先頭の PRESERVE エリアへ設定コードを記述しなければならないことに注意してください)
+
+>||
+plugins.options["twitter_client.keymap"] = {
+    "C-z"   : "prompt-toggle-edit-mode",
+    "SPC"   : "prompt-next-page",
+    "b"     : "prompt-previous-page",
+    "j"     : "prompt-next-completion",
+    "k"     : "prompt-previous-completion",
+    "g"     : "prompt-beginning-of-candidates",
+    "G"     : "prompt-end-of-candidates",
+    "q"     : "prompt-cancel",
+    // twitter client specific actions
+    "t"     : "tweet",
+    "r"     : "reply",
+    "R"     : "retweet",
+    "d"     : "send-direct-message",
+    "D"     : "delete-tweet",
+    "f"     : "add-to-favorite",
+    "v"     : "display-entire-message",
+    "V"     : "view-in-twitter",
+    "c"     : "copy-tweet",
+    "*"     : "show-target-status",
+    "@"     : "show-mentions",
+    "/"     : "search-word",
+    "o"     : "open-url",
+    "+"     : "show-conversations",
+    "h"     : "refresh-or-back-to-timeline",
+    "s"     : "switch-to"
+};
+||<
+
+どのようなキーバインドとなっているかは、設定を見ていただければ分かるでしょう。気に入らなければ変更することも可能です。
+
+このままではアルファベットが入力できないので、もし絞り込み検索を行うためにアルファベットを入力したくなった場合は、 C-z キーを入力するか 「閉じる」 ボタン左の 「地球マーク」 をクリックし、編集モードへと切り替えてください。
+
+==== Enter ではなく Ctrl + Enter でポストするように ====
+
+Enter では誤爆が多いので Ctrl + Enter でポストするようにしたい、という方は次のような設定を .keysnail.js の PRESERVE エリアへ貼り付けておくとよいでしょう。
+
+>||
+plugins.options["twitter_client.tweet_keymap"] = {
+    "C-RET" : "prompt-decide",
+    "RET"   : ""
+};
+||<
+
+==== ヘッダ ====
+
+TL 上部の 「ヘッダ」 部分には、選択中ユーザのアイコンやメッセージなどが表示されます。ユーザ名やアイコンの上へマウスカーソルを持っていくことで、そのユーザの自己紹介文を見ることが可能です。
+
+また、メッセージ中に @username といった表記や http:// といった URL があった場合は自動的にリンクが貼られます。このリンクをそのまま左クリックすると、リンク先へジャンプします。
+
+また、リンクの上で右クリックをすることにより、様々な処理を選ぶことも可能となっています。例えば j.mp や bit.ly のリンク上で右クリックをすれば、その URL が何回クリックされたかを調査することができます。自分の紹介した URL が全然クリックされていなくても、気にしないようにしましょう。世の中そんなものです。
+
+ヘッダ右上の 「閉じる」 ボタンは見落とされがちですが、有事の際には必ず役に立ってくれることでしょう。
+
+==== リスト ====
+
+リストの閲覧を行うためには .keysnail.js 内であらかじめ閲覧したいリストを登録しておく必要があります。
+
+以下に設定例を示します。
+
+>||
+plugins.options["twitter_client.lists"] = ["stillpedant/js", "stillpedant/emacs"];
+||<
+
+twitter_client.lists には "ユーザ名/リスト名" といった文字列からなる配列を指定します。ゆえに、自分の作成したリストだけでなく他のユーザの作成したリストを登録することも可能です。
+
+閲覧したいリストは、マウスを使いヘッダのリスト一覧をクリックするか、キーボードを使い switch-to (C-i と押して選択するか、上の設定を行った場合は単に s と押せばよい) を実行することで選択できます。
+
+==== ステータスバーアイコン ====
+
+ステータスバーには二種類のアイコンが追加されます。
+
+「吹き出し」 アイコンを左クリックすると自分の TL が、 「封筒」 アイコンを左クリックすると自分宛のメッセージ (Mentions) が一覧表示されます。
+
+また、それぞれのアイコンを右クリックすることで、それ以外にも様々なコマンドを実行することが可能です。
+
+==== アクションの選択 ====
+
+タイムライン一覧でそのまま Enter キーを入力すると、つぶやき画面へ移行することができます。
+
+Enter ではなく Ctrl + i キーを押すことにより、様々なアクションを選ぶことも可能となっています。
+
+==== ちょっと便利な使い方 ====
+
+例えばみんながつぶやいているページを順番に見ていきたいというときは、次のようにします。
+
++ Ctrl + i を押して 「メッセージ中の URL を開く」にカーソルを合わせる
++ もう一度 Ctrl + i を押して TL 一覧へ戻る
++ http と打ち込んで URL の載っているつぶやきだけを一覧表示する
++ あとは Ctrl + Enter を押して (Ctrl がポイント！) 順番にページを開いていく
+
+ね、簡単でしょう？
+
+==== 自動更新  ====
+
+このクライアントは起動時にタイマーをセットし Twitter のタイムラインを定期的に更新します。
+
+twitter_client.update_interval に値を設定することにより、この間隔を変更することが可能となっています。
+
+==== ポップアップ通知  ====
+
+twitter_client.popup_new_statuses オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
+
+また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
+
+=== つぶやき専用 ===
+
+つぶやき専用で TL の表示はしない、自動更新とかもいらないよ、という方向けの設定を以下に示します。
+
+>||
+style.register("#keysnail-twitter-client-container{ display:none !important; }");
+plugins.options["twitter_client.popup_new_statuses"]           = false;
+plugins.options["twitter_client.automatically_begin"]          = false;
+plugins.options["twitter_client.automatically_begin_list"]     = false;
+plugins.options["twitter_client.timeline_count_beginning"]     = 0;
+plugins.options["twitter_client.timeline_count_every_updates"] = 0;
+||<
+
+この設定は http://10sr.posterous.com/tltweetkeysnail-yatwitterclient を参考にさせていただいたものです。
+]]></detail>
+</KeySnailPlugin>;
+
+// }} ======================================================================= //
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-
-var optionsDefaultValue = {
-    "retry_count"                  : -1,
-    "retry_interval"               : 2000,
-    "log_level"                    : LOG_LEVEL_MESSAGE,
-    "update_interval"              : 60 * 1000,      // 1 minute
-    "mentions_update_interval"     : 60 * 1000 * 5,  // 5 minute
-    "tracking_update_interval"     : 60 * 1000 * 5,  // 5 minute
-    "dm_update_interval"           : 60 * 1000 * 20, // 20 minute
-    "list_update_interval"         : 60 * 1000 * 5,  // 5 minute
-    "list_update_intervals"        : null,
-    "popup_new_statuses"           : false,
-    "popup_new_replies"            : true,
-    "popup_on_tweet"               : true,
-    "main_column_width"            : [11, 70, 19],
-    "timeline_count_beginning"     : 80,
-    "timeline_count_every_updates" : 20,
-    "unread_status_count_style"    : "color:#383838;font-weight:bold;",
-    "automatically_begin"          : true,
-    "automatically_begin_list"     : true,
-    "automatically_begin_tracking" : true,
-    "tracking_langage"             : null,
-    "prefer_screen_name"           : false,
-    "keymap"                       : null,
-    "tweet_keymap"                 : null,
-    "switch_to_keymap"             : {
-        "C-z"   : "prompt-toggle-edit-mode",
-        "SPC"   : "prompt-next-page",
-        "b"     : "prompt-previous-page",
-        "j"     : "prompt-next-completion",
-        "k"     : "prompt-previous-completion",
-        "g"     : "prompt-beginning-of-candidates",
-        "G"     : "prompt-end-of-candidates",
-        "q"     : "prompt-cancel",
-        "o"     : "prompt-decide"
-    },
-    "black_users"                           : [],
-    // fancy mode settings
-    "normal_tweet_style"                    : "color:black;",
-    "my_tweet_style"                        : "color:#0a00d5;",
-    "reply_to_me_style"                     : "color:#930c00;",
-    "retweeted_status_style"                : "color:#134f00;",
-    "unread_message_style"                  : "font-weight:bold;",
-    "selected_row_style"                    : "background-color:#93c6ff; color:black; outline: 1px solid #93c6ff !important;",
-    "selected_user_style"                   : "background-color:#ddedff; color:black;",
-    "selected_user_reply_to_style"          : "background-color:#ffd4ff; color:black;",
-    "selected_user_reply_to_reply_to_style" : "background-color:#ffe9d4; color:black;",
-    "search_result_user_name_style"         : "color:#003870;",
-    // j.mp settings
-    "jmp_id"                                : "stillpedant",
-    "jmp_key"                               : "R_168719821d1100c59352962dce863251",
-    "lists"                                 : [],
-    "show_sources"                          : true
-};
-
-function getOption(aName) {
-    var fullName = "twitter_client." + aName;
-    if (typeof plugins.options[fullName] !== "undefined")
-        return plugins.options[fullName];
-    else
-        return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
-}
-
-function setOption(aName, aValue) {
-    plugins.options["twitter_client." + aName] = aValue;
-}
-
-// ============================================================ //
-// Log
-// ============================================================ //
 
 const LOG_LEVEL_DEBUG   = 0;
 const LOG_LEVEL_MESSAGE = 10;
 const LOG_LEVEL_WARNING = 20;
 const LOG_LEVEL_ERROR   = 30;
 
+let pOptions = plugins.setupOptions("twitter_client", {
+    "retry_count"                  : { preset: -1 },
+    "retry_interval"               : { preset: 2000 },
+    "log_level"                    : { preset: LOG_LEVEL_MESSAGE },
+    "update_interval"              : {
+        preset: 60 * 1000      /* 1 minute  */,
+        description: M({
+            ja: "ステータスを更新する間隔",
+            en: "Interval between status updates in mili-seconds"
+        })
+    },
+    "mentions_update_interval"     : { preset: 60 * 1000 * 5  /* 5 minute  */ },
+    "tracking_update_interval"     : { preset: 60 * 1000 * 5  /* 5 minute  */ },
+    "dm_update_interval"           : { preset: 60 * 1000 * 20 /* 20 minute */ },
+    "list_update_interval"         : { preset: 60 * 1000 * 5  /* 5 minute  */ },
+    "list_update_intervals"        : { preset: null },
+    "popup_new_statuses"           : {
+        preset: false,
+        description: M({
+            ja: "[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定",
+            en: "ステータス更新時にポップアップ通知を行うかどうか"
+        })
+    },
+    "popup_new_replies"            : {
+        preset: true,
+        description: M({
+            ja: "自分への返信だけポップアップ表示する",
+            en: "Popup only new mentions"
+        })
+    },
+    "popup_on_tweet"               : { preset: true },
+    "main_column_width"            : {
+        preset: [11, 70, 19],
+        description: M({
+            ja: "[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定",
+            en: "Each column width of [User name, Message, Info] in percentage"
+        })
+    },
+    "timeline_count_beginning"     : {
+        preset: 80,
+        description: M({
+            ja: "起動時に取得するステータス数",
+            en: "Number of timelines this client fetches in the beginning"
+        })
+    },
+    "timeline_count_every_updates" : {
+        preset: 20,
+        description: M({
+            ja: "初回以降の更新で一度に取得するステータス数",
+            en: "Number of timelines this client fetches at once"
+        })
+    },
+    "unread_status_count_style"    : {
+        preset: "color:#383838;font-weight:bold;",
+        description: M({
+            ja: "ステータスバーへ表示される未読ステータス数のスタイルを CSS で指定",
+            en: "Specify style of the unread statuses count in the statusbar with CSS"
+        })
+    },
+    "automatically_begin"          : {
+        preset: true,
+        description: M({
+            ja: "プラグインロード時、自動的にステータスの取得を開始するかどうか",
+            en: "Automatically begin fetching the statuses"
+        })
+    },
+    "automatically_begin_list"     : {
+        preset: true,
+        description: M({
+            ja: "プラグインロード時、自動的にリストのステータスの取得を開始するかどうか",
+            en: "Automatically begin fetching the list statuses"
+        })
+    },
+    "automatically_begin_tracking" : { preset: true },
+    "tracking_langage"             : { preset: null },
+    "prefer_screen_name": {
+        preset: false,
+        description: M({
+            ja: "TL 一覧などでユーザ名の代わりに ID (screen name) を表示したい場合 true へ設定",
+            en: "If you prefer screen name to user name to be displayed, set this value to true"
+        })
+    },
+    "keymap": {
+        preset: {
+            "C-z"   : "prompt-toggle-edit-mode",
+            "SPC"   : "prompt-next-page",
+            "b"     : "prompt-previous-page",
+            "j"     : "prompt-next-completion",
+            "k"     : "prompt-previous-completion",
+            "g"     : "prompt-beginning-of-candidates",
+            "G"     : "prompt-end-of-candidates",
+            "q"     : "prompt-cancel",
+            // twitter client specific actions
+            "t"     : "tweet",
+            "r"     : "reply",
+            "R"     : "retweet",
+            "d"     : "send-direct-message",
+            "D"     : "delete-tweet",
+            "f"     : "add-to-favorite",
+            "v"     : "display-entire-message",
+            "V"     : "view-in-twitter",
+            "c"     : "copy-tweet",
+            "*"     : "show-target-status",
+            "@"     : "show-mentions",
+            "/"     : "search-word",
+            "o"     : "open-url",
+            "+"     : "show-conversations",
+            "h"     : "refresh-or-back-to-timeline",
+            "s"     : "switch-to"
+        },
+        description: M({
+            ja: "メイン画面の操作用キーマップ",
+            en: "Local keymap for manipulation"
+        })
+    },
+    "tweet_keymap": {
+        preset: null,
+        description: M({
+            ja: "つぶやき入力部分のローカルキーマップ",
+            en: "Local keymap for tweet input box"
+        })
+    },
+    "switch_to_keymap": {
+        preset: {
+            "C-z"   : "prompt-toggle-edit-mode",
+            "SPC"   : "prompt-next-page",
+            "b"     : "prompt-previous-page",
+            "j"     : "prompt-next-completion",
+            "k"     : "prompt-previous-completion",
+            "g"     : "prompt-beginning-of-candidates",
+            "G"     : "prompt-end-of-candidates",
+            "q"     : "prompt-cancel",
+            "o"     : "prompt-decide"
+        }
+    },
+    "black_users": {
+        preset: [],
+        description: M({
+            ja: "タイムラインに表示させたくないユーザの id を配列で指定",
+            en: "Specify user id who you don't want to see in the timeline :)"
+        })
+    },
+    // fancy mode settings
+    "normal_tweet_style"                    : { preset: "color:black;" },
+    "my_tweet_style"                        : { preset: "color:#0a00d5;" },
+    "reply_to_me_style"                     : { preset: "color:#930c00;" },
+    "retweeted_status_style"                : { preset: "color:#134f00;" },
+    "unread_message_style"                  : { preset: "font-weight:bold;" },
+    "selected_row_style"                    : { preset: "background-color:#93c6ff; color:black; outline: 1px solid #93c6ff !important;" },
+    "selected_user_style"                   : { preset: "background-color:#ddedff; color:black;" },
+    "selected_user_reply_to_style"          : { preset: "background-color:#ffd4ff; color:black;" },
+    "selected_user_reply_to_reply_to_style" : { preset: "background-color:#ffe9d4; color:black;" },
+    "search_result_user_name_style"         : { preset: "color:#003870;" },
+    // j.mp settings
+    "jmp_id"                                : {
+        preset: "stillpedant",
+        description: M({en: "Specify ID of your j.mp account if you want use your one",
+                        ja: "j.mp の URL 短縮で独自アカウントを用いたい場合、その ID を指定" })
+    },
+    "jmp_key"                               : {
+        preset: "R_168719821d1100c59352962dce863251",
+        description: M({ ja: "Specify Key of your j.mp account if you want use your one",
+                         en: "j.mp の URL 短縮で独自アカウントを用いたい場合、その Key を指定" })
+    },
+    "lists"                                 : { preset: [] },
+    "show_sources"                          : { preset: true }
+}, PLUGIN_INFO);
+
+// ============================================================ //
+// Log
+// ============================================================ //
+
 function log() {
     let level = arguments[0];
 
-    if (getOption("log_level") >= level)
+    if (pOptions["log_level"] >= level)
         util.message.apply(util, Array.slice(arguments, 1));
 }
 
@@ -136,8 +513,8 @@ const $U = {
 
     shortenURL:
     function shortenURL(aURL, next) {
-        const id  = getOption("jmp_id");
-        const key = getOption("jmp_key");
+        const id  = pOptions["jmp_id"];
+        const key = pOptions["jmp_key"];
 
         var endPoint = "http://api.j.mp/shorten?" +
             util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s',
@@ -426,8 +803,8 @@ const twitterAPI = {
 
         let requestArg = this.get(name, context.params, context.args);
 
-        let retryCount = getOption("retry_count");
-        let retryInterval = getOption("retry_interval");
+        let retryCount = pOptions["retry_count"];
+        let retryInterval = pOptions["retry_interval"];
         function retry() {
             if (--retryCount)
                 return;
@@ -461,7 +838,7 @@ const twitterAPI = {
         });
     },
 
-    _holder: getOption("twitter_api") || {
+    _holder: pOptions["twitter_api"] || {
         // ============================================================ //
         // OAuth
         // ============================================================ //
@@ -703,7 +1080,7 @@ var twitterClient =
 
                 var latestTimeline = newStatuses.concat(aOld);
 
-                if (newStatuses.length && (getOption("popup_new_statuses") || getOption("popup_new_replies")))
+                if (newStatuses.length && (pOptions["popup_new_statuses"] || pOptions["popup_new_replies"]))
                     popUpNewStatuses(newStatuses);
 
                 return latestTimeline;
@@ -874,7 +1251,7 @@ var twitterClient =
 
         // OAuth {{ ================================================================= //
 
-        var _oauthInfo = getOption("oauth_info") || {
+        var _oauthInfo = pOptions["oauth_info"] || {
             signatureMethod : "HMAC-SHA1",
             consumerKey     : "q8bLrmPJJ54hv5VGSXUfvQ",
             consumerSecret  : "34Xtbtmqikl093nzaXg6ePay5EJJMu0cm3qervD4",
@@ -932,8 +1309,8 @@ var twitterClient =
             return n;
         }
 
-        var gTimelineCountBeginning    = getOption("timeline_count_beginning");
-        var gTimelineCountEveryUpdates = getOption("timeline_count_every_updates");
+        var gTimelineCountBeginning    = pOptions["timeline_count_beginning"];
+        var gTimelineCountEveryUpdates = pOptions["timeline_count_every_updates"];
 
         gTimelineCountBeginning    = normalizeCount(gTimelineCountBeginning);
         gTimelineCountEveryUpdates = normalizeCount(gTimelineCountEveryUpdates);
@@ -942,7 +1319,7 @@ var twitterClient =
 
         var gLists = {};
 
-        getOption("lists").forEach(
+        pOptions["lists"].forEach(
             function (name) {
                 let [user, listName] = name.split("/");
 
@@ -956,8 +1333,8 @@ var twitterClient =
                     {
                         action     : listAction.action,
                         name       : name,
-                        interval   : (getOption("list_update_intervals") && getOption("list_update_intervals")[name])
-                            || getOption("list_update_interval"),
+                        interval   : (pOptions["list_update_intervals"] && pOptions["list_update_intervals"][name])
+                            || pOptions["list_update_interval"],
                         lastKey    : "extensions.keysnail.plugins.twitter_client.last_id." + name.replace("/", "_"),
                         oauth      : gOAuth,
                         countName  : "per_page",
@@ -986,7 +1363,7 @@ var twitterClient =
 
         function addTrackingCrawler(query, infoHolder) {
             let searchAction = let (params = { q : query },
-                                    lang   = getOption("tracking_langage"))
+                                    lang   = pOptions["tracking_langage"])
             (
                 lang && (params[lang] = lang),
                 twitterAPI.get("search", params)
@@ -996,7 +1373,7 @@ var twitterClient =
                 {
                     action       : searchAction.action,
                     name         : query,
-                    interval     : infoHolder["interval"] || getOption("tracking_update_interval"),
+                    interval     : infoHolder["interval"] || pOptions["tracking_update_interval"],
                     oauth        : gOAuth,
                     countName    : "rpp",
                     mapper       : function (response) response.results.map(filterSearchResult),
@@ -1035,7 +1412,7 @@ var twitterClient =
             {
                 action     : twitterAPI.get("statuses/home_timeline").action,
                 name       : M({ en: "Timeline", ja: "タイムライン" }),
-                interval   : getOption("update_interval"),
+                interval   : pOptions["update_interval"],
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_status_id",
                 oauth      : gOAuth,
                 lastIDHook : $U.bind(Notifier.updateAllStatusbars, Notifier),
@@ -1047,7 +1424,7 @@ var twitterClient =
             {
                 action     : twitterAPI.get("statuses/mentions").action,
                 name       : M({ en: "mentions", ja: "言及一覧" }),
-                interval   : getOption("mentions_update_interval"),
+                interval   : pOptions["mentions_update_interval"],
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_mention_id",
                 oauth      : gOAuth,
                 lastIDHook : $U.bind(Notifier.updateAllStatusbars, Notifier),
@@ -1059,7 +1436,7 @@ var twitterClient =
             {
                 action     : twitterAPI.get("direct_messages").action,
                 name       : M({ en: "DMs", ja: "DMs" }),
-                interval   : getOption("dm_update_interval"),
+                interval   : pOptions["dm_update_interval"],
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_dm_id",
                 oauth      : gOAuth,
                 mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
@@ -1535,7 +1912,7 @@ var twitterClient =
         var unreadMentionLabel  = document.getElementById(UNREAD_MENTION_ID);
         var unreadDMLabel       = document.getElementById(UNREAD_DM_ID);
 
-        var unreadStatusLabelStyle = getOption("unread_status_count_style");
+        var unreadStatusLabelStyle = pOptions["unread_status_count_style"];
 
         // create statusbar icon
         if (!container) {
@@ -1912,7 +2289,7 @@ var twitterClient =
         try {
             var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
         } catch (x) {
-            setOption("popup_new_statuses", false);
+            pOptions["popup_new_statuses"] = false;
         }
 
         var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
@@ -1933,13 +2310,13 @@ var twitterClient =
             let status = share.unPopUppedStatuses.pop();
             let popupStatus = false;
 
-            if (getOption("popup_new_statuses"))
+            if (pOptions["popup_new_statuses"])
             {
                 if (!(gBlackUsers && gBlackUsers.some(function (id) id === status.user.screen_name)) && /* user in blacklist */
                     !(share.userInfo && status.user.screen_name === share.userInfo.screen_name))      /* your status*/
                     popupStatus = true;
             }
-            else if (getOption("popup_new_replies"))
+            else if (pOptions["popup_new_replies"])
             {
                 if (status.in_reply_to_screen_name && share.userInfo &&
                     status.in_reply_to_screen_name === share.userInfo.screen_name)
@@ -2300,7 +2677,7 @@ var twitterClient =
                 initialcount : 0,
                 initialinput : aInitialInput,
                 group        : "twitter_tweet",
-                keymap       : getOption("tweet_keymap"),
+                keymap       : pOptions["tweet_keymap"],
                 cursorEnd    : aCursorEnd,
                 onChange     : function (arg) {
                     var current = arg.textbox.value;
@@ -2325,7 +2702,7 @@ var twitterClient =
                         params["in_reply_to_status_id"] = aReplyID.toString();
 
                     function showPopupMayBe() {
-                        if (getOption("popup_on_tweet"))
+                        if (pOptions["popup_on_tweet"])
                             showPopup.apply(this, arguments);
                     }
 
@@ -2514,7 +2891,7 @@ var twitterClient =
                     message    : M({ja: "どれを見る？", en: "Switch to"}),
                     collection : collection,
                     flags      : [ICON | IGNORE, 0, HIDDEN | IGNORE],
-                    keymap     : getOption("switch_to_keymap"),
+                    keymap     : pOptions["switch_to_keymap"],
                     actions    : [
                         [function (i) {
                              if (i < 0)
@@ -2787,8 +3164,8 @@ var twitterClient =
             // ============================================================ //
 
             function favIconGetter(aRow) aRow[0].favorited ? FAVORITED_ICON : "";
-            let preferScreenName = getOption("prefer_screen_name");
-            let showSources      = getOption("show_sources");
+            let preferScreenName = pOptions["prefer_screen_name"];
+            let showSources      = pOptions["show_sources"];
 
             function statusMapper(status) {
                 var created = Date.parse(status.created_at);
@@ -2870,7 +3247,7 @@ var twitterClient =
                 // status, icon, name, message, fav-icon, info
                 flags      : [hid, ico, 0, 0, ico, 0],
                 header     : [M({ja: 'ユーザ', en: "User"}), aMessage, M({ja : "情報", en: 'Info'})],
-                width      : getOption("main_column_width"),
+                width      : pOptions["main_column_width"],
                 beforeSelection : function (arg) {
                     if (!arg.row || fetchingPreviousNow)
                         return;
@@ -2940,29 +3317,29 @@ var twitterClient =
                     if (share.userInfo)
                     {
                         if (status.user.screen_name === share.userInfo.screen_name)
-                            style += getOption("my_tweet_style");
+                            style += pOptions["my_tweet_style"];
 
                         if (status.in_reply_to_screen_name === share.userInfo.screen_name)
-                            style += getOption("reply_to_me_style");
+                            style += pOptions["reply_to_me_style"];
                     }
 
                     if (status.user.screen_name === selectedUserID)
                     {
                         if (status.id_str === currentID)
-                            style += getOption("selected_row_style");
+                            style += pOptions["selected_row_style"];
                         else
-                            style += getOption("selected_user_style");
+                            style += pOptions["selected_user_style"];
                     }
                     else if (status.user.screen_name === selectedUserInReplyToID)
-                        style += getOption("selected_user_reply_to_style");
+                        style += pOptions["selected_user_reply_to_style"];
                     else if (status.user.in_reply_to_screen_name &&
                              status.user.in_reply_to_screen_name === selectedUserInReplyToID)
-                        style += getOption("selected_user_reply_to_reply_to_style");
+                        style += pOptions["selected_user_reply_to_reply_to_style"];
                     else if (status.retweeted_status)
-                        style += getOption("retweeted_status_style");
+                        style += pOptions["retweeted_status_style"];
 
                     if (lastID && status.id_str > lastID)
-                        style += getOption("unread_message_style");
+                        style += pOptions["unread_message_style"];
 
                     return style;
                 },
@@ -2981,7 +3358,7 @@ var twitterClient =
                             raw         : status
                         }];
                 },
-                keymap       : getOption("keymap"),
+                keymap       : pOptions["keymap"],
                 actions      : gTwitterCommonActions,
                 initialIndex : options.initialIndex
             });
@@ -3175,9 +3552,9 @@ var twitterClient =
             },
 
             togglePopupStatus: function () {
-                let toggled = !getOption("popup_new_statuses");
+                let toggled = !pOptions["popup_new_statuses"];
 
-                setOption("popup_new_statuses", toggled);
+                pOptions["popup_new_statuses"] = toggled;
                 display.echoStatusBar(M({ja: ("ポップアップ通知を" + (toggled ? "有効にしました" : "無効にしました")),
                                          en: ("Pop up " + (toggled ? "enabled" : "disabled"))}), 2000);
             },
@@ -3459,7 +3836,7 @@ var twitterClient =
         if (!share.userInfo)
             self.setUserInfo();
 
-        if (getOption("automatically_begin"))
+        if (pOptions["automatically_begin"])
         {
             if (!gStatuses.cache)
                 self.updateStatusesCache();
@@ -3476,7 +3853,7 @@ var twitterClient =
             self.updateStatusbar();
         }
 
-        if (getOption("automatically_begin_list"))
+        if (pOptions["automatically_begin_list"])
         {
             for (let [, crawler] in Iterator(gLists))
             {
@@ -3488,7 +3865,7 @@ var twitterClient =
             self.updateListButton();
         }
 
-        if (getOption("automatically_begin_tracking"))
+        if (pOptions["automatically_begin_tracking"])
         {
             for (let [, crawler] in Iterator(gTrackings))
             {
@@ -3507,618 +3884,54 @@ plugins.twitterClient = twitterClient;
 
 // Add exts {{ ============================================================== //
 
-ext.add("twitter-client-display-timeline", twitterClient.showTimeline,
-        M({ja: 'TL を表示',
-           en: "Display your timeline"}));
+plugins.withProvides(function (provide) {
+    provide("twitter-client-display-timeline", twitterClient.showTimeline,
+            M({ja: 'TL を表示',
+               en: "Display your timeline"}));
+
+    provide("twitter-client-tweet", function () { twitterClient.tweet(); },
+            M({ja: 'つぶやく',
+               en: "Tweet!"}));
+
+    provide("twitter-client-tweet-this-page", twitterClient.tweetWithTitleAndURL,
+            M({ja: 'このページのタイトルと URL を使ってつぶやく',
+               en: "Tweet with the title and URL of this page"}));
+
+    provide("twitter-client-search-word", twitterClient.search,
+            M({ja: 'Twitter 検索',
+               en: "Search word on Twitter"}));
+
+    provide("twitter-client-show-mentions", twitterClient.showMentions,
+            M({ja: '@ 一覧表示 (自分への言及一覧)',
+               en: "Display @ (Show mentions)"}));
+
+    provide("twitter-client-show-favorites", twitterClient.showFavorites,
+            M({ja: '自分のお気に入りを一覧表示',
+               en: "Display favorites"}));
+
+    provide("twitter-client-show-my-statuses", twitterClient.showUsersTimeline,
+            M({ja: '自分のつぶやきを一覧表示',
+               en: "Display my statuses"}));
+
+    provide("twitter-client-show-my-lists", twitterClient.showMyLists,
+            M({ja: '自分のリストを一覧表示',
+               en: "Display my lists"}));
+
+    provide("twitter-client-blacklist-manager", twitterClient.blackUsersManager,
+            M({ja: 'ブラックリストの管理',
+               en: "Launch blacklist manager"}));
+
+    provide("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
+            M({ja: 'ポップアップ通知の切り替え',
+               en: "Toggle popup status"}));
+
+    provide("twitter-client-reauthorize", twitterClient.reAuthorize,
+            M({ja: '再認証',
+               en: "Reauthorize"}));
+
+    provide("twitter-client-switch-to", twitterClient.switchTo,
+            M({ja: 'リスト, Home, Mentioins, Favorites などを選択',
+               en: "Select Lists, Home, Mentions, Favirites, ..."}));
+}, PLUGIN_INFO);
 
-ext.add("twitter-client-tweet", function () { twitterClient.tweet(); },
-        M({ja: 'つぶやく',
-           en: "Tweet!"}));
-
-ext.add("twitter-client-tweet-this-page", twitterClient.tweetWithTitleAndURL,
-        M({ja: 'このページのタイトルと URL を使ってつぶやく',
-           en: "Tweet with the title and URL of this page"}));
-
-ext.add("twitter-client-search-word", twitterClient.search,
-        M({ja: 'Twitter 検索',
-           en: "Search word on Twitter"}));
-
-ext.add("twitter-client-show-mentions", twitterClient.showMentions,
-        M({ja: '@ 一覧表示 (自分への言及一覧)',
-           en: "Display @ (Show mentions)"}));
-
-ext.add("twitter-client-show-favorites", twitterClient.showFavorites,
-        M({ja: '自分のお気に入りを一覧表示',
-           en: "Display favorites"}));
-
-ext.add("twitter-client-show-my-statuses", twitterClient.showUsersTimeline,
-        M({ja: '自分のつぶやきを一覧表示',
-           en: "Display my statuses"}));
-
-ext.add("twitter-client-show-my-lists", twitterClient.showMyLists,
-        M({ja: '自分のリストを一覧表示',
-           en: "Display my lists"}));
-
-ext.add("twitter-client-blacklist-manager", twitterClient.blackUsersManager,
-        M({ja: 'ブラックリストの管理',
-           en: "Launch blacklist manager"}));
-
-ext.add("twitter-client-toggle-popup-status", twitterClient.togglePopupStatus,
-        M({ja: 'ポップアップ通知の切り替え',
-           en: "Toggle popup status"}));
-
-ext.add("twitter-client-reauthorize", twitterClient.reAuthorize,
-        M({ja: '再認証',
-           en: "Reauthorize"}));
-
-ext.add("twitter-client-switch-to", twitterClient.switchTo,
-        M({ja: 'リスト, Home, Mentioins, Favorites などを選択',
-           en: "Select Lists, Home, Mentions, Favirites, ..."}));
-
-// }} ======================================================================= //
-
-// PLUGIN_INFO {{ =========================================================== //
-
-var PLUGIN_INFO =
-<KeySnailPlugin>
-    <name>Yet Another Twitter Client KeySnail</name>
-    <description>Make KeySnail behave like Twitter client</description>
-    <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.2.4</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
-    <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
-    <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
-    <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.6.8</minVersion>
-    <include>main</include>
-    <provides>
-        <ext>twitter-client-display-timeline</ext>
-        <ext>twitter-client-tweet</ext>
-        <ext>twitter-client-tweet-this-page</ext>
-        <ext>twitter-client-show-my-statuses</ext>
-        <ext>twitter-client-show-my-lists</ext>
-        <ext>twitter-client-show-mentions</ext>
-        <ext>twitter-client-show-favorites</ext>
-        <ext>twitter-client-search-word</ext>
-        <ext>twitter-client-blacklist-manager</ext>
-        <ext>twitter-client-toggle-popup-status</ext>
-        <ext>twitter-client-reauthorize</ext>
-    </provides>
-    <require>
-        <script>http://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
-    </require>
-    <options>
-        <option>
-            <name>twitter_client.automatically_begin</name>
-            <type>boolean</type>
-            <description>Automatically begin fetching the statuses</description>
-            <description lang="ja">プラグインロード時、自動的にステータスの取得を開始するかどうか</description>
-        </option>
-        <option>
-            <name>twitter_client.automatically_begin_list</name>
-            <type>boolean</type>
-            <description>Automatically begin fetching the list statuses</description>
-            <description lang="ja">プラグインロード時、自動的にリストのステータスの取得を開始するかどうか</description>
-        </option>
-        <option>
-            <name>twitter_client.timeline_count_beginning</name>
-            <type>integer</type>
-            <description>Number of timelines this client fetches in the beginning (default 80)</description>
-            <description lang="ja">起動時に取得するステータス数 (デフォルト: 80)</description>
-        </option>
-        <option>
-            <name>twitter_client.timeline_count_every_updates</name>
-            <type>integer</type>
-            <description>Number of timelines this client fetches at once (default 20)</description>
-            <description lang="ja">初回以降の更新で一度に取得するステータス数 (デフォルト: 20)</description>
-        </option>
-        <option>
-            <name>twitter_client.popup_new_statuses</name>
-            <type>boolean</type>
-            <description>Whether display pop up notification when statuses are updated or not</description>
-            <description lang="ja">ステータス更新時にポップアップ通知を行うかどうか (デフォルト: OFF)</description>
-        </option>
-        <option>
-            <name>twitter_client.popup_new_replies</name>
-            <type>boolean</type>
-            <description>Popup only new mentions</description>
-            <description lang="ja">自分への返信だけポップアップ表示する (デフォルト: ON)</description>
-        </option>
-
-        <option>
-            <name>twitter_client.update_interval</name>
-            <type>integer</type>
-            <description>Interval between status updates in mili-seconds</description>
-            <description lang="ja">ステータスを更新する間隔 (ミリ秒)</description>
-        </option>
-        <option>
-            <name>twitter_client.main_column_width</name>
-            <type>[integer]</type>
-            <description>Each column width of [User name, Message, Info] in percentage</description>
-            <description lang="ja">[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定</description>
-        </option>
-        <option>
-            <name>twitter_client.black_users</name>
-            <type>[string]</type>
-            <description>Specify user id who you don&apos;t want to see in the timeline :)</description>
-            <description lang="ja">タイムラインに表示させたくないユーザの id を配列で指定</description>
-        </option>
-        <option>
-            <name>twitter_client.unread_status_count_style</name>
-            <type>string</type>
-            <description>Specify style of the unread statuses count in the statusbar with CSS</description>
-            <description lang="ja">ステータスバーへ表示される未読ステータス数のスタイルを CSS で指定</description>
-        </option>
-        <option>
-            <name>twitter_client.keymap</name>
-            <type>object</type>
-            <description>Local keymap</description>
-            <description lang="ja">ローカルキーマップ</description>
-        </option>
-        <option>
-            <name>twitter_client.tweet_keymap</name>
-            <type>object</type>
-            <description>Local keymap for tweet input box</description>
-            <description lang="ja">つぶやき入力部分のローカルキーマップ</description>
-        </option>
-        <option>
-            <name>twitter_client.jmp_id</name>
-            <type>string</type>
-            <description>Specify ID of your j.mp account if you want use your one</description>
-            <description lang="ja">j.mp の URL 短縮で独自アカウントを用いたい場合、その ID を指定</description>
-        </option>
-        <option>
-            <name>twitter_client.jmp_key</name>
-            <type>string</type>
-            <description>Specify Key of your j.mp account if you want use your one</description>
-            <description lang="ja">j.mp の URL 短縮で独自アカウントを用いたい場合、その Key を指定</description>
-        </option>
-        <option>
-            <name>twitter_client.prefer_screen_name</name>
-            <type>boolean</type>
-            <description>If you prefer screen name to user name to be displayed, set this value to true.</description>
-            <description lang="ja">TL 一覧などでユーザ名の代わりに ID (screen name) を表示したい場合 true へ設定.</description>
-        </option>
-    </options>
-    <detail><![CDATA[
-=== Usage ===
-==== Launching ====
-Call twitter-client-display-timeline from ext.select() and twitter client will launch.
-
-You can bind twitter client to some key like below.
-
->||
-key.setViewKey("t",
-    function (ev, arg) {
-        ext.exec("twitter-client-display-timeline", arg);
-    }, "Display your timeline", true);
-||<
-
-Your timeline will be displayed when 't' key is pressed in the browser window.
-
-If you want to tweet directly, paste code like below to your .keysnail.js.
-
->||
-key.setGlobalKey(["C-c", "t"],
-    function (ev, arg) {
-        ext.exec("twitter-client-tweet", arg);
-    }, "Tweet", true);
-||<
-
-You can tweet by pressing C-c t.
-
-Next code allows you to tweet with the current page's title and URL by pressing C-c T.
-
->||
-key.setGlobalKey(["C-c", "T"],
-    function (ev, arg) {
-        ext.exec("twitter-client-tweet-this-page", arg);
-    }, "Tweet with the title and URL of this page", true);
-||<
-
-==== Keybindings ====
-
-By inserting the code below to PRESERVE area in your .keysnail.js, you can manipulate this client more easily.
-
->||
-plugins.options["twitter_client.keymap"] = {
-    "C-z"   : "prompt-toggle-edit-mode",
-    "SPC"   : "prompt-next-page",
-    "b"     : "prompt-previous-page",
-    "j"     : "prompt-next-completion",
-    "k"     : "prompt-previous-completion",
-    "g"     : "prompt-beginning-of-candidates",
-    "G"     : "prompt-end-of-candidates",
-    "q"     : "prompt-cancel",
-    // twitter client specific actions
-    "t"     : "tweet",
-    "r"     : "reply",
-    "R"     : "retweet",
-    "D"     : "delete-tweet",
-    "f"     : "add-to-favorite",
-    "v"     : "display-entire-message",
-    "V"     : "view-in-twitter",
-    "c"     : "copy-tweet",
-    "s"     : "show-target-status",
-    "@"     : "show-mentions",
-    "/"     : "search-word",
-    "o"     : "open-url"
-};
-||<
-
-When you want to input the alphabet key, press C-z or click earth icon and switch to the edit mode.
-
-==== Actions ====
-Twitter client displays your time line. If you press **Enter** key, you can go to the **tweet** area.
-
-You can select more actions like reply, retweet, search, et al by pressing the Ctrl + i key.
-
-=== Customizing ===
-You can set options through your .keysnail.js.
-
-Here is the example settings. This makes twitter client plugin tweet-only.
-
->||
-style.register("#keysnail-twitter-client-container{ display:none !important; }");
-plugins.options["twitter_client.popup_new_statuses"]           = false;
-plugins.options["twitter_client.automatically_begin"]          = false;
-plugins.options["twitter_client.automatically_begin_list"]     = false;
-plugins.options["twitter_client.timeline_count_beginning"]     = 0;
-plugins.options["twitter_client.timeline_count_every_updates"] = 0;
-||<
-    ]]></detail>
-    <detail lang="ja"><![CDATA[
-=== 使い方 ===
-
-==== 起動 ====
-
-ステータスバーの Twitter アイコンを左クリックすることで Twitter の TimeLine が表示されます。
-
-これは M-x などのキーから ext.select() を呼び出し twitter-client-display-timeline を選ぶのと同じことです。
-
-次のようにして任意のキーへコマンドを割り当てておくことも可能です。
-
->||
-key.setViewKey("t",
-    function (ev, arg) {
-        ext.exec("twitter-client-display-timeline", arg);
-    }, "TL を表示", true);
-||<
-
-上記のようなコードを .keysnail.js へ記述しておくことにより (以下 「設定を行う」 と表記)、ブラウズ画面において t キーを押すことでこのクライアントを起動させることが可能となります。
-
-タイムラインを表示させず即座につぶやきたいという場合には、次のような設定がおすすめです。
-
->||
-key.setGlobalKey(["C-c", "t"],
-    function (ev, arg) {
-        ext.exec("twitter-client-tweet", arg);
-    }, "つぶやく", true);
-||<
-
-こうした設定を行っておくと C-c t を押すことで即座につぶやき画面を表示することが可能となります。
-
-閲覧しているページのタイトルと URL をつぶやくことも可能です。以下のような設定を行っておきましょう。
-
->||
-key.setGlobalKey(["C-c", "T"],
-    function (ev, arg) {
-        ext.exec("twitter-client-tweet-this-page", arg);
-    }, "このページのタイトルと URL を使ってつぶやく", true);
-||<
-
-==== キーバインドの設定 ====
-
-次のような設定を .keysnail.js の PRESERVE エリアへ貼り付けておくと、格段にに操作がしやすくなります。
-(先ほどとは異なり .keysnail.js 先頭の PRESERVE エリアへ設定コードを記述しなければならないことに注意してください)
-
->||
-plugins.options["twitter_client.keymap"] = {
-    "C-z"   : "prompt-toggle-edit-mode",
-    "SPC"   : "prompt-next-page",
-    "b"     : "prompt-previous-page",
-    "j"     : "prompt-next-completion",
-    "k"     : "prompt-previous-completion",
-    "g"     : "prompt-beginning-of-candidates",
-    "G"     : "prompt-end-of-candidates",
-    "q"     : "prompt-cancel",
-    // twitter client specific actions
-    "t"     : "tweet",
-    "r"     : "reply",
-    "R"     : "retweet",
-    "d"     : "send-direct-message",
-    "D"     : "delete-tweet",
-    "f"     : "add-to-favorite",
-    "v"     : "display-entire-message",
-    "V"     : "view-in-twitter",
-    "c"     : "copy-tweet",
-    "*"     : "show-target-status",
-    "@"     : "show-mentions",
-    "/"     : "search-word",
-    "o"     : "open-url",
-    "+"     : "show-conversations",
-    "h"     : "refresh-or-back-to-timeline",
-    "s"     : "switch-to"
-};
-||<
-
-どのようなキーバインドとなっているかは、設定を見ていただければ分かるでしょう。気に入らなければ変更することも可能です。
-
-このままではアルファベットが入力できないので、もし絞り込み検索を行うためにアルファベットを入力したくなった場合は、 C-z キーを入力するか 「閉じる」 ボタン左の 「地球マーク」 をクリックし、編集モードへと切り替えてください。
-
-==== Enter ではなく Ctrl + Enter でポストするように ====
-
-Enter では誤爆が多いので Ctrl + Enter でポストするようにしたい、という方は次のような設定を .keysnail.js の PRESERVE エリアへ貼り付けておくとよいでしょう。
-
->||
-plugins.options["twitter_client.tweet_keymap"] = {
-    "C-RET" : "prompt-decide",
-    "RET"   : ""
-};
-||<
-
-==== ヘッダ ====
-
-TL 上部の 「ヘッダ」 部分には、選択中ユーザのアイコンやメッセージなどが表示されます。ユーザ名やアイコンの上へマウスカーソルを持っていくことで、そのユーザの自己紹介文を見ることが可能です。
-
-また、メッセージ中に @username といった表記や http:// といった URL があった場合は自動的にリンクが貼られます。このリンクをそのまま左クリックすると、リンク先へジャンプします。
-
-また、リンクの上で右クリックをすることにより、様々な処理を選ぶことも可能となっています。例えば j.mp や bit.ly のリンク上で右クリックをすれば、その URL が何回クリックされたかを調査することができます。自分の紹介した URL が全然クリックされていなくても、気にしないようにしましょう。世の中そんなものです。
-
-ヘッダ右上の 「閉じる」 ボタンは見落とされがちですが、有事の際には必ず役に立ってくれることでしょう。
-
-==== リスト ====
-
-リストの閲覧を行うためには .keysnail.js 内であらかじめ閲覧したいリストを登録しておく必要があります。
-
-以下に設定例を示します。
-
->||
-plugins.options["twitter_client.lists"] = ["stillpedant/js", "stillpedant/emacs"];
-||<
-
-twitter_client.lists には "ユーザ名/リスト名" といった文字列からなる配列を指定します。ゆえに、自分の作成したリストだけでなく他のユーザの作成したリストを登録することも可能です。
-
-閲覧したいリストは、マウスを使いヘッダのリスト一覧をクリックするか、キーボードを使い switch-to (C-i と押して選択するか、上の設定を行った場合は単に s と押せばよい) を実行することで選択できます。
-
-==== ステータスバーアイコン ====
-
-ステータスバーには二種類のアイコンが追加されます。
-
-「吹き出し」 アイコンを左クリックすると自分の TL が、 「封筒」 アイコンを左クリックすると自分宛のメッセージ (Mentions) が一覧表示されます。
-
-また、それぞれのアイコンを右クリックすることで、それ以外にも様々なコマンドを実行することが可能です。
-
-==== アクションの選択 ====
-
-タイムライン一覧でそのまま Enter キーを入力すると、つぶやき画面へ移行することができます。
-
-Enter ではなく Ctrl + i キーを押すことにより、様々なアクションを選ぶことも可能となっています。
-
-==== ちょっと便利な使い方 ====
-
-例えばみんながつぶやいているページを順番に見ていきたいというときは、次のようにします。
-
-+ Ctrl + i を押して 「メッセージ中の URL を開く」にカーソルを合わせる
-+ もう一度 Ctrl + i を押して TL 一覧へ戻る
-+ http と打ち込んで URL の載っているつぶやきだけを一覧表示する
-+ あとは Ctrl + Enter を押して (Ctrl がポイント！) 順番にページを開いていく
-
-ね、簡単でしょう？
-
-==== 自動更新  ====
-
-このクライアントは起動時にタイマーをセットし Twitter のタイムラインを定期的に更新します。
-
-twitter_client.update_interval に値を設定することにより、この間隔を変更することが可能となっています。
-
-==== ポップアップ通知  ====
-
-twitter_client.popup_new_statuses オプションが true に設定されていれば、新しいつぶやきが届いた際にポップアップで通知が行われるようになります。
-
-また、クライアント実行中にもアクションからこの値を切り替えることが可能です。
-
-=== つぶやき専用 ===
-
-つぶやき専用で TL の表示はしない、自動更新とかもいらないよ、という方向けの設定を以下に示します。
-
->||
-style.register("#keysnail-twitter-client-container{ display:none !important; }");
-plugins.options["twitter_client.popup_new_statuses"]           = false;
-plugins.options["twitter_client.automatically_begin"]          = false;
-plugins.options["twitter_client.automatically_begin_list"]     = false;
-plugins.options["twitter_client.timeline_count_beginning"]     = 0;
-plugins.options["twitter_client.timeline_count_every_updates"] = 0;
-||<
-
-この設定は http://10sr.posterous.com/tltweetkeysnail-yatwitterclient を参考にさせていただいたものです。
-]]></detail>
-</KeySnailPlugin>;
-
-// }} ======================================================================= //
-
-// ChangeLog {{ ============================================================= //
-//
-// ==== 2.1.6 (2010 09/09) ====
-//
-// * Exported twitterAPI
-// * AutoPagerize like previous message fetching
-//
-// ==== 2.1.4 (2010 05/26) ====
-//
-// * Display correct message when user send DM
-//
-// ==== 2.1.3 (2010 05/26) ===
-//
-// * Added word tracking feature.
-//
-// ==== 2.1.2 (2010 05/23) ====
-//
-// * Fixed the pop-up bug.
-// * Added *sent* DMs to the `DMs'
-//
-// ==== 2.1.0 (2010 05/23) ====
-//
-// * Added "unread count" for each `List'
-// * Made `List' statuses to be fetched automatically
-//
-// ==== 2.0.0 (2010 05/23) ====
-//
-// * Removed `Filter' (Redundant I think)
-// * Enhanced `List' support.
-// * Made code to be more generalized.
-//
-// ==== 1.6.4 (2010 03/14) ====
-//
-// * Added action refresh-or-back-to-timeline.
-//
-// ==== 1.6.3 (2010 03/14) ====
-//
-// * Now public method tweet() takes arguments
-//
-// ==== 1.6.2 (2010 03/03) ====
-//
-// * Made show-conversations works more speedy.
-//
-// ==== 1.6.1 (2010 03/03) ====
-//
-// * Added local action show-conversations.
-//
-// ==== 1.6.0 (2010 02/28) ====
-//
-// * Added support for hash tag.
-// * Added support for in_reply_to_status_id.
-//
-// ==== 1.5.9 (2010 02/26) ====
-//
-// * Added option prefer_screen_name whith allows user to display screen name instead of user name.
-//
-// ==== 1.5.8 (2010 02/23) ====
-//
-// * Added option jmp_id and jmp_key which allows user to use their account of j.mp
-//
-// ==== 1.5.7 (2010 02/20) ====
-//
-// * Added option tweet_keymap
-//
-// ==== 1.5.6 (2010 01/31) ====
-//
-// * Made official ReTweet to be displayed in the timeline (default green color)
-//
-// ==== 1.5.5 (2010 01/16) ====
-//
-// * Added popup_new_replies option.
-//   This option is only effective when the user set false to popup_new_statuses.
-//
-// ==== 1.5.4 (2010 01/03) ====
-//
-// * Set local keymap by default
-//
-// ==== 1.5.3 (2010 01/02) ====
-//
-// * Made unpopUppedStatuses global
-//
-// ==== 1.5.2 (2010 01/02) ====
-//
-// * Now user can select whether display header or not.
-// * Automatically retry when request fails.
-// * A lot of context menus are added.
-//   Right click on the icon in the statusbar and @foo, http:://* in the message.
-//
-// ==== 1.5.1 (2010 01/02) ====
-//
-// * Added fancy mode, gorgeous header. Annoying?
-//
-// ==== 1.5.0 (2009 12/31) ====
-//
-// * Refined codes. Cache updater become singleton. Less Twitter API consumption.
-//
-// ==== 1.4.6 (2009 12/24) ====
-//
-// * Due to inserted prompt.refresh in add favorite action, the star icon becomed to be applied immediately.
-//
-// ==== 1.4.5 (2009 12/22) ====
-//
-// * Added tsubuyaki-senyo settings (tweets only)
-//
-// ==== 1.4.4 (2009 12/17) ====
-//
-// * Fixed the problem that the , in the URL does not handled properly.
-// * Added mentions count and pretty icons.
-//
-// ==== 1.4.3 (2009 12/15) ====
-//
-// * Migrated from tinyurl to j.mp (bit.ly)
-//
-// ==== 1.4.2 (2009 12/15) ====
-//
-// * Added favorited icon and changed add-to-favorite action behavior.
-// * Made tweetWithTitleAndURL() recognize prefix argument.
-//
-// ==== 1.4.0 (2009 12/14) ====
-//
-// * Added local action system
-//
-// ==== 1.3.9 (2009 12/14) ====
-//
-// * Supported local keymap system
-//
-// ==== 1.3.8 (2009 12/05) ====
-//
-// * Supported % in the URL.
-// * xulGrowl prototype
-//
-// ==== 1.3.7 (2009 11/28) ====
-//
-// * Fixed the bug user can't cancel the action "search".
-//
-// ==== 1.3.6 (2009 11/24) ====
-//
-// * Added description for official RT
-//
-// ==== 1.3.5 (2009 11/24) ====
-//
-// * Supported official RT.
-//
-// ==== 1.3.4 (2009 11/23) ====
-//
-// * Supported multiple URL in the message.
-//
-// ==== 1.3.3 (2009 11/16) ====
-//
-// * Made all messages to be unescaped.
-//
-// ==== 1.3.2 (2009 11/13) ====
-//
-// * Added character count to the tweet phase.
-//
-// ==== 1.3.1 (2009 11/03) ====
-//
-// * Fixed the crucial bug in the combineJSONCache.
-//
-// ==== 1.3.0 (2009 11/03) ====
-//
-// * Refactored!
-// * Added action and ext manipulating favorites.
-//
-// ==== 1.2.8 (2009 11/01) ====
-//
-// * Fixed combineJSONCache again and again :(. I hope this fix the problem.
-//
-// ==== 1.2.8 (2009 11/01) ====
-//
-// * Fixed combineJSONCache again. (There were still bug ...)
-//
-// ==== 1.2.7 (2009 11/01) ====
-//
-// * Fixed combineJSONCache to avoid the status duplication which occured
-//   when user tweets and its status immediately added.
-//
-// ==== 1.2.6 (2009 10/31) ====
-//
-// * Cleaned up codes. (Mainly options default value handling.)
-// * Added "delete selected status" action.
-// * Made all actions use gOAuth.asyncRequest() instead of oauthSyncRequest().
-//
 // }} ======================================================================= //
