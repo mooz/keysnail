@@ -54,11 +54,11 @@ let hook = {
         if (!hook)
             return;
 
-        for (let [, action] in Iterator(hook)) {
+        for (let [i, action] in Iterator(hook)) {
             try {
                 action(arg);
             } catch (x) {
-                util.message("callHook (name = %s) :: %s\n%s", name, x, action);
+                util.error(x, "callHook %s[%s]", name, i);
             }
         }
     }
