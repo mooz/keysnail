@@ -30,7 +30,7 @@ Call twitter-client-display-timeline from ext.select() and twitter client will l
 
 You can bind twitter client to some key like below.
 
->||
+>|javascript|
 key.setViewKey("t",
     function (ev, arg) {
         ext.exec("twitter-client-display-timeline", arg);
@@ -41,7 +41,7 @@ Your timeline will be displayed when &apos;t&apos; key is pressed in the browser
 
 If you want to tweet directly, paste code like below to your .keysnail.js.
 
->||
+>|javascript|
 key.setGlobalKey(["C-c", "t"],
     function (ev, arg) {
         ext.exec("twitter-client-tweet", arg);
@@ -52,7 +52,7 @@ You can tweet by pressing C-c t.
 
 Next code allows you to tweet with the current page&apos;s title and URL by pressing C-c T.
 
->||
+>|javascript|
 key.setGlobalKey(["C-c", "T"],
     function (ev, arg) {
         ext.exec("twitter-client-tweet-this-page", arg);
@@ -63,7 +63,7 @@ key.setGlobalKey(["C-c", "T"],
 
 By inserting the code below to PRESERVE area in your .keysnail.js, you can manipulate this client more easily.
 
->||
+>|javascript|
 plugins.options["twitter_client.keymap"] = {
     "C-z"   : "prompt-toggle-edit-mode",
     "SPC"   : "prompt-next-page",
@@ -101,7 +101,7 @@ You can set options through your .keysnail.js.
 
 Here is the example settings. This makes twitter client plugin tweet-only.
 
->||
+>|javascript|
 style.register("#keysnail-twitter-client-container{ display:none !important; }");
 plugins.options["twitter_client.popup_new_statuses"]           = false;
 plugins.options["twitter_client.automatically_begin"]          = false;
@@ -121,7 +121,7 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 
 次のようにして任意のキーへコマンドを割り当てておくことも可能です。
 
->||
+>|javascript|
 key.setViewKey("t",
     function (ev, arg) {
         ext.exec("twitter-client-display-timeline", arg);
@@ -132,7 +132,7 @@ key.setViewKey("t",
 
 タイムラインを表示させず即座につぶやきたいという場合には、次のような設定がおすすめです。
 
->||
+>|javascript|
 key.setGlobalKey(["C-c", "t"],
     function (ev, arg) {
         ext.exec("twitter-client-tweet", arg);
@@ -143,7 +143,7 @@ key.setGlobalKey(["C-c", "t"],
 
 閲覧しているページのタイトルと URL をつぶやくことも可能です。以下のような設定を行っておきましょう。
 
->||
+>|javascript|
 key.setGlobalKey(["C-c", "T"],
     function (ev, arg) {
         ext.exec("twitter-client-tweet-this-page", arg);
@@ -155,7 +155,7 @@ key.setGlobalKey(["C-c", "T"],
 次のような設定を .keysnail.js の PRESERVE エリアへ貼り付けておくと、格段に操作がしやすくなります。
 (先ほどとは異なり .keysnail.js 先頭の PRESERVE エリアへ設定コードを記述しなければならないことに注意してください)
 
->||
+>|javascript|
 plugins.options["twitter_client.keymap"] = {
     "C-z"   : "prompt-toggle-edit-mode",
     "SPC"   : "prompt-next-page",
@@ -193,7 +193,7 @@ plugins.options["twitter_client.keymap"] = {
 
 Enter では誤爆が多いので Ctrl + Enter でポストするようにしたい、という方は次のような設定を .keysnail.js の PRESERVE エリアへ貼り付けておくとよいでしょう。
 
->||
+>|javascript|
 plugins.options["twitter_client.tweet_keymap"] = {
     "C-RET" : "prompt-decide",
     "RET"   : ""
@@ -216,7 +216,7 @@ TL 上部の 「ヘッダ」 部分には、選択中ユーザのアイコンや
 
 以下に設定例を示します。
 
->||
+>|javascript|
 plugins.options["twitter_client.lists"] = ["stillpedant/js", "stillpedant/emacs"];
 ||<
 
@@ -265,7 +265,7 @@ twitter_client.popup_new_statuses オプションが true に設定されてい�
 
 つぶやき専用で TL の表示はしない、自動更新とかもいらないよ、という方向けの設定を以下に示します。
 
->||
+>|javascript|
 style.register("#keysnail-twitter-client-container{ display:none !important; }");
 plugins.options["twitter_client.popup_new_statuses"]           = false;
 plugins.options["twitter_client.automatically_begin"]          = false;
