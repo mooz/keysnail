@@ -6,9 +6,6 @@
  */
 
 let hook = {
-    // ==== common ====
-    modules: null,
-
     // ==== hooks ====
     hookList: {},               // all hooks are stored in it
 
@@ -17,8 +14,8 @@ let hook = {
     },
 
     setWhetherDefinedInExternalFile: function (aFunction) {
-        if (this.modules.key.inExternalFile)
-            aFunction.ksDefinedInExternalFile = this.modules.key.inExternalFile;
+        if (key.inExternalFile)
+            aFunction.ksDefinedInExternalFile = key.inExternalFile;
     },
 
     setHook: function (aHookName, aFunction) {
@@ -61,7 +58,7 @@ let hook = {
             try {
                 action(arg);
             } catch (x) {
-                this.modules.util.message("callHook :: " + x);
+                util.message("callHook :: " + x);
             }
         }
     }
