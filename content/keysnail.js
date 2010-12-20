@@ -6,7 +6,9 @@
  */
 
 (function () {
-    // modules
+    let modules;
+
+    // each modules
     let my, share, persist, util, display, command, html, hook, macro, style,
     key, prompt, ext, shell, userscript, completer, vimp, L, M, plugins;
 
@@ -62,37 +64,34 @@
         function doInit() {
             // Arrange modules {{ ======================================================= //
 
-            var moduleObjects = ["Util",
-                                 "Display",
-                                 "Command",
-                                 "HTML",
-                                 "Hook",
-                                 "Macro",
-                                 "Style",
-                                 "Key",
-                                 "Prompt",
-                                 "Ext",
-                                 "Shell",
+            let moduleObjects = ["util",
+                                 "display",
+                                 "command",
+                                 "html",
+                                 "hook",
+                                 "macro",
+                                 "style",
+                                 "key",
+                                 "prompt",
+                                 "ext",
+                                 "shell",
                                  // UserScript must be the last
-                                 "UserScript"];
+                                 "userscript"];
 
-            let modules = this.modules.modules = this.modules;
+            modules = this.modules.modules = this.modules;
 
             // local namespace for user
-            this.My = {};
-            this.registerModule.call(this, "My");
+            modules.my = {};
 
             // global namespace for user
             try {
                 Components.utils.import("resource://keysnail-share/share.js", modules);
             } catch (x) {}
 
-            let self = this;
-            moduleObjects.forEach(function (name) { self.registerModule(name); });
-            moduleObjects.forEach(function (name) { self.initModule(name); });
+            for (let [, name] in Iterator(moduleObjects))
+                this.initModule(name);
 
             // set modules
-            modules    = modules.modules;
             my         = modules.my;
             share      = modules.share;
             persist    = modules.persist;
@@ -131,36 +130,28 @@
         },
 
         /**
-         * Register modules
-         * add given module to KeySnail.modules
-         * @param {[string]} aModuleName
-         */
-        registerModule: function (aModuleName) {
-            // KeySnail.Key => modules.key
-            // KeySnail.HTML => modules.html
-            this.modules[aModuleName.toLowerCase()] = this[aModuleName];
-            // this.modules.__defineGetter__(aModuleName.toLowerCase(), function () KeySnail[aModuleName]);
-        },
-
-        /**
          * Init modules
          * call each modules init() and add member 'modules' and 'parent'.
          * @param {[string]} aModuleName
          */
         initModule: function (aModuleName) {
-            if (!this[aModuleName])
-            {
+            if (!this[aModuleName]) {
                 this.message('initModule: module "' + aModuleName + '" is not loaded. Skip this module.');
                 return;
             }
 
+            let target = modules[aModuleName];
+
             // add member "modules" to each module Object
-            this[aModuleName].modules = this.modules;
+            target.modules = modules;
             // add member "parent" to each module Object
-            this[aModuleName].parent = this;
+            target.parent = this;
             // initialize module
-            this[aModuleName].init();
-            // this.message('initModule: module "' + aModuleName + '" initialized.');
+            try {
+                target.init();
+            } catch (x) {
+                util.message("Error KeySnail.initModule :: " + x);
+            }
         },
 
         /**
@@ -370,7 +361,7 @@
             try {
                 logs.logStringMessage(util.format.apply(null, arguments));
             } catch (x) {
-                logs.logStringMessage("KeySnail.message :: " + x);
+                logs.logStringMessage("Error KeySnail.message :: " + x);
             }
         },
 
