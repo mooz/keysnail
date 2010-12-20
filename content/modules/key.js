@@ -295,32 +295,27 @@ let key = {
 
         // inspired from feedSomeKey.js
         // http://coderepos.org/share/browser/lang/javascript/vimperator-plugins/trunk/feedSomeKey.js
-        if (aFrameNum != 0)
-        {
+        if (aFrameNum !== 0) {
             var frames = [];
 
             // push all frames (includes frames frames) to frames
-            (function (frame) {
-                 if (frame.document.body.localName.toLowerCase() == 'body')
-                 {
-                     frames.push(frame);
-                 }
+            (function frameCollector(frame) {
+                if (frame.document.body.localName.toLowerCase() === 'body')
+                    frames.push(frame);
 
-                 for (var i = 0; i < frame.frames.length; ++i)
-                 {
-                     arguments.callee(frame.frames[i]);
-                 }
-             })(window.content);
+                for (let i = 0, len = frame.frames.length; i < len; ++i)
+                    frameCollector(frame.frames[i]);
+            })(window.content);
 
             frames = frames.filter(function (frame) {
-                                       frame.focus();
-                                       return (document.commandDispatcher.focusedWindow == frame);
-                                   });
+                frame.focus();
+                return (document.commandDispatcher.focusedWindow === frame);
+            });
 
             if (aFrameNum < 0)
                 aFrameNum = frames.length + aFrameNum;
 
-            dest = frames[aFrameNum];
+            dest = frames[aFrameNum] || dest;
         }
 
         var target = dest.document.body || dest.document;
@@ -329,102 +324,24 @@ let key = {
             aKeys = [aKeys];
 
         if (typeof aType == "string")
-        {
             aType = [aType];
-        }
         else if (!(aType instanceof Array))
-        {
             aType = ["keydown", "keypress", "keyup"];
-        }
 
         target.focus();
 
         this.passAllKeys = true;
 
-        aKeys.forEach(
-            function (key) {
-                for (let [, type] in Iterator(aType))
-                {
-                    var event = this.stringToKeyEvent(key, true, type, true);
-                    // event.ksNoHandle becomes undefined while propagating
-                    target.dispatchEvent(event);
-                }
-            }, this);
-
-        this.passAllKeys = false;
-    },
-
-    /**
-     * key.feed is too heavy to call many times.
-     * This method makes key.feed like function for certain iframe.
-     * @param {integer} aFrameNum
-     */
-    getKeyFeeder: function (aFrameNum) {
-        if (typeof aFrameNum !== 'number')
-            aFrameNum = 0;
-
-        var dest = document.commandDispatcher.focusedWindow;
-
-        if (aFrameNum != 0)
-        {
-            var frames = [];
-
-            // push all frames (includes frames frames) to frames
-            (function (frame) {
-                 if (frame.document.body.localName.toLowerCase() == 'body')
-                 {
-                     frames.push(frame);
-                 }
-
-                 for (var i = 0; i < frame.frames.length; ++i)
-                 {
-                     arguments.callee(frame.frames[i]);
-                 }
-             })(window.content);
-
-            frames = frames.filter(function (frame) {
-                                       frame.focus();
-                                       return (document.commandDispatcher.focusedWindow == frame);
-                                   });
-
-            if (aFrameNum < 0)
-                aFrameNum = frames.length + aFrameNum;
-
-            dest = frames[aFrameNum];
+        for (let [, keyStr] in Iterator(aKeys)) {
+            for (let [, type] in Iterator(aType)) {
+                util.message("feed " + keyStr);
+                let event = this.stringToKeyEvent(keyStr, true, type, true);
+                // event.ksNoHandle becomes undefined while propagating
+                target.dispatchEvent(event);
+            }
         }
 
-        var target = dest.document.body || dest.document;
-        var self = this;
-
-        return function (aKeys, aType) {
-            if (typeof aKeys == "string")
-                aKeys = [aKeys];
-
-            if (typeof aType == "string")
-            {
-                aType = [aType];
-            }
-            else if (!(aType instanceof Array))
-            {
-                aType = ["keydown", "keypress", "keyup"];
-            }
-
-            target.focus();
-
-            self.passAllKeys = true;
-
-            aKeys.forEach(
-                function (key) {
-                    for (let [, type] in Iterator(aType))
-                    {
-                        var event = self.stringToKeyEvent(key, true, type, true);
-                        // event.ksNoHandle becomes undefined while propagating
-                        target.dispatchEvent(event);
-                    }
-                }, this);
-
-            self.passAllKeys = false;
-        };
+        this.passAllKeys = false;
     },
 
     // }} ======================================================================= //
@@ -468,19 +385,19 @@ let key = {
 
         // ----------------------------------------
 
-        var key = this.keyEventToString(aEvent);
+        var keyStr = this.keyEventToString(aEvent);
 
         if (this.escapeCurrentChar)
         {
             // no stop event propagation
-            this.backToNeutral(key + " Escaped", 3000);
+            this.backToNeutral(keyStr + " Escaped", 3000);
             return;
         }
 
-        if (!key)
+        if (!keyStr)
             return;
 
-        if (key == this.suspendKey)
+        if (keyStr == this.suspendKey)
         {
             util.stopEventPropagation(aEvent);
             this.suspended = !this.suspended;
@@ -499,7 +416,7 @@ let key = {
             hook.callHook("KeyPress", aEvent);
         } catch (x) {}
 
-        switch (key)
+        switch (keyStr)
         {
         case this.escapeKey:
             util.stopEventPropagation(aEvent);
@@ -552,15 +469,15 @@ let key = {
         if (this.inputtingPrefixArgument)
         {
             if (this.isNumKey(aEvent) ||
-                key == this.universalArgumentKey ||
+                keyStr == this.universalArgumentKey ||
                 ((this.currentKeySequence[this.currentKeySequence.length - 1] == this.universalArgumentKey) &&
-                 (key == '-')))
+                 (keyStr == '-')))
             {
                 // append to currentKeySequence, while the key event is number value.
                 // sequencial C-u like C-u C-u => 4 * 4 = 16 is also supported.
                 // sequencial C-u - begins negative prefix argument
                 util.stopEventPropagation(aEvent);
-                this.currentKeySequence.push(key);
+                this.currentKeySequence.push(keyStr);
                 display.echoStatusBar(this.currentKeySequence.join(" ") +
                                                    " [Prefix argument :: " +
                                                    this.parsePrefixArgument(this.currentKeySequence) + "]");
@@ -580,7 +497,7 @@ let key = {
         if (this.currentKeySequence.length)
         {
             // after second stroke
-            if (key == this.helpKey)
+            if (keyStr == this.helpKey)
             {
                 util.stopEventPropagation(aEvent);
                 this.interactiveHelp();
@@ -592,11 +509,11 @@ let key = {
         {
             // first stroke
             if (util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument")
-                && this.isPrefixArgumentKey(key, aEvent))
+                && this.isPrefixArgumentKey(keyStr, aEvent))
             {
                 // transit state: to inputting prefix argument
                 util.stopEventPropagation(aEvent);
-                this.currentKeySequence.push(key);
+                this.currentKeySequence.push(keyStr);
                 display.echoStatusBar(this.currentKeySequence.join(" ") +
                                                    " [Prefix argument :: " +
                                                    this.parsePrefixArgument(this.currentKeySequence) + "]");
@@ -605,7 +522,7 @@ let key = {
             }
 
             // decide which keymap to use
-            var modeName = this.getCurrentMode(aEvent, key);
+            var modeName = this.getCurrentMode(aEvent, keyStr);
 
             this.currentKeyMap = this.keyMapHolder[modeName];
         }
@@ -613,13 +530,13 @@ let key = {
         // KeySnail ignores the keybindings bounded with "null".
         // this is useful when keymap is the site-local
         // and user not want this "key" to handled by KeySnail.
-        if (key in this.currentKeyMap && this.currentKeyMap[key] === null)
+        if (keyStr in this.currentKeyMap && this.currentKeyMap[keyStr] === null)
         {
             this.backToNeutral("");
             return;
         }
 
-        if (!this.currentKeyMap[key])
+        if (!this.currentKeyMap[keyStr])
         {
             // if key is not found in the local key map
             // check for the global key map, using currentKeySequence
@@ -634,15 +551,15 @@ let key = {
             }
         }
 
-        if (this.currentKeyMap[key])
+        if (this.currentKeyMap[keyStr])
         {
             // prevent browser default behaviour
             util.stopEventPropagation(aEvent);
 
-            if (typeof(this.currentKeyMap[key]) == "function")
+            if (typeof(this.currentKeyMap[keyStr]) == "function")
             {
                 // save function and prefixArgument
-                var func = this.currentKeyMap[key];
+                var func = this.currentKeyMap[keyStr];
                 var arg  = this.prefixArgument;
                 this.backToNeutral("");
 
@@ -652,7 +569,7 @@ let key = {
             else
             {
                 // add key to the key sequece
-                this.currentKeySequence.push(key);
+                this.currentKeySequence.push(keyStr);
 
                 // Display key sequence
                 if (this.prefixArgumentString)
@@ -666,7 +583,7 @@ let key = {
                 }
 
                 // move to the next keymap
-                this.currentKeyMap = this.currentKeyMap[key];
+                this.currentKeyMap = this.currentKeyMap[keyStr];
             }
         }
         else
@@ -690,17 +607,17 @@ let key = {
 
                         for (let i in util.interruptibleRange(0, this.prefixArgument))
                         {
-                            if (key == "<tab>")
+                            if (keyStr == "<tab>")
                             {
                                 document.commandDispatcher.advanceFocus();
                             }
-                            else if (key == "S-<tab>")
+                            else if (keyStr == "S-<tab>")
                             {
                                 document.commandDispatcher.rewindFocus();
                             }
                             else
                             {
-                                aEvent.originalTarget.dispatchEvent(this.stringToKeyEvent(key, true));
+                                aEvent.originalTarget.dispatchEvent(this.stringToKeyEvent(keyStr, true));
                             }
                         }
                     }
@@ -810,7 +727,7 @@ let key = {
      * @returns {String} string expression of <aEvent>
      */
     keyEventToString: function (aEvent) {
-        var key;
+        var keyStr;
 
         // display.prettyPrint(
         //     ["char code :: " + aEvent.charCode,
@@ -823,17 +740,17 @@ let key = {
         if (this.isDisplayableKey(aEvent))
         {
             // ASCII displayable characters (0x20 : SPC)
-            key = String.fromCharCode(aEvent.charCode);
+            keyStr = String.fromCharCode(aEvent.charCode);
             if (aEvent.charCode == 0x20)
             {
-                key = "SPC";
+                keyStr = "SPC";
             }
         }
         else if (aEvent.keyCode >= KeyEvent.DOM_VK_F1 &&
                  aEvent.keyCode <= KeyEvent.DOM_VK_F24)
         {
             // function keys
-            key = "<f"
+            keyStr = "<f"
                 + (aEvent.keyCode - KeyEvent.DOM_VK_F1 + 1)
                 + ">";
         }
@@ -843,53 +760,53 @@ let key = {
             switch (aEvent.keyCode)
             {
             case KeyEvent.DOM_VK_ESCAPE:
-                key = "ESC";
+                keyStr = "ESC";
                 break;
             case KeyEvent.DOM_VK_RETURN:
             case KeyEvent.DOM_VK_ENTER:
-                key = "RET";
+                keyStr = "RET";
                 break;
             case KeyEvent.DOM_VK_RIGHT:
-                key = "<right>";
+                keyStr = "<right>";
                 break;
             case KeyEvent.DOM_VK_LEFT:
-                key = "<left>";
+                keyStr = "<left>";
                 break;
             case KeyEvent.DOM_VK_UP:
-                key = "<up>";
+                keyStr = "<up>";
                 break;
             case KeyEvent.DOM_VK_DOWN:
-                key = "<down>";
+                keyStr = "<down>";
                 break;
             case KeyEvent.DOM_VK_PAGE_UP:
-                key = "<prior>";
+                keyStr = "<prior>";
                 break;
             case KeyEvent.DOM_VK_PAGE_DOWN:
-                key = "<next>";
+                keyStr = "<next>";
                 break;
             case KeyEvent.DOM_VK_END:
-                key = "<end>";
+                keyStr = "<end>";
                 break;
             case KeyEvent.DOM_VK_HOME:
-                key = "<home>";
+                keyStr = "<home>";
                 break;
             case KeyEvent.DOM_VK_TAB:
-                key = "<tab>";
+                keyStr = "<tab>";
                 break;
             case KeyEvent.DOM_VK_BACK_SPACE:
-                key = "<backspace>";
+                keyStr = "<backspace>";
                 break;
             case KeyEvent.DOM_VK_PRINTSCREEN:
-                key = "<print>";
+                keyStr = "<print>";
                 break;
             case KeyEvent.DOM_VK_INSERT:
-                key = "<insert>";
+                keyStr = "<insert>";
                 break;
             case KeyEvent.DOM_VK_PAUSE:
-                key = "<pause>";
+                keyStr = "<pause>";
                 break;
             case KeyEvent.DOM_VK_DELETE:
-                key = "<delete>";
+                keyStr = "<delete>";
             case 0xE2:
                 /**
                  * windows specific bug
@@ -897,27 +814,27 @@ let key = {
                  * and the key code becomes 242 (0xE2)
                  */
                 if (aEvent.ctrlKey)
-                    key = "_";
+                    keyStr = "_";
                 break;
             default:
                 if (aEvent.keyCode in this.keyCode2Name)
-                    key = "<"+this.keyCode2Name[aEvent.keyCode]+">";
+                    keyStr = "<"+this.keyCode2Name[aEvent.keyCode]+">";
                 break;
             }
         }
 
-        if (!key)
+        if (!keyStr)
             return null;
 
         // append modifier
         if (this.isMetaKey(aEvent))
-            key = "M-" + key;
+            keyStr = "M-" + keyStr;
         if (this.isControlKey(aEvent))
-            key = "C-" + key;
+            keyStr = "C-" + keyStr;
         if (aEvent.shiftKey && (!this.isDisplayableKey(aEvent) || aEvent.charCode == 0x20))
-            key = "S-" + key;
+            keyStr = "S-" + keyStr;
 
-        return key;
+        return keyStr;
     },
 
     /**
@@ -1023,7 +940,7 @@ let key = {
                     let (keyName = aKey.replace(/^<|>$/g, "")) {
                         if (keyName in this.keyName2Code)
                             keyCode = this.keyName2Code[keyName];
-                    }
+                    };
                     break;
                 }
             }
@@ -1074,42 +991,40 @@ let key = {
     // Key map manipulation {{ ================================================== //
 
     declareKeyMap: function (aKeyMapName) {
-        this.keyMapHolder[aKeyMapName] = new Object();
+        this.keyMapHolder[aKeyMapName] = {};
     },
 
     copyKeyMap: function (aTargetKeyMapName, aDestinationKeyMapName) {
         var aTarget = this.keyMapHolder[aTargetKeyMapName];
         var aDestination = this.keyMapHolder[aDestinationKeyMapName];
 
-        for (var property in aTarget)
-        {
-            aDestination[property] = aTarget[property];
-        }
+        for (let [property, value] in Iterator(aTarget))
+            aDestination[property] = value;
     },
 
     registerKeySequence: function (aKeys, aFunc, aKeyMap) {
-        var key;
+        var keyStr;
         var to = aKeys.length - 1;
 
         for (var i = 0; i < to; ++i)
         {
-            key = aKeys[i];
+            keyStr = aKeys[i];
 
-            switch (typeof aKeyMap[key])
+            switch (typeof aKeyMap[keyStr])
             {
             case "function":
-                this.message("%s bound to [%s] overrided with the prefix key.",
-                             aKeyMap[key].ksDescription,
+                util.message("%s bound to [%s] overrided with the prefix key.",
+                             aKeyMap[keyStr].ksDescription,
                              aKeys.slice(0, i + 1).join(" "));
                 // no break;
             case "undefined":
                 // create a new (pseudo) aKeyMap
-                aKeyMap[key] = new Object();
+                aKeyMap[keyStr] = {};
                 break;
             }
 
             // dig, dig
-            aKeyMap = aKeyMap[key];
+            aKeyMap = aKeyMap[keyStr];
         }
 
         aKeyMap[aKeys[i]] = aFunc;
@@ -1182,19 +1097,19 @@ let key = {
      * @returns {keyMap} trailed keymap using <b>keyMap</b>. null when failed to trail
      */
     trailByKeySequence: function (aKeyMap, aKeySequence) {
-        var key;
+        var keyStr;
         var to = aKeySequence.length;
 
         for (var i = 0; i < to; ++i)
         {
-            key = aKeySequence[i];
+            keyStr = aKeySequence[i];
 
             // if we can't find key sequence specified by aKeySequence in aKeyMap, return null
-            if (typeof aKeyMap[key] !== "object")
+            if (typeof aKeyMap[keyStr] !== "object")
                 return null;
 
             // go to the next keymap (dig)
-            aKeyMap = aKeyMap[key];
+            aKeyMap = aKeyMap[keyStr];
         }
 
         return aKeyMap;
@@ -1363,30 +1278,26 @@ let key = {
      */
     generateKeyBindingRows: function (aContentHolder, aKeyMap, aKeySequence) {
         if (!aKeyMap)
-        {
             return;
-        }
 
         if (!aKeySequence)
-        {
             aKeySequence = [];
-        }
 
-        for (key in aKeyMap)
+        for (let [keyStr, cont] in Iterator(aKeyMap))
         {
-            switch (typeof(aKeyMap[key]))
+            switch (typeof cont)
             {
             case "function":
                 var pad = (aKeySequence.length == 0) ? "" : " ";
                 aContentHolder.push("<tr><td>" +
-                                    html.escapeTag(aKeySequence.join(" ") + pad + key) +
+                                    html.escapeTag(aKeySequence.join(" ") + pad + keyStr) +
                                     "</td>" + "<td>" +
-                                    html.escapeTag(aKeyMap[key].ksDescription) +
+                                    html.escapeTag(cont.ksDescription) +
                                     "</td></tr>");
                 break;
             case "object":
-                aKeySequence.push(key);
-                this.generateKeyBindingRows(aContentHolder, aKeyMap[key], aKeySequence);
+                aKeySequence.push(keyStr);
+                this.generateKeyBindingRows(aContentHolder, aKeyMap[keyStr], aKeySequence);
                 aKeySequence.pop();
                 break;
             }

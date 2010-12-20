@@ -1267,7 +1267,7 @@ var ksKeybindTreeView = {
         if (!aKeySequence)
             aKeySequence = [];
 
-        for (key in aKeyMap)
+        for (let key in aKeyMap)
         {
             switch (typeof aKeyMap[key])
             {

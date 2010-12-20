@@ -428,7 +428,7 @@ let ksPluginManager = (function () {
     function updateDisabledPluginList() {
         var disabledPlugins = [];
 
-        for (pluginPath in infoHolder) {
+        for (let pluginPath in infoHolder) {
             if (!infoHolder[pluginPath].status) {
                 disabledPlugins.push(pluginPath);
             }
