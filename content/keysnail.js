@@ -376,9 +376,10 @@
         },
 
         error: function (x, msg) {
-            this.message("error occured " + new Date());
-            if (msg)
-                this.message.apply(this, Array.slice(arguments, 1));
+            if (msg) {
+                msg = this.format.apply(this, Array.slice(arguments, 1));
+                this.message(msg + " :: " + x);
+            }
             Components.utils.reportError(x);
         },
 

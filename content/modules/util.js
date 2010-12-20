@@ -1479,9 +1479,9 @@ let util = function () {
 
         // }} ======================================================================= //
 
-        format: KeySnail.format,
-
-        message: KeySnail.message
+        format  : KeySnail.format,
+        message : KeySnail.message,
+        error   : KeySnail.error
     };
 
     return self;
