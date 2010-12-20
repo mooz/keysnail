@@ -683,11 +683,11 @@ let prompt = function () {
             return;
         }
 
-        var kStr = key.keyEventToString(aEvent);
+        var keyStr = key.keyEventToString(aEvent);
 
         var stopEventPropagation = true;
         var keymap  = selectorKeymap;
-        var command = keymap[kStr] || "";
+        var command = keymap[keyStr] || "";
 
         // gFlags is the global value
         var opts;
@@ -2156,7 +2156,7 @@ let prompt = function () {
                         let obj = root;
                         let all = query[query.length - 1] === ".";
 
-                        let key, prefix;
+                        let _key, prefix;
 
                         switch (state)
                         {
@@ -2170,7 +2170,7 @@ let prompt = function () {
                             break;
                         }
 
-                        if (!all) key = props.pop();
+                        if (!all) _key = props.pop();
 
                         prefix = props.reduce(function (a, c) {
                                                   c = propFilter(c);
@@ -2203,19 +2203,19 @@ let prompt = function () {
 
                                 // head
                                 keys = keys.filter(function (k) {
-                                                       if (k.indexOf(key) === 0) { matched.push(k); return false; }
+                                                       if (k.indexOf(_key) === 0) { matched.push(k); return false; }
                                                        return true;
                                                    });
 
                                 // ignore case
                                 keys = keys.filter(function (k) {
-                                                       if (k.toLowerCase().indexOf(key.toLowerCase()) === 0) { matched.push(k); return false; }
+                                                       if (k.toLowerCase().indexOf(_key.toLowerCase()) === 0) { matched.push(k); return false; }
                                                        return true;
                                                    });
 
                                 // substring
                                 keys = keys.filter(function (k) {
-                                                       if (k.toLowerCase().indexOf(key.toLowerCase()) !== -1) { matched.push(k); return false; }
+                                                       if (k.toLowerCase().indexOf(_key.toLowerCase()) !== -1) { matched.push(k); return false; }
                                                        return true;
                                                    });
 
@@ -2442,14 +2442,14 @@ let prompt = function () {
     function handleKeyPressRead(aEvent) {
         let stopEventPropagation = true;
 
-        let key    = key.keyEventToString(aEvent);
+        let keyStr = key.keyEventToString(aEvent);
         let keymap = readerKeymap;
 
         let direction = 0;
 
         let oldState = readerState;
 
-        switch (keymap[key])
+        switch (keymap[keyStr])
         {
         case "prompt-cancel":
             self.finish(true);
