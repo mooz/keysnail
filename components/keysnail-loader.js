@@ -110,8 +110,10 @@ KeySnailLoader.prototype = {
             "shell"
         ];
 
+        let context = win.KeySnail.modules;
+
         for (let [, module] in Iterator(modules))
-            loadModule(module, win);
+            loadModule(module, context);
     },
 
     hasInput: function (aDocument) {
