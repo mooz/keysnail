@@ -595,7 +595,7 @@ let key = {
             {
                 util.stopEventPropagation(aEvent);
                 this.backToNeutral(this.currentKeySequence.join(" ")
-                                   + " " + key + " is undefined", 3000);
+                                   + " " + keyStr + " is undefined", 3000);
             }
             else
             {
