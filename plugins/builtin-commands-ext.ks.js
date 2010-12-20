@@ -26,7 +26,7 @@ If you don't have the keybindings to display the ext, go to the preference dialo
 
 or put codes below to your .keysnail.js.
 
->||
+>|javascript|
 key.setGlobalKey('M-x', function (aEvent, aArg) {
     ext.select(aArg, aEvent);
 }, 'List exts and execute selected one');
@@ -48,7 +48,7 @@ You can list all builtin commands by pressing M-x.
 
 として追加するか、次のようなコードを .keysnail.js などの初期化ファイルへ記述して下さい。
 
->||
+>|javascript|
 key.setGlobalKey('M-x', function (aEvent, aArg) {
     ext.select(aArg, aEvent);
 }, 'エクステ一覧');

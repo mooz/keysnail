@@ -33,13 +33,13 @@ If you want other keys behave as Meta key, change value of the plugins.optioins[
 
 For example, by inserting the setting below to PRESERVE area of your .keysnail.js, you can use C-{ as the another meta key.
 
->||
+>|javascript|
 plugins.options["metaplus.metakeys"] = ["C-{"];
 ||<
 
 The settings below makes both ESC and C-{ behave as meta key.
 
->||
+>|javascript|
 plugins.options["metaplus.metakeys"] = ["ESC", "C-{"];
 ||<
 
@@ -61,13 +61,13 @@ ESC キー以外を Meta キーとして利用したい場合は metaplus.metake
 
 例えば .keysnail.js の PRESERVE エリアへ次のような設定を行っておくと、 C-{　を Meta キーとして振る舞わせることが可能となります。
 
->||
+>|javascript|
 plugins.options["metaplus.metakeys"] = ["C-{"];
 ||<
 
 ESC キーと C-{ の両方を Meta キーとして使いたい場合は、以下のようにします。
 
->||
+>|javascript|
 plugins.options["metaplus.metakeys"] = ["ESC", "C-{"];
 ||<
 
@@ -81,7 +81,7 @@ plugins.options["metaplus.metakeys"] = ["ESC", "C-{"];
 </KeySnailPlugin>;
 
 // ChangeLog {{ ============================================================= //
-// 
+//
 // ==== 0.0.2 (2010 01/20) ====
 //
 // * Added option metaplus.metakeys which allows user to use any keys as meta.

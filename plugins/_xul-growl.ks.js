@@ -20,7 +20,7 @@ var PLUGIN_INFO =
 === What's this ==='
 ==== Growl like notification interface ====
 
->||
+>|javascript|
 key.setGlobalKey("C-0", function (ev, arg) {
     var length = Math.round(10 * Math.random());
     plugins.lib.xulGrowl.update(
@@ -37,7 +37,7 @@ key.setGlobalKey("C-0", function (ev, arg) {
 === 説明 ===
 ==== Growl ライクな通知インタフェース ====
 
->||
+>|javascript|
 key.setGlobalKey("C-0", function (ev, arg) {
     var length = Math.round(10 * Math.random());
     plugins.lib.xulGrowl.update(

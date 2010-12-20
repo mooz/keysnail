@@ -62,7 +62,7 @@ You can reblog entry of blog, videos in YouTube, photos in Flickr, and of course
 
 Paste the code below to the bottom of your .keysnail.js.
 
->||
+>|javascript|
 key.defineKey([key.modes.VIEW, key.modes.CARET], 'r', function (ev, arg) {
     ext.exec("kungfloo-reblog", arg, ev);
 }, 'kungfloo - Reblog', true);
@@ -95,7 +95,7 @@ If you want to select where to post image, press 'R' instead of 'r'. By pressing
 
 If you are using Google Reader, the settings below allows you to reblog current item quickly.
 
->||
+>|javascript|
 local["^http://www.google.(co.jp|com)/reader/view/"] = [
     // Your local keybind settings here
     ["r", function () {
@@ -127,7 +127,7 @@ kungfloo はキーボードだけで Tombloo を操作する為に作られた K
 
 以下のような設定を .keysnail.js の末尾へ挿入しておきます。
 
->||
+>|javascript|
 key.defineKey([key.modes.VIEW, key.modes.CARET], 'r', function (ev, arg) {
     ext.exec("kungfloo-reblog", arg, ev);
 }, 'kungfloo - Reblog', true);
@@ -164,7 +164,7 @@ HoK をインストールした後 ; などのキーを入力して拡張ヒン�
 
 Google Reader をお使いの方は、次のような設定を行っておくと現在閲覧中のアイテムを簡単に Reblog することができて便利です。
 
->||
+>|javascript|
 local["^http://www.google.(co.jp|com)/reader/view/"] = [
     // 略
     ["r", function () {

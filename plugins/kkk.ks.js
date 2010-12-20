@@ -24,13 +24,13 @@ This plugin prevents certain sites from handling keyup and keydown event.
 
 For example, the setting below kills shortcut keys of GitHub Wiki.
 
->||
+>|javascript|
 plugins.options["kkk.sites"] = ["^https?://wiki\\.github\\.com/"];
 ||<
 
 If you want to kill shortcut keys of everywhere in GitHub, paste the code below to the PRESERVE area in your .keysnail.js file.
 
->||
+>|javascript|
 plugins.options["kkk.sites"] = ["^https?://([0-9a-zA-Z]+\\.)?github\\.com/"];
 ||<
 	       ]]></detail>
@@ -41,13 +41,13 @@ plugins.options["kkk.sites"] = ["^https?://([0-9a-zA-Z]+\\.)?github\\.com/"];
 
 例えば GitHub の Wiki ページで KeySnail のショートカットキーを使いたければ、次のような設定を .keysnail.js の PRESERVE エリアへ張り付けておくと良いでしょう。
 
->||
+>|javascript|
 plugins.options["kkk.sites"] = ["^https?://wiki\\.github\\.com/"];
 ||<
 
 GitHub 全体でショートカットキーを無効にさせたい場合は、次のようにします。
 
->||
+>|javascript|
 plugins.options["kkk.sites"] = ["^https?://([0-9a-zA-Z]+\\.)?github\\.com/"];
 ||<
 

@@ -46,7 +46,7 @@ http://www.pitecan.com/DynamicMacro/
 
 Pasete settings below to your .keysnail.js.
 
->||
+>|javascript|
 key.setEditKey('M-@', function (ev) {
     ext.exec("dmacro-exec");
 }, 'Dynamic macro');
@@ -59,7 +59,7 @@ Repetition of the manipulation will be detected automatically and it will be rep
 
 If you want detection to be more strictly, paste the settings below to the PRESERVE area in your .keysnail.js file.
 
->||
+>|javascript|
 plugins.options["dmacro.predicate_length"] = 10;
 ||<
     ]]></detail>
@@ -81,7 +81,7 @@ http://www.pitecan.com/DynamicMacro/
 
 次のような設定を .keysnail.js の末尾へ貼り付けておきます。
 
->||
+>|javascript|
 key.setEditKey('M-@', function (ev) {
     ext.exec("dmacro-exec");
 }, 'Dynamic macro');
@@ -94,7 +94,7 @@ key.setEditKey('M-@', function (ev) {
 
 繰り返しの誤爆が大きいな、と感じる方は .keysnail.js の PRESERVE エリアへ次のような設定を行っておくと良いでしょう。
 
->||
+>|javascript|
 plugins.options["dmacro.predicate_length"] = 10;
 ||<
 
@@ -279,7 +279,7 @@ let dmacro =
                                            event.metaKey,
                                            event.keyCode,
                                            event.charCode);
-                    
+
                      target.dispatchEvent(newEvent);
                  }
              }

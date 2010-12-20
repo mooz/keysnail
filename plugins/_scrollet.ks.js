@@ -806,7 +806,7 @@ Scrollet provides the mark system which allows you to record the current scroll 
 
 Paste the code below to the bottom of your .keysnail.js.
 
->||
+>|javascript|
 key.setGlobalKey("C-1", function (ev, arg) {
     ext.exec("scrollet-set-mark", arg, ev);
 }, "Save current scroll position to the mark", true);
@@ -822,7 +822,7 @@ You can recover the scroll / caret position by pressing C-2 and the key which ha
 
 Here is the settings which emulates the keybindings of register in Emacs.
 
->||
+>|javascript|
 key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
     ext.exec("scrollet-set-mark", arg, ev);
 }, "Save current scroll position to the mark", true);
@@ -836,7 +836,7 @@ key.setGlobalKey(['C-x', 'r', 'j'], function (ev, arg) {
 
 If you want to scroll half a page down by SPC and C-v, paste the code below to the bottom of your .keysnail.js.
 
->||
+>|javascript|
 key.setViewKey([['SPC'], ['C-v']], function (ev, arg) {
     ext.exec("scrollet-scroll-document-down", arg);
 }, 'Scroll document down');
@@ -848,7 +848,7 @@ key.setViewKey([['b'], ['M-v']], function (ev, arg) {
 
 You can scroll to the {prefix argument} percent of the document by putting the setting belowto your .keysnail.js.
 
->||
+>|javascript|
 key.setViewKey('%', function (ev, arg) {
     ext.exec("scrollet-scroll-percent", arg);
 }, 'Scroll to {prefix argument} percent of the document');
@@ -882,7 +882,7 @@ These picked up methods are especially useful.
 
 次のような設定を .keysnail.js ファイル末尾へ張り付けてみてください。
 
->||
+>|javascript|
 key.setGlobalKey("C-1", function (ev, arg) {
     ext.exec("scrollet-set-mark", arg, ev);
 }, "現在の位置をマークに保存", true);
@@ -900,7 +900,7 @@ C-1 を押すとプロンプトが現れるので、適当なキー (アルフ�
 
 以下に Emacs のレジスタシステムに似たキーバインド例を示します。長ったらしいですが、何回も打ち込んでいると慣れてくるものです。
 
->||
+>|javascript|
 key.setGlobalKey(['C-x', 'r', 'SPC'], function (ev, arg) {
     ext.exec("scrollet-set-mark", arg, ev);
 }, "現在の位置をマークに保存", true);
@@ -918,7 +918,7 @@ Firefox デフォルトのスクロールコマンドはあまり融通が効き
 
 例えば半画面スクロール。 SPC と C-v は半画面スクロールが良い！ という方は次のような設定を .keysnail.js の末尾へ張り付けておきましょう。
 
->||
+>|javascript|
 key.setViewKey([['SPC'], ['C-v']], function (ev, arg) {
     ext.exec("scrollet-scroll-document-down", arg);
 }, '半画面スクロールダウン');
@@ -930,7 +930,7 @@ key.setViewKey([['b'], ['M-v']], function (ev, arg) {
 
 また、今見ているページの「75 パーセント辺りまでスクロールしたいな」というときは次のキーバインドが使えます。
 
->||
+>|javascript|
 key.setViewKey('%', function (ev, arg) {
     ext.exec("scrollet-scroll-percent", arg);
 }, '前置引数で指定した割合までページをスクロール');

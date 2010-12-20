@@ -14,7 +14,7 @@ const PLUGIN_INFO =
     <detail><![CDATA[
 === Example key settings ===
 
->||
+>|javascript|
 key.defineKey([key.modes.VIEW, key.modes.CARET],
               'N',
               function (ev) {

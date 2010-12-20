@@ -63,7 +63,7 @@ By default, keybindings listed below are disabled in the LDRize enabled site.
 
 You can customize the keybindings via the .keysnail.js file.
 
->||
+>|javascript|
 plugins.options["prefer_ldrize.keymap"] = {
     ":"   : null,
     "j"   : null,
@@ -76,7 +76,7 @@ plugins.options["prefer_ldrize.keymap"] = {
 
 You can also set functions to the keymap.
 
->||
+>|javascript|
 plugins.options["prefer_ldrize.keymap"] = {
     ":"   : null,
     "m"   : function (ev, arg) {
@@ -95,7 +95,7 @@ plugins.options["prefer_ldrize.keymap"] = {
 
 If you want Prefer LDRize to be suspend in the certain site LDRize enabled, paste the code like below example to your .keysnail.js file.
 
->||
+>|javascript|
 plugins.options["prefer_ldrize.black_list"] = [
     "www\\.youtube\\.com/watch.*",
     "(www|tw|es|de|)\\.nicovideo\\.jp/watch/.*"
@@ -128,7 +128,7 @@ LDRize が有効となっているサイトで、 KeySnail のキーバインド
 
 無効とするキーバインドを変更したい場合は .keysnail.js 内で次のようにして設定して下さい。
 
->||
+>|javascript|
 plugins.options["prefer_ldrize.keymap"] = {
     ":"   : null,
     "j"   : null,
@@ -145,7 +145,7 @@ plugins.options["prefer_ldrize.keymap"] = {
 
 また、上記で null としているところに関数を指定することも可能となっています。これが何の役に立つかは、あなた次第です。
 
->||
+>|javascript|
 plugins.options["prefer_ldrize.keymap"] = {
     ":"   : null,
     "m"   : function (ev, arg) {
@@ -166,7 +166,7 @@ plugins.options["prefer_ldrize.keymap"] = {
 
 LDRize 対応のサイトでも、 KeySnail で定義したほうのキーバインドを優先させたい。いちいち Prefer LDRize をサスペンドするのは面倒だ、という方は次のような設定を初期化ファイルへ仕込んでおくと幸せになれます。
 
->||
+>|javascript|
 plugins.options["prefer_ldrize.black_list"] = [
     "www\\.youtube\\.com/watch.*",
     "(www|tw|es|de|)\\.nicovideo\\.jp/watch/.*"
@@ -189,18 +189,18 @@ LDRize と KeySnail で快適なブラウジングを！
 // }} ======================================================================= //
 
 // ChangeLog {{ ============================================================= //
-// 
+//
 // ==== 1.0.5 (2010 01/06) ====
-// 
+//
 // * Fixed the bug when this plugin reloaded, the evalInSandbox of GM
 //   sometimes becomes strange and cause odd behavior.
-// 
+//
 // ==== 1.0.4 (2009 11/14) ====
-// 
+//
 // * Added suspend icon.
-// 
+//
 // * Made status site local.
-// 
+//
 // * Fixed the bug that when use reload this plugin, suspend function does not work
 //
 // ==== 1.0.3 (2009 11/14) ====
@@ -425,7 +425,7 @@ var preferLDRize =
 
              try
              {
-                 
+
                  if (sandbox.window.Minibuffer != undefined && sandbox.window.LDRize != undefined)
                  {
                      sandbox.window.addEventListener("focus", function () {

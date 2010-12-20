@@ -57,7 +57,7 @@ This plugin enables you to list bookmarks / bookmarklets using prompt.selector (
 
 By pasting the settings below to the bottom of your .keysnail.js, you can list all bookmarks by pressing : b.
 
->||
+>|javascript|
 key.setViewKey([':', 'b'], function (ev, arg) {
     ext.exec("bmany-list-all-bookmarks", arg, ev);
 }, 'bmany - List all bookmarks');
@@ -81,7 +81,7 @@ Once you select the item, press Enter or C-m and you can go to that page. By def
 
 For example, the setting below changes the default behavior to "Open item in the new foreground tab" from "Open item in the current tab". You can paste this setting to the PRESERVE area in your .keysnail.js.
 
->||
+>|javascript|
 plugins.options["bmany.default_open_type"] = "tab";
 ||<
 
@@ -101,7 +101,7 @@ Nice icon from http://www.pixel-mixer.com
 
 次のような設定を .keysnail.js の末尾へ仕込んでおけば : b と入力することによりブックマークを一覧表示し、アイテムを選択して開くなどすることが可能となります。
 
->||
+>|javascript|
 key.setViewKey([':', 'b'], function (ev, arg) {
     ext.exec("bmany-list-all-bookmarks", arg, ev);
 }, 'ブックマーク');
@@ -125,7 +125,7 @@ key.setViewKey([':', 'k'], function (ev, arg) {
 
 例えばデフォルトで「新しいタブを開きフォーカスを当てる」としたい場合は、次のような設定を .keysnail.js の PRESERVE エリアへ張り付ければ良いでしょう。
 
->||
+>|javascript|
 plugins.options["bmany.default_open_type"] = "tab";
 ||<
 
@@ -137,7 +137,7 @@ plugins.options["bmany.default_open_type"] = "tab";
 
 例えば次のような設定を .keysnail.js の PRESERVE エリアへ含めておくことにより Ctrl + Enter で「新しいタブでブックマークを開く(前面)」というアクションを実行することが可能となります。
 
->||
+>|javascript|
 plugins.options["bmany.keymap"] = {
     "C-RET" : "open-foreground-tab,c"
 };
@@ -152,7 +152,7 @@ plugins.options["bmany.keymap"] = {
 
 次の設定ではコマンドに cn といったフラグを追加しています。 c (continuous) は「コマンド実行後、プロンプトが閉じないようにする」ものであり、 n (next) は「コマンド実行後、一つ下へと自動的に移動する」というものです。
 
->||
+>|javascript|
 plugins.options["bmany.keymap"] = {
     "O" : "open-background-tab,cn"
 };

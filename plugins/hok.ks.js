@@ -111,7 +111,7 @@ var PLUGIN_INFO =
 
 Paste code below to your .keysnail.js file.
 
->||
+>|javascript|
 key.setViewKey('e', function (aEvent, aArg) {
     ext.exec("hok-start-foreground-mode", aArg);
 }, 'Hok - Foreground hint mode', true);
@@ -135,7 +135,7 @@ In this example, you can start hah by pressing e key in the view mode.
 
 You can change keys for generating hints to paste the code with following form to your .keysnail.js file.
 
->||
+>|javascript|
 plugins.options["hok.hint_keys"] = "0123456789";
 ||<
 
@@ -143,7 +143,7 @@ In this example, you make this plugin to use number keys instead of the alphabet
 
 Style of the hints can be customized by changing the value of hint_base_style.
 
->||
+>|javascript|
 plugins.options["hok.hint_base_style"] = {
     position        : 'absolute',
     zIndex          : '2147483647',
@@ -159,7 +159,7 @@ plugins.options["hok.hint_base_style"] = {
 
 Each background color of hints for link, form, focused can be changed by following forms.
 
->||
+>|javascript|
 plugins.options["hok.hint_color_link"]    = 'rgba(180, 255, 81, 0.7)';
 plugins.options["hok.hint_color_form"]    = 'rgba(157, 82, 255, 0.7)';
 plugins.options["hok.hint_color_focused"] = 'rgba(255, 82, 93, 0.7)';
@@ -167,7 +167,7 @@ plugins.options["hok.hint_color_focused"] = 'rgba(255, 82, 93, 0.7)';
 
 If you are familiar with the XPath and want this plugin to use arbitrary one, you can set the query.
 
->||
+>|javascript|
 plugins.options["hok.selector"] = 'a, textarea, button';
 ||<
 	       ]]></detail>
@@ -178,7 +178,7 @@ plugins.options["hok.selector"] = 'a, textarea, button';
 
 次のようにして適当なキーへ HoK を割り当てておきましょう。
 
->||
+>|javascript|
 key.setViewKey('e', function (aEvent, aArg) {
     ext.exec("hok-start-foreground-mode", aArg);
 }, 'Hit a Hint を開始', true);
@@ -210,7 +210,7 @@ HoK でヒントを選択しタブを開こうとしたときポップアップ�
 
 ヒントに用いるキーは次のようにして変更することが可能です。
 
->||
+>|javascript|
 plugins.options["hok.hint_keys"] = "0123456789";
 ||<
 
@@ -218,7 +218,7 @@ plugins.options["hok.hint_keys"] = "0123456789";
 
 ヒントのスタイルは hint_base_style で設定することが可能です。
 
->||
+>|javascript|
 plugins.options["hok.hint_base_style"] = {
     position        : 'absolute',
     zIndex          : '2147483647',
@@ -234,7 +234,7 @@ plugins.options["hok.hint_base_style"] = {
 
 ヒントの背景色については hint_color_link, hint_color_form, hint_color_focused の値を変更してください。
 
->||
+>|javascript|
 plugins.options["hok.hint_color_link"]       = 'rgba(180, 255, 81, 0.9)';
 plugins.options["hok.hint_color_form"]       = 'rgba(157, 82, 255, 0.9)';
 plugins.options["hok.hint_color_candidates"] = 'rgba(240, 82, 93, 0.9)';
@@ -243,7 +243,7 @@ plugins.options["hok.hint_color_focused"]    = 'rgba(255, 4, 5, 1.0)';
 
 Selectors API を知っていてカスタマイズしたいという方は、次のようにしてヒント取得用のクエリを変更することもできます。
 
->||
+>|javascript|
 plugins.options["hok.selector"] = 'a, textarea, button';
 ||<
 
@@ -251,7 +251,7 @@ plugins.options["hok.selector"] = 'a, textarea, button';
 
 次のような設定を .keysnail.js 内に含めておくと、 Vimperator における拡張ヒントモードのようなことを行うことができるようになります。
 
->||
+>|javascript|
 key.setViewKey(';', function (aEvent, aArg) {
     ext.exec("hok-start-extended-mode", aArg);
 }, 'HoK - 拡張ヒントモード', true);
@@ -265,7 +265,7 @@ key.setViewKey(';', function (aEvent, aArg) {
 
 アクションはユーザが独自に追加することもできます。次のような設定を .keysnail.js 内に張り付けてみてください。
 
->||
+>|javascript|
 plugins.options["hok.actions"] = [
     ['1',
      M({ja: "画像の URL をコピー", en: "Copy image's url"}),
@@ -284,10 +284,9 @@ plugins.options["hok.actions"] = [
 
 各アクションは次のような形式となります。
 
->||
-['キー', '説明',
- function (elem) { /* elem を使った処理 */ },
- autoFire を抑制するか, continuous とするか, 'Selectors API のクエリ']
+>|javascript|
+['キー', '説明', function (elem) { /* elem を使った処理 */ },
+ /* autoFire を抑制するか */, /* continuous とするか */, 'Selectors API のクエリ']
 ||<
 
 関数にはヒントを使って選択した要素が渡ります。 elem.href とすればリンクの URL が得られ、 elem.textContent とすればそのリンクのテキストが得られます。画像であれば elem.src としてその URL を得ることも出来ます。
@@ -298,7 +297,7 @@ plugins.options["hok.actions"] = [
 
 次のようにして、サイト毎にクエリを追加したり、変更したりすることが可能です。
 
->||
+>|javascript|
 plugins.options["hok.local_queries"] = [
     ["^http://www\\.google\\.(co\\.jp|com)/reader/view/", "*.unselectable, *.link"]
 ];

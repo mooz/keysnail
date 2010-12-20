@@ -36,8 +36,7 @@ var PLUGIN_INFO =
 
 Paste the code below to your .keysnail.js PRESERVE area or preserved codes area in the setting dialog.
 
->||
->||
+>|javascript|
 var local = {};
 plugins.options["site_local_keymap.local_keymap"] = local;
 
@@ -166,7 +165,7 @@ When null is specified, keysnail ignores the key pressed in that site. This is u
 
 You can switch "Shotcut keys in that site" and "KeySnail's keybindings" by calling site-local-keymap-toggle-status.
 
->||
+>|javascript|
 key.setGlobalKey("C-;", function (ev, arg) {
     ext.exec("site-local-keymap-toggle-status", arg, ev);
 }, 'Site local keymap', true);
@@ -178,7 +177,7 @@ key.setGlobalKey("C-;", function (ev, arg) {
 
 .keysnail.js の PRESERVE エリアか設定ダイアログ内「その他のコード」へ、次のようなコードを張り付けます。'"
 
->||
+>|javascript|
 var local = {};
 plugins.options["site_local_keymap.local_keymap"] = local;
 
@@ -309,7 +308,7 @@ null が指定された場合、 KeySnail はそのサイトにいる間、そ�
 
 以下のようにして適当なキーへ site-local-keymap-toggle-status を割り当てておけば、ワンキーで「サイト側のショートカットキー」と「KeySnail のキーバインド」を切り替えることが可能となりとても便利です。
 
->||
+>|javascript|
 key.setGlobalKey("C-;", function (ev, arg) {
     ext.exec("site-local-keymap-toggle-status", arg, ev);
 }, 'Site local keymap', true);

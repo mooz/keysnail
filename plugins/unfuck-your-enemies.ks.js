@@ -34,7 +34,7 @@ var PLUGIN_INFO =
 
 Paste the code below to your .keysnail.js PRESERVE area or preserved codes area in the setting dialog.
 
->||
+>|javascript|
 plugins.options["unfuck_your_enemies.site_info"] = {
     "http://github\\.com/[^/]+/[^/]+/raw/.+/([^?]+)": {
         xpi: ["application/zip", "attachment"]
@@ -66,7 +66,7 @@ You can omit disposition (attachment / inline). IF disposition is omitted, the v
 
 次のような設定を .keysnail.js の PRESERVE エリアか設定ダイアログ内「その他のコード」へ張り付けてください。
 
->||
+>|javascript|
 plugins.options["unfuck_your_enemies.site_info"] = {
     "http://github\\.com/[^/]+/[^/]+/raw/.+/([^?]+)": {
         xpi: ["application/zip", "attachment"]
