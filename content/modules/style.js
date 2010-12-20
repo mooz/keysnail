@@ -10,18 +10,14 @@ let style = function () {
      * @private
      */
 
-    var modules;
-
     const Cc = Components.classes;
     const Ci = Components.interfaces;
 
     const XHTML = "@namespace url('http://www.w3.org/1999/xhtml');";
     const XUL   = "@namespace url('http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul');";
 
-    const ios = Components.classes["@mozilla.org/network/io-service;1"]
-        .getService(Components.interfaces.nsIIOService);
-    const sss = Components.classes["@mozilla.org/content/style-sheet-service;1"]
-        .getService(Components.interfaces.nsIStyleSheetService);
+    const ios = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+    const sss = Cc["@mozilla.org/content/style-sheet-service;1"].getService(Ci.nsIStyleSheetService);
 
     function cssURI(aCss, aNs) {
         return ios.newURI((aCss.indexOf("file://") === 0) ?
@@ -45,7 +41,6 @@ let style = function () {
      */
     var self = {
         init: function () {
-            modules = this.modules;
         },
 
         prompt: {
