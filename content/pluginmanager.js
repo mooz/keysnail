@@ -425,7 +425,7 @@ let ksPluginManager = (function () {
 
     function prettifyAll() {
         let ev = document.createEvent("CommandEvent");
-        ev.initCommandEvent("PrettifyAll", true, false, "pre");
+        ev.initCommandEvent("PrettifyAll", true, false, "pre[data-lang=javascript]");
         iframeDoc.dispatchEvent(ev);
     }
 

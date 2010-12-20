@@ -30,17 +30,17 @@
                 <h2>&keySnail.pluginManager.ext.title;</h2>
                 <p>&keySnail.pluginManager.ext.description1;</p>
                 <p>&keySnail.pluginManager.ext.description2;</p>
-                <pre>key.setGlobalKey('M-x', function (aEvent, aArg) {
+                <pre data-lang="javascript">key.setGlobalKey('M-x', function (aEvent, aArg) {
     ext.select(aArg, aEvent);
 }, '&keySnail.pluginManager.ext;', true);</pre>
                 <p>&keySnail.pluginManager.ext.description3;</p>
-                <pre>ext.add("change-locale-to-english", function () {
+                <pre data-lang="javascript">ext.add("change-locale-to-english", function () {
     util.setUnicharPref("general.useragent.locale", "en-US");
 }, "Change locale to english");</pre>
                 <h2>&keySnail.pluginManager.option.title;</h2>
                 <p>&keySnail.pluginManager.option.description1;</p>
                 <p>&keySnail.pluginManager.option.description2;</p>
-                <pre>plugins.options["foo_bar.option1"] = true;</pre>
+                <pre data-lang="javascript">plugins.options["foo_bar.option1"] = true;</pre>
             </div>
             <div id="info-box">
             </div>
