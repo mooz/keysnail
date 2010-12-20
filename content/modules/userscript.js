@@ -172,26 +172,28 @@ const userscript = {
             if (info && !("options" in info))
                 info.appendChild(<options></options>);
 
-            for (let [name, { "default"     : value,
-                              "description" : description,
-                              "type"        : type }] in Iterator(defaults)) {
+            for (let [name, { preset, description, type, hidden }] in Iterator(defaults)) {
                 let fullName = prefix + "." + name;
 
+                // XXX: bind values
+                let _preset = preset;
+                let _name   = name;
                 options.__defineGetter__(name, function () {
+                    util.message("preset for %s (%s) :: " + _preset, _name, fullName);
                     return (fullName in plugins.options) ?
-                        plugins.options[fullName] : value;
+                        plugins.options[fullName] : _preset;
                 });
 
                 options.__defineSetter__(name, function (val) {
                     plugins.options[fullName] = val;
                 });
 
-                if (info) {
+                if (info && !hidden) {
                     info.options.appendChild(
                             <option>
                                 <name>{fullName}</name>
-                                <type>{type || typeof value}</type>
-                                <description>{description}</description>
+                                <type>{type || typeof preset}</type>
+                                <description>{description || ""}</description>
                             </option>
                     );
                 }
