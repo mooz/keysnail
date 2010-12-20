@@ -375,6 +375,13 @@
             }
         },
 
+        error: function (x, msg) {
+            this.message("error occured " + new Date());
+            if (msg)
+                this.message.apply(this, Array.slice(arguments, 1));
+            Components.utils.reportError(x);
+        },
+
         /**
          * For checking the "LocationChange"
          */
