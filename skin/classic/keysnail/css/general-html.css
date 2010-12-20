@@ -124,6 +124,20 @@ pre {
     overflow           : auto;
 }
 
+pre[data-lang]:after {
+    text-align     : right;
+    display        : block;
+    content        : attr(data-lang);
+    color          : #cdcdcd;
+    font-size      : 130%;
+    font-weight    : bold;
+    font-family    : "Gill Sans", Helvetica, Arial, sans-serif;
+    text-transform : uppercase;
+    margin-top     : 6px;
+    margin-bottom  : -13px;
+    margin-right   : -6px;
+}
+
 table {
 text-align:left;
 font-family:'Helvetica', 'Arial', sans-serif;
