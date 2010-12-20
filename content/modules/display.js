@@ -9,7 +9,6 @@ let display = (function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
     const NOTIFY_ID = "ks-notify-message";
-    let modules;
 
     // ==== status bar ====
     let statusBar;            // reference to the status bar
@@ -20,7 +19,7 @@ let display = (function () {
     let smooth = 15;
 
     function fade(aProcess, aFinally, aInterval, aCount) {
-        modules.util.sleep(aInterval);
+        util.sleep(aInterval);
 
         if (aCount > 0)
         {
@@ -35,7 +34,7 @@ let display = (function () {
     }
 
     function tween(aProcess, aFinally, aTotalsec) {
-        modules.util.sleep(aTotalsec);
+        util.sleep(aTotalsec);
 
         if (aTotalsec > 1) {
             aProcess(aTotalsec);
@@ -116,7 +115,7 @@ let display = (function () {
         handleEvent: function (ev) {
             if (ev.type === "keypress")
             {
-                let k = modules.key.keyEventToString(ev);
+                let k = key.keyEventToString(ev);
 
                 if (k === "ESC")
                 {
@@ -132,8 +131,6 @@ let display = (function () {
 
     let self = {
         init: function () {
-            modules = this.modules;
-
             statusBar = document.getElementById('statusbar-display');
             echoArea  = document.getElementById('keysnail-echo-area');
 
@@ -216,7 +213,7 @@ let display = (function () {
             let doc = content ? content.document : document;
             let dBody = doc.body;
 
-            if (!dBody || modules.util.isFrameSetWindow(content))
+            if (!dBody || util.isFrameSetWindow(content))
             {
                 window.alert(aMsg);
                 return;
