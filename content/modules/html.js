@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-KeySnail.HTML = {
+let html = {
     // ==== common ====
     modules: null,
 

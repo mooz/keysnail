@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-KeySnail.Hook = {
+let hook = {
     // ==== common ====
     modules: null,
 

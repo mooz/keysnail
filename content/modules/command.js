@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-KeySnail.Command = {
+let command = {
     modules: null,
 
     /**

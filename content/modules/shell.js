@@ -1,4 +1,4 @@
-KeySnail.Shell =
+let shell =
     (function () {
          const Cc = Components.classes;
          const Ci = Components.interfaces;

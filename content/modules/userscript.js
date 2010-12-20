@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-KeySnail.UserScript = {
+let userscript = {
     modules: null,
 
     /**

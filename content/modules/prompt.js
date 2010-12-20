@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-KeySnail.Prompt = function () {
+let prompt = function () {
     /**
      * @private
      */

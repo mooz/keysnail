@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-KeySnail.Macro = {
+let macro = {
     init: function () {
         this.sleepTime = 10;
     },

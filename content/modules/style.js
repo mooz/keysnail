@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-KeySnail.Style = function () {
+let style = function () {
     /**
      * @private
      */
