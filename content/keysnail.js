@@ -135,7 +135,7 @@
          * @param {[string]} aModuleName
          */
         initModule: function (aModuleName) {
-            if (!this[aModuleName]) {
+            if (!(aModuleName in modules)) {
                 this.message('initModule: module "' + aModuleName + '" is not loaded. Skip this module.');
                 return;
             }
@@ -357,9 +357,19 @@
             }
         },
 
+        format: function (fmt) {
+            for (let i = 1, len = arguments.length; i < len; ++i)
+                fmt = fmt.replace("%s", arguments[i]);
+
+            return fmt;
+        },
+
         message: function (msg) {
             try {
-                logs.logStringMessage(util.format.apply(null, arguments));
+                if (arguments.length > 1)
+                    logs.logStringMessage(KeySnail.format.apply(null, arguments));
+                else
+                    logs.logStringMessage(msg);
             } catch (x) {
                 logs.logStringMessage("Error KeySnail.message :: " + x);
             }

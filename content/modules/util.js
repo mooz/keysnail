@@ -1435,14 +1435,7 @@ let util = function () {
 
         // }} ======================================================================= //
 
-        format: function (aFormat) {
-            for (var i = 1; i < arguments.length; ++i)
-            {
-                aFormat = aFormat.replace("%s", arguments[i]);
-            }
-
-            return aFormat;
-        },
+        format: KeySnail.format,
 
         message: KeySnail.message
     };
