@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-let html = {
+const html = {
     htmlTemplate: '<html>\n' +
         '<head>\n' +
         '<title>##HTMLTITLE##</title>\n' +

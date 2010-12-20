@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-let userscript = {
+const userscript = {
     /**
      * load js file and execute its content under *KeySnail.modules* scope
      * @param {string} aScriptPath

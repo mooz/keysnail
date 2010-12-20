@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-let ext = function () {
+const ext = function () {
     /**
      * @private
      */

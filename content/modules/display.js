@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-let display = (function () {
+const display = (function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
     const NOTIFY_ID = "ks-notify-message";

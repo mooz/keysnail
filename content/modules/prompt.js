@@ -10,7 +10,7 @@ const HIDDEN = 1;
 const IGNORE = 2;
 const ICON   = 4;
 
-let prompt = function () {
+const prompt = function () {
     /**
      * @private
      */

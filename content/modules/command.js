@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-let command = {
+const command = {
     modules: null,
 
     /**

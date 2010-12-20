@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-let style = function () {
+const style = function () {
     /**
      * @private
      */

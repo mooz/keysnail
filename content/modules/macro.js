@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-let macro = {
+const macro = {
     init: function () {
         this.sleepTime = 10;
     },

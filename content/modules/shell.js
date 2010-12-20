@@ -1,4 +1,4 @@
-let shell =
+const shell =
     (function () {
          const Cc = Components.classes;
          const Ci = Components.interfaces;
