@@ -27,82 +27,26 @@ let command = {
         try {
             Components.utils.import("resource://keysnail-share/killring.js", this);
         } catch (x) {
-            this.message(x);
+            util.message(x);
         }
 
         // for window which does not have goDoCommand()
         if (typeof goDoCommand === 'undefined')
         {
-            document.defaultView.goDoCommand = function (aCommand)
-            {
-                try
-                {
+            document.defaultView.goDoCommand = function (aCommand) {
+                try {
                     var controller =
                         top.document.commandDispatcher.getControllerForCommand(aCommand);
                     if (controller && controller.isCommandEnabled(aCommand))
                         controller.doCommand(aCommand);
-                }
-                catch(e)
-                {
-                    this.message("An error " + e + " occurred executing the " + aCommand + " command\n");
+                } catch (e) {
+                    util.message("An error " + e + " occurred executing the " + aCommand + " command\n");
                 }
             };
         }
     },
 
     // ==================== Command interpreter ====================
-
-    getArgList: function (aFunc) {
-        return aFunc.toString().split('\n')[0].match(/\(.*\)/);
-    },
-
-    createCommandList: function (aSeed, aSort) {
-        let commandList = [];
-
-        let self = this;
-
-        aSeed.forEach(
-             function ([o, p, d, ignore]) {
-                 (function (obj, prefix, depth) {
-                      if (depth <= 0 || !obj)
-                          return;
-
-                      for (let prop in obj)
-                      {
-                          try {
-                              let cand = obj[prop];
-                              let type = typeof cand;
-                              let nextPrefix;
-
-                              if (prop.match(/^[a-zA-Z_$]+[0-9a-zA-Z$_]*$/))
-                                  nextPrefix = prefix ? prefix + "." + prop : prop;
-                              else
-                                  nextPrefix = prefix + "['" + prop.replace(/'/g, "\\'") + "']";
-
-                              if (type === "function")
-                              {
-                                  var arg = self.getArgList(cand);
-                                  commandList.push([nextPrefix + "();", "function " + arg, type]);
-                              }
-                              else if (type === "object" &&
-                                       cand !== obj &&
-                                       (!ignore || ignore.every(function (ig) cand !== ig)) &&
-                                       !(cand instanceof Array))
-                              {
-                                  arguments.callee(cand, nextPrefix, depth - 1);
-                              }
-                              else
-                              {
-                                  commandList.push([nextPrefix + ";", cand.toString(), type]);
-                              }
-                          } catch (x) {}
-                      }
-                  })(o, p, d);
-             }
-         );
-
-        return aSort ? commandList.sort() : commandList;
-    },
 
     /**
      * Evaluate strings in user context and display it's result like `eval-expression' in Emacs
@@ -116,37 +60,32 @@ let command = {
     interpreter: function (ev, arg) {
         let inspect = ('inspectObject' in window) && (arg > 0);
 
-        with (KeySnail.modules)
-        {
-            prompt.reader(
+        prompt.reader({
+            message    : "Eval: ",
+            completer  : completer.fetch.javascript(),
+            group      : "eval-expression",
+            callback   : function (code) {
+                try
                 {
-                    message    : "Eval: ",
-                    completer  : completer.fetch.javascript(),
-                    group      : "eval-expression",
-                    callback   : function (code) {
-                        try
+                    let result = util.evalInContext(code);
+                    if (typeof result !== 'undefined')
+                    {
+                        if (inspect)
+                            window.inspectObject(result);
+                        else
                         {
-                            let result = util.evalInContext(code);
-                            if (typeof result !== 'undefined')
-                            {
-                                if (inspect)
-                                    window.inspectObject(result);
-                                else
-                                {
-                                    display.echoStatusBar(result);
-                                    util.message(result);
-                                }
-                            }
-                        }
-                        catch (x)
-                        {
-                            display.echoStatusBar(x);
-                            util.message(x);
+                            display.echoStatusBar(result);
+                            util.message(result);
                         }
                     }
                 }
-            );
-        }
+                catch (x)
+                {
+                    display.echoStatusBar(x);
+                    util.message(x);
+                }
+            }
+        });
     },
 
     // ==================== Walk through elements  ====================
@@ -219,7 +158,7 @@ let command = {
         var doc = document.commandDispatcher.focusedWindow.document
             || gBrowser.contentWindow.document;
         var xPathResults = aElementsRetriever(doc);
-        var focused = this.modules.util.focusedElement;
+        var focused = util.focusedElement;
 
         var elemCount = xPathResults.snapshotLength;
 
@@ -348,7 +287,7 @@ let command = {
     },
 
     findCommand: function (aDirection) {
-        var isFocused = this.modules.util.focusedElement == this.gFindBar._findField.inputField;
+        var isFocused = util.focusedElement == this.gFindBar._findField.inputField;
 
         if (this.gFindBar.hidden)
         {
@@ -384,50 +323,47 @@ let command = {
         var toolbarBookMarks = document.getElementById('bookmarksBarContent');
         var items            = toolbarBookMarks.getElementsByTagName('toolbarbutton');
 
-        var urlList = [[this.modules.util.getFaviconPath(item.node.uri), item.label, item.node.uri, item.node.itemId]
+        var urlList = [[util.getFaviconPath(item.node.uri), item.label, item.node.uri, item.node.itemId]
                        for ([, item] in Iterator(items))
                        if (item.node && item.node.uri.match(/^(https?|ftp):/))];
 
-        with (this.modules)
-        {
-            prompt.selector(
-                {
-                    message    : "Pattern: ",
-                    collection : urlList,
-                    // [icon, title, url, id]
-                    flags      : [ICON | IGNORE, 0, 0, IGNORE | HIDDEN],
-                    header     : ["Title", "URL"],
-                    style      : [null, style.prompt.url],
-                    actions    : [
-                        [function (aIndex) {
-                             if (aIndex >= 0) {
-                                 openUILinkIn(urlList[aIndex][2], "tab");
-                             }
-                         }, "Open Link in new tab (foreground)"],
-                        [function (aIndex) {
-                             if (aIndex >= 0) {
-                                 openUILinkIn(urlList[aIndex][2], "tabshifted");
-                             }
-                         }, "Open Link in new tab (background)"],
-                        [function (aIndex) {
-                             if (aIndex >= 0) {
-                                 openUILinkIn(urlList[aIndex][2], "window");
-                             }
-                         }, "Open Link in new window"],
-                        [function (aIndex) {
-                             if (aIndex >= 0) {
-                                 openUILinkIn(urlList[aIndex][2], "current");
-                             }
-                         }, "Open Link in current tab"],
-                        [function (aIndex) {
-                             if (aIndex >= 0) {
-                                 PlacesUIUtils.showItemProperties(urlList[aIndex][3], "bookmark");
-                             }
-                         }, "Edit bookmark entry"]
-                    ]
-                }
-            );
-        }
+        prompt.selector(
+            {
+                message    : "Pattern: ",
+                collection : urlList,
+                // [icon, title, url, id]
+                flags      : [ICON | IGNORE, 0, 0, IGNORE | HIDDEN],
+                header     : ["Title", "URL"],
+                style      : [null, style.prompt.url],
+                actions    : [
+                    [function (aIndex) {
+                        if (aIndex >= 0) {
+                            openUILinkIn(urlList[aIndex][2], "tab");
+                        }
+                    }, "Open Link in new tab (foreground)"],
+                    [function (aIndex) {
+                        if (aIndex >= 0) {
+                            openUILinkIn(urlList[aIndex][2], "tabshifted");
+                        }
+                    }, "Open Link in new tab (background)"],
+                    [function (aIndex) {
+                        if (aIndex >= 0) {
+                            openUILinkIn(urlList[aIndex][2], "window");
+                        }
+                    }, "Open Link in new window"],
+                    [function (aIndex) {
+                        if (aIndex >= 0) {
+                            openUILinkIn(urlList[aIndex][2], "current");
+                        }
+                    }, "Open Link in current tab"],
+                    [function (aIndex) {
+                        if (aIndex >= 0) {
+                            PlacesUIUtils.showItemProperties(urlList[aIndex][3], "bookmark");
+                        }
+                    }, "Edit bookmark entry"]
+                ]
+            }
+        );
     },
 
     autoCompleteHandleKey: function (aKeyEvent) {
@@ -442,16 +378,16 @@ let command = {
             else
                 goDoCommand(aCommand);
         }
-        // else if (this.modules.util.isMenu())
+        // else if (util.isMenu())
         // {
-        //     this.message("is Menu!");
+        //     util.message("is Menu!");
         //     this.autoCompleteHandleKey(aDOMKey);
         // }
         else
         {
-            this.modules.key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keydown');
-            this.modules.key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keypress');
-            this.modules.key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keyup');
+            key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keydown');
+            key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keypress');
+            key.generateKey(aEvent.originalTarget, aDOMKey, true, 'keyup');
         }
     },
 
@@ -529,9 +465,9 @@ let command = {
     // ==================== Insertion ==================== //
 
     openLine: function (aEvent) {
-        this.modules.key.generateKey(aEvent.originalTarget,
-                                     KeyEvent.DOM_VK_RETURN,
-                                     true);
+        key.generateKey(aEvent.originalTarget,
+                        KeyEvent.DOM_VK_RETURN,
+                        true);
         goDoCommand("cmd_linePrevious");
         goDoCommand("cmd_endLine");
     },
@@ -597,7 +533,7 @@ let command = {
     yankRectangle: function (aInput, aRectangle) {
         if (!aRectangle)
         {
-            this.modules.display.echoStatusBar("Kill ring is empty", 3000);
+            display.echoStatusBar("Kill ring is empty", 3000);
             return;
         }
 
@@ -791,7 +727,7 @@ let command = {
                 if (aInput.ksMarked == selEnd)
                 {
                     // [*] selStart <------------- mark (selEnd)
-                    // this.modules.display.prettyPrint("[*] selStart <------------- mark (selEnd)");
+                    // display.prettyPrint("[*] selStart <------------- mark (selEnd)");
                     if (startHeadCount < endHeadCount)
                         caretPos = selStart;
                     else
@@ -800,7 +736,7 @@ let command = {
                 else
                 {
                     // mark (selStart) -------------> selEnd [*]
-                    // this.modules.display.prettyPrint("mark (selStart) -------------> selEnd [*]");
+                    // display.prettyPrint("mark (selStart) -------------> selEnd [*]");
                     if (startHeadCount < endHeadCount)
                         caretPos = rectEndPos;
                     else
@@ -898,7 +834,7 @@ let command = {
         try {
             var text = this.getClipboardText();
         } catch (x) {
-            this.message("Exception throwed :: " + x);
+            util.message("Exception throwed :: " + x);
             return;
         }
 
@@ -907,7 +843,7 @@ let command = {
          * by throwing exception
          */
         try {
-            this.modules.hook.callHook("ClipboardChanged", text);
+            hook.callHook("ClipboardChanged", text);
         } catch (x) {
             return;
         }
@@ -981,45 +917,42 @@ let command = {
      * @param {KeyBoardEvent} aEvent
      */
     yank: function (aEvent, aArg) {
-        with (KeySnail.modules)
+        var i     = aArg || 0;
+        var input = aEvent.originalTarget;
+
+        var clipboardText = command.getClipboardText();
+
+        if (clipboardText === null)
         {
-            var i     = aArg || 0;
-            var input = aEvent.originalTarget;
-
-            var clipboardText = command.getClipboardText();
-
-            if (clipboardText === null)
-            {
-                goDoCommand('cmd_paste');
-                return;
-            }
-
-            if (!clipboardText && !command.kill.ring.length)
-            {
-                display.echoStatusBar("Kill ring empty", 2000);
-                return;
-            }
-
-            // copied outside the Firefox
-            if (command.kill.ring.length === 0 || clipboardText !== command.kill.ring[0])
-            {
-                if (command.kill.textLengthMax >= 0 && clipboardText.length > command.kill.textLengthMax)
-                {
-                    command.insertText(clipboardText);
-                    return;
-                }
-
-                command.pushKillRing(clipboardText);
-            }
-
-            command.kill.originalText     = input.value;
-            command.kill.originalSelStart = input.selectionStart;
-            command.kill.originalSelEnd   = input.selectionEnd;
-            i = Math.min(i, command.kill.ring.length - 1);
-            command.kill.index = i;
-
-            command.insertKillRingText(input, i);
+            goDoCommand('cmd_paste');
+            return;
         }
+
+        if (!clipboardText && !command.kill.ring.length)
+        {
+            display.echoStatusBar("Kill ring empty", 2000);
+            return;
+        }
+
+        // copied outside the Firefox
+        if (command.kill.ring.length === 0 || clipboardText !== command.kill.ring[0])
+        {
+            if (command.kill.textLengthMax >= 0 && clipboardText.length > command.kill.textLengthMax)
+            {
+                command.insertText(clipboardText);
+                return;
+            }
+
+            command.pushKillRing(clipboardText);
+        }
+
+        command.kill.originalText     = input.value;
+        command.kill.originalSelStart = input.selectionStart;
+        command.kill.originalSelEnd   = input.selectionEnd;
+        i = Math.min(i, command.kill.ring.length - 1);
+        command.kill.index = i;
+
+        command.insertKillRingText(input, i);
     },
 
     /**
@@ -1027,39 +960,35 @@ let command = {
      * @param {KeyBoardEvent} aEvent
      */
     yankPop: function (aEvent) {
-        with (KeySnail.modules)
+        var input = aEvent.originalTarget;
+        var lastFunc = key.lastFunc;
+
+        if ((lastFunc !== command.yank && lastFunc !== command.yankPop)
+            || (lastFunc === command.yankPop && command.kill.popFailed))
         {
-
-            var input = aEvent.originalTarget;
-            var lastFunc = key.lastFunc;
-
-            if ((lastFunc !== command.yank && lastFunc !== command.yankPop)
-                || (lastFunc === command.yankPop && command.kill.popFailed))
-            {
-                display.echoStatusBar("Previous command was not a yank", 2000);
-                command.kill.popFailed = true;
-                return;
-            }
-            command.kill.popFailed = false;
-
-            if (!command.kill.ring.length)
-            {
-                display.echoStatusBar("Kill ring is empty", 2000);
-                command.kill.originalText = null;
-                return;
-            }
-
-            command.kill.index++;
-            if (command.kill.index >= command.kill.ring.length)
-            {
-                command.kill.index = 0;
-            }
-
-            command.insertKillRingText(input, command.kill.index, true);
-
-            display.echoStatusBar(util.format("Yank pop (%s / %s)",
-                                              command.kill.index + 1, command.kill.ring.length));
+            display.echoStatusBar("Previous command was not a yank", 2000);
+            command.kill.popFailed = true;
+            return;
         }
+        command.kill.popFailed = false;
+
+        if (!command.kill.ring.length)
+        {
+            display.echoStatusBar("Kill ring is empty", 2000);
+            command.kill.originalText = null;
+            return;
+        }
+
+        command.kill.index++;
+        if (command.kill.index >= command.kill.ring.length)
+        {
+            command.kill.index = 0;
+        }
+
+        command.insertKillRingText(input, command.kill.index, true);
+
+        display.echoStatusBar(util.format("Yank pop (%s / %s)",
+                                          command.kill.index + 1, command.kill.ring.length));
     },
 
     killLine: function (aEvent) {
@@ -1107,7 +1036,7 @@ let command = {
                             KeyEvent.DOM_VK_DOWN);
     },
 
-   // ==================== By page ==================== //
+    // ==================== By page ==================== //
 
     pageUp: function (aEvent) {
         this.inputHandleKey(aEvent,
@@ -1168,8 +1097,8 @@ let command = {
 
     getForwardWord: function (aString, aCurrentPos) {
         let matched = aString.slice(aCurrentPos).match(
-            this.modules.util.format("[^%s]*[%s]+|[^%s]+",
-                                     this.wordChars, this.wordChars, this.wordChars)
+            util.format("[^%s]*[%s]+|[^%s]+",
+                        this.wordChars, this.wordChars, this.wordChars)
         );
 
         return (matched || {0: null})[0];
@@ -1177,8 +1106,8 @@ let command = {
 
     getBackwardWord: function (aString, aCurrentPos) {
         let matched = aString.slice(0, aCurrentPos).match(
-            this.modules.util.format("[%s]+[^%s]*$|[^%s]+$",
-                                     this.wordChars, this.wordChars, this.wordChars)
+            util.format("[%s]+[^%s]*$|[^%s]+$",
+                        this.wordChars, this.wordChars, this.wordChars)
         );
 
         return (matched || {0: null})[0];
@@ -1205,44 +1134,35 @@ let command = {
     },
 
     processForwardWord: function (aInput, aFilter) {
-        with (KeySnail.modules)
-        {
-            command.processWord(aInput, command.getForwardWord,
-                             function (input, subword, selected, current) {
-                                 var wordEnd = current + subword.length;
-                                 var text    = input.value;
-                                 subword = aFilter(subword);
+        command.processWord(aInput, command.getForwardWord,
+                            function (input, subword, selected, current) {
+                                var wordEnd = current + subword.length;
+                                var text    = input.value;
+                                subword = aFilter(subword);
 
-                                 input.value = text.slice(0, current) + subword + text.slice(wordEnd);
-                                 input.setSelectionRange(wordEnd, wordEnd);
-                             });
-        }
+                                input.value = text.slice(0, current) + subword + text.slice(wordEnd);
+                                input.setSelectionRange(wordEnd, wordEnd);
+                            });
     },
 
     processBackwardWord: function (aInput, aFilter) {
-        with (KeySnail.modules)
-        {
-            command.processWord(aInput, command.getBackwardWord,
-                             function (input, subword, selected, current) {
-                                 var wordBegin = current - subword.length;
-                                 var text    = input.value;
-                                 subword = aFilter(subword);
+        command.processWord(aInput, command.getBackwardWord,
+                            function (input, subword, selected, current) {
+                                var wordBegin = current - subword.length;
+                                var text    = input.value;
+                                subword = aFilter(subword);
 
-                                 input.value = text.slice(0, wordBegin) + subword + text.slice(current);
-                                 input.setSelectionRange(wordBegin, wordBegin);
-                             });
-        }
+                                input.value = text.slice(0, wordBegin) + subword + text.slice(current);
+                                input.setSelectionRange(wordBegin, wordBegin);
+                            });
     },
 
     capitalizeWord: function (aString) {
-        with (KeySnail.modules)
-        {
-            var spaces = aString.match(util.format("^[^%s]*", command.wordChars));
-            var wordBegin = !!spaces ? spaces[0].length : 0;
-            return aString.slice(0, wordBegin)
-                + aString.charAt(wordBegin).toUpperCase()
-                + aString.slice(wordBegin + 1).toLowerCase();
-        }
+        var spaces = aString.match(util.format("^[^%s]*", command.wordChars));
+        var wordBegin = !!spaces ? spaces[0].length : 0;
+        return aString.slice(0, wordBegin)
+            + aString.charAt(wordBegin).toUpperCase()
+            + aString.slice(wordBegin + 1).toLowerCase();
     },
 
     // ========================================================================== //
@@ -1327,49 +1247,43 @@ let command = {
     // Transformation {{ ======================================================== //
 
     upcaseForwardWord: function (aEvent) {
-        KeySnail.modules.command
-            .processForwardWord(aEvent.originalTarget, function (str) str.toUpperCase());
+        command.processForwardWord(aEvent.originalTarget, function (str) str.toUpperCase());
     },
 
     upcaseBackwardWord: function (aEvent) {
-        KeySnail.modules.command
-            .processBackwardWord(aEvent.originalTarget, function (str) str.toUpperCase());
+        command.processBackwardWord(aEvent.originalTarget, function (str) str.toUpperCase());
     },
 
     downcaseForwardWord: function (aEvent) {
-        KeySnail.modules.command
-            .processForwardWord(aEvent.originalTarget, function (str) str.toLowerCase());
+        command.processForwardWord(aEvent.originalTarget, function (str) str.toLowerCase());
     },
 
     downcaseBackwardWord: function (aEvent) {
-        KeySnail.modules.command
-            .processBackwardWord(aEvent.originalTarget, function (str) str.toLowerCase());
+        command.processBackwardWord(aEvent.originalTarget, function (str) str.toLowerCase());
     },
 
     capitalizeForwardWord: function (aEvent) {
-        KeySnail.modules.command
-            .processForwardWord(aEvent.originalTarget, this.capitalizeWord);
+        command.processForwardWord(aEvent.originalTarget, this.capitalizeWord);
     },
 
     capitalizeBackwardWord: function (aEvent) {
-        KeySnail.modules.command
-            .processBackwardWord(aEvent.originalTarget, this.capitalizeWord);
+        command.processBackwardWord(aEvent.originalTarget, this.capitalizeWord);
     },
 
     wordCommand: function (aEvent, aArg, aForward, aBackward)  {
         if (!aArg)
         {
-            aForward.call(KeySnail.modules.command, aEvent);
+            aForward.call(command, aEvent);
         }
         else if (aArg < 0)
         {
-            aBackward.call(KeySnail.modules.command, aEvent);
+            aBackward.call(command, aEvent);
         }
         else
         {
             for (let i = 0; i < aArg; ++i)
             {
-                aForward.call(KeySnail.modules.command, aEvent);
+                aForward.call(command, aEvent);
             }
         }
     },
@@ -1414,7 +1328,7 @@ let command = {
         else
             orig.ksMarked = true;
 
-        this.modules.display.echoStatusBar('Mark set', 2000);
+        display.echoStatusBar('Mark set', 2000);
     },
 
     resetMark: function (aEvent) {

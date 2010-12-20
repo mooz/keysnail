@@ -113,9 +113,9 @@ let key = {
         this.declareKeyMap(this.modes.CARET);
         this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
 
-        this.useCapture = !this.modules.util.getBoolPref("extensions.keysnail.keyhandler.low_priority", false);
+        this.useCapture = !util.getBoolPref("extensions.keysnail.keyhandler.low_priority", false);
 
-        this.status = this.modules.util.getBoolPref("extensions.keysnail.keyhandler.status", true);
+        this.status = util.getBoolPref("extensions.keysnail.keyhandler.status", true);
     },
 
     // Run / Stop {{ ============================================================ //
@@ -134,7 +134,7 @@ let key = {
             this.hasEventListener = true;
         }
         this.status = true;
-        this.modules.util.setBoolPref("extensions.keysnail.keyhandler.status", true);
+        util.setBoolPref("extensions.keysnail.keyhandler.status", true);
     },
 
     /**
@@ -147,7 +147,7 @@ let key = {
             this.hasEventListener = false;
         }
         this.status = false;
-        this.modules.util.setBoolPref("extensions.keysnail.keyhandler.status", false);
+        util.setBoolPref("extensions.keysnail.keyhandler.status", false);
     },
 
     /**
@@ -161,16 +161,15 @@ let key = {
         }
         else
         {
-            if (!this.modules.userscript.initFileLoaded)
+            if (!userscript.initFileLoaded)
             {
                 // load init file
-                this.modules.userscript.load();
+                userscript.load();
             }
-            if (!this.modules.userscript.initFileLoaded)
+            if (!userscript.initFileLoaded)
             {
                 // Failed to load init file
-                // this.modules.display.notify(this.modules.util
-                //                             .getLocaleString("noUserScriptLoaded"));
+                // display.notify(util.getLocaleString("noUserScriptLoaded"));
                 this.status = false;
             }
             else
@@ -225,22 +224,19 @@ let key = {
             if (this.suspended)
             {
                 icon.src = "chrome://keysnail/skin/icon16suspended.png";
-                icon.tooltipText = this.modules.util
-                    .getLocaleString("keySnailSuspended");
+                icon.tooltipText = util.getLocaleString("keySnailSuspended");
             }
             else
             {
                 icon.src = "chrome://keysnail/skin/icon16.png";
-                icon.tooltipText = this.modules.util
-                    .getLocaleString("keySnailEnabled");
+                icon.tooltipText = util.getLocaleString("keySnailEnabled");
             }
         }
         else
         {
             // disabled
             icon.src = "chrome://keysnail/skin/icon16gray.png";
-            icon.tooltipText = this.modules.util
-                .getLocaleString("keySnailDisabled");
+            icon.tooltipText = util.getLocaleString("keySnailDisabled");
         }
     },
 
@@ -271,11 +267,11 @@ let key = {
     // Mode {{ ================================================================== //
 
     getCurrentMode: function (aEvent, aKey) {
-        if (this.modules.util.isWritable(aEvent))
+        if (util.isWritable(aEvent))
             return this.modes.EDIT;
 
-        return (this.modules.util.isCaretEnabled() ||
-                this.modules.util.getBoolPref("accessibility.browsewithcaret")) ?
+        return (util.isCaretEnabled() ||
+                util.getBoolPref("accessibility.browsewithcaret")) ?
             this.modes.CARET : this.modes.VIEW;
     },
 
@@ -444,7 +440,7 @@ let key = {
         // reset keymap
         this.currentKeyMap = this.keyMapHolder[this.modes.GLOBAL];
         // reset statusbar
-        this.modules.display.echoStatusBar(aMsg, aTime);
+        display.echoStatusBar(aMsg, aTime);
         // reset key sequence
         this.currentKeySequence.length = 0;
         // reset prefixArgument
@@ -486,7 +482,7 @@ let key = {
 
         if (key == this.suspendKey)
         {
-            this.modules.util.stopEventPropagation(aEvent);
+            util.stopEventPropagation(aEvent);
             this.suspended = !this.suspended;
             this.updateStatusBar();
             this.backToNeutral("Suspension switched", 1000);
@@ -500,53 +496,53 @@ let key = {
             this.currentMacro.push(aEvent);
 
         try {
-            this.modules.hook.callHook("KeyPress", aEvent);
+            hook.callHook("KeyPress", aEvent);
         } catch (x) {}
 
         switch (key)
         {
         case this.escapeKey:
-            this.modules.util.stopEventPropagation(aEvent);
-            this.modules.display.echoStatusBar("Escape next key: ");
+            util.stopEventPropagation(aEvent);
+            display.echoStatusBar("Escape next key: ");
             this.escapeCurrentChar = true;
             return;
         case this.quitKey:
-            this.modules.util.stopEventPropagation(aEvent);
+            util.stopEventPropagation(aEvent);
             // call hooks
-            this.modules.hook.callHook("KeyBoardQuit", aEvent);
+            hook.callHook("KeyBoardQuit", aEvent);
             // cancell current key sequence
             this.backToNeutral("Quit");
             return;
         case this.macroEndKey:
-            this.modules.util.stopEventPropagation(aEvent);
+            util.stopEventPropagation(aEvent);
             if (this.inputtingMacro)
             {
                 this.currentMacro.pop();
-                this.modules.display.echoStatusBar("Keyboard macro defined", 3000);
+                display.echoStatusBar("Keyboard macro defined", 3000);
                 this.inputtingMacro = false;
             }
             else
             {
                 if (this.currentMacro.length)
                 {
-                    this.modules.display.echoStatusBar("Do macro", 3000);
-                    this.modules.macro.doMacro(this.currentMacro);
+                    display.echoStatusBar("Do macro", 3000);
+                    macro.doMacro(this.currentMacro);
                 }
                 else
                 {
-                    this.modules.display.echoStatusBar("No macro defined", 3000);
+                    display.echoStatusBar("No macro defined", 3000);
                 }
             }
             return;
         case this.macroStartKey:
-            this.modules.util.stopEventPropagation(aEvent);
+            util.stopEventPropagation(aEvent);
             if (this.inputtingMacro)
             {
                 this.currentMacro.pop();
             }
             else
             {
-                this.modules.display.echoStatusBar("Defining Keyboard macro ...", 3000);
+                display.echoStatusBar("Defining Keyboard macro ...", 3000);
                 this.currentMacro.length = 0;
                 this.inputtingMacro = true;
             }
@@ -563,9 +559,9 @@ let key = {
                 // append to currentKeySequence, while the key event is number value.
                 // sequencial C-u like C-u C-u => 4 * 4 = 16 is also supported.
                 // sequencial C-u - begins negative prefix argument
-                this.modules.util.stopEventPropagation(aEvent);
+                util.stopEventPropagation(aEvent);
                 this.currentKeySequence.push(key);
-                this.modules.display.echoStatusBar(this.currentKeySequence.join(" ") +
+                display.echoStatusBar(this.currentKeySequence.join(" ") +
                                                    " [Prefix argument :: " +
                                                    this.parsePrefixArgument(this.currentKeySequence) + "]");
                 // do nothing and return
@@ -586,7 +582,7 @@ let key = {
             // after second stroke
             if (key == this.helpKey)
             {
-                this.modules.util.stopEventPropagation(aEvent);
+                util.stopEventPropagation(aEvent);
                 this.interactiveHelp();
                 this.backToNeutral("");
                 return;
@@ -595,13 +591,13 @@ let key = {
         else
         {
             // first stroke
-            if (this.modules.util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument")
+            if (util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument")
                 && this.isPrefixArgumentKey(key, aEvent))
             {
                 // transit state: to inputting prefix argument
-                this.modules.util.stopEventPropagation(aEvent);
+                util.stopEventPropagation(aEvent);
                 this.currentKeySequence.push(key);
-                this.modules.display.echoStatusBar(this.currentKeySequence.join(" ") +
+                display.echoStatusBar(this.currentKeySequence.join(" ") +
                                                    " [Prefix argument :: " +
                                                    this.parsePrefixArgument(this.currentKeySequence) + "]");
                 this.inputtingPrefixArgument = true;
@@ -641,7 +637,7 @@ let key = {
         if (this.currentKeyMap[key])
         {
             // prevent browser default behaviour
-            this.modules.util.stopEventPropagation(aEvent);
+            util.stopEventPropagation(aEvent);
 
             if (typeof(this.currentKeyMap[key]) == "function")
             {
@@ -661,12 +657,12 @@ let key = {
                 // Display key sequence
                 if (this.prefixArgumentString)
                 {
-                    this.modules.display.echoStatusBar(this.prefixArgumentString
+                    display.echoStatusBar(this.prefixArgumentString
                                                        + this.currentKeySequence.join(" "));
                 }
                 else
                 {
-                    this.modules.display.echoStatusBar(this.currentKeySequence.join(" "));
+                    display.echoStatusBar(this.currentKeySequence.join(" "));
                 }
 
                 // move to the next keymap
@@ -680,7 +676,7 @@ let key = {
             // call default handler or insert text
             if (this.currentKeySequence.length)
             {
-                this.modules.util.stopEventPropagation(aEvent);
+                util.stopEventPropagation(aEvent);
                 this.backToNeutral(this.currentKeySequence.join(" ")
                                    + " " + key + " is undefined", 3000);
             }
@@ -690,9 +686,9 @@ let key = {
                 {
                     if (!this.isDisplayableKey(aEvent))
                     {
-                        this.modules.util.stopEventPropagation(aEvent);
+                        util.stopEventPropagation(aEvent);
 
-                        for (let i in this.modules.util.interruptibleRange(0, this.prefixArgument))
+                        for (let i in util.interruptibleRange(0, this.prefixArgument))
                         {
                             if (key == "<tab>")
                             {
@@ -708,12 +704,12 @@ let key = {
                             }
                         }
                     }
-                    else if (this.modules.util.isWritable(aEvent))
+                    else if (util.isWritable(aEvent))
                     {
                         // displayable and writable
-                        this.modules.util.stopEventPropagation(aEvent);
+                        util.stopEventPropagation(aEvent);
                         // insert repeated string
-                        this.modules.command.insertText(new Array(this.prefixArgument + 1).join(String.fromCharCode(aEvent.charCode)));
+                        command.insertText(new Array(this.prefixArgument + 1).join(String.fromCharCode(aEvent.charCode)));
                     }
                 }
                 this.backToNeutral("");
@@ -766,7 +762,7 @@ let key = {
     isDigitArgumentKey: function (aEvent) {
         var modifier = false;
 
-        switch (this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type"))
+        switch (util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type"))
         {
         case "C":
             modifier = this.isControlKey(aEvent) && !this.isMetaKey(aEvent);
@@ -778,7 +774,7 @@ let key = {
             modifier = this.isControlKey(aEvent) && this.isMetaKey(aEvent);
             break;
         case "Digit":
-            modifier = !this.modules.util.isWritable(aEvent);
+            modifier = !util.isWritable(aEvent);
             break;
         default:
             break;
@@ -816,7 +812,7 @@ let key = {
     keyEventToString: function (aEvent) {
         var key;
 
-        // this.modules.display.prettyPrint(
+        // display.prettyPrint(
         //     ["char code :: " + aEvent.charCode,
         //      "key code  :: " + aEvent.keyCode,
         //      "ctrl      :: " + (aEvent.ctrlKey ? "on" : "off"),
@@ -1254,7 +1250,7 @@ let key = {
             break;
         default:
             while (typeof aKeySequence[i] === "string" &&
-                   this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type") !== "Digit" &&
+                   util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type") !== "Digit" &&
                    this.isDigitArgumentKey(this.stringToKeyEvent(aKeySequence[i])))
             {
                 i++;
@@ -1298,7 +1294,7 @@ let key = {
          * by throwing exception
          */
         try {
-            this.modules.hook.callHook("PreCommand", hookArg);
+            hook.callHook("PreCommand", hookArg);
         } catch (x) {
             return;
         }
@@ -1319,7 +1315,7 @@ let key = {
 
         this.lastFunc = aFunc;
 
-        this.modules.hook.callHook("PostCommand", hookArg);
+        hook.callHook("PostCommand", hookArg);
     },
 
     /**
@@ -1353,7 +1349,7 @@ let key = {
      * @param {} aText
      */
     insertText: function (aText) {
-        this.modules.command.insertText(aText);
+        command.insertText(aText);
     },
 
     // Key binding list, help {{ ================================================ //
@@ -1383,11 +1379,9 @@ let key = {
             case "function":
                 var pad = (aKeySequence.length == 0) ? "" : " ";
                 aContentHolder.push("<tr><td>" +
-                                    this.modules.html
-                                    .escapeTag(aKeySequence.join(" ") + pad + key) +
+                                    html.escapeTag(aKeySequence.join(" ") + pad + key) +
                                     "</td>" + "<td>" +
-                                    this.modules.html
-                                    .escapeTag(aKeyMap[key].ksDescription) +
+                                    html.escapeTag(aKeyMap[key].ksDescription) +
                                     "</td></tr>");
                 break;
             case "object":
@@ -1433,59 +1427,57 @@ let key = {
                              '<li><a href="#caret">Caret mode Bindings</a></li>',
                              '</ul>'];
 
-        with (this.modules) {
-            contentHolder.push("<h2 id='special'>Special Keys</h2>");
+        contentHolder.push("<h2 id='special'>Special Keys</h2>");
+        contentHolder.push("<table class='table-keybindings'>");
+        contentHolder.push("<tr><th>Role</th><th>Key</th><th>Description</th></tr>");
+        contentHolder.push("<tr><td>Quit key</td><td>" + html.escapeTag(this.quitKey) + "</td><td>" +
+                           util.getLocaleString("specialKeyQuit") + "</td></tr>");
+        contentHolder.push("<tr><td>Help key</td><td>" + html.escapeTag(this.helpKey) + "</td><td>" +
+                           util.getLocaleString("specialKeyHelp") + "</td></tr>");
+        contentHolder.push("<tr><td>Escape key</td><td>" + html.escapeTag(this.escapeKey) + "</td><td>" +
+                           util.getLocaleString("specialKeyEscape") + "</td></tr>");
+        contentHolder.push("<tr><td>Start key macro recording</td><td>" + html.escapeTag(this.macroStartKey) + "</td><td>" +
+                           util.getLocaleString("specialKeyMacroStart") + "</td></tr>");
+        contentHolder.push("<tr><td>End key macro recording / Play key macro</td><td>" + html.escapeTag(this.macroEndKey) + "</td><td>" +
+                           util.getLocaleString("specialKeyMacroEnd") + "</td></tr>");
+        contentHolder.push("<tr><td>Suspension switch key</td><td>" + html.escapeTag(this.suspendKey) + "</td><td>" +
+                           util.getLocaleString("specialKeySuspend") + "</td></tr>");
+        contentHolder.push("</table>\n");
+
+        contentHolder.push("<h2 id='parg'>Prefix Argument Keys</h2>");
+        if (util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true))
+        {
+            contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanDisable") + "</p>\n");
             contentHolder.push("<table class='table-keybindings'>");
-            contentHolder.push("<tr><th>Role</th><th>Key</th><th>Description</th></tr>");
-            contentHolder.push("<tr><td>Quit key</td><td>" + html.escapeTag(this.quitKey) + "</td><td>" +
-                               util.getLocaleString("specialKeyQuit") + "</td></tr>");
-            contentHolder.push("<tr><td>Help key</td><td>" + html.escapeTag(this.helpKey) + "</td><td>" +
-                               util.getLocaleString("specialKeyHelp") + "</td></tr>");
-            contentHolder.push("<tr><td>Escape key</td><td>" + html.escapeTag(this.escapeKey) + "</td><td>" +
-                               util.getLocaleString("specialKeyEscape") + "</td></tr>");
-            contentHolder.push("<tr><td>Start key macro recording</td><td>" + html.escapeTag(this.macroStartKey) + "</td><td>" +
-                               util.getLocaleString("specialKeyMacroStart") + "</td></tr>");
-            contentHolder.push("<tr><td>End key macro recording / Play key macro</td><td>" + html.escapeTag(this.macroEndKey) + "</td><td>" +
-                               util.getLocaleString("specialKeyMacroEnd") + "</td></tr>");
-            contentHolder.push("<tr><td>Suspension switch key</td><td>" + html.escapeTag(this.suspendKey) + "</td><td>" +
-                               util.getLocaleString("specialKeySuspend") + "</td></tr>");
+            contentHolder.push("<tr><th>Key</th><th>Description</th></tr>");
+            contentHolder.push("<tr><td>" + html.escapeTag(this.universalArgumentKey) + "</td><td>" +
+                               util.getLocaleString("prefixArgumentUniv", [html.escapeTag(this.universalArgumentKey),
+                                                                           html.escapeTag(this.universalArgumentKey)]) +
+                               "</td></tr>");
+
+            var digitArgumentKey = "-[0-9]";
+            var modifier;
+            switch (modifier = util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type"))
+            {
+            case "C":
+            case "M":
+            case "C-M":
+                digitArgumentKey = modifier + digitArgumentKey;
+                break;
+            default:
+                digitArgumentKey = "";
+            }
+
+            contentHolder.push("<tr><td>" + digitArgumentKey + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
+            var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";
+            contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument1Key) + "</td><td>" + paNegDesc);
+            contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument2Key) + "</td><td>" + paNegDesc);
+            contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument3Key) + "</td><td>" + paNegDesc);
             contentHolder.push("</table>\n");
-
-            contentHolder.push("<h2 id='parg'>Prefix Argument Keys</h2>");
-            if (this.modules.util.getBoolPref("extensions.keysnail.keyhandler.use_prefix_argument", true))
-            {
-                contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanDisable") + "</p>\n");
-                contentHolder.push("<table class='table-keybindings'>");
-                contentHolder.push("<tr><th>Key</th><th>Description</th></tr>");
-                contentHolder.push("<tr><td>" + html.escapeTag(this.universalArgumentKey) + "</td><td>" +
-                                   util.getLocaleString("prefixArgumentUniv", [html.escapeTag(this.universalArgumentKey),
-                                                                               html.escapeTag(this.universalArgumentKey)]) +
-                                   "</td></tr>");
-
-                var digitArgumentKey = "-[0-9]";
-                var modifier;
-                switch (modifier = this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type"))
-                {
-                case "C":
-                case "M":
-                case "C-M":
-                    digitArgumentKey = modifier + digitArgumentKey;
-                    break;
-                default:
-                    digitArgumentKey = "";
-                }
-
-                contentHolder.push("<tr><td>" + digitArgumentKey + "</td><td>" + util.getLocaleString("prefixArgumentPos") + "</td></tr>");
-                var paNegDesc = util.getLocaleString("prefixArgumentNeg") + "</td></tr>";
-                contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument1Key) + "</td><td>" + paNegDesc);
-                contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument2Key) + "</td><td>" + paNegDesc);
-                contentHolder.push("<tr><td>" + html.escapeTag(this.negativeArgument3Key) + "</td><td>" + paNegDesc);
-                contentHolder.push("</table>\n");
-            }
-            else
-            {
-                contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanEnable") + "</p>\n");
-            }
+        }
+        else
+        {
+            contentHolder.push("<p>" + util.getLocaleString("prefixArgumentYouCanEnable") + "</p>\n");
         }
 
         this.generateKeyBindingTable(contentHolder,
@@ -1508,10 +1500,8 @@ let key = {
                                      this.modes.CARET,
                                      this.keyMapHolder[this.modes.CARET]);
 
-        var contentSource = this.modules.html
-            .createHTMLSource("All key bindings", contentHolder.join("\n"));
-        var contentPath = this.modules.html
-            .createHTML(contentSource);
+        var contentSource = html.createHTMLSource("All key bindings", contentHolder.join("\n"));
+        var contentPath = html.createHTML(contentSource);
 
         this.viewURI(contentPath);
     },
@@ -1521,11 +1511,11 @@ let key = {
      */
     interactiveHelp: function () {
         var contentHolder = ['<h1>Key Bindings Starting With ' +
-                             this.modules.html.escapeTag(this.currentKeySequence.join(" ")) + '</h1><hr />'];
+                             html.escapeTag(this.currentKeySequence.join(" ")) + '</h1><hr />'];
 
         this.generateKeyBindingTable(contentHolder,
                                      "Global Bindings Starting With "
-                                     + this.modules.html.escapeTag(this.currentKeySequence.join(" ")),
+                                     + html.escapeTag(this.currentKeySequence.join(" ")),
                                      this.modes.GLOBAL,
                                      this.trailByKeySequence(this.keyMapHolder[this.modes.GLOBAL],
                                                              this.currentKeySequence),
@@ -1533,7 +1523,7 @@ let key = {
 
         this.generateKeyBindingTable(contentHolder,
                                      "View mode Bindings Starting With "
-                                     + this.modules.html.escapeTag(this.currentKeySequence.join(" ")),
+                                     + html.escapeTag(this.currentKeySequence.join(" ")),
                                      this.modes.VIEW,
                                      this.trailByKeySequence(this.keyMapHolder[this.modes.VIEW],
                                                              this.currentKeySequence),
@@ -1541,7 +1531,7 @@ let key = {
 
         this.generateKeyBindingTable(contentHolder,
                                      "Edit mode Bindings Starting With "
-                                     + this.modules.html.escapeTag(this.currentKeySequence.join(" ")),
+                                     + html.escapeTag(this.currentKeySequence.join(" ")),
                                      this.modes.EDIT,
                                      this.trailByKeySequence(this.keyMapHolder[this.modes.EDIT],
                                                              this.currentKeySequence),
@@ -1549,16 +1539,14 @@ let key = {
 
         this.generateKeyBindingTable(contentHolder,
                                      "Caret mode Bindings Starting With "
-                                     + this.modules.html.escapeTag(this.currentKeySequence.join(" ")),
+                                     + html.escapeTag(this.currentKeySequence.join(" ")),
                                      this.modes.CARET,
                                      this.trailByKeySequence(this.keyMapHolder[this.modes.CARET],
                                                              this.currentKeySequence),
                                      this.currentKeySequence);
 
-        var contentSource = this.modules.html
-            .createHTMLSource("Interactive Help", contentHolder.join("\n"));
-        var contentPath = this.modules.html
-            .createHTML(contentSource);
+        var contentSource = html.createHTMLSource("Interactive Help", contentHolder.join("\n"));
+        var contentPath = html.createHTML(contentSource);
 
         this.viewURI(contentPath);
     },
