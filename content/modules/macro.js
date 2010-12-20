@@ -56,7 +56,7 @@ let macro = {
                 this.getCurrentFocusedElement().dispatchEvent(newEvent);
             }
 
-            this.modules.util.sleep(sleepTime);
+            util.sleep(sleepTime);
         }
     }
 };
