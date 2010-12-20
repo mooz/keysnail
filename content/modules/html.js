@@ -6,9 +6,6 @@
  */
 
 let html = {
-    // ==== common ====
-    modules: null,
-
     htmlTemplate: '<html>\n' +
         '<head>\n' +
         '<title>##HTMLTITLE##</title>\n' +
@@ -34,7 +31,6 @@ let html = {
     },
 
     init: function () {
-        // this.modules = aModules;
     },
 
     // original code from Sage
@@ -47,7 +43,7 @@ let html = {
         const Ci = Components.interfaces;
 
         // Make temporary file for listing the keybindings
-        var tmpFile = this.modules.util.getSpecialDir("UChrm");
+        var tmpFile = util.getSpecialDir("UChrm");
         tmpFile.appendRelativePath("keybindings.html");
 
         var ioService = Cc["@mozilla.org/network/io-service;1"]
@@ -77,13 +73,12 @@ let html = {
 
         if (!this.styleSheet)
         {
-            this.styleSheet = this.modules.util
-                .readTextFileFromPackage("chrome://keysnail/content/resources/design.css");
+            this.styleSheet = util.readTextFileFromPackage("chrome://keysnail/content/resources/design.css");
         }
 
         source = source.replace("##CSS##", this.styleSheet);
 
-        return this.modules.util.convertCharCodeFrom(source, "UTF-8");
+        return util.convertCharCodeFrom(source, "UTF-8");
     },
 
     escapeTag: function (aString) {
