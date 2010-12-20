@@ -30,9 +30,9 @@ key.defineKey([key.modes.VIEW, key.modes.CARET],
 ]]></detail>
 </KeySnailPlugin>;
 
-let options = plugins.setupOptions("noscript_cooperation", {
+let pOptions = plugins.setupOptions("noscript_cooperation", {
     "keymap": {
-        "default": {
+        preset: {
             "C-z"   : "prompt-toggle-edit-mode",
             "SPC"   : "prompt-next-page",
             "b"     : "prompt-previous-page",
@@ -43,9 +43,11 @@ let options = plugins.setupOptions("noscript_cooperation", {
             "q"     : "prompt-cancel",
             "C-RET" : "noscript-permit-temprary"
         },
-        "description": M({en: "keymap used in `noscript-selector`",
-                          ja: "`noscript-selector` で使われるキーバインド設定"}),
-        "type": "object (keymap for prompt.selector)"
+        description: M({
+            en: "keymap used in `noscript-selector`",
+            ja: "`noscript-selector` で使われるキーバインド設定"
+        }),
+        type: "object (keymap for prompt.selector)"
     }
 }, PLUGIN_INFO);
 
@@ -130,7 +132,7 @@ plugins.withProvides(function (provide) {
             message    : "NoScript Allow / Deny Host: ",
             collection : collection,
             flags      : [ICON | IGNORE, 0],
-            keymap     : options.keymap,
+            keymap     : pOptions.keymap,
             actions    : [
                 [createToggler(), "Toggle status", "noscript-permit"],
                 [createToggler(true), "Toggle temporary status", "noscript-permit-temprary"]
