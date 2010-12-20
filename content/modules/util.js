@@ -13,18 +13,13 @@ let util = function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
 
-    let modules;
-
     let self = {
-        modules                : null,
         autoCompleteController : null,
 
         init: function () {
-            modules = self.modules;
-
             this.sandboxForSafeEval = new Components.utils.Sandbox("about:blank");
             this.userContext = {
-                __proto__: this.parent.modules
+                __proto__: modules
             };
 
             // ============================================================ //
@@ -73,8 +68,6 @@ let util = function () {
                 },
 
                 getSuggestions : function (aEngine, query, callback) {
-                    let {util, prompt, completer, style} = KeySnail.modules;
-
                     let queryURI;
                     let engine = aEngine;
 
@@ -103,8 +96,6 @@ let util = function () {
                 },
 
                 searchWithSuggest: function (aSearchEngine, aSuggestEngines, aOpenStyle) {
-                    let {util, prompt, completer, style} = KeySnail.modules;
-
                     prompt.reader(
                         {
                             message    : util.format("Search [%s]:", aSearchEngine.name),
@@ -730,43 +721,40 @@ let util = function () {
         // Directory {{ ============================================================= //
 
         changeDirectory: function (path) {
-            with (KeySnail.modules)
+            let dest;
+
+            if (path === "-")
             {
-                let dest;
-
-                if (path === "-")
-                {
-                    if (!share.oldpwd)
-                        share.oldpwd = share.pwd;
-                    dest = share.oldpwd;
-                }
-                else
-                    dest = completer.utils.normalizePath(path);
-
-                let dir = util.openFile(dest);
-                if (!dir)
-                {
-                    display.echoStatusBar("Failed to change current directory");
-                    return;
-                }
-
-                if (!dir.exists())
-                {
-                    display.echoStatusBar("No such directory " + dest);
-                    return;
-                }
-
-                if (!dir.isDirectory())
-                {
-                    display.echoStatusBar(dest + " is not a directory");
-                    return;
-                }
-
-                share.oldpwd = share.pwd;
-                share.pwd    = dir.path;
-
-                return dir;
+                if (!share.oldpwd)
+                    share.oldpwd = share.pwd;
+                dest = share.oldpwd;
             }
+            else
+                dest = completer.utils.normalizePath(path);
+
+            let dir = util.openFile(dest);
+            if (!dir)
+            {
+                display.echoStatusBar("Failed to change current directory");
+                return;
+            }
+
+            if (!dir.exists())
+            {
+                display.echoStatusBar("No such directory " + dest);
+                return;
+            }
+
+            if (!dir.isDirectory())
+            {
+                display.echoStatusBar(dest + " is not a directory");
+                return;
+            }
+
+            share.oldpwd = share.pwd;
+            share.pwd    = dir.path;
+
+            return dir;
         },
 
         /**
@@ -1064,7 +1052,7 @@ let util = function () {
                 aContext[EVAL_STRING] = aCode;
                 aContext[EVAL_RESULT] = null;
 
-                modules.userscript.loadSubScript("chrome://keysnail/content/eval.js", aContext);
+                userscript.loadSubScript("chrome://keysnail/content/eval.js", aContext);
 
                 if (aContext[EVAL_ERROR])
                     throw aContext[EVAL_ERROR];
