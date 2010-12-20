@@ -95,16 +95,22 @@ let command = {
      * @return
      */
     elementsRetrieverTextarea: function (aDocument) {
-        // var document = gBrowser.contentWindow.document;
-        // Note: type="search" is Safari specific
-        var xPathExp = '//input[(@type="text" or @type="password" or @type="search" or not(@type)) and not(@type="hidden")] | //textarea';
-        return aDocument.evaluate(xPathExp, aDocument, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        let xPathExp = <><![CDATA[
+            //input[(@type="text" or @type="password" or @type="search" or not(@type)) and not(@type="hidden")]
+          | //textarea
+          | //textbox
+        ]]></>.toString();
+
+        return util.getNodesFromXPath(xPathExp, aDocument);
     },
 
     elementsRetrieverButton: function (aDocument) {
-        // var document = gBrowser.contentWindow.document;
-        var xPathExp = '//input[@type="submit" or @type="reset" or @type="button" or @type="image"]';
-        return aDocument.evaluate(xPathExp, aDocument, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        let xPathExp = <><![CDATA[
+            //input[@type="submit" or @type="reset" or @type="button" or @type="image"]
+          | //button
+        ]]></>.toString();
+
+        return util.getNodesFromXPath(xPathExp, aDocument);
     },
 
     isNotVisible: function (aElement, aDoc) {
@@ -126,9 +132,9 @@ let command = {
      * @param {integer} aNum
      */
     focusElement: function (aElementsRetriever, aNum) {
-        var doc = document.commandDispatcher.focusedWindow.document
+        let doc = document.commandDispatcher.focusedWindow.document
             || gBrowser.contentWindow.document;
-        var xPathResults = aElementsRetriever(doc);
+        let xPathResults = aElementsRetriever(doc);
 
         if (xPathResults.snapshotLength == 0)
             return;

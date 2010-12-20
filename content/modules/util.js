@@ -1106,6 +1106,52 @@ let util = function () {
 
         // }} ======================================================================= //
 
+        // XPath {{ ================================================================= //
+
+        // http://piro.sakura.ne.jp/xul/tips/x0032.html
+        getNodesFromXPath: function (aXPath, aContextNode) {
+            const XULNS   = 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul';
+            const XHTMLNS = 'http://www.w3.org/1999/xhtml';
+            const XLinkNS = 'http://www.w3.org/1999/xlink';
+
+            const xmlDoc   = aContextNode ? aContextNode.ownerDocument || aContextNode :
+                util.focusedElement.ownerDocument.ownerDocument;
+            const context  = aContextNode || xmlDoc.documentElement;
+            const type     = XPathResult.ORDERED_NODE_SNAPSHOT_TYPE;
+
+            const resolver = {
+                lookupNamespaceURI: function (prefix) {
+                    switch (prefix) {
+                    case 'xul':
+                        return XULNS;
+                    case 'html':
+                    case 'xhtml':
+                        return XHTMLNS;
+                    case 'xlink':
+                        return XLinkNS;
+                    default:
+                        return '';
+                    }
+                }
+            };
+
+            try {
+                return xmlDoc.evaluate(aXPath, context, resolver, type, null);
+            } catch (x) {
+                util.error(x, "util.getNodesFromXPath");
+                return {
+                    snapshotLength : 0,
+                    snapshotItem   : function () {
+                        return null;
+                    }
+                };
+            }
+
+            return result;
+        },
+
+        // }} ======================================================================= //
+
         // Network {{ =============================================================== //
 
         /**
