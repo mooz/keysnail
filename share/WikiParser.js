@@ -31,7 +31,7 @@ WikiParser.prototype = {
         dt: /^(.*)\s*:$/,
         ul: /^\-\s+(.*)$/,
         ol: /^\+\s+(.*)$/,
-        preStart: /^>\|\|$/,
+        preStart: /^>\|([0-9a-zA-Z_]+)?\|$/,
         preEnd: /^\|\|<$/
     }, // }}}
         blockParse: function(line, prevMode){ // {{{
@@ -52,7 +52,8 @@ WikiParser.prototype = {
                 } else if (this.wikiReg.preStart.test(line)){
                     this.mode = 'pre';
                     this.pendingMode = prevMode;
-                    return <pre/>;
+                    let lang = RegExp.$1;
+                    return <pre data-lang={lang} />;
                 } else if (this.wikiReg.hn.test(line)){
                     var hn = RegExp.$1.length - 1;
                     this.mode = '';
