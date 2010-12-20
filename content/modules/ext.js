@@ -12,8 +12,6 @@ let ext = function () {
     const Cc = Components.classes;
     const Ci = Components.interfaces;
 
-    var modules;
-
     var exts = {};
     var extArray;
 
@@ -49,8 +47,6 @@ let ext = function () {
         init: function () {
             if (KeySnail.windowType != "navigator:browser")
                 return;
-
-            modules = this.modules;
         },
 
         get exts () {
@@ -75,9 +71,9 @@ let ext = function () {
 
         exec: function (aName, aArgument, aEvent) {
             if (aName in exts) {
-                exts[aName].action.apply(modules, [aEvent || {}, aArgument]);
+                exts[aName].action(aEvent || {}, aArgument);
             } else {
-                modules.display.echoStatusBar('ext "' + aName + '" not found');
+                display.echoStatusBar('ext "' + aName + '" not found');
             }
         },
 
@@ -114,19 +110,17 @@ let ext = function () {
             //                     },
             //                     null, extList, "", 0, "ext");
 
-            modules.prompt.selector(
-                {
-                    message: (aArgument ? modules.key.universalArgumentKey + " " : "") + "Ext:",
-                    callback: function (aIndex) {
-                        if (aIndex >= 0) {
-                            var name = extList[aIndex][0];
-                            self.exec(name, aArgument, aEvent);
-                        }
-                    },
-                    header: ["Name", "Description"],
-                    collection: extList
-                }
-            );
+            prompt.selector({
+                message: (aArgument ? key.universalArgumentKey + " " : "") + "Ext:",
+                callback: function (aIndex) {
+                    if (aIndex >= 0) {
+                        var name = extList[aIndex][0];
+                        self.exec(name, aArgument, aEvent);
+                    }
+                },
+                header: ["Name", "Description"],
+                collection: extList
+            });
         }
     };
 
