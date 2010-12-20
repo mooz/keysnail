@@ -360,6 +360,16 @@ let util = function () {
 
         // Misc utils {{ ============================================================ //
 
+        get browserWindow() {
+            return Cc["@mozilla.org/appshell/window-mediator;1"]
+                .getService(Ci.nsIWindowMediator)
+                .getMostRecentWindow("navigator:browser");
+        },
+
+        get browserDocument() {
+            return this.browserWindow.document;
+        },
+
         getBrowserWindows:
         function getBrowserWindows() {
             let windows = [];

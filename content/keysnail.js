@@ -603,9 +603,7 @@
                                         if (topic !== "alertclickcallback")
                                             return;
 
-                                        const win = Cc["@mozilla.org/appshell/window-mediator;1"]
-                                            .getService(Ci.nsIWindowMediator)
-                                            .getMostRecentWindow("navigator:browser");
+                                        const win = util.browserWindow;
 
                                         win.KeySnail.openUpdatePluginDialog();
                                     }
