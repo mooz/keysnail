@@ -53,7 +53,7 @@ WikiParser.prototype = {
                     this.mode = 'pre';
                     this.pendingMode = prevMode;
                     let lang = RegExp.$1;
-                    return <pre data-lang={lang} />;
+                    return lang ? <pre data-lang={lang} /> : <pre />;
                 } else if (this.wikiReg.hn.test(line)){
                     var hn = RegExp.$1.length - 1;
                     this.mode = '';
