@@ -179,7 +179,6 @@ const userscript = {
                 let _preset = preset;
                 let _name   = name;
                 options.__defineGetter__(name, function () {
-                    util.message("preset for %s (%s) :: " + _preset, _name, fullName);
                     return (fullName in plugins.options) ?
                         plugins.options[fullName] : _preset;
                 });
