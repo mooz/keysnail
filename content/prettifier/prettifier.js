@@ -70,6 +70,9 @@ Prettifier.prettifyElement = function prettifyElement(elem) {
 
     var pretContainer = document.createElement("pre");
     pretContainer.setAttribute("class", "code");
+    var lang = elem.getAttribute("data-lang");
+    if (lang)
+        pretContainer.setAttribute("data-lang", lang);
     pretContainer.appendChild(pret);
 
     elem.parentNode.replaceChild(pretContainer, elem);
