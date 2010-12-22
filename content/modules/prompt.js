@@ -40,7 +40,6 @@ const prompt = function () {
     var rightLabel;
     var textbox;
     var listbox;
-    var statusBar;
 
     // Callbacks
     var currentCallback;
@@ -2628,8 +2627,9 @@ const prompt = function () {
                 oldSelectionStart = textbox.selectionStart = textbox.selectionEnd =
                     (typeof readerCC.cursorEnd === "number") ? readerCC.cursorEnd : (readerLeftContext + text).length;
 
-                statusBar.label =
-                    util.format("match (%s / %s)", readerCurrentIndex + 1, readerCurrentCollection.length);
+                display.echoStatusBar(util.format("match (%s / %s)",
+                                                  readerCurrentIndex + 1,
+                                                  readerCurrentCollection.length));
             }
         }
 
@@ -2715,8 +2715,6 @@ const prompt = function () {
         init: function () {
             if (KeySnail.windowType != "navigator:browser")
                 return;
-
-            statusBar = $('statusbar-display');
 
             promptbox  = $("keysnail-prompt");
             leftLabel  = $("keysnail-prompt-left-label");
