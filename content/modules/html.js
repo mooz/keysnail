@@ -6,20 +6,23 @@
  */
 
 const html = {
-    htmlTemplate: '<html>\n' +
-        '<head>\n' +
-        '<title>##HTMLTITLE##</title>\n' +
-        '<style type="text/css">\n' +
-        '##CSS##' +
-        '</style>\n' +
-        '</head>\n' +
-        '<body>\n' +
-        '<div id="container">\n' +
-        '##CONTENTS##\n' +
-        '</div>\n' +
-        '</body>\n' +
-        '</html>'
-    ,
+    htmlTemplate: <><![CDATA[
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml">
+            <head>
+                <title>##HTMLTITLE##</title>
+                <style type="text/css">
+                    ##CSS##
+                </style>
+            </head>
+            <body>
+                <div id="container">
+                    ##CONTENTS##
+                </div>
+            </body>
+        </html>
+    ]]></>.toString(),
 
     styleSheet: null,
 
@@ -39,9 +42,6 @@ const html = {
     // @param aContent complete HTML source
     // @return created html's path
     createHTML: function (aContent) {
-        const Cc = Components.classes;
-        const Ci = Components.interfaces;
-
         // Make temporary file for listing the keybindings
         var tmpFile = util.getSpecialDir("UChrm");
         tmpFile.appendRelativePath("keybindings.html");
@@ -72,9 +72,7 @@ const html = {
         source = source.replace("##CONTENTS##", aBody);
 
         if (!this.styleSheet)
-        {
             this.styleSheet = util.readTextFileFromPackage("chrome://keysnail/content/resources/design.css");
-        }
 
         source = source.replace("##CSS##", this.styleSheet);
 
@@ -85,13 +83,9 @@ const html = {
         if (!aString)
             return "";
 
-        for (var badStr in this.replacePair)
-        {
-            while (aString.search(badStr) !== -1)
-            {
-                aString = aString.replace(badStr, this.replacePair[badStr]);
-            }
-        }
+        for (let [bad, good] in Iterator(this.replacePair))
+            while (aString.indexOf(bad) !== -1)
+                aString = aString.replace(bad, good);
 
         return aString;
     },
@@ -100,14 +94,9 @@ const html = {
         if (!aString)
             return "";
 
-        for (var badStr in this.replacePair)
-        {
-            var replacedStr = this.replacePair[badStr];
-            while (aString.indexOf(replacedStr) != -1)
-            {
-                aString = aString.replace(replacedStr, badStr);
-            }
-        }
+        for (let [bad, good] in Iterator(this.replacePair))
+            while (aString.indexOf(good) !== -1)
+                aString = aString.replace(good, bad);
 
         return aString;
     },
@@ -119,7 +108,5 @@ const html = {
         div.appendChild(text);
         text.data = aStrTarget;
         return div.innerHTML;
-    },
-
-    message: KeySnail.message
+    }
 };
