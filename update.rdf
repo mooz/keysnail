@@ -3,7 +3,7 @@
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.7.1">
+                   em:version="1.8.0">
     <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
   </RDF:Description>
   <RDF:Seq RDF:about="rdf:#$mtJrB">
@@ -18,6 +18,6 @@
                    em:minVersion="3.0"
                    em:maxVersion="4.0b3pre"
                    em:updateLink="http://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.7.1.xhtml"
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.0.xhtml"
                    em:updateHash="sha1:730351ef0eae68ebecc00ceac0b8016ab59b5904" />
 </RDF:RDF>
