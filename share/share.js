@@ -1,4 +1,4 @@
-var EXPORTED_SYMBOLS = ["share", "persist"];
+const EXPORTED_SYMBOLS = ["share", "persist", "Cc", "Ci"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
