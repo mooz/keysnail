@@ -2,15 +2,15 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <RDF:Seq RDF:about="rdf:#$mtJrB">
+    <RDF:li RDF:resource="rdf:#$ntJrB"/>
+  </RDF:Seq>
   <RDF:Description RDF:about="rdf:#$ntJrB"
                    em:version="1.8.0">
     <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
   </RDF:Description>
-  <RDF:Seq RDF:about="rdf:#$mtJrB">
-    <RDF:li RDF:resource="rdf:#$ntJrB"/>
-  </RDF:Seq>
   <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAF7c8S8vMoS0sIgwKVkO1MzJ/Zzd1Cch2swlNc4zY56tziuyyBwhWu+G0Q7L3py/tUJ5F8jSmRthHb52G5McJKk8LPPuCbWhL9BlVYAwyoyp7+8zNd6ofkP2MocG3x84a5lqBMl8ueU6T6tFFtIjX5Ru1AgMdrvcKR9q/NKqkgUe">
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAH6KMyOsrJV02NW4jSdNbsZXvTMBN3w1iaAOsVATf+7BQ8F+9JNECCq3ekI0HCymg4/UwR2TF8/40SHzVLZPCbpNCWviknwyLwgVE34zPgwEVt6cHM0yKiGv2lY2ZVy3p1P2mo3MjdFEzK9TrXdfwuqNxkaiy3EOjRkGC73CRYYc">
     <em:updates RDF:resource="rdf:#$mtJrB"/>
   </RDF:Description>
   <RDF:Description RDF:about="rdf:#$qtJrB"
