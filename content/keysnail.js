@@ -26,6 +26,9 @@
             return this._windowType = window.document.documentElement.getAttribute("windowtype");
         },
 
+        mainWindowType: "navigator:browser",
+        get isMainWindow() this.windowType === this.mainWindowType,
+
         get version() {
             return this.extInfo.version;
         },
