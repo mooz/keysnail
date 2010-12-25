@@ -601,7 +601,7 @@ const userscript = {
         let updateURL = util.xmlGetLocaleString(localInfo.updateURL);
 
         if (!updateURL)
-            return void typeof next === "function" ? next(false) : 0;
+            return void (typeof next === "function" ? next(false) : 0);
 
         util.httpGet(updateURL, false, function (req) {
             let { responseText : remoteCode } = req;

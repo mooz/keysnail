@@ -6,14 +6,14 @@
     <Description about="urn:mozilla:install-manifest">
         <em:id>keysnail@mooz.github.com</em:id>
         <em:type>2</em:type> <!-- type of the addon, 2 means the extension -->
-        <em:version>1.8.0</em:version>
+        <em:version>1.8.1</em:version>
         <em:name>KeySnail</em:name>
         <em:creator>mooz</em:creator>
         <em:developer>mooz</em:developer>
-        <em:homepageURL>http://wiki.github.com/mooz/keysnail/</em:homepageURL>
+        <em:homepageURL>https://wiki.github.com/mooz/keysnail/</em:homepageURL>
         <em:optionsURL>chrome://keysnail/content/preference.xul</em:optionsURL>
 	<em:iconURL>chrome://keysnail/skin/icon.png</em:iconURL>
-        <em:updateURL>http://github.com/mooz/keysnail/raw/master/update.rdf</em:updateURL>
+        <em:updateURL>https://github.com/mooz/keysnail/raw/master/update.rdf</em:updateURL>
         <em:updateKey>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGO9hYnSCroKCLRqGbV1czqWsQfZBsuU3EjnvumarZYQ4YE5tp3RCSploa6+qs4GLL7/aqtDnasWlM+cECJDh2XdrhHjm+vxc4X38Ym7BRL1x/Np0ujQ7o0F6hdD9CGPFdOvYMgqszO8GxJg8eshaTy1nr8fStUF9HwVXRfYqT1QIDAQAB</em:updateKey>
         <!-- en-US -->
         <em:description>Bind function to the key sequence!</em:description>
@@ -24,7 +24,7 @@
                 <em:name>KeySnail</em:name>
                 <em:creator>mooz</em:creator>
                 <em:description>JavaScript の関数をキーシーケンスに割り当て</em:description>
-                <em:homepageURL>http://wiki.github.com/mooz/keysnail/keysnail-japanese</em:homepageURL>
+                <em:homepageURL>https://wiki.github.com/mooz/keysnail/keysnail-japanese</em:homepageURL>
             </Description>
         </em:localized>
         <!-- Firefox -->
