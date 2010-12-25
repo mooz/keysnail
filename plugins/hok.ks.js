@@ -1,109 +1,17 @@
 // Plugin info {{ =========================================================== //
 
-var PLUGIN_INFO =
+const PLUGIN_INFO =
 <KeySnailPlugin>
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクを開く</description>
-    <version>1.2.5</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
+    <version>1.2.6</version>
+    <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
+    <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>MPL</license>
-    <minVersion>1.5.4</minVersion>
+    <minVersion>1.8.0</minVersion>
     <include>main</include>
-    <provides>
-        <ext>hok-start-foreground-mode</ext>
-        <ext>hok-start-background-mode</ext>
-        <ext>hok-start-continuous-mode</ext>
-        <ext>hok-start-extended-mode</ext>
-    </provides>
-    <options>
-        <option>
-            <name>hok.hint_keys</name>
-            <type>string</type>
-            <description>Hints keys (default asdfghjkl)</description>
-            <description lang="ja">ヒントに使うキー (デフォルトは asdfghjkl)</description>
-        </option>
-        <option>
-            <name>hok.unique_fire</name>
-            <type>boolean</type>
-            <description>When current focused hint is unique, auto fire the link or not</description>
-            <description lang="ja">キーを入力した際、他に候補が無ければ自動的にそのリンクをたどるか (デフォルト: true)</description>
-        </option>
-        <option>
-            <name>hok.statusbar_feedback</name>
-            <type>boolean</type>
-            <description>Whether display your inputs to the statusbar or not</description>
-            <description lang="ja">入力したキーをステータスバーへ表示するかどうか (デフォルト: true)</description>
-        </option>
-        <option>
-            <name>hok.actions</name>
-            <type>array</type>
-            <description>Actions for extended hint mode</description>
-            <description lang="ja">拡張ヒントモード用に独自のアクションを設定</description>
-        </option>
-        <option>
-            <name>hok.use_selector</name>
-            <type>boolean</type>
-            <description>Use Selectors API instead of XPath. Performance up but only works after Firefox 3.1 (default: true)</description>
-            <description lang="ja">ヒントの取得に Selectors API を用いるかどうか。 XPath より高速となるが Firefox 3.1 以降専用。 (デフォルト: true)</description>
-        </option>
-        <option>
-            <name>hok.selector</name>
-            <type>string</type>
-            <description>Selectors API Path query</description>
-            <description lang="ja">ヒントの取得に使う Selectors API クエリ</description>
-        </option>
-        <option>
-            <name>hok.xpath</name>
-            <type>string</type>
-            <description>XPath query</description>
-            <description lang="ja">ヒントの取得に使う XPath クエリ</description>
-        </option>
-        <option>
-            <name>hok.local_queries</name>
-            <type>array</type>
-            <description>Site local queries (Only effective when Selectors API is used)</description>
-            <description lang="ja">サイト毎のクエリ (Selectors API 使用時のみ有効)</description>
-        </option>
-        <option>
-            <name>hok.hint_color_link</name>
-            <type>string</type>
-            <description>Color of the hints for links</description>
-            <description lang="ja">リンク用ヒントの色</description>
-        </option>
-        <option>
-            <name>hok.hint_color_form</name>
-            <type>string</type>
-            <description>Color of the hints for forms</description>
-            <description lang="ja">フォーム用ヒントの色</description>
-        </option>
-        <option>
-            <name>hok.hint_color_focused</name>
-            <type>string</type>
-            <description>Color of focused hints</description>
-            <description lang="ja">フォーカスされているヒントの色</description>
-        </option>
-        <option>
-            <name>hok.hint_color_candidates</name>
-            <type>string</type>
-            <description>Color of candidate hints</description>
-            <description lang="ja">現在の入力から始まる候補一覧の色</description>
-        </option>
-        <option>
-            <name>hok.hint_base_style</name>
-            <type>object</type>
-            <description>Color of focused hints</description>
-            <description lang="ja">ヒントのスタイルを設定</description>
-        </option>
-        <option>
-            <name>hok.user_keymap</name>
-            <type>object</type>
-            <description>Specify user keymap</description>
-            <description lang="ja">ユーザ定義のキーマップを指定</description>
-        </option>
-    </options>
     <detail><![CDATA[
 === Usage ===
 
@@ -313,7 +221,7 @@ http://d.hatena.ne.jp/Griever/20090223/1235407852
 
 HoK のオリジナル開発者は myuhe さんです。
 
-http://github.com/myuhe
+https://github.com/myuhe
 	       ]]></detail>
 </KeySnailPlugin>;
 
@@ -373,46 +281,146 @@ http://github.com/myuhe
 
 // Options {{ =============================================================== //
 
-var optionsDefaultValue = {
-    "hint_keys"          : 'asdfghjkl',
-    "selector"           : 'a[href], input:not([type="hidden"]), textarea, iframe, area, select, button, ' +
-        '*[onclick], *[onmouseover], *[onmousedown], *[onmouseup], *[oncommand], *[role="link"]',
-    "xpath"              : '//input[not(@type="hidden")] | //a | //area | //iframe | //textarea | //button | //select' +
-        ' | //*[@onclick or @onmouseover or @onmousedown or @onmouseup or @oncommand or @role="link"]',
-    "statusbar_feedback" : true,
-    "unique_fire"        : true,
-    "actions"            : null,
-    "use_selector"       : !!document.querySelectorAll,
-    "hint_base_style"    : {
-        position        : 'absolute',
-        zIndex          : '2147483647',
-        color           : '#000',
-        fontFamily      : 'monospace',
-        fontSize        : '10pt',
-        fontWeight      : 'bold',
-        lineHeight      : '10pt',
-        padding         : '2px',
-        margin          : '0px',
-        textTransform   : 'uppercase'
+const pOptions = plugins.setupOptions("hok", {
+    "hint_keys" : {
+        preset: 'asdfghjkl',
+        description: M({
+            en: "Hints keys (default asdfghjkl)",
+            ja: "ヒントに使うキー (デフォルトは asdfghjkl)"
+        }),
+        type: "string"
     },
-    "hint_color_link"       : 'rgba(180, 255, 81, 0.90)',
-    "hint_color_form"       : 'rgba(155, 174, 255, 0.90)',
-    "hint_color_candidates" : 'rgba(255, 81, 116, 0.90)',
-    "hint_color_focused"    : 'rgba(255, 0, 51, 1.0)'
-};
 
-function getOption(aName) {
-    var fullName = "hok." + aName;
+    "unique_fire" : {
+        preset: true,
+        description: M({
+            en: "When current focused hint is unique, auto fire the link or not",
+            ja: "キーを入力した際、他に候補が無ければ自動的にそのリンクをたどるか (デフォルト: true)"
+        }),
+        type: "boolean"
+    },
 
-    if (typeof(plugins.options[fullName]) != "undefined")
-    {
-        return plugins.options[fullName];
+    "statusbar_feedback" : {
+        preset: true,
+        description: M({
+            en: "Whether display your inputs to the statusbar or not",
+            ja: "入力したキーをステータスバーへ表示するかどうか (デフォルト: true)"
+        }),
+        type: "boolean"
+    },
+
+    "actions" : {
+        preset: null,
+        description: M({
+            en: "Actions for extended hint mode",
+            ja: "拡張ヒントモード用に独自のアクションを設定"
+        }),
+        type: "array"
+    },
+
+    "use_selector" : {
+        preset: true,
+        description: M({
+            en: "Use Selectors API instead of XPath. Performance up but only works after Firefox 3.1 (default: true)",
+            ja: "ヒントの取得に Selectors API を用いるかどうか。 XPath より高速となるが Firefox 3.1 以降専用。 (デフォルト: true)"
+        }),
+        type: "boolean"
+    },
+
+    "selector" : {
+        preset: 'a[href], input:not([type="hidden"]), textarea, iframe, area, select, button, ' +
+            '*[onclick], *[onmouseover], *[onmousedown], *[onmouseup], *[oncommand], *[role="link"]',
+        description: M({
+            en: "Selectors API Path query",
+            ja: "ヒントの取得に使う Selectors API クエリ"
+        }),
+        type: "string"
+    },
+
+    "xpath" : {
+        preset: '//input[not(@type="hidden")] | //a | //area | //iframe | //textarea | //button | //select' +
+            ' | //*[@onclick or @onmouseover or @onmousedown or @onmouseup or @oncommand or @role="link"]',
+        description: M({
+            en: "XPath query",
+            ja: "ヒントの取得に使う XPath クエリ"
+        }),
+        type: "string"
+    },
+
+    "local_queries" : {
+        preset: null,
+        description: M({
+            en: "Site local queries (Only effective when Selectors API is used)",
+            ja: "サイト毎のクエリ (Selectors API 使用時のみ有効)"
+        }),
+        type: "array"
+    },
+
+    "hint_color_link" : {
+        preset: 'rgba(180, 255, 81, 0.90)',
+        description: M({
+            en: "Color of the hints for links",
+            ja: "リンク用ヒントの色"
+        }),
+        type: "string"
+    },
+
+    "hint_color_form" : {
+        preset: 'rgba(155, 174, 255, 0.90)',
+        description: M({
+            en: "Color of the hints for forms",
+            ja: "フォーム用ヒントの色"
+        }),
+        type: "string"
+    },
+
+    "hint_color_focused" : {
+        preset: 'rgba(255, 0, 51, 1.0)',
+        description: M({
+            en: "Color of focused hints",
+            ja: "フォーカスされているヒントの色"
+        }),
+        type: "string"
+    },
+
+    "hint_color_candidates" : {
+        preset: 'rgba(255, 81, 116, 0.90)',
+        description: M({
+            en: "Color of candidate hints",
+            ja: "現在の入力から始まる候補一覧の色"
+        }),
+        type: "string"
+    },
+
+    "hint_base_style" : {
+        preset: {
+            position        : 'absolute',
+            zIndex          : '2147483647',
+            color           : '#000',
+            fontFamily      : 'monospace',
+            fontSize        : '10pt',
+            fontWeight      : 'bold',
+            lineHeight      : '10pt',
+            padding         : '2px',
+            margin          : '0px',
+            textTransform   : 'uppercase'
+        },
+        description: M({
+            en: "Color of focused hints",
+            ja: "ヒントのスタイルを設定"
+        }),
+        type: "object"
+    },
+
+    "user_keymap" : {
+        preset: null,
+        description: M({
+            en: "Specify user keymap",
+            ja: "ユーザ定義のキーマップを指定"
+        }),
+        type: "object"
     }
-    else
-    {
-        return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
-    }
-}
+}, PLUGIN_INFO);
 
 // }} ======================================================================= //
 
@@ -575,22 +583,22 @@ function recoverFocus() {
 // HoK object {{ ============================================================ //
 
 var originalSuspendedStatus;
-var useSelector = getOption("use_selector");
+var useSelector = pOptions["use_selector"];
 
 var hok = function () {
-    var hintKeys            = getOption("hint_keys");
-    var selector            = getOption("selector");
-    var xPathExp            = getOption("xpath");
-    var hintBaseStyle       = getOption("hint_base_style");
-    var hintColorLink       = getOption("hint_color_link");
-    var hintColorForm       = getOption("hint_color_form");
-    var hintColorFocused    = getOption("hint_color_focused");
-    var hintColorCandidates = getOption("hint_color_candidates");
-    var elementColorFocused = getOption("element_color_focused");
+    var hintKeys            = pOptions["hint_keys"];
+    var selector            = pOptions["selector"];
+    var xPathExp            = pOptions["xpath"];
+    var hintBaseStyle       = pOptions["hint_base_style"];
+    var hintColorLink       = pOptions["hint_color_link"];
+    var hintColorForm       = pOptions["hint_color_form"];
+    var hintColorFocused    = pOptions["hint_color_focused"];
+    var hintColorCandidates = pOptions["hint_color_candidates"];
+    var elementColorFocused = pOptions["element_color_focused"];
 
     var keyMap = {};
-    if (plugins.options["hok.user_keymap"])
-        keyMap = plugins.options["hok.user_keymap"];
+    if (pOptions["user_keymap"])
+        keyMap = pOptions["user_keymap"];
 
     keyMap["<delete>"]    = 'Delete';
     keyMap["<backspace>"] = 'Backspace';
@@ -602,9 +610,8 @@ var hok = function () {
 
     // misc options {{ ========================================================== //
 
-    var useStatusBarFeedBack = getOption("statusbar_feedback");
+    var useStatusBarFeedBack = pOptions["statusbar_feedback"];
 
-    var uniqueFire = getOption("unique_fire");
     var supressUniqueFire;
 
     var continuousMode;
@@ -1035,7 +1042,7 @@ var hok = function () {
             focusHint(lastMatchHint);
 
             // fire if hint is unique
-            if (uniqueFire && !supressUniqueFire)
+            if (pOptions["unique_fire"] && !supressUniqueFire)
             {
                 let foundCount = updateHeaderMatchHints();
 
@@ -1061,9 +1068,9 @@ var hok = function () {
     }
 
     function setLocalQuery() {
-        if (plugins.options["hok.local_queries"] && typeof content.location.href == "string")
+        if (pOptions["local_queries"] && typeof content.location.href == "string")
         {
-            for (let [, row] in Iterator(plugins.options["hok.local_queries"]))
+            for (let [, row] in Iterator(pOptions["local_queries"]))
             {
                 if (content.location.href.match(row[0]))
                 {
@@ -1223,10 +1230,8 @@ var actions = [
     ['I', M({ja: "画像を新しいタブで開く", en: "Show image in a new tab"}), function (elem) plugins.hok.openURI(elem.src, NEW_TAB), false, false, query.images]
 ];
 
-if (getOption("actions"))
-{
-    getOption("actions").forEach(function (aRow) actions.push(aRow));
-}
+if (pOptions["actions"])
+    pOptions["actions"].forEach(function (aRow) actions.push(aRow));
 
 function doAction(aStr) {
     for (var i = 0; i < actions.length; ++i)
@@ -1251,43 +1256,43 @@ function doAction(aStr) {
 
 // Exts {{ ================================================================== //
 
-ext.add("hok-start-foreground-mode",
-        function (ev, arg) hok.startForeground(!(arg === null)),
-        M({ja: "HoK - リンクをフォアグラウンドで開く", en: "Start Hit a Hint foreground mode"}));
+plugins.withProvides(function (provide) {
+    provide("hok-start-foreground-mode",
+            function (ev, arg) hok.startForeground(!(arg === null)),
+            M({ja: "HoK - リンクをフォアグラウンドで開く", en: "Start Hit a Hint foreground mode"}));
 
-ext.add("hok-start-background-mode",
-        function (ev, arg) hok.startBackground(!(arg === null)),
-        M({ja: "HoK - リンクをバックグラウンドで開く", en: "Start Hit a Hint background mode"}));
+    provide("hok-start-background-mode",
+            function (ev, arg) hok.startBackground(!(arg === null)),
+            M({ja: "HoK - リンクをバックグラウンドで開く", en: "Start Hit a Hint background mode"}));
 
-ext.add("hok-start-continuous-mode",
-        hok.startContinuous,
-        M({ja: "HoK - リンクを連続して開く", en: "Start Hit a Hint continuous mode"}));
+    provide("hok-start-continuous-mode",
+            hok.startContinuous,
+            M({ja: "HoK - リンクを連続して開く", en: "Start Hit a Hint continuous mode"}));
 
-ext.add("hok-start-extended-mode", function (ev, arg) {
-            prompt.reader(
-                {
-                    message  : "Extended hint mode (Press TAB to see completions): ",
-                    onChange : function (arg) {
-                        if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT ||
-                            arg.event.keyCode === KeyEvent.DOM_VK_TAB)
-                            return;
+    provide("hok-start-extended-mode", function (ev, arg) {
+        prompt.reader({
+            message  : "Extended hint mode (Press TAB to see completions): ",
+            onChange : function (arg) {
+                if (arg.event.keyCode === KeyEvent.DOM_VK_SHIFT ||
+                    arg.event.keyCode === KeyEvent.DOM_VK_TAB)
+                    return;
 
-                        var current = arg.textbox.value;
-                        if (current)
-                            arg.finish();
-                    },
-                    collection          : formatActions(actions),
-                    header              : [M({ja: "キー", en: "Key"}), M({ja: "説明", en: "Description"})],
-                    style               : ["font-weight:bold;text-align:right;margin-right:2em;", style.prompt.history],
-                    width               : [40, 60],
-                    supressRecoverFocus : true,
-                    callback            : function (aStr) {
-                        if (aStr !== null)
-                            doAction(aStr);
-                        recoverFocus();
-                    }
-                }
-            );
-        }, M({ja: "HoK - 拡張ヒントモードを開始", en: "Start Hit a Hint extended mode"}));
+                var current = arg.textbox.value;
+                if (current)
+                    arg.finish();
+            },
+            collection          : formatActions(actions),
+            header              : [M({ja: "キー", en: "Key"}), M({ja: "説明", en: "Description"})],
+            style               : ["font-weight:bold;text-align:right;margin-right:2em;", style.prompt.history],
+            width               : [40, 60],
+            supressRecoverFocus : true,
+            callback            : function (aStr) {
+                if (aStr !== null)
+                    doAction(aStr);
+                recoverFocus();
+            }
+        });
+    }, M({ja: "HoK - 拡張ヒントモードを開始", en: "Start Hit a Hint extended mode"}));
+}, PLUGIN_INFO);
 
 // }} ======================================================================= //
