@@ -26,7 +26,13 @@
             return this._windowType = window.document.documentElement.getAttribute("windowtype");
         },
 
-        mainWindowType: "navigator:browser",
+        get mainWindowType() {
+            if (this._mainWindowType)
+                return this._mainWindowType;
+
+            return this._mainWindowType = this.isThunderbird ? "mail:3pane" : "navigator:browser";
+        },
+
         get isMainWindow() this.windowType === this.mainWindowType,
 
         get version() {
@@ -123,7 +129,7 @@
                 key.run();
 
             // main-window specific settings
-            if (this.windowType === "navigator:browser") {
+            if (this.isMainWindow) {
                 this.settingsForBrowserWindow();
                 key.updateStatusBar();
             }

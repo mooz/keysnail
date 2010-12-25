@@ -45,7 +45,7 @@ const ext = function () {
 
     var self = {
         init: function () {
-            if (KeySnail.windowType != "navigator:browser")
+            if (!KeySnail.isMainWindow)
                 return;
         },
 

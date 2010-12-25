@@ -12,7 +12,7 @@ const userscript = {
      */
     jsFileLoader: function (aScriptPath, aPreserve) {
         var code = util.readTextFile(aScriptPath);
-        if (this.parent.windowType === "navigator:browser" && aPreserve)
+        if (KeySnail.isMainWindow && aPreserve)
             this.preserveCode(code);
         util.evalInContext(code);
     },
@@ -232,37 +232,33 @@ const userscript = {
     load: function () {
         var loadStatus = -1;
 
+        let reallyLoadPlugin = KeySnail.isMainWindow ||
+            util.getBoolPref("extensions.keysnail.plugin.global_enabled", false);
+
         // before load init file, load special plugins
-        this.loadSpecialPlugins();
+        if (reallyLoadPlugin)
+            this.loadSpecialPlugins();
 
         loadStatus = this.loadUserScript(this.initFileLoader,
                                          this.userPath,
                                          this.defaultInitFileNames);
 
-        if (loadStatus == -1)
-        {
+        if (loadStatus == -1) {
             // file not found.
             // we need to create the new one
             // or let user to select the init file place
-            if (this.parent.windowType == "navigator:browser")
-            {
+            if (KeySnail.isMainWindow)
                 loadStatus = this.beginRcFileWizard();
-            }
         }
 
-        if (loadStatus == 0)
-        {
+        if (loadStatus == 0) {
             this.initFileLoaded = true;
 
-            if (this.parent.windowType == "navigator:browser" ||
-                util.getBoolPref("extensions.keysnail.plugin.global_enabled", false))
-            {
+            if (reallyLoadPlugin) {
                 this.loadPlugins();
                 hook.callHook("PluginLoaded");
             }
-        }
-        else
-        {
+        } else {
             // failed. disable the keysnail.
             this.initFileLoaded = false;
 

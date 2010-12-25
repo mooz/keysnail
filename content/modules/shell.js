@@ -352,8 +352,7 @@ const shell =
 
              add  : add,
              init : function () {
-                 if (KeySnail.windowType !== "navigator:browser" ||
-                     !util.getBoolPref("extensions.keysnail.vimp.enabled", true))
+                 if (!KeySnail.isMainWindow || !util.getBoolPref("extensions.keysnail.vimp.enabled", true))
                      return;
 
                  try
