@@ -12,16 +12,16 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.2.4</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
+    <version>2.2.5</version>
+    <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
+    <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license document="http://www.opensource.org/licenses/mit-license.php">The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.8.0</minVersion>
     <include>main</include>
     <require>
-        <script>http://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
+        <script>https://github.com/mooz/keysnail/raw/master/plugins/lib/oauth.js</script>
     </require>
     <detail><![CDATA[
 === Usage ===
@@ -279,9 +279,6 @@ plugins.options["twitter_client.timeline_count_every_updates"] = 0;
 </KeySnailPlugin>;
 
 // }} ======================================================================= //
-
-const Cc = Components.classes;
-const Ci = Components.interfaces;
 
 const LOG_LEVEL_DEBUG   = 0;
 const LOG_LEVEL_MESSAGE = 10;
