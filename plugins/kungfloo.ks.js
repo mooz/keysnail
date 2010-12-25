@@ -5,45 +5,13 @@ let PLUGIN_INFO =
     <name>kungfloo</name>
     <description>Manipulate Tombloo from KeySnail</description>
     <description lang="ja">KeySnail から Tombloo を操作</description>
-    <version>0.0.5</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kungfloo.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kungfloo.icon.png</iconURL>
+    <version>0.0.6</version>
+    <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/kungfloo.ks.js</updateURL>
+    <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/kungfloo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>1.5.4</minVersion>
-    <provides>
-        <ext>kungfloo-reblog</ext>
-        <ext>kungfloo-reblog-dwim</ext>
-        <ext>kungfloo-tombloo-menu</ext>
-    </provides>
-    <include>main</include>
-    <options>
-        <option>
-            <name>kungfloo.reblog_image_dwim_key</name>
-            <type>string</type>
-            <description>Key bound to "Reblog image DWIM" in the HoK extended hint mode (Default: r)</description>
-            <description lang="ja">HoK 拡張ヒントモードにおいて "画像の Reblog DWIM" へ割り当てるキー (デフォルト: r)</description>
-        </option>
-        <option>
-            <name>kungfloo.reblog_image_key</name>
-            <type>string</type>
-            <description>Key bound to "Reblog image" in the HoK extended hint mode (Default: R)</description>
-            <description lang="ja">HoK 拡張ヒントモードにおいて "画像の Reblog" へ割り当てるキー (デフォルト: R)</description>
-        </option>
-        <option>
-            <name>kungfloo.reblog_misc_key</name>
-            <type>string</type>
-            <description>Key bound to "Reblog miscellanies" in the HoK extended hint mode (Default: p)</description>
-            <description lang="ja">HoK 拡張ヒントモードにおいて "色々 Reblog" へ割り当てるキー (デフォルト: p)</description>
-        </option>
-        <option>
-            <name>kungfloo.keymap</name>
-            <type>object</type>
-            <description>Keymap of the extensions selector</description>
-            <description lang="ja">投稿先を選択する画面のキーマップ</description>
-        </option>
-    </options>
+    <minVersion>1.8.0</minVersion>
     <detail><![CDATA[
 === Usage ===
 
@@ -106,7 +74,7 @@ local["^http://www.google.(co.jp|com)/reader/view/"] = [
 ];
 ||<
 
-See site-local-keymap's help for details.
+See site-local-keymap&quot;s help for details.
 
     ]]></detail>
     <detail lang="ja"><![CDATA[
@@ -186,8 +154,6 @@ local["^http://www.google.(co.jp|com)/reader/view/"] = [
 
 // }} ======================================================================= //
 
-// ' # quick hack for js2-modes parser bug
-
 // Change Log {{ ============================================================ //
 //
 // ==== 0.0.4 (2010 02/19) ====
@@ -206,226 +172,222 @@ local["^http://www.google.(co.jp|com)/reader/view/"] = [
 //
 // }} ======================================================================= //
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
+const pOptions = plugins.setupOptions("kungfloo", {
+    "reblog_image_dwim_key" : {
+        preset: 'r',
+        description: M({
+            en: "Key bound to `Reblog image DWIM` in the HoK extended hint mode (Default: r)",
+            ja: "HoK 拡張ヒントモードにおいて `画像の Reblog DWIM` へ割り当てるキー (デフォルト: r)"})
+    },
 
-let optionsDefaultValue = {
-    "reblog_image_dwim_key" : 'r',
-    "reblog_image_key"      : 'R',
-    "reblog_misc_key"       : 'p',
-    "keymap"           : {
-        "C-z" : "prompt-toggle-edit-mode",
-        "SPC" : "prompt-next-page",
-        "b"   : "prompt-previous-page",
-        "j"   : "prompt-next-completion",
-        "k"   : "prompt-previous-completion",
-        "g"   : "prompt-beginning-of-candidates",
-        "G"   : "prompt-end-of-candidates",
-        "q"   : "prompt-cancel",
-        //
-        "r"   : "reblog",
-        "R"   : "reblog-with-dialog"
+    "reblog_image_key" : {
+        preset: 'R',
+        description: M({
+        en: "Key bound to `Reblog image` in the HoK extended hint mode (Default: R)",
+        ja: "HoK 拡張ヒントモードにおいて `画像の Reblog` へ割り当てるキー (デフォルト: R)"})
+    },
+
+    "reblog_misc_key" : {
+        preset: 'p',
+        description: M({
+        en: "Key bound to `Reblog miscellanies` in the HoK extended hint mode (Default: p)",
+        ja: "HoK 拡張ヒントモードにおいて `色々 Reblog` へ割り当てるキー (デフォルト: p)"})
+    },
+
+    "keymap" : {
+        preset: {
+            "C-z" : "prompt-toggle-edit-mode",
+            "SPC" : "prompt-next-page",
+            "b"   : "prompt-previous-page",
+            "j"   : "prompt-next-completion",
+            "k"   : "prompt-previous-completion",
+            "g"   : "prompt-beginning-of-candidates",
+            "G"   : "prompt-end-of-candidates",
+            "q"   : "prompt-cancel",
+            //
+            "r"   : "reblog",
+            "R"   : "reblog-with-dialog"
+        },
+        description: M({
+            en: "Keymap of the extensions selector",
+            ja: "投稿先を選択する画面のキーマップ"}),
+        type: "object"
     }
-};
+}, PLUGIN_INFO);
 
-function getOption(aName) {
-    let fullName = "kungfloo." + aName;
+let kungfloo = (function () {
+    let to      = Cc['@brasil.to/tombloo-service;1'].getService().wrappedJSObject;
+    let Tombloo = to.Tombloo;
 
-    if (typeof plugins.options[fullName] !== "undefined")
-        return plugins.options[fullName];
-    else
-        return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
-}
+    function getActions() {
+        let actions = Tombloo.Service.actions;
 
-let kungfloo =
-    (function () {
-        let to      = Cc['@brasil.to/tombloo-service;1'].getService().wrappedJSObject;
-        let Tombloo = to.Tombloo;
+        return [actions[name] for ([, name] in Iterator(actions.names))
+                              if (actions[name] && typeof actions[name].execute === "function")];
+    }
 
-         function getActions() {
-             let actions = Tombloo.Service.actions;
+    function getContext(target) {
+        let doc = window.content.document.wrappedJSObject;
+        let win = window.content.wrappedJSObject;
 
-             return [actions[name] for ([, name] in Iterator(actions.names))
-                                   if (actions[name] && typeof actions[name].execute === "function")];
-         }
+        target = target || doc;
 
-         function getContext(target) {
-             let doc = window.content.document.wrappedJSObject;
-             let win = window.content.wrappedJSObject;
+        return implant(implant({
+            document  : doc,
+            window    : win,
+            title     : doc.title.toString() || '',
+            selection : win.getSelection().toString(),
+            target    : target
+        }, {} ), win.location);
+    }
 
-             target = target || doc;
+    function implant(dst, src, keys) {
+        if (keys)
+            keys.forEach(function (key) { dst[key] = src[key]; });
+        else
+            for (let key in src) dst[key] = src[key];
 
-             return implant(
-                 implant(
-                     {
-                         document  : doc,
-                         window    : win,
-                         title     : doc.title.toString() || '',
-                         selection : win.getSelection().toString(),
-                         target    : target
-                     },
-                     {}
-                 ),
-                 win.location
-             );
-         }
+        return dst;
+    }
 
-         function implant(dst, src, keys) {
-             if (keys)
-                 keys.forEach(function (key) { dst[key] = src[key]; });
-             else
-                 for (let key in src) dst[key] = src[key];
+    let self = {
+        menu: function menu() {
+            let items = getActions();
 
-             return dst;
-         }
+            prompt.selector({
+                message       : "action:",
+                collection    : items.map(function (e) e.name),
+                heade         : ["Tombloo action"],
+                style         : [style.prompt.description],
+                keymap        : pOptions["keymap"],
+                callback      : function (i) { if (i >= 0) items[i].execute(); }
+            });
+        },
 
-         let self = {
-             menu: function menu() {
-                 let items = getActions();
+        /**
+         * Reblog
+         * @param {} target      Target element
+         * @param {} dwim        Do What I Mean
+         * @param {} dialog      true if tombloo's dialog is wanted
+         * @param {} preferred   ex) ["FFFFOUND", "Flickr"]
+         */
+        reblog: function reblog(target, dwim, withDialog, preferred) {
+            let context    = getContext(target);
+            let extensions = Tombloo.Service.check(context);
 
-                 prompt.selector(
-                     {
-                         message       : "action:",
-                         collection    : items.map(function (e) e.name),
-                         heade         : ["Tombloo action"],
-                         style         : [style.prompt.description],
-                         keymap        : getOption("keymap"),
-                         callback      : function (i) { if (i >= 0) items[i].execute(); }
-                     }
-                 );
-             },
+            let candidates = [[e, e.ICON, e.name] for ([, e] in Iterator(extensions))];
 
-             /**
-              * Reblog
-              * @param {} target      Target element
-              * @param {} dwim        Do What I Mean
-              * @param {} dialog      true if tombloo's dialog is wanted
-              * @param {} preferred   ex) ["FFFFOUND", "Flickr"]
-              */
-             reblog: function reblog(target, dwim, withDialog, preferred) {
-                 let context    = getContext(target);
-                 let extensions = Tombloo.Service.check(context);
+            function share(extension, dialog) {
+                Tombloo.Service.share(context, extension, dialog);
+                display.echoStatusBar("Reblogged - " + context.title, 3000);
+            }
 
-                 let candidates = [[e, e.ICON, e.name] for ([, e] in Iterator(extensions))];
+            function findPreferredExtractor(preferredNames) {
+                let found = -1;
+                preferredNames.some(function (pat) extensions.some(
+                    function (e, i) e.name.match(pat) ? (found = i, true) : false));
+                return found;
+            }
 
-                 function share(extension, dialog) {
-                     Tombloo.Service.share(context, extension, dialog);
-                     display.echoStatusBar("Reblogged - " + context.title, 3000);
-                 }
+            function focusContent() {
+                getBrowser().focus();
+                _content.focus();
+            }
 
-                 function findPreferredExtractor(preferredNames) {
-                     let found = -1;
-                     preferredNames.some(function (pat) extensions.some(
-                                             function (e, i) e.name.match(pat) ? (found = i, true) : false));
-                     return found;
-                 }
+            preferred = Object.prototype.toString.call(preferred) === "[object Array]"
+                ? preferred : [preferred || ""];
 
-                 function focusContent() {
-                     getBrowser().focus();
-                     _content.focus();
-                 }
+            let extensionIndex = Math.max(findPreferredExtractor(preferred), 0);
 
-                 preferred = Object.prototype.toString.call(preferred) === "[object Array]"
-                     ? preferred : [preferred || ""];
+            if (dwim)
+                share(candidates[extensionIndex][0], withDialog);
+            else {
+                prompt.selector({
+                    message       : "reblog:",
+                    collection    : candidates,
+                    header        : ["Post to"],
+                    style         : [style.prompt.description],
+                    flags         : [HIDDEN | IGNORE, ICON | IGNORE, 0],
+                    keymap        : pOptions["keymap"],
+                    initialIndex  : extensionIndex,
+                    initialAction : withDialog ? 1 : 0,
+                    actions       : [
+                        [function (i) { if (i >= 0) share(candidates[i][0], false); },
+                         "Reblog", "reblog"],
+                        [function (i) { if (i >= 0) share(candidates[i][0], true);  },
+                         "Reblog with dialog", "reblog-with-dialog"]
+                    ],
+                    supressRecoverFocus : true,
+                    onFinish            : function () { focusContent(); }
+                });
+            }
+        }
+    };
 
-                 let extensionIndex = Math.max(findPreferredExtractor(preferred), 0);
+    // }} ======================================================================= //
 
-                 if (dwim)
-                 {
-                     share(candidates[extensionIndex][0], withDialog);
-                 }
-                 else
-                 {
-                     prompt.selector(
-                         {
-                             message       : "reblog:",
-                             collection    : candidates,
-                             header        : ["Post to"],
-                             style         : [style.prompt.description],
-                             flags         : [HIDDEN | IGNORE, ICON | IGNORE, 0],
-                             keymap        : getOption("keymap"),
-                             initialIndex  : extensionIndex,
-                             initialAction : withDialog ? 1 : 0,
-                             actions       : [
-                                 [function (i) { if (i >= 0) share(candidates[i][0], false); },
-                                  "Reblog", "reblog"],
-                                 [function (i) { if (i >= 0) share(candidates[i][0], true);  },
-                                  "Reblog with dialog", "reblog-with-dialog"]
-                             ],
-                             supressRecoverFocus : true,
-                             onFinish            : function () { focusContent(); }
-                         }
-                     );
-                 }
-             }
-         };
-
-         // }} ======================================================================= //
-
-         return self;
-     })();
+    return self;
+})();
 
 plugins.kungfloo = kungfloo;
 
 // Extend HoK {{ ============================================================ //
 
-hook.addToHook(
-    'PluginLoaded',
-    function () {
-        if (!plugins.hok)
-            return;
+hook.addToHook('PluginLoaded', function () {
+    if (!plugins.hok)
+        return;
 
-        var actions = [
-            //
-            [getOption("reblog_image_key"),
-             M({ja: "画像を Reblog", en: "Reblog image"}),
-             function (elem) { if (elem) kungfloo.reblog(elem); }, false, false, "img"],
-            //
-            [getOption("reblog_misc_key"),
-             M({ja: "色々 Reblog", en: "Reblog miscellanies"}),
-             function (elem) { if (elem) kungfloo.reblog(elem); }],
-            //
-            [getOption("reblog_image_dwim_key"),
-             M({ja: "画像を Reblog - DWIM", en: "Reblog image - DWIM"}),
-             function (elem) { if (elem) kungfloo.reblog(elem, true); }, false, false, "img"]
-        ];
+    let actions = [
+        //
+        [pOptions["reblog_image_key"],
+         M({ja: "画像を Reblog", en: "Reblog image"}),
+         function (elem) { if (elem) kungfloo.reblog(elem); }, false, false, "img"],
+        //
+        [pOptions["reblog_misc_key"],
+         M({ja: "色々 Reblog", en: "Reblog miscellanies"}),
+         function (elem) { if (elem) kungfloo.reblog(elem); }],
+        //
+        [pOptions["reblog_image_dwim_key"],
+         M({ja: "画像を Reblog - DWIM", en: "Reblog image - DWIM"}),
+         function (elem) { if (elem) kungfloo.reblog(elem, true); }, false, false, "img"]
+    ];
 
-        function seekAction(aActions, aKey) {
-            for (let i = 0; i < aActions.length; ++i)
-                if (aActions[i][0] === aKey)
-                    return i;
-            return -1;
-        }
+    function seekAction(aActions, aKey) {
+        for (let i = 0; i < aActions.length; ++i)
+            if (aActions[i][0] === aKey)
+                return i;
+        return -1;
+    }
 
-        actions.forEach(
-            function (row) {
-                let k = row[0];
-                if (!k) return;
+    actions.forEach(function (row) {
+        let k = row[0];
+        if (!k) return;
 
-                let i = seekAction(plugins.hok.actions, k);
+        let i = seekAction(plugins.hok.actions, k);
 
-                if (i >= 0)
-                    plugins.hok.actions[i] = row;
-                else
-                    plugins.hok.actions.push(row);
-            }
-        );
+        if (i >= 0)
+            plugins.hok.actions[i] = row;
+        else
+            plugins.hok.actions.push(row);
     });
+});
 
 // }} ======================================================================= //
 
 // Add exts {{ ============================================================== //
 
-ext.add("kungfloo-reblog",
-        function (ev, arg) { kungfloo.reblog(null, false, !!arg); },
-        "Kungfloo - Reblog");
+plugins.withProvides(function (provide) {
+    provide("kungfloo-reblog",
+            function (ev, arg) { kungfloo.reblog(null, false, !!arg); },
+            "Kungfloo - Reblog");
 
-ext.add("kungfloo-reblog-dwim",
-        function (ev, arg) { kungfloo.reblog(null, true, !!arg); },
-        "Kungfloo - Reblog Do What I Mean");
+    provide("kungfloo-reblog-dwim",
+            function (ev, arg) { kungfloo.reblog(null, true, !!arg); },
+            "Kungfloo - Reblog Do What I Mean");
 
-ext.add("kungfloo-tombloo-menu",
-        function (ev, arg) { kungfloo.menu(); },
-        "Kungfloo - Tombloo Menu");
+    provide("kungfloo-tombloo-menu",
+            function (ev, arg) { kungfloo.menu(); },
+            "Kungfloo - Tombloo Menu");
+}, PLUGIN_INFO);
 
 // }} ======================================================================= //
