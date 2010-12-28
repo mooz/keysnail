@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.2.5</version>
+    <version>2.2.6</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3098,7 +3098,7 @@ var twitterClient =
                         matched[i][0] === '#' ? "hash" : "url";
 
                     if (type === "user")
-                        url = "http:twitter.com/" + matched[i].slice(1);
+                        url = "http://twitter.com/" + matched[i].slice(1);
                     else if (type === "hash")
                         url = "http://twitter.com/search?q=" + encodeURIComponent(matched[i]);
                     else
