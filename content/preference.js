@@ -661,9 +661,7 @@ var ksPreference = {
         case 'INITFILE':
             with (this.modules)
             {
-                if (!util.isDirHasFiles(fp.file.path,
-                                        userscript.directoryDelimiter,
-                                        userscript.defaultInitFileNames))
+                if (!util.isDirHasFiles(fp.file.path, userscript.defaultInitFileNames))
                 {
                     // directory has no rc file.
                     util.alert("keysnail:dialog",
