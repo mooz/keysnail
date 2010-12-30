@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.2.5</version>
+    <version>2.2.6</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -446,11 +446,16 @@ let pOptions = plugins.setupOptions("twitter_client", {
     },
     "jmp_key"                               : {
         preset: "R_168719821d1100c59352962dce863251",
-        description: M({ ja: "Specify Key of your j.mp account if you want use your one",
-                         en: "j.mp の URL 短縮で独自アカウントを用いたい場合、その Key を指定" })
+        description: M({ ja: "j.mp の URL 短縮で独自アカウントを用いたい場合、その Key を指定",
+                         en: "Specify Key of your j.mp account if you want use your one" })
     },
     "lists"                                 : { preset: [] },
-    "show_sources"                          : { preset: true }
+    "show_sources"                          : { preset: true },
+    "hide_profile_image_gif"                : {
+        preset: false,
+        description: M({ ja: "ユーザのアイコンが Gif 画像であった場合は隠す",
+                         en: "When user icon is Gif, hide it" })
+    }
 }, PLUGIN_INFO);
 
 // ============================================================ //
@@ -3098,7 +3103,7 @@ var twitterClient =
                         matched[i][0] === '#' ? "hash" : "url";
 
                     if (type === "user")
-                        url = "http:twitter.com/" + matched[i].slice(1);
+                        url = "http://twitter.com/" + matched[i].slice(1);
                     else if (type === "hash")
                         url = "http://twitter.com/search?q=" + encodeURIComponent(matched[i]);
                     else
@@ -3169,7 +3174,9 @@ var twitterClient =
                 var matched = status.source ? status.source.match(">(.*)</a>") : "";
 
                 return [status,
-                        status.user.profile_image_url,
+                        let (url = status.user.profile_image_url)
+                            ((pOptions.hide_profile_image_gif && /\.gif$/.test(url)) ?
+                             "http://a1.twimg.com/images/default_profile_0_bigger.png" : url),
                         preferScreenName ? status.user.screen_name : status.user.name,
                         html.unEscapeTag(status.text),
                         favIconGetter,
