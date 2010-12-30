@@ -264,7 +264,7 @@ function init() {
 
     try {
         promptHistory = persist.restore("prompt_history") || {};
-    } catch (_) {
+    } catch (x) {
         util.log("Failed to restore prompt history : " + x);
         promptHistory = {};
     }

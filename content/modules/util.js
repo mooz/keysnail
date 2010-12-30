@@ -770,22 +770,15 @@ const util = function () {
         /**
          * check if the directory has certain files
          * @param {string} aPath
-         * @param {string} aDirectoryDelimiter
          * @param {[string]} aFileNames
          * @returns {boolean} true if the directory specified <b>aPath</b> has any file contained in <b>aFileNames</b>.
          */
-        isDirHasFiles: function (aPath, aDirectoryDelimiter, aFileNames) {
-            var file;
-
-            for (var i in aFileNames) {
-                file = this.openFile(aPath + aDirectoryDelimiter
-                                     + aFileNames[i]);
-                if (file.exists()) {
-                    return true;
-                }
-            }
-
-            return false;
+        isDirHasFiles: function (aPath, aFileNames) {
+            return aFileNames.some(function (name) {
+                let file = util.openFile(aPath);
+                file.append(name);
+                return file.exists();
+            });
         },
 
         /**

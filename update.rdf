@@ -2,22 +2,22 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBACeFSw1nO3L66vbpT3LOnCx6OQPrVLlopnpQIWQY6aWZpAJ6muhETknv8VXp17Q8StLLFuXHKpbCmoEz3zVW20egvkSGPSIr0OF8XAH/iamah9YZqM1pVN2hT1EM5VGP60HdyftSzWauCCs0JRbZc6jkhn4QlQNOldZyEhkMQkGt">
-    <em:updates RDF:resource="rdf:#$mtJrB"/>
+  <RDF:Seq RDF:about="rdf:#$mtJrB">
+    <RDF:li RDF:resource="rdf:#$ntJrB"/>
+  </RDF:Seq>
+  <RDF:Description RDF:about="rdf:#$ntJrB"
+                   em:version="1.8.2">
+    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
   </RDF:Description>
   <RDF:Description RDF:about="rdf:#$qtJrB"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.0"
-                   em:maxVersion="4.0b3pre"
+                   em:maxVersion="4.0b9pre"
                    em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.1.xhtml"
-                   em:updateHash="sha1:ccc92a447d2f5e4c6012218cdf0889bf4ab7527d" />
-  <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.8.1">
-    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.2.xhtml"
+                   em:updateHash="sha1:704398ef5684f8d369d4673d03d255140ad697c0" />
+  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAIJ8sTzU9ARYseuh923kzHVIrIjDPVxfrXpBWyNCHKSwgTik9PuAiTfhUSRE9G4F0h6BFwhK3NdxL7P4W/IAZzLhM9D3JpI3lyYG8NZUmt3na2wpW3ap2OWV2S8ktTSUDiXK0OYsCyryN1+MKAlHeykuLX+AZ3lrWXlEJbGn6Zhr">
+    <em:updates RDF:resource="rdf:#$mtJrB"/>
   </RDF:Description>
-  <RDF:Seq RDF:about="rdf:#$mtJrB">
-    <RDF:li RDF:resource="rdf:#$ntJrB"/>
-  </RDF:Seq>
 </RDF:RDF>
