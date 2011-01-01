@@ -5,7 +5,7 @@ const PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクを開く</description>
-    <version>1.2.7</version>
+    <version>1.2.8</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -769,6 +769,19 @@ var hok = function () {
         ];
     }
 
+    function setHintsText() {
+        var textHints = createTextHints(hintCount);
+
+        for (let i = 0; i < hintCount; i++) {
+            var span = hintSpans[i];
+            var hint = textHints[i];
+            span.appendChild(span.ownerDocument.createTextNode(hint));
+            hintElements[hint] = span;
+        }
+
+        hintSpans = null;
+    }
+
     function drawHints(win) {
         var isMain = false;
         if (!win) {
@@ -789,6 +802,8 @@ var hok = function () {
         {
             // process childs only
             Array.forEach(win.frames, drawHints);
+            if (isMain)
+                setHintsText();
             return;
         }
 
@@ -840,18 +855,17 @@ var hok = function () {
         for (let i = 0, len = result.length; i < len; ++i) {
             elem = result[i];
 
-            rect = elem.getBoundingClientRect();
-            if (!rect || rect.top > height || rect.bottom < 0 || rect.left > width || rect.right < 0)
-                continue;
-
             rect = elem.getClientRects()[0];
             if (!rect)
+                continue;
+
+            var r = elem.getBoundingClientRect();
+            if (!r || r.top > height || r.bottom < 0 || r.left > width || r.right < 0)
                 continue;
 
             // ========================================================================== //
 
             style = win.getComputedStyle(elem, null);
-
             if (!style || style.visibility !== "visible" || style.display === "none")
                 continue;
 
@@ -861,8 +875,8 @@ var hok = function () {
 
             // Set hint position {{ ===================================================== //
 
-            leftpos = Math.max((rect.left + scrollX), scrollX);
-            toppos  = Math.max((rect.top + scrollY), scrollY);
+            leftpos = rect.left > 0 ? rect.left + scrollX : scrollX;
+            toppos  = rect.top > 0 ? rect.top + scrollY : scrollY;
 
             if (elem instanceof HTMLAreaElement)
                 [leftpos, toppos] = getAreaOffset(elem, leftpos, toppos);
@@ -888,18 +902,8 @@ var hok = function () {
 
         Array.forEach(win.frames, drawHints);
 
-        if (isMain) {
-            var textHints = createTextHints(hintCount);
-
-            for (let i = 0; i < hintCount; i++) {
-                span = hintSpans[i];
-                hint = textHints[i];
-                span.appendChild(doc.createTextNode(hint));
-                hintElements[hint] = span;
-            }
-
-            hintSpans = null;
-        }
+        if (isMain)
+            setHintsText();
     };
 
     function getHintColor(elem) {
