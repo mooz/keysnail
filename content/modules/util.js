@@ -1164,7 +1164,106 @@ const util = function () {
 
         // Network {{ =============================================================== //
 
+        paramsToString:
+        function paramsToString(prm) {
+            let pt = typeof prm;
+
+            if (prm && pt === "object")
+                prm = [k + "=" + v for ([k, v] in Iterator(prm))].join("&");
+            else if (pt !== "string")
+                prm = "";
+
+            return prm;
+        },
+
+        request:
+        function request(method, url, opts) {
+            opts = opts || {};
+
+            let { callback, params, timeout } = opts;
+
+            // synchronous (not block UI)
+            let block = typeof callback !== "function";
+
+            if (block) {
+                var thread = Cc["@mozilla.org/thread-manager;1"].getService().mainThread;
+                var blocking = true;
+            }
+
+            let req = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+            req.QueryInterface(Ci.nsIXMLHttpRequest);
+
+            req.onreadystatechange = function () {
+                if (req.readyState === 4) {
+                    if (block) {
+                        blocking = false;
+                    } else {
+                        callback(req);
+                    }
+                }
+            };
+
+            let timer = null;
+            if (typeof timeout === "number") {
+                timer = setTimeout(function () {
+                    timer = null;
+                    req.abort();
+                    blocking = false;
+                }, timeout);
+            }
+
+            req.open(method, url, true, opts.username, opts.password);
+
+            if (opts.mimeType)
+                req.overrideMimeType(mimeType);
+
+            for (let [name, value] in Iterator(opts.header || {}))
+                req.setRequestHeader(name, value);
+
+            req.send(util.paramsToString(params) || null);
+
+            if (block) {
+                while (blocking)
+                    thread.processNextEvent(true);
+            }
+
+            if (timer)
+                clearTimeout(timer);
+
+            return req;
+        },
+
+        requestGet:
+        function (url, opts) {
+            opts = opts || {};
+
+            if (opts.params) {
+                opts.params = util.paramsToString(opts.params);
+                url += "?" + opts.params;
+            }
+
+            return util.request("GET", url, opts);
+        },
+
+        requestPost:
+        function (url, opts) {
+            opts = opts || {};
+
+            if (opts.params) {
+                opts.params = util.paramsToString(opts.params);
+                url += "?" + opts.params;
+            }
+
+            opts.header = opts.header || {};
+            opts.header["Content-type"] = "application/x-www-form-urlencoded";
+            opts.header["Content-length"] = params.length;
+            opts.header["Connection"] = "close";
+
+            return util.request("POST", url, opts);
+        },
+
         /**
+         * @deprecated Use util.requestGet() instead
          * Original code by liberator
          * Sends a synchronous HTTP request to <b>aUrl</b> and returns the
          * XMLHttpRequest object. If <b>aCallback</b> is specified the request is
@@ -1224,6 +1323,7 @@ const util = function () {
         },
 
         /**
+         * @deprecated Use util.requestPost() instead
          * @param {} aUrl
          * @param {} aRaw
          * @param {} aCallback

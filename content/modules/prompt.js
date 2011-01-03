@@ -1321,22 +1321,6 @@ const prompt = function () {
         listbox.currentIndex = listbox.selectedIndex = selectionPos;
     }
 
-    function suggest(aWord, aDomain) {
-        var xhr = new XMLHttpRequest();
-        var endPoint = "http://www.google." + aDomain + "/complete/search?output=toolbar&q=" + encodeURIComponent(aWord);
-
-        xhr.mozBackgroundRequest = true;
-        xhr.open("GET", endPoint, false);
-        xhr.send(null);
-
-        let matched = xhr.responseText.match("(<toplevel>.*</toplevel>)");
-
-        if (!matched)
-            return null;
-
-        return new XML(matched[1]);
-    }
-
     function createTextGetter(aStringList, aFlags, aMultiple) {
         return isMultipleList(aStringList) ?
             aMultiple ? function (r) r.reduce(
@@ -1771,27 +1755,10 @@ const prompt = function () {
                 };
             },
 
-            google: function () {
-                function suggest(word) {
-                    const domain = "com";
-                    const base = "http://www.google.%s/complete/search?output=toolbar&q=%s";
+            google: function (left, whole) {
+                let suggestions = util.suggest.google(left || "");
 
-                    let ep  = util.format(base, domain, encodeURIComponent(word));
-                    let res = util.httpGet(ep);
-
-                    let matched = res.responseText.match("(<toplevel>.*</toplevel>)");
-
-                    if (!matched)
-                        return null;
-
-                    let xml = new XML(matched[1]);
-
-                    return [cs.suggestion.@data for each (cs in xml.CompleteSuggestion)];
-                }
-
-                let suggestions = suggest(extra.query || "");
-
-                return { collection : suggestions, origin : extra.whole.indexOf(extra.left) };
+                return { collection : suggestions, origin : whole.indexOf(left) };
             },
 
             suggest: function (aEngines, aWithDescription) {
