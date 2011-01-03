@@ -78,15 +78,18 @@ const util = function () {
                     {
                         if (callback)
                         {
-                            util.httpGet(queryURI, false, function (xhr) {
-                                             let results = json.decode(xhr.responseText) || {1:[]};
-                                             callback(results[1]);
-                                         });
+                            util.requestGet(queryURI, {
+                                callback: function (xhr) {
+                                    let results = json.decode(xhr.responseText) || {1:[]};
+                                    callback(results[1]);
+                                }
+                            });
+
                             return null;
                         }
                         else
                         {
-                            let xhr = util.httpGet(queryURI);
+                            let xhr = util.requestGet(queryURI);
                             let results = json.decode(xhr.responseText) || {1:[]};
                             return results[1];
                         }
@@ -119,7 +122,7 @@ const util = function () {
                     const base = "http://www.google.%s/complete/search?output=toolbar&q=%s";
 
                     let ep  = util.format(base, domain, encodeURIComponent(word));
-                    let res = util.httpGet(ep);
+                    let res = util.requestGet(ep);
 
                     let matched = res.responseText.match("(<toplevel>.*</toplevel>)");
 
