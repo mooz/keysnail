@@ -112,6 +112,23 @@ const util = function () {
                             }
                         }
                     );
+                },
+
+                google: function google(word, domain) {
+                    domain = domain || "com";
+                    const base = "http://www.google.%s/complete/search?output=toolbar&q=%s";
+
+                    let ep  = util.format(base, domain, encodeURIComponent(word));
+                    let res = util.httpGet(ep);
+
+                    let matched = res.responseText.match("(<toplevel>.*</toplevel>)");
+
+                    if (!matched)
+                        return null;
+
+                    let xml = new XML(matched[1]);
+
+                    return [cs.suggestion.@data for each (cs in xml.CompleteSuggestion)];
                 }
             };
         },
