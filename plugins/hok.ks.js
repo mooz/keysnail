@@ -641,8 +641,7 @@ var hok = function () {
 
     var hintContainerId = 'ksHintContainer';
 
-    var hintElements    = [];
-    // actually hintElements.length
+    var hintElements = {};
     var hintCount;
 
     // unique hint
@@ -683,7 +682,7 @@ var hok = function () {
         }
 
         var hints = [];
-        for (let hint in reverseHints) {
+        for (let [hint] in Iterator(reverseHints)) {
             hints.push(hint);
         }
 
@@ -945,24 +944,15 @@ var hok = function () {
     }
 
     function updateHeaderMatchHints() {
-        var foundCount = 0;
+        let foundCount = 0;
 
-        for (var hintStr in hintElements)
-        {
-            if (hintStr.indexOf(inputKey) == 0)
-            {
+        for (let [hintStr, hintElem] in Iterator(hintElements)) {
+            if (hintStr.indexOf(inputKey) === 0) {
                 if (hintStr != inputKey)
-                {
-                    hintElements[hintStr].style.backgroundColor = hintColorCandidates;
-                    // recoverOriginalStyle(hintElements[hintStr].element);
-                }
-
+                    hintElem.style.backgroundColor = hintColorCandidates;
                 foundCount++;
-            }
-            else
-            {
-                hintElements[hintStr].style.backgroundColor = getHintColor(hintElements[hintStr].element);
-                // recoverOriginalStyle(hintElements[hintStr].element);
+            } else {
+                hintElem.style.backgroundColor = getHintColor(hintElem.element);
             }
         }
 
@@ -971,9 +961,7 @@ var hok = function () {
 
     function resetHintsColor() {
         for (let [, span] in Iterator(hintElements))
-        {
             span.style.backgroundColor = getHintColor(span.element);
-        }
     }
 
     function removeHints(win) {
@@ -1035,10 +1023,15 @@ var hok = function () {
         return null;
     }
 
+    function feedBackInputKey() {
+        if (useStatusBarFeedBack)
+            display.echoStatusBar("HoK : [ " + inputKey.split("").join(" ") + " ]");
+    }
+
     function onKeyPress(event) {
         var keyStr = key.keyEventToString(event);
 
-        if (keyStr in keyMap === false)
+        if (!keyMap.hasOwnProperty(keyStr))
         {
             destruction(true);
             return;
@@ -1062,6 +1055,8 @@ var hok = function () {
 
             inputKey = inputKey.slice(0, inputKey.length - 1);
 
+            feedBackInputKey();
+
             // reset but not exit
             blurHint();
             resetHintsColor();
@@ -1079,27 +1074,20 @@ var hok = function () {
         };
 
         blurHint();
+        feedBackInputKey();
 
-        if (inputKey in hintElements === true)
-        {
+        if (hintElements.hasOwnProperty(inputKey)) {
             lastMatchHint = hintElements[inputKey];
             focusHint(lastMatchHint);
-        }
-        else
-        {
+        } else {
             lastMatchHint = null;
         }
 
-        if (useStatusBarFeedBack)
-            display.echoStatusBar("HoK : [ " + inputKey.split("").join(" ") + " ]");
+        let foundCount = updateHeaderMatchHints();
 
         // fire if hint is unique
-        if (uniqueFire && !supressUniqueFire)
-        {
-            let foundCount = updateHeaderMatchHints();
-
-            if (foundCount == 1 && lastMatchHint)
-            {
+        if (uniqueFire && !supressUniqueFire) {
+            if (foundCount == 1 && lastMatchHint) {
                 var targetElem = lastMatchHint.element;
                 destruction();
 
@@ -1141,7 +1129,7 @@ var hok = function () {
 
     function init() {
         hintKeysLength = hintKeys.length;
-        hintElements   = [];
+        hintElements   = {};
         hintCount      = 0;
 
         hintKeys.split('').forEach(
