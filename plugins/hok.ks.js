@@ -53,15 +53,16 @@ Style of the hints can be customized by changing the value of hint_base_style.
 
 >|javascript|
 plugins.options["hok.hint_base_style"] = {
-    position        : 'absolute',
-    zIndex          : '2147483647',
-    color           : '#000',
-    fontSize        : '10pt',
-    fontFamily      : 'monospace',
-    lineHeight      : '10pt',
-    padding         : '0px',
-    margin          : '0px',
-    textTransform   : 'uppercase'
+    "position"       : 'absolute',
+    "z-index"        : '2147483647',
+    "color"          : '#000',
+    "font-family"    : 'monospace',
+    "font-size"      : '10pt',
+    "font-weight"    : 'bold',
+    "line-height"    : '10pt',
+    "padding"        : '2px',
+    "margin"         : '0px',
+    "text-transform" : 'uppercase'
 };
 ||<
 
@@ -128,15 +129,16 @@ plugins.options["hok.hint_keys"] = "0123456789";
 
 >|javascript|
 plugins.options["hok.hint_base_style"] = {
-    position        : 'absolute',
-    zIndex          : '2147483647',
-    color           : '#000',
-    fontSize        : '10pt',
-    fontFamily      : 'monospace',
-    lineHeight      : '10pt',
-    padding         : '0px',
-    margin          : '0px',
-    textTransform   : 'uppercase'
+    "position"       : 'absolute',
+    "z-index"        : '2147483647',
+    "color"          : '#000',
+    "font-family"    : 'monospace',
+    "font-size"      : '10pt',
+    "font-weight"    : 'bold',
+    "line-height"    : '10pt',
+    "padding"        : '2px',
+    "margin"         : '0px',
+    "text-transform" : 'uppercase'
 };
 ||<
 
@@ -398,16 +400,16 @@ const pOptions = plugins.setupOptions("hok", {
 
     "hint_base_style" : {
         preset: {
-            position        : 'absolute',
-            zIndex          : '2147483647',
-            color           : '#000',
-            fontFamily      : 'monospace',
-            fontSize        : '10pt',
-            fontWeight      : 'bold',
-            lineHeight      : '10pt',
-            padding         : '2px',
-            margin          : '0px',
-            textTransform   : 'uppercase'
+            "position"       : 'absolute',
+            "z-index"        : '2147483647',
+            "color"          : '#000',
+            "font-family"    : 'monospace',
+            "font-size"      : '10pt',
+            "font-weight"    : 'bold',
+            "line-height"    : '10pt',
+            "padding"        : '2px',
+            "margin"         : '0px',
+            "text-transform" : 'uppercase'
         },
         description: M({
             en: "Color of focused hints",
@@ -650,6 +652,18 @@ var hok = function () {
     var inputKey        = '';
     var lastMatchHint   = null;
 
+    // foo-bar-baz -> fooBarBaz
+    // -moz-foo-bar-baz -> MozFooBarBaz
+    function formatPropertyName(name) {
+        if (!~name.indexOf("-"))
+            return name;
+
+        let ss = name.split("-");
+
+        return ss.shift().toLowerCase() +
+            ss.reduce(function (acc, s) acc + (s ? s[0].toUpperCase() + s.slice(1).toLowerCase() : s), "");
+    }
+
     // Patches from victor.vde@gmail.com
     function createTextHints(amount) {
         var reverseHints = {};
@@ -827,7 +841,7 @@ var hok = function () {
 
         let (st = hintSpan.style) {
             for (let [prop, value] in Iterator(hintBaseStyle))
-                st[prop] = value;
+                st[formatPropertyName(prop)] = value;
             st.backgroundColor = hintColorLink;
         };
 
