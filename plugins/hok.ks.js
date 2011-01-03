@@ -5,7 +5,7 @@ const PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクを開く</description>
-    <version>1.2.6</version>
+    <version>1.2.8</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -229,6 +229,10 @@ https://github.com/myuhe
 
 // ChangeLog {{ ============================================================= //
 //
+// ==== 1.2.7 (2011 01/01) ====
+//
+// * Included very powerful `unique_only` patch from victor.vde@gmail.com
+//
 // ==== 1.2.5 (2010 02/28) ====
 //
 // * Made keydown and keypress keys to be prevented (Thx hogelog)
@@ -419,6 +423,14 @@ const pOptions = plugins.setupOptions("hok", {
             ja: "ユーザ定義のキーマップを指定"
         }),
         type: "object"
+    },
+
+    "unique_only": {
+        preset: true,
+        description: M({
+            en: "Make unique hints only (Free from Enter key)",
+            ja: "必ずユニークなヒントを生成する (Enter を押す必要が無くなる)"
+        })
     }
 }, PLUGIN_INFO);
 
@@ -583,7 +595,7 @@ function recoverFocus() {
 // HoK object {{ ============================================================ //
 
 var originalSuspendedStatus;
-var useSelector = pOptions["use_selector"];
+var useSelector = pOptions["use_selector"] && ("querySelector" in document);
 
 var hok = function () {
     var hintKeys            = pOptions["hint_keys"];
@@ -595,6 +607,8 @@ var hok = function () {
     var hintColorFocused    = pOptions["hint_color_focused"];
     var hintColorCandidates = pOptions["hint_color_candidates"];
     var elementColorFocused = pOptions["element_color_focused"];
+    var uniqueOnly          = pOptions["unique_only"];
+    var uniqueFire          = pOptions["unique_fire"];
 
     var keyMap = {};
     if (pOptions["user_keymap"])
@@ -631,29 +645,50 @@ var hok = function () {
     // actually hintElements.length
     var hintCount;
 
+    // unique hint
+    var hintSpans;
+
     var inputKey        = '';
     var lastMatchHint   = null;
 
-    function createText(num) {
-        var text = '';
-        var l    = hintKeysLength;
-        var iter = 0;
-        var n;
+    // Patches from victor.vde@gmail.com
+    function createTextHints(amount) {
+        var reverseHints = {};
+        var numHints = 0;
 
-        while (num >= 0)
-        {
-            n = num;
-            num -= Math.pow(l, 1 + iter++);
+        function next(hint) {
+            var l = hint.length;
+            if (l === 0) {
+                return hintKeys.charAt(0);
+            }
+            var p = hint.substr(0, l - 1);
+            var n = hintKeys.indexOf(hint.charAt(l - 1)) + 1;
+            if (n == hintKeysLength) {
+                var np = next(p);
+                if (uniqueOnly) {
+                    delete reverseHints[np];
+                    numHints--;
+                }
+                return np + hintKeys.charAt(0);
+            } else {
+                return p + hintKeys.charAt(n);
+            }
         }
 
-        for (var i = 0; i < iter; i++)
-        {
-            var r = n % l;
-            n     = Math.floor(n / l);
-            text  = hintKeys.charAt(r) + text;
+        var hint = '';
+        while (numHints < amount) {
+            hint = next(hint);
+            reverseHints[hint] = true;
+            numHints++;
         }
 
-        return text;
+        var hints = [];
+        for (let hint in reverseHints) {
+            hints.push(hint);
+        }
+
+        // Note: kind of relies on insertion order
+        return hints;
     }
 
     /**
@@ -734,9 +769,26 @@ var hok = function () {
         ];
     }
 
+    function setHintsText() {
+        var textHints = createTextHints(hintCount);
+
+        for (let i = 0; i < hintCount; i++) {
+            var span = hintSpans[i];
+            var hint = textHints[i];
+            span.appendChild(span.ownerDocument.createTextNode(hint));
+            hintElements[hint] = span;
+        }
+
+        hintSpans = null;
+    }
+
     function drawHints(win) {
-        if (!win)
+        var isMain = false;
+        if (!win) {
+            isMain = true;
+            hintSpans = [];
             win = window.content;
+        }
 
         var doc = win.document;
 
@@ -750,6 +802,8 @@ var hok = function () {
         {
             // process childs only
             Array.forEach(win.frames, drawHints);
+            if (isMain)
+                setHintsText();
             return;
         }
 
@@ -772,14 +826,11 @@ var hok = function () {
 
         var hintSpan = doc.createElement('span');
 
-        var st = hintSpan.style;
-
-        for (var prop in hintBaseStyle)
-        {
-            st[prop] = hintBaseStyle[prop];
-        }
-
-        st.backgroundColor = hintColorLink;
+        let (st = hintSpan.style) {
+            for (let [prop, value] in Iterator(hintBaseStyle))
+                st[prop] = value;
+            st.backgroundColor = hintColorLink;
+        };
 
         // }} ======================================================================= //
 
@@ -794,72 +845,65 @@ var hok = function () {
             let xpathResult = doc.evaluate(priorQuery || xPathExp, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             result = [];
 
-            for (let i = 0; i < xpathResult.snapshotLength; ++i)
+            for (let i = 0, len = xpathResult.snapshotLength; i < len; ++i)
                 result.push(xpathResult.snapshotItem(i));
         }
 
         var style, rect, hint, span, top, left, ss;
         var leftpos, toppos;
 
-        for (var i = 0; i < result.length; ++i)
-        {
+        for (let i = 0, len = result.length; i < len; ++i) {
             elem = result[i];
-
-            rect = elem.getBoundingClientRect();
-            if (!rect || rect.top > height || rect.bottom < 0 || rect.left > width || rect.right < 0)
-                continue;
 
             rect = elem.getClientRects()[0];
             if (!rect)
                 continue;
 
+            var r = elem.getBoundingClientRect();
+            if (!r || r.top > height || r.bottom < 0 || r.left > width || r.right < 0)
+                continue;
+
             // ========================================================================== //
 
             style = win.getComputedStyle(elem, null);
-
             if (!style || style.visibility !== "visible" || style.display === "none")
-            {
                 continue;
-            }
 
             // ========================================================================== //
 
-            hint = createText(hintCount);
             span = hintSpan.cloneNode(false);
-            span.appendChild(doc.createTextNode(hint));
 
             // Set hint position {{ ===================================================== //
 
-            leftpos = Math.max((rect.left + scrollX), scrollX);
-            toppos  = Math.max((rect.top + scrollY), scrollY);
+            leftpos = rect.left > 0 ? rect.left + scrollX : scrollX;
+            toppos  = rect.top > 0 ? rect.top + scrollY : scrollY;
 
             if (elem instanceof HTMLAreaElement)
                 [leftpos, toppos] = getAreaOffset(elem, leftpos, toppos);
 
             ss = span.style;
             ss.left = leftpos + "px";
-            ss.top  =  toppos + "px";
+            ss.top  = toppos + "px";
 
             // }} ======================================================================= //
 
             if (elem.hasAttribute('href') === false)
-            {
                 ss.backgroundColor = hintColorForm;
-            }
 
-            hintElements[hint] = span;
-            span.element       = elem;
+            span.element = elem;
             hintContainer.appendChild(span);
+            hintSpans.push(span);
 
             hintCount++;
         }
 
         if (doc)
-        {
             body.appendChild(fragment);
-        }
 
         Array.forEach(win.frames, drawHints);
+
+        if (isMain)
+            setHintsText();
     };
 
     function getHintColor(elem) {
@@ -1040,25 +1084,27 @@ var hok = function () {
         {
             lastMatchHint = hintElements[inputKey];
             focusHint(lastMatchHint);
-
-            // fire if hint is unique
-            if (pOptions["unique_fire"] && !supressUniqueFire)
-            {
-                let foundCount = updateHeaderMatchHints();
-
-                if (foundCount == 1)
-                {
-                    var targetElem = lastMatchHint.element;
-                    destruction();
-
-                    fire(targetElem);
-                }
-            }
         }
         else
         {
             lastMatchHint = null;
-            inputKey      = "";
+        }
+
+        if (useStatusBarFeedBack)
+            display.echoStatusBar("HoK : [ " + inputKey.split("").join(" ") + " ]");
+
+        // fire if hint is unique
+        if (uniqueFire && !supressUniqueFire)
+        {
+            let foundCount = updateHeaderMatchHints();
+
+            if (foundCount == 1 && lastMatchHint)
+            {
+                var targetElem = lastMatchHint.element;
+                destruction();
+
+                fire(targetElem);
+            }
         }
     }
 
@@ -1122,11 +1168,7 @@ var hok = function () {
             init();
             setLocalQuery();
 
-            // var fromDate = new Date();
             drawHints();
-            // var endDate = new Date();
-
-            // util.message((endDate - fromDate) + " msec");
 
             if (hintCount > 1)
             {
