@@ -1771,6 +1771,29 @@ const prompt = function () {
                 };
             },
 
+            google: function () {
+                function suggest(word) {
+                    const domain = "com";
+                    const base = "http://www.google.%s/complete/search?output=toolbar&q=%s";
+
+                    let ep  = util.format(base, domain, encodeURIComponent(word));
+                    let res = util.httpGet(ep);
+
+                    let matched = res.responseText.match("(<toplevel>.*</toplevel>)");
+
+                    if (!matched)
+                        return null;
+
+                    let xml = new XML(matched[1]);
+
+                    return [cs.suggestion.@data for each (cs in xml.CompleteSuggestion)];
+                }
+
+                let suggestions = suggest(extra.query || "");
+
+                return { collection : suggestions, origin : extra.whole.indexOf(extra.left) };
+            },
+
             suggest: function (aEngines, aWithDescription) {
                 let engines = aEngines ? util.suggest.filterEngines(aEngines) : [];
 
