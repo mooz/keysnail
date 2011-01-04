@@ -223,8 +223,7 @@ const util = function () {
         readTextFileFromPackage: function (aURL) {
             var ioService = Cc["@mozilla.org/network/io-service;1"]
                 .getService(Ci.nsIIOService);
-            var scriptableStream = Components
-                .classes["@mozilla.org/scriptableinputstream;1"]
+            var scriptableStream = Cc["@mozilla.org/scriptableinputstream;1"]
                 .getService(Ci.nsIScriptableInputStream);
 
             try {

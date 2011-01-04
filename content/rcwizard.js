@@ -150,8 +150,8 @@
                 Components.utils.import("resource://gre/modules/AddonManager.jsm", am);
 
                 am.AddonManager.getAddonByID(ID, function (addon) {
-                                                 doNext(addon.getResourceURI('/').QueryInterface(Ci.nsIFileURL).file.clone());
-                                             });
+                    doNext(addon.getResourceURI('/').QueryInterface(Ci.nsIFileURL).file.clone());
+                });
             }
             else
             {

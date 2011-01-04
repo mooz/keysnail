@@ -2,11 +2,8 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Seq RDF:about="rdf:#$mtJrB">
-    <RDF:li RDF:resource="rdf:#$ntJrB"/>
-  </RDF:Seq>
   <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.8.2">
+                   em:version="1.8.3">
     <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
   </RDF:Description>
   <RDF:Description RDF:about="rdf:#$qtJrB"
@@ -14,10 +11,13 @@
                    em:minVersion="3.0"
                    em:maxVersion="4.0b9pre"
                    em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.2.xhtml"
-                   em:updateHash="sha1:704398ef5684f8d369d4673d03d255140ad697c0" />
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.3.xhtml"
+                   em:updateHash="sha1:0f1aaa6d2a4f1f02d0232470f2b8bc39cb4532ef" />
+  <RDF:Seq RDF:about="rdf:#$mtJrB">
+    <RDF:li RDF:resource="rdf:#$ntJrB"/>
+  </RDF:Seq>
   <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAIJ8sTzU9ARYseuh923kzHVIrIjDPVxfrXpBWyNCHKSwgTik9PuAiTfhUSRE9G4F0h6BFwhK3NdxL7P4W/IAZzLhM9D3JpI3lyYG8NZUmt3na2wpW3ap2OWV2S8ktTSUDiXK0OYsCyryN1+MKAlHeykuLX+AZ3lrWXlEJbGn6Zhr">
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAIh1436zyZglNIDDoLVTq0gVYVFr8+W0evELgOcV1offukxBgd12ugftV7bqvgjQMBRDtduXioX3nCsfL4bpjQXl1ebvQpXTYkZwI+nEyv2Q6iyFmlWImRZdZUADVVK90DMo/aMPViTc8KyOuKmlNmraIDC6t6emYNV/BTNTmxFT">
     <em:updates RDF:resource="rdf:#$mtJrB"/>
   </RDF:Description>
 </RDF:RDF>
