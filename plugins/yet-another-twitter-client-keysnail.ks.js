@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.2.7</version>
+    <version>2.2.8</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -2689,10 +2689,10 @@ var twitterClient =
                     if (count < 0)
                         msg = M({ja: ((-count) + " 文字オーバー"), en: ("Over " + (-count) + " characters")});
 
-                    echoStatusBar(msg);
+                    display.echoStatusBar(msg);
                 },
                 callback: function postTweet(aTweet) {
-                    echoStatusBar("");
+                    display.echoStatusBar("");
 
                     if (aTweet === null)
                         return;
