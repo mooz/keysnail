@@ -2035,7 +2035,8 @@ var twitterClient =
 
             let containerXML =
                 <vbox style="margin-left  : 4px;
-                             margin-right : 4px;"
+                             margin-right : 4px;
+                             overflow:auto;"
                       >
                     <hbox align="center" flex="1">
                         <description style="font-weight : bold;
@@ -2068,7 +2069,7 @@ var twitterClient =
                         <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
                                        oncommand="KeySnail.modules.prompt.finish(true);" />
                     </hbox>
-                    <hbox id={HEAD_CRAWLER_BUTTON_CONTAINER} >
+                    <hbox id={HEAD_CRAWLER_BUTTON_CONTAINER}>
                         <spacer flex="1" />
                         <toolbarseparator id={HEAD_LIST_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
                         <toolbarseparator id={HEAD_SEARCH_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
@@ -2083,8 +2084,8 @@ var twitterClient =
                                           border-top    : 1px solid ThreeDShadow;
                                           border-right  : 1px solid ThreeDHighlight;
                                           border-bottom : 1px solid ThreeDHighlight;
-                                          max-width     : 46px;
-                                          max-height    : 46px;
+                                          width         : 46px;
+                                          height        : 46px;
                                           margin-left   : 4px;
                                           margin-right  : 4px;"
                                    id={HEAD_USER_ICON} />
