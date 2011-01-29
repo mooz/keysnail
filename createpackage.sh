@@ -4,18 +4,31 @@ setopt extended_glob
 
 ## ================================ ##
 
+function remove() {
+    echo "<$1>"
+    if [ -e $1 ]; then
+        rm -f $1
+    fi
+}
+
 # create jar file
-rm -f chrome/keysnail.jar
+
+if ! [ -e chrome ]; then
+    mkdir chrome
+fi
+
+remove chrome/keysnail.jar
 zip -r -0 chrome/keysnail.jar \
     content/*.{js,xul,xhtml}~(*~|.svn/*) \
     content/resources/*~*~ \
     content/prettifier/*~*~ \
+    content/diff/*~*~ \
     content/modules/*.js~(*~|.svn/*) \
     locale/**/*.*~(*~|.svn/*) \
     skin/**/*.*~(*~|*.svg|.svn/*)
 
 # create xpi file
-rm -f keysnail.xpi
+remove keysnail.xpi
 zip -r -9 keysnail.xpi \
     chrome/keysnail.jar \
     defaults/**/*.*~(*~|.svn/*) \
