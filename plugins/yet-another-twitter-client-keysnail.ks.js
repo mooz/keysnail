@@ -735,6 +735,10 @@ const Commands = {
         return 'openUILinkIn("' + url + '", "tab")';
     },
 
+    openLinkBackground: function (url) {
+        return 'openUILinkIn("' + url + '", "tabshifted")';
+    },
+
     execExt: function (extName) {
         return util.format('KeySnail.modules.ext.exec("%s")', extName);
     }
@@ -3451,6 +3455,8 @@ var twitterClient =
                             let url = text;
                             let actions = [
                                 [M({ja: "開く", en: "Open URL"}), "o", Commands.openLink(url)],
+                                [M({ja: "バックグラウンドのタブで開く",
+                                    en: "Open URL in background tab"}), "o", Commands.openLinkBackground(url)],
                                 [M({ja: "URL をコピー", en: "Copy URL"}), "c",
                                  'KeySnail.modules.command.setClipboardText("' + url + '")']
                             ];
