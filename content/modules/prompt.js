@@ -2098,8 +2098,13 @@ const prompt = function () {
 
                         try
                         {
-                            for (let k in obj)
-                                yield k;
+                            if (Object.hasOwnProperty("getOwnPropertyNames")) {
+                                for (let [, k] in Iterator(Object.getOwnPropertyNames(obj)))
+                                    yield k;
+                            } else {
+                                for (let k in obj)
+                                    yield k;
+                            }
                         }
                         catch (x)
                         {
