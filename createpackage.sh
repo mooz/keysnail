@@ -17,24 +17,27 @@ if ! [ -e chrome ]; then
     mkdir chrome
 fi
 
+echo "====================== Create jar file ========================="
+
 remove chrome/keysnail.jar
 zip -r -0 chrome/keysnail.jar \
-    content/*.{js,xul,xhtml}~(*~|.svn/*) \
+    content/*.{js,xul,xhtml}~(*~) \
     content/resources/*~*~ \
     content/prettifier/*~*~ \
-    content/diff/*~*~ \
-    content/modules/*.js~(*~|.svn/*) \
-    locale/**/*.*~(*~|.svn/*) \
-    skin/**/*.*~(*~|*.svg|.svn/*)
+    content/modules/*.js~(*~) \
+    locale/**/*.*~(*~) \
+    skin/**/*.*~(*~|*.svg)
+
+echo "====================== Create xpi file ========================="
 
 # create xpi file
 remove keysnail.xpi
 zip -r -9 keysnail.xpi \
     chrome/keysnail.jar \
-    defaults/**/*.*~(*~|.svn/*) \
+    defaults/**/*.*~(*~) \
     install.rdf \
-    share/*.js~(*~|.svn/*) \
-    schemes/*.js~(*~|.svn/*) \
+    share/*.js~(*~) \
+    schemes/*.js~(*~) \
     components/*.js~*~
 cp chrome.manifest.pack /tmp/chrome.manifest
 zip -j -9 keysnail.xpi /tmp/chrome.manifest
