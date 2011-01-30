@@ -55,9 +55,6 @@ const userscript = {
                 || "").split(",");
     },
 
-    // line number of the Function() constructor
-    userScriptOffset: 19,
-
     // ==================== Loader ==================== //
 
     /**
