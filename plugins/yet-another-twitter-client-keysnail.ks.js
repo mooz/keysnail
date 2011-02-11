@@ -304,8 +304,8 @@ let pOptions = plugins.setupOptions("twitter_client", {
     "popup_new_statuses"           : {
         preset: false,
         description: M({
-            ja: "[ユーザ名, つぶやき, 情報] 各カラムの幅をパーセンテージ指定",
-            en: "ステータス更新時にポップアップ通知を行うかどうか"
+            ja: "TL へのつぶやきをポップアップ表示する",
+            en: "Popup new statuses from timeline"
         })
     },
     "popup_new_replies"            : {
