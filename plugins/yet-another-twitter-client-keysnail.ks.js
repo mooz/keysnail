@@ -1727,7 +1727,7 @@ var twitterClient =
         // Element / Menu {{ ======================================================== //
 
         function applyMenu(aMenu, aMenuSeed) {
-            function genMenuItem([label, accessKey, command]) {
+            function genMenuItem([label, accessKey, command, checked]) {
                 let item;
 
                 if (command instanceof Array) {
@@ -1750,6 +1750,9 @@ var twitterClient =
                 } else {
                     item = $U.createElement("menuseparator");
                 }
+
+                if (typeof checked === "boolean")
+                    item.setAttribute("checked", checked);
 
                 return item;   // menu, menuitem, menuseparator
             }
