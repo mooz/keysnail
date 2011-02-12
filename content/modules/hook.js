@@ -13,22 +13,22 @@ const hook = {
 
     },
 
-    setWhetherDefinedInExternalFile: function (aFunction) {
-        if (key.inExternalFile)
-            aFunction.ksDefinedInExternalFile = key.inExternalFile;
+    setWhetherDefinedInExternalFile: function (aFunction, doNotExport) {
+        if (key.inExternalFile || doNotExport)
+            aFunction.ksDefinedInExternalFile = true;
     },
 
-    setHook: function (aHookName, aFunction) {
-        this.setWhetherDefinedInExternalFile(aFunction);
+    setHook: function (aHookName, aFunction, doNotExport) {
+        this.setWhetherDefinedInExternalFile(aFunction, doNotExport);
         this.hookList[aHookName] = [aFunction];
     },
 
-    addToHook: function (aHookName, aFunction) {
+    addToHook: function (aHookName, aFunction, doNotExport) {
         if (!this.hookList[aHookName])
         {
             this.hookList[aHookName] = [];
         }
-        this.setWhetherDefinedInExternalFile(aFunction);
+        this.setWhetherDefinedInExternalFile(aFunction, doNotExport);
         this.hookList[aHookName].push(aFunction);
     },
 

@@ -159,7 +159,7 @@
             try {
                 target.init();
             } catch (x) {
-                util.message("Error KeySnail.initModule :: " + x);
+                this.message("Error KeySnail.initModule :: " + x);
             }
         },
 
@@ -208,7 +208,7 @@
 
                     hook.addToHook("Unload", function () {
                         util.setUnicharPref(allowedEventsKey, allowedEvents);
-                    });
+                    }, true);
                 }
             }
         },
@@ -228,10 +228,10 @@
                 hook.callHook("Unload", ev);
             }, false);
 
-            key.inExternalFile = true;
-            hook.addToHook("Unload", function () { gBrowser.removeProgressListener(KeySnail.urlBarListener); });
+            hook.addToHook("Unload", function () {
+                gBrowser.removeProgressListener(KeySnail.urlBarListener);
+            }, true);
             this.workAroundPopup();
-            key.inExternalFile = false;
 
             // hook location bar copy / cut event
             try
@@ -282,7 +282,7 @@
 
                     return true;
                 });
-            });
+            }, true);
         },
 
         openUpdatePluginDialog: function () {
