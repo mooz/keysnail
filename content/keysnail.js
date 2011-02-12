@@ -159,7 +159,7 @@
             try {
                 target.init();
             } catch (x) {
-                this.message("Error KeySnail.initModule :: " + x);
+                this.error(x, "KeySnail.initModule");
             }
         },
 
