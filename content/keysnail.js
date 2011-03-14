@@ -10,7 +10,7 @@
 
     // each modules
     let my, share, persist, util, display, command, html, hook, macro, style,
-    key, prompt, ext, shell, userscript, completer, vimp, L, M, plugins;
+    key, prompt, ext, shell, userscript, completer, vimp, L, M, plugins, _;
 
     const { classes : Cc, interfaces : Ci } = Components;
 
@@ -92,9 +92,12 @@
             // local namespace for user
             modules.my = {};
 
-            // global namespace for user
             try {
+                // global namespace for user
                 Components.utils.import("resource://keysnail-share/share.js", modules);
+                // library
+                Components.utils.import("resource://keysnail-share/underscore.js", modules);
+                _ = modules._;
             } catch (x) {}
 
             for (let [, name] in Iterator(moduleObjects))
