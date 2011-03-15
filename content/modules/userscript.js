@@ -63,28 +63,19 @@ const userscript = {
      * @throws {string} error message
      */
     initFileLoader: function (aInitFilePath) {
-        var savedStatus = key.inExternalFile;
-        key.inExternalFile = false;
-        try
-        {
-            var start = Date.now();
-            this.jsFileLoader(aInitFilePath, true);
-            var end = Date.now();
-        }
-        catch (e)
-        {
-            e.fileName = aInitFilePath;
-
-            key.inExternalFile = savedStatus;
-            throw e;
-        }
-        key.inExternalFile = savedStatus;
-
-        this.initFilePath = aInitFilePath;
-
-        display.echoStatusBar("KeySnail :: [" + aInitFilePath + "] :: " +
-                              util.getLocaleString("initFileLoaded", [(end - start) / 1000]),
-                              3000);
+        key.withExternalFileStatus(false, function () {
+            try {
+                var start = Date.now();
+                this.jsFileLoader(aInitFilePath, true);
+                var end = Date.now();
+                display.echoStatusBar("KeySnail :: [" + aInitFilePath + "] :: " +
+                                      util.getLocaleString("initFileLoaded", [(end - start) / 1000]),
+                                      3000);
+            } catch (e) {
+                e.fileName = aInitFilePath;
+                throw e;
+            }
+        }, this);
     },
 
     loadSubScript: function (aURI, aContext) {

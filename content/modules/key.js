@@ -96,6 +96,16 @@ const key = {
     // ==== set to true, while loading the external (imported from .keysnail.js or plugin)
     inExternalFile: false,
 
+    withExternalFileStatus: function (status, f, self) {
+        let savedStatus = this.inExternalFile;
+        try {
+            this.inExternalFile = status;
+            f.call(self || null);
+        } finally {
+            this.inExternalFile = savedStatus;
+        }
+    },
+
     // ==== modes ====
 
     // major modes
