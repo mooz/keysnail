@@ -32,3 +32,13 @@ textbox.keysnail-code-editor {
 button.keysnail-specialkey-button {
     width: 4em;
 }
+
+#init-file-relative-label {
+    text-align       : center;
+    font-weight      : bold;
+    background-color : #f3ffa5;
+    border           : 1px solid #b7be8d;
+    padding          : 4px;
+    margin           : 0 2px 4px 2px;
+    color            : black;
+}

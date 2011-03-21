@@ -54,6 +54,24 @@ var ksPreference = {
             "C-M"   : 3,
             "Digit" : 4
         }[this.modules.util.getUnicharPref("extensions.keysnail.keyhandler.digit_prefix_argument_type")] || 0;
+
+        this.setInitFileRelativeStatus();
+    },
+
+    setInitFileRelativeStatus: function () {
+        const { userscript, util } = this.modules;
+
+        const userPath = userscript.userPath;
+        const isRelative =
+            util.getUnicharPref("extensions.keysnail.userscript.location") !== userPath;
+        const label = document.getElementById("init-file-relative-label");
+
+        if (isRelative) {
+            label.value = util.getLocaleString("userscriptLocationRelative", [userPath]);
+            label.hidden = false;
+        } else {
+            label.hidden = true;
+        }
     },
 
     setDigitArgumentFieldState: function (aEnabled) {

@@ -92,6 +92,7 @@
         <!-- Init File Settings -->
         <groupbox orient="vertical">
             <caption label="&keySnail.preference.userscript.settings;" />
+            <label id="init-file-relative-label" flex="1" />
             <grid flex="1">
                 <columns>
                     <column />
@@ -100,11 +101,11 @@
                 </columns>
                 <rows>
                     <row align="center" flex="1">
-                        <label value="&keySnail.preference.userscript.location;"
-                               control="userScriptLocation"/>
-                        <filefield id="keysnail.preference.userscript.location" flex="1"/>
-                        <button label="&keySnail.preference.reference;"
-                                oncommand="ksPreference.changePathClicked('INITFILE');" />
+                                <label value="&keySnail.preference.userscript.location;"
+                                       control="userScriptLocation"/>
+                                <filefield id="keysnail.preference.userscript.location" flex="1"/>
+                                <button label="&keySnail.preference.reference;"
+                                        oncommand="ksPreference.changePathClicked('INITFILE');" />
                     </row>
                     <row>
                         <spacer height="5px" />
