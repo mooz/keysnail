@@ -64,6 +64,8 @@ const userscript = {
      */
     initFileLoader: function (aInitFilePath) {
         key.withExternalFileStatus(false, function () {
+            this.initFilePath = aInitFilePath;
+
             try {
                 var start = Date.now();
                 this.jsFileLoader(aInitFilePath, true);
