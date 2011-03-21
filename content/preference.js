@@ -61,17 +61,21 @@ var ksPreference = {
     setInitFileRelativeStatus: function () {
         const { userscript, util } = this.modules;
 
-        const userPath = userscript.userPath;
         const isRelative =
-            util.getUnicharPref("extensions.keysnail.userscript.location") !== userPath;
-        const label = document.getElementById("init-file-relative-label");
+            util.getUnicharPref("extensions.keysnail.userscript.location") !== userscript.userPath;
+        const enabledLabel = document.getElementById("init-file-relative-label");
 
         if (isRelative) {
-            label.value = util.getLocaleString("userscriptLocationRelative", [userPath]);
-            label.hidden = false;
+            enabledLabel.value = util.getLocaleString("userscriptLocationRelativeEnabled");
+            document.getElementById("init-file-relative").setAttribute("data-enabled", "true");
         } else {
-            label.hidden = true;
+            enabledLabel.value = util.getLocaleString("userscriptLocationRelativeDisabled");
         }
+    },
+
+    openCurrentProcDir: function () {
+        const { util } = this.modules;
+        util.getSpecialDir("CurProcD").launch();
     },
 
     setDigitArgumentFieldState: function (aEnabled) {

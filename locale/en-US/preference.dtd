@@ -10,6 +10,9 @@
 <!ENTITY keySnail.preference.userscript.settings "Init file Settings">
 <!ENTITY keySnail.preference.userscript.location "Location: ">
 <!ENTITY keySnail.preference.userscript.editor "Editor: ">
+<!ENTITY keySnail.preference.userscript.relativeDescription "If you want to specify place of init file relatively, place init file to the directofy where firefox.exe exists.
+When init file is found in that directory, place specified below is ignored.">
+<!ENTITY keySnail.preference.userscript.openCurrentProcDir "Open relative init file place">
 
 <!-- Plugin -->
 <!ENTITY keySnail.preference.plugin "Plugin">

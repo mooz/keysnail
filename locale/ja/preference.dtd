@@ -10,6 +10,9 @@
 <!ENTITY keySnail.preference.userscript.settings "設定ファイル">
 <!ENTITY keySnail.preference.userscript.location "読み込み元: ">
 <!ENTITY keySnail.preference.userscript.editor "編集に用いるエディタ: ">
+<!ENTITY keySnail.preference.userscript.relativeDescription "設定ファイルを相対パスで指定したい場合は Firefox の実行ファイルが存在するディレクトリに設定ファイルを配置して下さい。
+実行ファイルの存在するディレクトリ内に設定ファイルが見つかった場合、以下で指定された読み込み元は無視されます。">
+<!ENTITY keySnail.preference.userscript.openCurrentProcDir "実行ファイルの置かれたディレクトリを開く">
 
 <!-- Plugin -->
 <!ENTITY keySnail.preference.plugin "プラグイン">

@@ -92,8 +92,15 @@
         <!-- Init File Settings -->
         <groupbox orient="vertical">
             <caption label="&keySnail.preference.userscript.settings;" />
-            <label id="init-file-relative-label" flex="1" />
-            <grid flex="1">
+            <hbox id="init-file-relative"
+                  align="center"
+                  tooltiptext="&keySnail.preference.userscript.relativeDescription;">
+                <description id="init-file-relative-label" flex="1" />
+                <spacer flex="1" />
+                <button label="&keySnail.preference.userscript.openCurrentProcDir;"
+                        oncommand="ksPreference.openCurrentProcDir();" />
+            </hbox>
+             <grid flex="1">
                 <columns>
                     <column />
                     <column flex="1"/>
