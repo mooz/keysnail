@@ -103,11 +103,35 @@ var nonEditableCommon = [
     ["d", "close_tab_window"],
     ["u", "undo_closed_tab"],
     // Others
-    ["i",
-     [function (ev, arg) {
-          util.setBoolPref("accessibility.browsewithcaret",
-                           !util.getBoolPref("accessibility.browsewithcaret"));
-      }, "Toggle caret mode"], true]
+    ["i", [function (ev, arg) {
+        util.setBoolPref(
+            "accessibility.browsewithcaret",
+            !util.getBoolPref("accessibility.browsewithcaret")
+        );
+    }, "Toggle caret mode"], true],
+    ["t", [function (ev, arg) {
+        shell.input("tabopen ");
+    }, "Tab open"], true],
+    ["T", [function (ev, arg) {
+        shell.input("tabopen! ");
+    }, "Tab open"], true],
+    ["o", [function (ev, arg) {
+        shell.input("open ");
+    }, "Open"], true],
+    ["O", [function (ev, arg) {
+        shell.input("open! ");
+    }, "Open"], true],
+    ["y", [function (ev, arg) {
+        command.setClipboardText(content.document.location.href);
+        display.echoStatusBar("Yanked " + content.document.location.href);
+    }, "Yank current page address"], true],
+    ["p", [function (ev, arg) {
+        let url = command.getClipboardText();
+        if (url.match(/\s/) || url.indexOf("://") === -1) {
+            url = "http://www.google.com/search?q=" + encodeURIComponent(url) + "&ie=utf-8&oe=utf-8&aq=t";
+        }
+        gBrowser.loadOneTab(url, null, null, null, false);
+    }, "Open yanked address or google it"], true]
 ];
 
 SCHEME.keybindings["view"]  = SCHEME.keybindings["view"].concat(nonEditableCommon);
