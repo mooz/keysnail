@@ -28,7 +28,25 @@ const userscript = {
     // init file base
     prefDirectory: null,
     // if specified, use this path
-    userPath: null,
+    get userPath() {
+        try {
+            let procDir = util.getSpecialDir("CurProcD");
+            if (util.isDirHasFiles(procDir.path, this.defaultInitFileNames))
+                return procDir.path;
+        } catch ([]) {}
+
+        let path = util.getUnicharPref("extensions.keysnail.userscript.location");
+
+        if (!path) {
+            path = this.prefDirectory;
+            util.setUnicharPref("extensions.keysnail.userscript.location", path);
+        }
+
+        return path;
+    },
+    set userPath(path) {
+        util.setUnicharPref("extensions.keysnail.userscript.location", path);
+    },
     // pathes user script loaded from
     loadPath: [],
 
@@ -101,14 +119,6 @@ const userscript = {
             = this.getPrefDirectory();
 
         share.pwd = this.prefDirectory;
-
-        this.userPath = util.getUnicharPref("extensions.keysnail.userscript.location");
-
-        if (!this.userPath)
-        {
-            this.userPath = this.prefDirectory;
-            util.setUnicharPref("extensions.keysnail.userscript.location", this.userPath);
-        }
 
         /**
          * In userscript.require'ed script, the multibyte character like Japanese
@@ -268,8 +278,6 @@ const userscript = {
         key.keyMapHolder = {};
         key.blackList    = [];
         hook.hookList    = {};
-
-        this.userPath = util.getUnicharPref("extensions.keysnail.userscript.location");
 
         key.init();
         return this.load();
@@ -1200,7 +1208,6 @@ const userscript = {
             // }} ======================================================================= //
         }
 
-        util.setUnicharPref("extensions.keysnail.userscript.location", rcFilePlace);
         this.userPath = rcFilePlace;
 
         return true;
