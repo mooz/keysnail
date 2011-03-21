@@ -1498,6 +1498,44 @@ const util = function () {
 
         // Misc {{ ================================================================== //
 
+        getAllPropertyNames: function (obj) {
+            let wrapped = obj.wrappedJSObject;
+
+            if (wrapped)
+                obj = wrapped;
+
+            try
+            {
+                if ("getOwnPropertyNames" in Object) {
+                    let encountered = { __proto__ : null };
+
+                    for (let [, k] in Iterator(Object.getOwnPropertyNames(obj)))
+                        try {
+                            encountered[k] = true;
+                            yield k;
+                        } catch (_) {}
+
+                    for (let k in obj)
+                        try {
+                            if (!(k in encountered))
+                                yield k;
+                        } catch (_) {}
+                } else {
+                    for (let k in obj)
+                        try {
+                            yield k;
+                        } catch (_) {}
+                }
+            }
+            catch (x)
+            {
+                throw StopIteration;
+            }
+
+            if (wrapped)
+                yield "wrappedJSObject";
+        },
+
         sortMultiple: function ([a], [b]) { return (a < b) ? -1 : (a > b) ? 1 : 0; },
 
         find: function (array, pred) {

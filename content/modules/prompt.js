@@ -163,7 +163,15 @@ const prompt = function () {
 
     function implant(a, b) {
         for (let [k, v] in Iterator(b))
-            a[k] = b[k];
+            a[k] = v;
+    }
+
+    function implantAll(a, b) {
+        for (let k in util.getAllPropertyNames(b)) {
+            try {
+                a[k] = b[k];
+            } catch (_) {}
+        }
     }
 
     /**
@@ -226,13 +234,12 @@ const prompt = function () {
     // ============================== common DOM manipulation ============================== //
 
     function setLabel(aItem, aLabel) {
-        try
-        {
+        try {
             aItem.setAttribute("label", aLabel);
-        }
-        catch (e)
-        {
-            self.message(e.stack.split(".js ").join(".js\n"));
+        } catch (_) {
+            try {
+                aItem.setAttribute("label", Object.prototype.toString.call(aLabel));
+            } catch (_) {}
         }
     }
 
@@ -1846,74 +1853,119 @@ const prompt = function () {
 
                     // if you want to begin with specific object,
                     // try something like completer.fetch.javascript({root: window});
-                    let root = context.root || {
-                        __proto__ : util.userContext,
-                        window    : window,
-                        content   : content,
-                        document  : document
-                    };
+                    let root = context.root;
 
-                    let objectPrototype = {
-                        "__defineGetter__"     : undefined,
-                        "__defineSetter__"     : undefined,
-                        "__lookupGetter__"     : undefined,
-                        "__lookupSetter__"     : undefined,
-                        "__noSuchMethod__"     : undefined,
-                        "hasOwnProperty"       : undefined,
-                        "isPrototypeOf"        : undefined,
-                        "propertyIsEnumerable" : undefined,
-                        "unwatch"              : undefined,
-                        "watch"                : undefined
-                    };
+                    let global = window; // (function () this)();
 
-                    for (let k in Iterator(objectPrototype, true))
-                        objectPrototype[k] = Object[k];
+                    if (!root) {
+                        if ("getOwnPropertyNames" in Object) {
+                            root = {
+                                __proto__ : util.userContext,
+                                // browser
+                                window    : window,
+                                content   : content,
+                                document  : document,
+                                // ECMA262 + alpha
+                                Array              : Array,
+                                Boolean            : Boolean,
+                                Date               : Date,
+                                Error              : Error,
+                                EvalError          : EvalError,
+                                Function           : Function,
+                                JSON               : JSON,
+                                Math               : Math,
+                                Number             : Number,
+                                Object             : Object,
+                                RangeError         : RangeError,
+                                ReferenceError     : ReferenceError,
+                                RegExp             : RegExp,
+                                String             : String,
+                                SyntaxError        : SyntaxError,
+                                TypeError          : TypeError,
+                                URIError           : URIError,
+                                decodeURI          : decodeURI,
+                                decodeURIComponent : decodeURIComponent,
+                                encodeURI          : encodeURI,
+                                encodeURIComponent : encodeURIComponent,
+                                Infinity           : Infinity,
+                                NaN                : NaN,
+                                eval               : eval,
+                                escape             : escape,
+                                unescape           : unescape,
+                                isFinite           : isFinite,
+                                isNaN              : isNaN,
+                                parseFloat         : parseFloat,
+                                parseInt           : parseInt
+                            };
+                        } else {
+                            root = {
+                                __proto__ : util.userContext,
+                                window    : window,
+                                content   : content,
+                                document  : document
+                            };
 
-                    let functionPrototype = {__proto__ : objectPrototype};
+                            let objectPrototype = {
+                                "__defineGetter__"     : undefined,
+                                "__defineSetter__"     : undefined,
+                                "__lookupGetter__"     : undefined,
+                                "__lookupSetter__"     : undefined,
+                                "__noSuchMethod__"     : undefined,
+                                "hasOwnProperty"       : undefined,
+                                "isPrototypeOf"        : undefined,
+                                "propertyIsEnumerable" : undefined,
+                                "unwatch"              : undefined,
+                                "watch"                : undefined
+                            };
 
-                    for (let [, k] in Iterator(["apply", "call", "toSource", "toString", "valueOf"]))
-                        functionPrototype[k] = Function[k];
+                            for (let k in Iterator(objectPrototype, true))
+                                objectPrototype[k] = Object[k];
 
-                    let globalObjects = {
-                        Array          : ["concat", "join", "pop", "push", "reverse", "shift", "slice", "sort",
-                                          "splice", "toSource", "toString", "unshift", "every", "filter", "forEach",
-                                          "indexOf", "lastIndexOf", "map", "some"],
-                        Boolean        : [],
-                        Date           : ["now", "parse", "UTC"],
-                        Error          : [],
-                        EvalError      : [],
-                        Math           : ["E", "LN2", "LN10", "LOG2E", "LOG10E", "PI", "SQRT1_2", "SQRT2",
-                                          "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "exp", "floor",
-                                          "log", "max", "min", "pow", "random", "round", "sin", "sqrt", "tan"],
-                        Number         : ["MAX_VALUE", "MIN_VALUE", "NaN", "NEGATIVE_INFINITY", "POSITIVE_INFINITY",
-                                          "toExponential", "toFixed", "toLocaleString", "toPrecision", "toSource", "toString", "valueOf"],
-                        RangeError     : [],
-                        ReferenceError : [],
-                        RegExp         : [],
-                        String         : [],
-                        SyntaxError    : [],
-                        TypeError      : [],
-                        URIError       : []
-                    };
+                            let functionPrototype = {__proto__ : objectPrototype};
 
-                    let global = (function () this)();
+                            for (let [, k] in Iterator(["apply", "call", "toSource", "toString", "valueOf"]))
+                                functionPrototype[k] = Function[k];
 
-                    for (let [objName, keys] in Iterator(globalObjects))
-                    {
-                        globalObjects[objName] = {};
+                            let globalObjects = {
+                                Array          : ["concat", "join", "pop", "push", "reverse", "shift", "slice", "sort",
+                                                  "splice", "toSource", "toString", "unshift", "every", "filter", "forEach",
+                                                  "indexOf", "lastIndexOf", "map", "some"],
+                                Boolean        : [],
+                                Date           : ["now", "parse", "UTC"],
+                                Error          : [],
+                                EvalError      : [],
+                                Math           : ["E", "LN2", "LN10", "LOG2E", "LOG10E", "PI", "SQRT1_2", "SQRT2",
+                                                  "abs", "acos", "asin", "atan", "atan2", "ceil", "cos", "exp", "floor",
+                                                  "log", "max", "min", "pow", "random", "round", "sin", "sqrt", "tan"],
+                                Number         : ["MAX_VALUE", "MIN_VALUE", "NaN", "NEGATIVE_INFINITY", "POSITIVE_INFINITY",
+                                                  "toExponential", "toFixed", "toLocaleString", "toPrecision", "toSource", "toString", "valueOf"],
+                                RangeError     : [],
+                                ReferenceError : [],
+                                RegExp         : [],
+                                String         : [],
+                                SyntaxError    : [],
+                                TypeError      : [],
+                                URIError       : []
+                            };
 
-                        for ([, k] in Iterator(keys))
-                        {
-                            globalObjects[objName][k] = global[objName][k];
+                            for (let [objName, keys] in Iterator(globalObjects))
+                            {
+                                globalObjects[objName] = {};
+
+                                for ([, k] in Iterator(keys))
+                                {
+                                    globalObjects[objName][k] = global[objName][k];
+                                }
+
+                                globalObjects[objName]["__proto__"] = functionPrototype;
+                            }
+
+                            globalObjects.Function = functionPrototype;
+                            globalObjects.Object   = objectPrototype;
+
+                            implant(root, globalObjects);
                         }
-
-                        globalObjects[objName]["__proto__"] = functionPrototype;
                     }
-
-                    globalObjects.Function = functionPrototype;
-                    globalObjects.Object   = objectPrototype;
-
-                    implant(root, globalObjects);
 
                     const IDENTIFIER_PATTERN = /^[a-zA-Z$_]+[0-9a-zA-Z$_]*$/;
 
@@ -2090,31 +2142,6 @@ const prompt = function () {
                         }
                     }
 
-                    function getKeys(obj) {
-                        let wrapped = obj.wrappedJSObject;
-
-                        if (wrapped)
-                            obj = wrapped;
-
-                        try
-                        {
-                            if (Object.hasOwnProperty("getOwnPropertyNames")) {
-                                for (let [, k] in Iterator(Object.getOwnPropertyNames(obj)))
-                                    yield k;
-                            } else {
-                                for (let k in obj)
-                                    yield k;
-                            }
-                        }
-                        catch (x)
-                        {
-                            throw StopIteration;
-                        }
-
-                        if (wrapped)
-                            yield "wrappedJSObject";
-                    }
-
                     function cmp([a], [b]) {
                         if (a < b)
                             return -1;
@@ -2140,7 +2167,9 @@ const prompt = function () {
 
                     if (!query)
                     {
-                        cc.collection = [getRow(root, k) for (k in getKeys(root))].sort(cmp);
+                        cc.collection =
+                            [getRow(root, k)
+                             for (k in util.getAllPropertyNames(root))].sort(cmp);
                         return cc;
                     }
                     else
@@ -2188,11 +2217,12 @@ const prompt = function () {
                         {
                             if (all)
                             {
-                                cc.collection = [getRow(obj, k, prefix) for (k in getKeys(obj))].sort(cmp);
+                                cc.collection = [getRow(obj, k, prefix)
+                                                 for (k in util.getAllPropertyNames(obj))].sort(cmp);
                             }
                             else
                             {
-                                let keys    = [(k || "") for (k in getKeys(obj))];
+                                let keys    = [(k || "") for (k in util.getAllPropertyNames(obj))];
                                 let matched = [];
 
                                 // head
