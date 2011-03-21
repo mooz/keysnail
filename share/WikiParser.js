@@ -159,12 +159,12 @@ HTMLStack.prototype = {
             return xml;
         }
         var buf = this.last[this.last.length()-1];
-        if (buf.nodeKind() == 'text'){
+        if (buf && buf.nodeKind() == 'text'){
             this.last[this.last.length()-1] += this.isInline(xml) ? <><br/>{xml}</> : xml;
         } else {
             if(this.isInline(xml)){
                 this.stack[this.length-1] += xml;
-            } else if (buf.localName() == xml.localName()){
+            } else if (buf && buf.localName() == xml.localName()){
                 buf.* += xml.*;
             } else {
                 this.stack[this.length-1] += xml;
