@@ -158,7 +158,7 @@
             <toolbarbutton id="keysnail-prompt-toggle-edit-mode-button"
                            oncommand="KeySnail.modules.prompt.toggleEditMode();" />
             <toolbarbutton id="keysnail-prompt-close-button"
-                           class="tab-close-button"
+                           image="chrome://keysnail/skin/icon/close.png"
                            tooltiptext="&keySnail.statusbar.closePrompt;"
                            oncommand="KeySnail.modules.prompt.finish(true);" />
         </hbox>
