@@ -833,29 +833,23 @@ const userscript = {
         // add self reference
         context.__ksSelf__   = context;
 
-        key.inExternalFile = true;
+        key.withExternalFileStatus(true, function () {
+            try
+            {
+                this.loadSubScript(filePath, context);
+                context.__ksLoaded__ = true;
+            }
+            catch (e)
+            {
+                context.__ksLoaded__ = false;
 
-        try
-        {
-            // let code = util.readTextFile(filePath);
-            // util.evalInContext(code, context);
-            this.loadSubScript(filePath, context);
-            context.__ksLoaded__ = true;
-        }
-        catch (e)
-        {
-            context.__ksLoaded__ = false;
+                let msgstr = util.getLocaleString("userScriptError", [
+                    e.fileName || "Unknown", e.lineNumber || "Unknown"
+                ]);
 
-            let msgstr = util.getLocaleString("userScriptError", [
-                e.fileName || "Unknown", e.lineNumber || "Unknown"
-            ]);
-
-            util.message(msgstr + "\n" + e + " (in " + filePath + ")");
-
-            // Components.utils.reportError(e);
-        }
-
-        key.inExternalFile = false;
+                util.message(msgstr + "\n" + e + " (in " + filePath + ")");
+            }
+        }, this);
     },
 
     /**
@@ -934,30 +928,30 @@ const userscript = {
 
         aContext = aContext || modules;
 
-        key.inExternalFile = true;
-        for (var i = 0; i < this.loadPath.length; ++i)
-        {
-            filePath = this.loadPath[i] + this.directoryDelimiter + aFileName;
-            file = util.openFile(filePath);
-
-            if (!file.exists())
-                continue;
-
-            try
+        key.withExternalFileStatus(true, function () {
+            for (var i = 0; i < this.loadPath.length; ++i)
             {
-                this.loadSubScript(filePath, aContext);
-                loaded = true;
-                break;
+                filePath = this.loadPath[i] + this.directoryDelimiter + aFileName;
+                file = util.openFile(filePath);
+
+                if (!file.exists())
+                    continue;
+
+                try
+                {
+                    this.loadSubScript(filePath, aContext);
+                    loaded = true;
+                    break;
+                }
+                catch (e)
+                {
+                    var msgstr = util.getLocaleString("userScriptError", [
+                        e.fileName || "Unknown", e.lineNumber || "Unknown"
+                    ]);
+                    display.notify(msgstr + "\n" + e);
+                }
             }
-            catch (e)
-            {
-                var msgstr = util.getLocaleString("userScriptError", [
-                    e.fileName || "Unknown", e.lineNumber || "Unknown"
-                ]);
-                display.notify(msgstr + "\n" + e);
-            }
-        }
-        key.inExternalFile = false;
+        }, this);
 
         return loaded;
     },
