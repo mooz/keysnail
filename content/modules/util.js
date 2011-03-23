@@ -379,6 +379,30 @@ const util = function () {
 
         // Misc utils {{ ============================================================ //
 
+        // http://piro.sakura.ne.jp/latest/blosxom/mozilla/xul/2009-12-24_stop-rendering.htm
+
+        withStopRendering: function (f, self) {
+            let baseWindow = this._baseWindow
+                || (this._baseWindow = window.top
+                    .QueryInterface(Ci.nsIInterfaceRequestor)
+                    .getInterface(Ci.nsIWebNavigation)
+                    .QueryInterface(Ci.nsIDocShell)
+                    .QueryInterface(Ci.nsIBaseWindow));
+
+            baseWindow.setPosition(window.innerWidth, window.innerHeight);
+
+            try {
+                if (self)
+                    f.call(self);
+                else
+                    f();
+            } catch (x) {
+                util.error(x);
+            } finally {
+                baseWindow.setPosition(0, 0);
+            }
+        },
+
         get browserWindow() {
             return Cc["@mozilla.org/appshell/window-mediator;1"]
                 .getService(Ci.nsIWindowMediator)
