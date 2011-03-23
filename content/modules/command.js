@@ -326,12 +326,20 @@ const command = {
     },
 
     bookMarkToolBarJumpTo: function () {
-        var toolbarBookMarks = document.getElementById('bookmarksBarContent');
+        var toolbarBookMarks = document.getElementById('bookmarksBarContent') || document.getElementById('PlacesToolbarItems');
         var items            = toolbarBookMarks.getElementsByTagName('toolbarbutton');
 
-        var urlList = [[util.getFaviconPath(item.node.uri), item.label, item.node.uri, item.node.itemId]
-                       for ([, item] in Iterator(items))
-                       if (item.node && item.node.uri.match(/^(https?|ftp):/))];
+        function getInfo(item) {
+            let node = item.node || item._placesNode;
+            return [util.getFaviconPath(node.uri), item.label, node.uri, node.itemId];
+        }
+
+        function isBookmarkItem(item) {
+            let node = item.node || item._placesNode;
+            return node && /^(https?|ftp):/.test(node.uri);
+        }
+
+        var urlList = [getInfo(item) for ([, item] in Iterator(items)) if (isBookmarkItem(item))];
 
         prompt.selector(
             {
