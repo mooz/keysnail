@@ -33,6 +33,12 @@
             return this._mainWindowType = this.isThunderbird ? "mail:3pane" : "navigator:browser";
         },
 
+        get overGecko2() {
+            if ("_overGecko2" in this)
+                return this._overGecko2;
+            return this._overGecko2 = "@mozilla.org/addons/integration;1" in Cc;
+        },
+
         get isMainWindow() this.windowType === this.mainWindowType,
 
         get version() {
@@ -49,7 +55,7 @@
 
         init:
         function init() {
-            if ("@mozilla.org/addons/integration;1" in Cc) // Over Gecko 2.0 or not
+            if (this.overGecko2) // Over Gecko 2.0 or not
             {
                 let am = {};
                 Components.utils.import("resource://gre/modules/AddonManager.jsm", am);

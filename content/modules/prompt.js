@@ -517,75 +517,83 @@ const prompt = function () {
     }
 
     function setListBoxGeneral(aGeneralList, aOffset, aLength, itemRetriever, onFinish) {
-        aOffset = aOffset || 0;
-        var count = Math.min(options.listboxMaxRows, aLength) + aOffset;
-        var row;
+        function doSetListBoxGeneral() {
+            aOffset = aOffset || 0;
+            var count = Math.min(options.listboxMaxRows, aLength) + aOffset;
+            var row;
 
-        let hasChildNodes = listbox.hasChildNodes();
-        let multiple      = isMultipleList(aGeneralList);
-        let needsRefresh  = !hasChildNodes;
+            let hasChildNodes = listbox.hasChildNodes();
+            let multiple      = isMultipleList(aGeneralList);
+            let needsRefresh  = !hasChildNodes;
 
-        if (type === TYPE_READ)
-        {
-            // prompt.selector does not have to care of the columns count changes.
-            // so this part is prompt.read, prompt.reader only.
-
-            let newCols  = multiple ? getActualCols(aGeneralList[0].length) : 1;
-            let oldCols  = 1;
-
-            let firstChild = listbox.childNodes[0];
-
-            if (hasChildNodes && firstChild.localName === "listcols")
-                oldCols = firstChild.childNodes.length;
-
-            if (!needsRefresh)
+            if (type === TYPE_READ)
             {
-                needsRefresh = (newCols !== oldCols);
-            }
-        }
+                // prompt.selector does not have to care of the columns count changes.
+                // so this part is prompt.read, prompt.reader only.
 
-        if (needsRefresh)
-        {
-            // set up the new listbox
-            setColumns(multiple ? itemRetriever(0).length : 1);
+                let newCols  = multiple ? getActualCols(aGeneralList[0].length) : 1;
+                let oldCols  = 1;
 
-            for (var i = aOffset; i < count; ++i)
-            {
-                row = createRow(multiple ? itemRetriever(i) : [itemRetriever(i)]);
-                listbox.appendChild(row);
-            }
-        }
-        else
-        {
-            // use listbox which has been already created
-            let childs = listbox.childNodes;
+                let firstChild = listbox.childNodes[0];
 
-            let i = aOffset, j = 0;
+                if (hasChildNodes && firstChild.localName === "listcols")
+                    oldCols = firstChild.childNodes.length;
 
-            // skip listcols, listhead, ...
-            while (childs[j].nodeName !== "listitem")
-                j++;
-
-            for (; i < count; ++i, ++j)
-            {
-                if (j < childs.length)
+                if (!needsRefresh)
                 {
-                    // use already created one
-                    row = childs[j];
-                    applyRow(row, multiple ? itemRetriever(i) : [itemRetriever(i)]);
+                    needsRefresh = (newCols !== oldCols);
                 }
-                else
-                {
-                    // ok, we should create a new one
-                    row = createRow(multiple ? itemRetriever(i) : [itemRetriever(i)]);
+            }
 
+            if (needsRefresh)
+            {
+                // set up the new listbox
+                setColumns(multiple ? itemRetriever(0).length : 1);
+
+                for (var i = aOffset; i < count; ++i)
+                {
+                    row = createRow(multiple ? itemRetriever(i) : [itemRetriever(i)]);
                     listbox.appendChild(row);
                 }
             }
+            else
+            {
+                // use listbox which has been already created
+                let childs = listbox.childNodes;
 
-            // remove stubs
-            while (j < childs.length)
-                listbox.removeChild(listbox.lastChild);
+                let i = aOffset, j = 0;
+
+                // skip listcols, listhead, ...
+                while (childs[j].nodeName !== "listitem")
+                    j++;
+
+                for (; i < count; ++i, ++j)
+                {
+                    if (j < childs.length)
+                    {
+                        // use already created one
+                        row = childs[j];
+                        applyRow(row, multiple ? itemRetriever(i) : [itemRetriever(i)]);
+                    }
+                    else
+                    {
+                        // ok, we should create a new one
+                        row = createRow(multiple ? itemRetriever(i) : [itemRetriever(i)]);
+
+                        listbox.appendChild(row);
+                    }
+                }
+
+                // remove stubs
+                while (j < childs.length)
+                    listbox.removeChild(listbox.lastChild);
+            }
+        }
+
+        if (KeySnail.overGecko2) {
+            util.withStopRendering(doSetListBoxGeneral);
+        } else {
+            doSetListBoxGeneral();
         }
 
         if (typeof onFinish === "function")
