@@ -616,8 +616,10 @@ const prompt = function () {
 
         if (textbox.value.length !== oldTextLength)
         {
-            if (delayedCommandTimeout)
+            if (delayedCommandTimeout) {
                 clearTimeout(delayedCommandTimeout);
+                delayedCommandTimeout = null;
+            }
 
             // add delay
             delayedCommandTimeout = setTimeout(
@@ -3000,7 +3002,10 @@ const prompt = function () {
                 savedFocusedElement = null;
             }
 
-            clearTimeout(delayedCommandTimeout);
+            if (delayedCommandTimeout) {
+                clearTimeout(delayedCommandTimeout);
+                delayedCommandTimeout = null;
+            }
             eventListenerRemover();
 
             // -------------------- common -------------------- //
