@@ -934,11 +934,13 @@ const prompt = function () {
             // create list of whole completion
             setListBoxFromStringList(wholeList);
             setRows(wholeList.length);
+            wholeListIndex = Math.min(Math.max(0, wholeListIndex), wholeList.length - 1);
         }
         else
         {
             setListBoxFromIndexList(wholeList, compIndexList);
             setRows(compIndexList.length);
+            compIndex = Math.min(Math.max(0, compIndex), compIndexList.length - 1);
         }
 
         if (listbox.hidden)
