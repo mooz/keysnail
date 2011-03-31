@@ -820,33 +820,7 @@ const prompt = function () {
             setListBoxSelection(lastIndex);
             break;
         case "prompt-select-action":
-            var from, to;
-
-            switch (selectorStatus)
-            {
-            case SELECTOR_STATE_CANDIDATES:
-                from = SELECTOR_STATE_CANDIDATES;
-                to   = SELECTOR_STATE_ACTION;
-                cellStylist = null;
-                break;
-            case SELECTOR_STATE_ACTION:
-                from = SELECTOR_STATE_ACTION;
-                to   = SELECTOR_STATE_CANDIDATES;
-                cellStylist = selectorStylist;
-                break;
-            }
-
-            selectorStatus = to;
-
-            if (delayedCommandTimeout)
-                clearTimeout(delayedCommandTimeout);
-
-            // save current context
-            saveSelectorContext(selectorContext[from]);
-            // change current context
-            restoreSelectorContext(selectorContext[to]);
-
-            updateSelector(selectorContext[to]);
+            switchSelectorContext();
             break;
         case "prompt-display-keymap-help":
             self.toggleSelectorHelpDisplay();
@@ -896,6 +870,38 @@ const prompt = function () {
             return;
 
         selectNextCompletion(aEvent.detail < 0 ? -1 : 1, cyclicMode);
+    }
+
+    function switchSelectorContext(opts) {
+        let from, to;
+
+        switch (selectorStatus)
+        {
+        case SELECTOR_STATE_CANDIDATES:
+            from = SELECTOR_STATE_CANDIDATES;
+            to   = SELECTOR_STATE_ACTION;
+            cellStylist = null;
+            break;
+        case SELECTOR_STATE_ACTION:
+            from = SELECTOR_STATE_ACTION;
+            to   = SELECTOR_STATE_CANDIDATES;
+            cellStylist = selectorStylist;
+            break;
+        }
+
+        selectorStatus = to;
+
+        if (delayedCommandTimeout) {
+            clearTimeout(delayedCommandTimeout);
+            delayedCommandTimeout = null;
+        }
+
+        // save current context
+        saveSelectorContext(selectorContext[from]);
+        // change current context
+        restoreSelectorContext(selectorContext[to]);
+
+        updateSelector(selectorContext[to], opts);
     }
 
     function saveSelectorContext(aTo) {
