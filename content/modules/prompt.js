@@ -452,7 +452,9 @@ const prompt = function () {
                 i   : currentIndex
             };
 
-            beforeSelection(args);
+            try {
+                beforeSelection(args);
+            } catch ([]) {}
 
             // user can override the value of `i'
             if (typeof args.nextIndex === "number")
@@ -484,8 +486,11 @@ const prompt = function () {
         else
             setupList(aIndex - center, center);
 
-        if (afterSelection)
+        if (afterSelection) {
+            try {
             afterSelection({row: currentRow, i: currentIndex});
+            } catch ([]) {}
+        }
     }
 
     function setupList(aOffset, aPos) {
