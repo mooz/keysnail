@@ -926,30 +926,39 @@ const prompt = function () {
         currentRegexp          = aFrom.currentRegexp;
     }
 
-    function updateSelector(aContext) {
+    function updateSelector(ctx, opts) {
+        opts = opts || {};
+
         removeAllChilds(listbox);
 
-        if (aContext.compIndexList === null)
+        let index;
+        let rows;
+
+        if (ctx.compIndexList === null)
         {
             // create list of whole completion
-            setListBoxFromStringList(wholeList);
-            setRows(wholeList.length);
-            wholeListIndex = Math.min(Math.max(0, wholeListIndex), wholeList.length - 1);
+            setListBoxFromStringList(ctx.wholeList);
+            rows = ctx.wholeList.length;
+            setRows(rows);
+            if (typeof opts.index === "number")
+                ctx.wholeListIndex = opts.index;
+            index = wholeListIndex = ctx.wholeListIndex = Math.min(Math.max(0, ctx.wholeListIndex), rows - 1);
         }
         else
         {
-            setListBoxFromIndexList(wholeList, compIndexList);
-            setRows(compIndexList.length);
-            compIndex = Math.min(Math.max(0, compIndex), compIndexList.length - 1);
+            setListBoxFromIndexList(ctx.wholeList, ctx.compIndexList);
+            rows = ctx.compIndexList.length;
+            setRows(rows);
+            if (typeof opts.index === "number")
+                ctx.compIndex = opts.index;
+            index = compIndex = ctx.compIndex = Math.min(Math.max(0, ctx.compIndex), rows - 1);
         }
 
         if (listbox.hidden)
             listbox.hidden = false;
 
-        selectorDisplayStatusbarLine(currentRegexp, 0, compIndexList ?
-                                     compIndexList.length : wholeList.length);
-
-        setListBoxSelection(compIndexList ? compIndex : wholeListIndex);
+        selectorDisplayStatusbarLine(currentRegexp, index, rows);
+        setListBoxSelection(index);
     }
 
     function setListBoxIndex(aIndex) {
@@ -2901,7 +2910,9 @@ const prompt = function () {
                     selectorStatus = SELECTOR_STATE_CANDIDATES;
                 }
 
-                updateSelector(selectorContext[SELECTOR_STATE_CANDIDATES]);
+                updateSelector(selectorContext[SELECTOR_STATE_CANDIDATES], {
+                    index : aSelectIndex
+                });
 
                 break;
             }
