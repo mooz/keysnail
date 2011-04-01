@@ -1,5 +1,11 @@
 <!ENTITY keySnail.pluginManager.title "Plugin manager">
 
+<!-- context menu -->
+<!ENTITY keySnail.pluginManager.editThisFile "Edit this file">
+<!ENTITY keySnail.pluginManager.showContainingFolder "Show containing folder">
+<!ENTITY keySnail.pluginManager.viewFile "View file in a new tab">
+<!ENTITY keySnail.pluginManager.viewRemoteFile "View remote file in a new tab">
+
 <!ENTITY keySnail.pluginManager.enabled "Enabled">
 <!ENTITY keySnail.pluginManager.checkForUpdates "Check for update">
 <!ENTITY keySnail.pluginManager.reloadPlugins "Reload plugins">

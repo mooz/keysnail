@@ -12,10 +12,31 @@
         onload="ksPluginManager.onLoad();"
         >
     <hbox flex="1">
+        <menupopup id="keysnail-pm-menu">
+	    <menuitem id="keysnail-pm-menu-edit-file"
+		      label="&keySnail.pluginManager.editThisFile;"
+                      accesskey="e"
+		      oncommand="ksPluginManager.onEditFileClicked(event);"/>
+	    <menuitem id="keysnail-pm-menu-containing-folder"
+		      label="&keySnail.pluginManager.showContainingFolder;"
+                      accesskey="f"
+		      oncommand="ksPluginManager.onShowFolderClicked(event);"/>
+            <menuseparator/>
+	    <menuitem id="keysnail-pm-menu-view-file"
+		      label="&keySnail.pluginManager.viewFile;"
+                      accesskey="v"
+		      oncommand="ksPluginManager.onViewFileClicked(event);"/>
+	    <menuitem id="keysnail-pm-menu-view-remote-file"
+		      label="&keySnail.pluginManager.viewRemoteFile;"
+                      accesskey="r"
+		      oncommand="ksPluginManager.onViewRemoteFileClicked(event);"/>
+        </menupopup>
+
         <!-- plugin list -->
         <vbox flex="1" id="plugin-area">
             <richlistbox id="plugin-listbox" flex="1"
                          onselect="ksPluginManager.pluginListboxOnSelect(event);"
+                         context="keysnail-pm-menu"
                          >
             </richlistbox>
             <hbox align="center">

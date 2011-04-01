@@ -1,5 +1,11 @@
 <!ENTITY keySnail.pluginManager.title "プラグインマネージャ">
 
+<!-- context menu -->
+<!ENTITY keySnail.pluginManager.editThisFile "編集">
+<!ENTITY keySnail.pluginManager.showContainingFolder "親ディレクトリを開く">
+<!ENTITY keySnail.pluginManager.viewFile "ファイルをタブで開く">
+<!ENTITY keySnail.pluginManager.viewRemoteFile "リモートのファイルをタブで開く">
+
 <!ENTITY keySnail.pluginManager.enabled "有効">
 <!ENTITY keySnail.pluginManager.checkForUpdates "更新を確認">
 <!ENTITY keySnail.pluginManager.reloadPlugins "プラグインをリロード">

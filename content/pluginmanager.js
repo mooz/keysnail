@@ -759,6 +759,53 @@ let ksPluginManager = (function () {
             return true;
         },
 
+        onEditFileClicked: function (ev) {
+            let item = pluginListbox.selectedItem;
+            if (!item)
+                return;
+
+            let path = item.value;
+
+            modules.userscript.editFile(path);
+        },
+
+        onShowFolderClicked: function (ev) {
+            let item = pluginListbox.selectedItem;
+            if (!item)
+                return;
+
+            let path = item.value;
+            let file = modules.util.openFile(path);
+
+            file.parent.QueryInterface(Components.interfaces.nsILocalFile).launch();
+        },
+
+        onViewFileClicked: function (ev) {
+            let item = pluginListbox.selectedItem;
+            if (!item)
+                return;
+
+            let path = item.value;
+            let url = modules.util.pathToURL(path);
+
+            this.gBrowser.loadOneTab(url, null, null, null, false);
+        },
+
+        onViewRemoteFileClicked: function (ev) {
+            let item = pluginListbox.selectedItem;
+            if (!item)
+                return;
+
+            let path = item.value;
+            let info = infoHolder[path];
+            let url  = info.updateURL;
+
+            if (url)
+                this.gBrowser.loadOneTab(url, null, null, null, false);
+            else
+                alert("Plugin " + info.name + " doesn't have an updateURL");
+        },
+
         set modules(aModules) {
             modules = aModules;
         }
@@ -772,4 +819,6 @@ let ksPluginManager = (function () {
          .getService(Components.interfaces.nsIWindowMediator);
      var browserWindow = wm.getMostRecentWindow("navigator:browser");
      ksPluginManager.modules = (browserWindow.KeySnail || {modules : null}).modules;
+
+     ksPluginManager.gBrowser = browserWindow.gBrowser;
  })();
