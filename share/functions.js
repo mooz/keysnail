@@ -256,6 +256,34 @@ var ksBuiltin = {
             }, true]
     },
 
+    categoryCopyPaste: {
+        __mode__: 0,
+
+        copy_document_title: [
+            function (ev, arg) {
+                command.setClipboardText(content.document.title);
+            }, false
+        ],
+
+        copy_document_url: [
+            function (ev, arg) {
+                command.setClipboardText(content.location.href);
+            }, false
+        ],
+
+        open_url_from_clipboard: [
+            function (ev, arg) {
+                gBrowser.loadOneTab(
+                    let (url = command.getClipboardText())
+                        url.indexOf("://") === -1 ?
+                        util.format("http://www.google.com/search?q=%s&ie=utf-8&oe=utf-8", encodeURIComponent(url)) :
+                        url,
+                    null, null, null, false
+                );
+            }, false
+        ]
+    },
+
     categoryFirefox: {
         __mode__: 0,
 
@@ -732,6 +760,17 @@ var ksBuiltin = {
             function (ev, arg) {
                 return !document.getElementById("keysnail-prompt").hidden
                     && document.getElementById("keysnail-prompt-textbox").focus();
-            }, true]
+            }, true],
+
+        open_plugin_manager: [
+            function (ev, arg) {
+                KeySnail.modules.userscript.openPluginManager();
+            }, true],
+
+        open_preference: [
+            function (ev, arg) {
+                KeySnail.openPreference();
+            }, true
+        ]
     }
 };
