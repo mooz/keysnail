@@ -12,9 +12,6 @@ var PLUGIN_INFO =
     <license lang="ja">MIT ライセンス</license>
     <minVersion>0.9.4</minVersion>
     <include>main</include>
-    <provides>
-        <ext>github-install-plugin-from-this-page</ext>
-    </provides>
     <detail><![CDATA[
 === Usage ===
 ==== Suggestion ====
@@ -126,6 +123,9 @@ my.githubPluginLocationChangeChecker = githubLocationChangeChecker;
 
 hook.addToHook('LocationChange', githubLocationChangeChecker);
 
-ext.add("github-install-plugin-from-this-page", installPluginFromThisPage,
-        M({ja: "github のページからプラグインをインストール",
-           en: "Install plugin from github page"}));
+plugins.withProvides(function (provide) {
+    provide("github-install-plugin-from-this-page",
+            installPluginFromThisPage,
+            M({ ja: "github のページからプラグインをインストール",
+                en: "Install plugin from github page" }));
+}, PLUGIN_INFO);
