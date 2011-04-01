@@ -4,13 +4,13 @@ var PLUGIN_INFO =
     <name lang="ja">github プラグインヘルパー</name>
     <description>Helps you to install plugin from github</description>
     <description lang="ja">github から簡単にプラグインをインストール</description>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/github-plugin.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/github-plugin.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
-    <minVersion>0.9.4</minVersion>
+    <minVersion>1.8.5</minVersion>
     <include>main</include>
     <detail><![CDATA[
 === Usage ===
