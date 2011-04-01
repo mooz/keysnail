@@ -45,7 +45,7 @@ function githubIsPluginURL(aURL) {
 function githubIsInstalledPlugin(aURL) {
     var fileName = util.getLeafNameFromURL(aURL);
 
-    for (filePath in plugins.context) {
+    for (let filePath in plugins.context) {
         if (plugins.context[filePath].__ksFileName__ == fileName)
             return true;
     }
