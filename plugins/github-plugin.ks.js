@@ -39,7 +39,7 @@ This ext seek for the KeySnail plugin at the current github page and when plugin
 var status = true;
 
 function githubIsPluginURL(aURL) {
-    return aURL.match("\\.ks\\.js$") && aURL.match("^http://github\\.com/");
+    return /\.ks\.js$/.test(aURL) && /^https?:\/\/(?:gist\.)?github\.com\//.test(aURL);
 }
 
 function githubIsInstalledPlugin(aURL) {
@@ -55,7 +55,7 @@ function githubIsInstalledPlugin(aURL) {
 
 function githubGetRawURL(aURL) {
     var matched;
-    if ((matched = aURL.match("^http://github\\.com/[^/]+/[^/]+/blob/")))
+    if ((matched = aURL.match("^https?://github\\.com/[^/]+/[^/]+/blob/")))
         return matched[0].slice(0, -5) + "raw/" + aURL.slice(matched[0].length);
     return aURL;
 }
