@@ -2,22 +2,22 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAGrp2WF63rBP76glWjhKb8k1wx61Oe5luyWTMWntPfbjxsgtCZQXbf90trQ5fpfIHzXdR3/9P+tstfhwdNkSAntNFllI5XMh42gBjT93r47WDvxY8CMyk+PqrafwARrZtshlS3KRU4MmY3/HXSZJ8H++Kj36W90qNtNXPo+BYDeP">
-    <em:updates RDF:resource="rdf:#$mtJrB"/>
-  </RDF:Description>
-  <RDF:Seq RDF:about="rdf:#$mtJrB">
-    <RDF:li RDF:resource="rdf:#$ntJrB"/>
-  </RDF:Seq>
-  <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.8.5">
-    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
-  </RDF:Description>
   <RDF:Description RDF:about="rdf:#$qtJrB"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.0"
                    em:maxVersion="4.0"
                    em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.5.xhtml"
-                   em:updateHash="sha1:a1070ee629282ec89d32600afcba427a797783b9" />
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.6.xhtml"
+                   em:updateHash="sha1:ec623cef6bef073d868df83f1e8f139ccfb805a9" />
+  <RDF:Description RDF:about="rdf:#$ntJrB"
+                   em:version="1.8.6">
+    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
+  </RDF:Description>
+  <RDF:Seq RDF:about="rdf:#$mtJrB">
+    <RDF:li RDF:resource="rdf:#$ntJrB"/>
+  </RDF:Seq>
+  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBABnUs/5mxNUg9pjzdaezxJd9F0GRzJ/nh8teXtslbMDulboAf7WPYQpzSQ8J4mNijsrjNxDU5W1Ol+PsnDAnTHqQHZVoV7+xBd1Sre0xODzms0f7Z/4iTkMUxwO6SDUcjxkLfOfBRo7QgjNxKh1WWi3EUvbo6OY6UPceTb5Il32k">
+    <em:updates RDF:resource="rdf:#$mtJrB"/>
+  </RDF:Description>
 </RDF:RDF>
