@@ -170,7 +170,7 @@ const prompt = function () {
         for (let k in util.getAllPropertyNames(b)) {
             try {
                 a[k] = b[k];
-            } catch (_) {}
+            } catch ([]) {}
         }
     }
 
@@ -236,10 +236,10 @@ const prompt = function () {
     function setLabel(aItem, aLabel) {
         try {
             aItem.setAttribute("label", aLabel);
-        } catch (_) {
+        } catch ([]) {
             try {
                 aItem.setAttribute("label", Object.prototype.toString.call(aLabel));
-            } catch (_) {}
+            } catch ([]) {}
         }
     }
 
