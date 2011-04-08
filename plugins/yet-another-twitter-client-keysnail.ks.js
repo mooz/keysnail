@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>2.2.9</version>
+    <version>3.0.0</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3767,32 +3767,39 @@ var twitterClient =
             },
 
             listButtonClicked: function (ev) {
-                if (ev.button !== 2)
+                let id_and_name = ev.target.getAttribute("tooltiptext");
+
+                if (!(id_and_name in gLists))
                     return;
 
-                let pair = ev.target.getAttribute("tooltiptext");
+                let [id, name] = id_and_name.split("/");
 
-                if (pair in gLists)
-                {
-                    let [id, name] = pair.split("/");
-
+                switch (ev.button) {
+                case 1:
+                    self.showCrawledListStatuses(id, name, true);
+                    break;
+                case 2:
                     showDynamicMenu(ev, [
                         [M({ ja: '更新', en: 'Reflesh' }),
                          null,
                          root + util.format(".showCrawledListStatuses('%s', '%s', true);", id, name)]
                     ]);
+                    break;
                 }
             },
 
             trackingButtonClicked: function (ev) {
-                if (ev.button !== 2)
-                    return;
-
                 let name = ev.target.getAttribute("tooltiptext");
                 let escapedName = $U.toEscapedString(name);
 
-                if (name in gTrackings)
-                {
+                if (!(name in gTrackings))
+                    return;
+
+                switch (ev.button) {
+                case 1:
+                    self.showCrawledTrackingStatuses(escapedName);
+                    break;
+                case 2:
                     showDynamicMenu(ev, [
                         [M({ ja: '更新', en: 'Reflesh' }),
                          null,
@@ -3804,6 +3811,7 @@ var twitterClient =
                          null,
                          root + util.format(".removeTracking('%s');", escapedName)]
                     ]);
+                    break;
                 }
             },
 
