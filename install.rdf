@@ -6,7 +6,7 @@
     <Description about="urn:mozilla:install-manifest">
         <em:id>keysnail@mooz.github.com</em:id>
         <em:type>2</em:type> <!-- type of the addon, 2 means the extension -->
-        <em:version>1.8.6</em:version>
+        <em:version>1.8.7</em:version>
         <em:name>KeySnail</em:name>
         <em:creator>mooz</em:creator>
         <em:developer>mooz</em:developer>
@@ -33,7 +33,7 @@
             <Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
                 <em:minVersion>3.0</em:minVersion>
-                <em:maxVersion>4.0</em:maxVersion>
+                <em:maxVersion>4.2.*</em:maxVersion>
             </Description>
         </em:targetApplication>
     </Description>
