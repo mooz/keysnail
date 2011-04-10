@@ -371,7 +371,7 @@ const userscript = {
     },
 
     getPluginInformation: function (aText) {
-        let m = /\bPLUGIN_INFO[ \t\r\n]*=[ \t\r\n]*(<KeySnailPlugin(?:[ \t\r\n][^>]*)?>([\s\S]+?)<\/KeySnailPlugin[ \t\r\n]*>)/(aText);
+        let m = /\bPLUGIN_INFO[ \t\r\n]*=[ \t\r\n]*(<KeySnailPlugin(?:[ \t\r\n][^>]*)?>([\s\S]+?)<\/KeySnailPlugin[ \t\r\n]*>)/.exec(aText);
 
         return m ? new XML(m[1]) : null;
     },
