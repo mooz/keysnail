@@ -24,6 +24,12 @@ var PLUGIN_INFO =
             <description>Limit count of bookmark items to be displayed (Default: 5000)</description>
             <description lang="ja">表示するブックマークの上限数 (デフォルト値: 5000)</description>
         </option>
+        <option>
+            <name>hatebnail.show_bookmark_key</name>
+            <type>string</type>
+            <description>Key bound to `Show comments of a link` in the HoK extended hint mode (Default: none)</description>
+            <description lang="ja">HoK 拡張ヒントモードにおいて `リンク先のコメントを見る` へ割り当てるキー (デフォルト: 無し)</description>
+        </option>
     </options>
     <detail lang="ja"><![CDATA[
 === 使い方 ===
@@ -546,3 +552,35 @@ function listHBItems(aEvent, aArg) {
         }
     );
 };
+
+hook.addToHook('PluginLoaded', function () {
+    if (!plugins.hok || !plugins.options["hatebnail.show_bookmark_key"])
+        return;
+
+    var actions = [
+        [plugins.options["hatebnail.show_bookmark_key"],
+         M({ja: "リンク先のコメントを見る", en:"Show comments of a link"}),
+         function (e) {
+             showCommentOfPage(e.href);
+         },
+         false, false, "a[href]"]
+    ];
+
+    function seekAction(aActions, aKey) {
+        for (let i = 0; i < aActions.length; ++i) {
+            if (aActions[i][0] === aKey) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    actions.forEach(function (row) {
+        var i = seekAction(plugins.hok.actions, row[0]);
+        if (i >= 0) {
+            plugins.hok.actions[i] = row;
+        } else {
+            plugins.hok.actions.push(row);
+        }
+    });
+});
