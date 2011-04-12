@@ -1340,3 +1340,29 @@ plugins.withProvides(function (provide) {
 }, PLUGIN_INFO);
 
 // }} ======================================================================= //
+
+// External APIs {{ ========================================================= //
+
+function addActions(aActions){
+    if (typeof aActions[0] === 'string')
+        addAction(aActions);
+    else
+        aActions.forEach(addAction);
+
+    function addAction(aAction) {
+        let i = seekAction(actions, aAction[0]);
+        if (i >= 0)
+            actions[i] = aAction;
+        else
+            actions.push(aAction);
+    }
+
+    function seekAction(aActions, aKey) {
+        for (let i = 0; i < aActions.length; ++i)
+            if (aActions[i][0] === aKey)
+                return i;
+        return -1;
+    }
+}
+
+// }} ======================================================================= //
