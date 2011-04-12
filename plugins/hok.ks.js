@@ -1275,7 +1275,7 @@ var actions = [
 ];
 
 if (pOptions["actions"])
-    pOptions["actions"].forEach(function (aRow) actions.push(aRow));
+    addActions(pOptions["actions"]);
 
 function doAction(aStr) {
     for (var i = 0; i < actions.length; ++i)
