@@ -11,7 +11,8 @@ const display = (function () {
     const NOTIFY_ID = "ks-notify-message";
 
     // ==== status bar ====
-    let statusBar;            // reference to the status bar
+    function getStatusBar() document.getElementById('statusbar-display')
+
     let echoArea;
     let msgTimeOut;           // timeout object to the status bar
     let hideMessageTimeout;
@@ -61,7 +62,7 @@ const display = (function () {
             if (echo.container.collapsed)
                 echo.container.collapsed = false;
 
-            statusBar.label = echo.help;
+            getStatusBar().label = echo.help;
         },
 
         close: function () {
@@ -131,8 +132,7 @@ const display = (function () {
 
     let self = {
         init: function () {
-            statusBar = document.getElementById('statusbar-display');
-            echoArea  = document.getElementById('keysnail-echo-area');
+            echoArea = document.getElementById('keysnail-echo-area');
 
             if (echoArea)
             {
@@ -145,6 +145,7 @@ const display = (function () {
         echo: echo,
 
         echoStatusBar: function (msg, time) {
+            let statusBar = getStatusBar();
             if (!statusBar) return;
 
             if (msgTimeOut)
