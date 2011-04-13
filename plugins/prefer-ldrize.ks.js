@@ -425,6 +425,7 @@ var preferLDRize =
 
              try
              {
+                 sandbox = (sandbox.window) ? sandbox : codebase;
 
                  if (sandbox.window.Minibuffer != undefined && sandbox.window.LDRize != undefined)
                  {
