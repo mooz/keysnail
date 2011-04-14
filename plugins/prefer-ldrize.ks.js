@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>Prefer LDRize</name>
     <description>Prefer LDRize keyboard shortcut</description>
     <description lang="ja">LDRize と KeySnail を共存</description>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/prefer-ldrize.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/prefer-ldrize.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
