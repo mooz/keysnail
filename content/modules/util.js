@@ -1217,7 +1217,7 @@ const util = function () {
             req.open(method, url, true, opts.username, opts.password);
 
             if (opts.mimeType)
-                req.overrideMimeType(mimeType);
+                req.overrideMimeType(opts.mimeType);
 
             for (let [name, value] in Iterator(opts.header || {}))
                 req.setRequestHeader(name, value);
