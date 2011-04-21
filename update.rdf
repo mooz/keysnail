@@ -2,22 +2,22 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBADWJRPWhD+xlJLyPhWZ/923K8+r5xtAQa1jlbWvrjIM8F1PZyQrKMv02LCuHCQ+tQtSeDYUK1TcK1Weq0GTT/l/6kY0k6IZj/LmDZZRIL+pQLY+6b7wp1YcVXKEM3i5eRn5D6qVZMWBXpxP9J3NrNDpJbMtOzX1126LYpBuQyN+X">
+    <em:updates RDF:resource="rdf:#$mtJrB"/>
+  </RDF:Description>
   <RDF:Description RDF:about="rdf:#$qtJrB"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.0"
-                   em:maxVersion="4.0"
+                   em:maxVersion="4.2.*"
                    em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.7.xhtml"
-                   em:updateHash="sha1:a3545520c342fe13f26471b0f2f97933942ba44d" />
-  <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.8.7">
-    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAGU2W4j64VbU/2enNGuQpEkIYq0fmAfSiM3hnSYESQtfNXIBARe538fs8uMlqyMh9A71eG0OoUraBMcr2UeaNhrIsg1QVEKXKt5VxiyufPyIVr1Y9DMgJEilUIFId4bf6Mkm521GuVQZKLVCEtDvkzx51ujX395F9UKIG0NSI6H9">
-    <em:updates RDF:resource="rdf:#$mtJrB"/>
-  </RDF:Description>
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.8.8.xhtml"
+                   em:updateHash="sha1:ce8eb2683a635a6820ee1871bf3359cf3279987f" />
   <RDF:Seq RDF:about="rdf:#$mtJrB">
     <RDF:li RDF:resource="rdf:#$ntJrB"/>
   </RDF:Seq>
+  <RDF:Description RDF:about="rdf:#$ntJrB"
+                   em:version="1.8.8">
+    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
+  </RDF:Description>
 </RDF:RDF>
