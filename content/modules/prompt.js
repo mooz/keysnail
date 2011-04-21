@@ -1178,7 +1178,8 @@ const prompt = function () {
             if (useMigemoActual)
                 migexp = new RegExp(window.xulMigemoCore.getRegExpFunctional(regexp, {}, {}), "i");
             else
-                keywords = keywords.map(function (s) (new RegExp(s, "i")));
+                keywords = keywords.map(function (s) { try { return (new RegExp(s, "i")) } catch(e) { return undefined; } })
+                               .filter(function (r) r);
 
             var cellForSearch = gFlags ? [i for (i in gFlags) if ((gFlags[i] & IGNORE) === 0)] : null;
 
