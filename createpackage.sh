@@ -26,7 +26,8 @@ zip -r -0 chrome/keysnail.jar \
     content/prettifier/*~*~ \
     content/modules/*.js~(*~) \
     locale/**/*.*~(*~) \
-    skin/**/*.*~(*~|*.svg)
+    skin/**/*.*~(*~|*.svg) \
+    skin/**/filter.svg
 
 echo "====================== Create xpi file ========================="
 

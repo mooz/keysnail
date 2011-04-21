@@ -134,7 +134,7 @@
             // main-window specific settings
             if (this.isMainWindow) {
                 this.settingsForBrowserWindow();
-                key.updateStatusBar();
+                key.updateStatusDisplay();
             }
 
             document.addEventListener("copy", function () { command.clipboardChanged(); }, true);

@@ -164,32 +164,23 @@ const key = {
      * toggle current keyhandler status
      * when init file is not loaded, reject
      */
-    toggleStatus: function () {
+    toggleStatus: function (elem) {
+        let name = elem ? elem.localName : "<not given>";
+        util.message("toggleStatus called " + this.status + " " + name);
+
         if (this.status)
-        {
             this.stop();
-        }
-        else
-        {
+        else {
             if (!userscript.initFileLoaded)
-            {
-                // load init file
                 userscript.load();
-            }
+
             if (!userscript.initFileLoaded)
-            {
-                // Failed to load init file
-                // display.notify(util.getLocaleString("noUserScriptLoaded"));
                 this.status = false;
-            }
             else
-            {
                 this.run();
-            }
         }
 
-        this.updateMenu();
-        this.updateStatusBar();
+        key.updateStatusDisplay();
     },
 
     /**
@@ -213,41 +204,68 @@ const key = {
             this.suspended = false;
         }
 
-        this.updateStatusBar();
+        this.updateStatusDisplay();
     },
 
     // }} ======================================================================= //
 
     // Update GUI {{ ============================================================ //
 
+    STATUSES: {
+        ENABLED: "enabled",
+        DISABLED: "disabled",
+        SUSPENDED: "suspended"
+    },
+
+    get statusString() {
+        if (!this.status)
+            return this.STATUSES.DISABLED;
+        if (this.suspended)
+            return this.STATUSES.SUSPENDED;
+        return this.STATUSES.ENABLED;
+    },
+
+    updateStatusDisplay: function () {
+        this.updateMenu();
+        this.updateToolbarButton();
+        this.updateStatusBar();
+    },
+
+    updateToolbarButton: function () {
+        let button = document.getElementById("keysnail-toolbar-button");
+        if (!button)
+            return;
+
+        button.setAttribute("data-ks-status", this.statusString);
+    },
+
     /**
      * update the status bar icon
      */
     updateStatusBar: function () {
-        var icon = document.getElementById("keysnail-statusbar-icon");
+        let icon = document.getElementById("keysnail-statusbar-icon");
         if (!icon)
             return;
 
-        if (this.status)
-        {
-            // enabled
-            if (this.suspended)
-            {
-                icon.src = "chrome://keysnail/skin/icon16suspended.png";
-                icon.tooltipText = util.getLocaleString("keySnailSuspended");
-            }
-            else
-            {
-                icon.src = "chrome://keysnail/skin/icon16.png";
-                icon.tooltipText = util.getLocaleString("keySnailEnabled");
-            }
+        let src, tooltip;
+
+        switch (this.statusString) {
+        case this.STATUSES.ENABLED:
+            src = "chrome://keysnail/skin/icon16.png";
+            tooltip = util.getLocaleString("keySnailEnabled");
+            break;
+        case this.STATUSES.DISABLED:
+            src = "chrome://keysnail/skin/icon16gray.png";
+            tooltip = util.getLocaleString("keySnailDisabled");
+            break;
+        default:
+            src = "chrome://keysnail/skin/icon16suspended.png";
+            tooltip = util.getLocaleString("keySnailSuspended");
+            break;
         }
-        else
-        {
-            // disabled
-            icon.src = "chrome://keysnail/skin/icon16gray.png";
-            icon.tooltipText = util.getLocaleString("keySnailDisabled");
-        }
+
+        icon.src = src;
+        icon.tooltipText = tooltip;
     },
 
     /**
@@ -262,10 +280,21 @@ const key = {
     },
 
     /**
-     * update the tool box menu
+     * update the tool box menu (from onpopupshowing)
      */
     updateToolMenu: function () {
         var checkbox = document.getElementById("keysnail-tool-menu-status");
+        if (!checkbox)
+            return;
+
+        checkbox.setAttribute('checked', this.status);
+    },
+
+    /**
+     * update the toolbar button menu (from onpopupshowing)
+     */
+    updateToolbarButtonMenu: function () {
+        var checkbox = document.getElementById("keysnail-toolbar-button-status");
         if (!checkbox)
             return;
 
@@ -411,7 +440,7 @@ const key = {
         {
             util.stopEventPropagation(aEvent);
             this.suspended = !this.suspended;
-            this.updateStatusBar();
+            this.updateStatusDisplay();
             this.backToNeutral("Suspension switched", 1000);
             return;
         }

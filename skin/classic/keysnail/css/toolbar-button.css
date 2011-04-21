@@ -1,0 +1,16 @@
+#keysnail-toolbar-button {
+    list-style-image: url("../icon24.png");
+}
+
+toolbar[iconsize="small"] #keysnail-toolbar-button {
+    list-style-image: url("../icon16.png");
+}
+
+#keysnail-toolbar-button[data-ks-status=disabled] *|image {
+    filter: url("../filter/filter.svg#grayscale");
+    opacity: 0.7;
+}
+
+#keysnail-toolbar-button[data-ks-status=suspended] *|image {
+    filter: url("../filter/filter.svg#hue240");
+}

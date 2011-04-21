@@ -307,8 +307,7 @@ var ksPreference = {
                     this.modules.display.clearNotify();
 
                     this.modules.key.run();
-                    this.modules.key.updateMenu();
-                    this.modules.key.updateStatusBar();
+                    this.modules.key.updateStatusDisplay();
 
                     this.modules.util.parent.openPreference(true);
                 }

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <filter id="grayscale">
+            <feColorMatrix values="0.3333 0.3333 0.3333 0 0
+                                   0.3333 0.3333 0.3333 0 0
+                                   0.3333 0.3333 0.3333 0 0
+                                   0      0      0      1 0"/>
+        </filter>
+
+        <filter id="hue60">
+            <feColorMatrix type="hueRotate" values="60"/>
+        </filter>
+
+        <filter id="hue120">
+            <feColorMatrix type="hueRotate" values="120"/>
+        </filter>
+
+        <filter id="hue180">
+            <feColorMatrix type="hueRotate" values="180"/>
+        </filter>
+
+        <filter id="hue240">
+            <feColorMatrix type="hueRotate" values="240"/>
+        </filter>
+
+        <filter id="hue300">
+            <feColorMatrix type="hueRotate" values="300"/>
+        </filter>
+    </defs>
+</svg>

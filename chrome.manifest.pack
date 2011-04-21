@@ -1,6 +1,7 @@
 content	keysnail	jar:chrome/keysnail.jar!/content/keysnail
 
 skin	keysnail	classic/1.0	jar:chrome/keysnail.jar!/skin/classic/keysnail/
+style	chrome://global/content/customizeToolbar.xul	chrome://keysnail/skin/css/toolbar-button.css
 
 locale	keysnail	en-US	jar:chrome/keysnail.jar!/locale/en-US/
 locale	keysnail	ja	jar:chrome/keysnail.jar!/locale/ja/

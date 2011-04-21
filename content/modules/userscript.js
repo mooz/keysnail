@@ -263,8 +263,7 @@ const userscript = {
             this.initFileLoaded = false;
 
             key.stop();
-            key.updateMenu();
-            key.updateStatusBar();
+            key.updateStatusDisplay();
         }
 
         return this.initFileLoaded;
@@ -1136,8 +1135,7 @@ const userscript = {
         {
             this.initFileLoaded = true;
             key.run();
-            key.updateMenu();
-            key.updateStatusBar();
+            key.updateStatusDisplay();
         }
 
         return loadStatus;

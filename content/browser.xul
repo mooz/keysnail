@@ -2,10 +2,48 @@
 
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://keysnail/skin/css/prompt.css" type="text/css"?>
+<?xml-stylesheet href="chrome://keysnail/skin/css/toolbar-button.css" type="text/css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://keysnail/locale/statusbar.dtd">
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+    <toolbarpalette id="BrowserToolbarPalette">
+        <toolbarbutton id="keysnail-toolbar-button"
+                       class="toolbarbutton-1"
+                       type="menu-button"
+                       label="KeySnail"
+                       tooltiptext="KeySnail"
+                       oncommand="if (event.target === this) KeySnail.modules.key.toggleStatus();">
+            <menupopup onpopupshowing="KeySnail.modules.key.updateToolbarButtonMenu();">
+	        <menuitem id="keysnail-toolbar-button-status"
+                          label="&keySnail.statusbar.isEnabled;"
+                          accesskey="t"
+                          type="checkbox"
+		          oncommand="KeySnail.modules.key.toggleStatus();" />
+	        <menuitem label="&keySnail.statusbar.openPreference;"
+                          accesskey="c"
+	                  oncommand="KeySnail.openPreference();" />
+	        <menuitem label="&keySnail.statusbar.openPluginManager;"
+	                  accesskey="o"
+	                  oncommand="KeySnail.modules.userscript.openPluginManager();" />
+                <menuseparator/>
+	        <menuitem label="&keySnail.statusbar.reloadUserScript;"
+                          accesskey="r"
+		          oncommand="KeySnail.modules.userscript.reload();" />
+	        <menuitem label="&keySnail.statusbar.listKeyBindings;"
+                          accesskey="v"
+		          oncommand="KeySnail.modules.key.listKeyBindings();" />
+                <menuseparator/>
+	        <menuitem label="&keySnail.statusbar.editInitFile;"
+                          accesskey="e"
+	                  oncommand="KeySnail.modules.userscript.editInitFile();" />
+	        <menuitem label="&keySnail.statusbar.wizard;"
+                          accesskey="w"
+	                  oncommand="KeySnail.modules.userscript.beginRcFileWizard();" />
+            </menupopup>
+        </toolbarbutton>
+    </toolbarpalette>
+
     <!-- tool menu -->
     <menupopup id="menu_ToolsPopup">
         <menu id="keysnail-tool-menu"
