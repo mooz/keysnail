@@ -1498,6 +1498,13 @@ const util = function () {
 
         // Misc {{ ================================================================== //
 
+        // http://subtech.g.hatena.ne.jp/cho45/20090513/1242199703
+        toUnicodeExpression: function (re) {
+            return re.replace(/[\s\S]/g, function (c) {
+                return '\\u' + (0x10000 + c.charCodeAt(0)).toString(16).slice(1);
+            });
+        },
+
         getAllPropertyNames: function (obj) {
             let wrapped = obj.wrappedJSObject;
 
