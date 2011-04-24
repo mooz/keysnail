@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>bmany</name>
     <description>Search bookmarks incrementally and go!</description>
     <description lang="ja">anything.el 気分でブックマークを操作</description>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/bmany.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/bmany.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -31,6 +31,12 @@ var PLUGIN_INFO =
             <description lang="ja">キーワード名のスタイル</description>
         </option>
         <option>
+            <name>bmany.tag_style</name>
+            <type>string</type>
+            <description>Style of the tag name</description>
+            <description lang="ja">タグ名のスタイル</description>
+        </option>
+        <option>
             <name>bmany.title_style</name>
             <type>string</type>
             <description>Style of the bookmark name</description>
@@ -47,6 +53,7 @@ var PLUGIN_INFO =
         <ext>bmany-list-all-bookmarks</ext>
         <ext>bmany-list-toolbar-bookmarks</ext>
         <ext>bmany-list-bookmarks-with-keyword</ext>
+        <ext>bmany-list-bookmarks-with-tag</ext>
         <ext>bmany-list-bookmarklets</ext>
     </provides>
     <detail><![CDATA[
@@ -69,9 +76,13 @@ key.setViewKey([':', 'B'], function (ev, arg) {
 key.setViewKey([':', 'k'], function (ev, arg) {
     ext.exec("bmany-list-bookmarks-with-keyword", arg, ev);
 }, "bmany - List bookmarks with keyword");
+
+key.setViewKey([':', 't'], function (ev, arg) {
+    ext.exec("bmany-list-bookmarks-with-tag", arg, ev);
+}, "bmany - List bookmarks with tag");
 ||<
 
-You can also list bookmarklets by pressing : B, and bookmarks with keyword by pressing : k.
+You can also list bookmarklets by pressing : B, bookmarks with keyword by pressing : k and bookmarks with tag by pressing : t.
 
 This plugin caches the result. You can let bmany to refresh the cache by calling the command with prefix argument like C-u : b.
 
@@ -113,9 +124,13 @@ key.setViewKey([':', 'B'], function (ev, arg) {
 key.setViewKey([':', 'k'], function (ev, arg) {
     ext.exec("bmany-list-bookmarks-with-keyword", arg, ev);
 }, "bmany - キーワード付きブックマークを一覧表示");
+
+key.setViewKey([':', 't'], function (ev, arg) {
+    ext.exec("bmany-list-bookmarks-with-tag", arg, ev);
+}, "bmany - タグ付きブックマークを一覧表示");
 ||<
 
-: B とすればブックマークレット一覧が表示され : k とすればキーワード付きのブックマークのみがリストされます。
+: B とすればブックマークレット一覧が表示され : k とすればキーワード付きのブックマークのみ、: t とすればタグ付きのブックマークのみがリストされます。
 
 表示を高速化する為に、このプラグインでは初回コマンド実行時に結果をキャッシュします。明示的にキャッシュを更新する為には C-u : b のようにして前置引数をつけてコマンドを呼んでください。
 
@@ -169,6 +184,7 @@ http://www.pixel-mixer.com のアイコンをベースに使わせて頂きま�
 var optionsDefaultValue = {
     "folder_style"      : "",
     "keyword_style"     : 'font-weight:bold;',
+    "tag_style"         : 'font-weight:bold;',
     "title_style"       : 'font-weight:bold;',
     "url_style"         : style.prompt.url,
     "default_open_type" : 'current',
@@ -271,6 +287,28 @@ var bmany =
                                  folderIconGetter,
                                  parentNode.title || "",
                                  keyword || "",
+                                 getFaviconPath(childNode.icon),
+                                 childNode.title,
+                                 childNode.uri];
+                     }
+
+                     return null;
+                 }
+             );
+         }
+
+         function getBookmarksWithTags(aItemId) {
+             return filterBookmarks(
+                 aItemId,
+                 function (childNode, parentNode) {
+                     let tags = PlacesUtils.tagging.getTagsForURI(ioService.newURI(childNode.uri, null, null));
+
+                     if (tags.length)
+                     {
+                         return [childNode.itemId,
+                                 folderIconGetter,
+                                 parentNode.title || "",
+                                 tags || "",
                                  getFaviconPath(childNode.icon),
                                  childNode.title,
                                  childNode.uri];
@@ -431,6 +469,34 @@ var bmany =
                                  });
              },
 
+             listBookmarksWithTags: function (arg, openType) {
+                 if (arg || !cache.bookmarksWithTags)
+                 {
+                     cache.bookmarksWithTags = Array.concat.apply(
+                         null,
+                         [PlacesUtils.toolbarFolderId,
+                          PlacesUtils.bookmarksMenuFolderId,
+                          PlacesUtils.unfiledBookmarksFolderId].map(function (id) getBookmarksWithTags(id))
+                     );
+                 }
+
+                 prompt.selector({
+                                     message       : "pattern:",
+                                     collection    : cache.bookmarksWithTags,
+                                     //            : id, folder, tag, (icon), title, uri
+                                     flags         : [hid, ico, 0, 0, ico, 0, 0],
+                                     header        : ["Folder", "Tag", "Title", "URL / Script"],
+                                     width         : [15, 15, 35, 35],
+                                     style         : [getOption("folder_style"), getOption("tag_style"),
+                                                      getOption("title_style"), getOption("url_style")],
+                                     actions       : actions,
+                                     initialAction : openType,
+                                     keymap        : commonKeyMap,
+                                     filter        : function (i) (i >= 0) ?
+                                         [cache.bookmarksWithTags[i][6], cache.bookmarksWithTags[i][0]] : []
+                                 });
+             },
+
              listBookmarklets: function (arg, openType) {
                  if (arg || !cache.bookmarklets)
                  {
@@ -533,6 +599,10 @@ ext.add("bmany-list-toolbar-bookmarks", function (ev, arg) { bmany.listToolbarBo
 ext.add("bmany-list-bookmarks-with-keyword", function (ev, arg) { bmany.listBookmarksWithKeywords(arg, openType); },
         M({ja: "bmany - キーワード付きブックマークを一覧表示",
            en: "bmany - List bookmarks with keyword"}));
+
+ext.add("bmany-list-bookmarks-with-tag", function (ev, arg) { bmany.listBookmarksWithTags(arg, openType); },
+        M({ja: "bmany - タグ付きブックマークを一覧表示",
+           en: "bmany - List bookmarks with tag"}));
 
 ext.add("bmany-list-bookmarklets", function (ev, arg) { bmany.listBookmarklets(arg, openType); },
         M({ja: "bmany - ブックマークレットを一覧表示",
