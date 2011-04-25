@@ -693,7 +693,7 @@ ext.add("scrollet-jump-to-mark", function (ev, arg) {
                 _content.focus();
             }
 
-            var win   = scrollet.currentWindow();
+            var win   = scrollet.currentWindow;
             var marks = scrollet.getMarksForWin(win);
             var mode  = getCurrentMode();
 
