@@ -971,6 +971,15 @@ const twitterAPI = {
         "account/verify_credentials": {
             action: "http://api.twitter.com/1/account/verify_credentials.json",
             method: "GET"
+        },
+
+        // ============================================================ //
+        // Friends
+        // ============================================================ //
+
+        "statuses/friends": {
+            action: "http://api.twitter.com/1/statuses/friends.json",
+            method: "GET"
         }
     }
 };
@@ -2679,7 +2688,6 @@ var twitterClient =
 
         function tweet(aInitialInput, aReplyID, aCursorEnd) {
             var limit = 140;
-
             gPrompt.close();
             prompt.reader({
                 message      : "tweet:",
@@ -2687,6 +2695,7 @@ var twitterClient =
                 initialinput : aInitialInput,
                 group        : "twitter_tweet",
                 keymap       : pOptions["tweet_keymap"],
+                completer    : completer.matcher.header(share.friendsCache || []),
                 cursorEnd    : aCursorEnd,
                 onChange     : function (arg) {
                     var current = arg.textbox.value;
@@ -3416,6 +3425,19 @@ var twitterClient =
             });
         }
 
+        function updateFriendsCache() {
+            twitterAPI.request('statuses/friends', {
+                ok: function (res, xhr) {
+                    share.friendsCache = [];
+                    ($U.decodeJSON(res) || []).forEach(function(i) {
+                        share.friendsCache.push("@" + i.screen_name);
+                        share.friendsCache.push("D " + i.screen_name);
+                    });
+                    share.friendsCache.sort();
+                }
+            });
+        }
+
         /**
          * @public
          */
@@ -3844,7 +3866,9 @@ var twitterClient =
 
             setUserInfo       : setUserInfo,
             blackUsersManager : blackUsersManager,
-            switchTo          : switchTo
+            switchTo          : switchTo,
+
+            updateFriendsCache: updateFriendsCache
         };
 
         // ============================================================ //
@@ -3856,6 +3880,9 @@ var twitterClient =
 
         if (!share.userInfo)
             self.setUserInfo();
+
+        if (!share.friendsCache)
+            self.updateFriendsCache();
 
         if (pOptions["automatically_begin"])
         {
