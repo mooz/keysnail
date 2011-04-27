@@ -2453,7 +2453,7 @@ var twitterClient =
                                         gOAuth.tokens.oauth_token,
                                         null, null, null, false);
                 },
-                ng: function (res) {
+                ng: function (res, xhr) {
                     display.notify("Failed to request token :: " + xhr.responseText);
                 }
             });
@@ -2493,7 +2493,7 @@ var twitterClient =
                     if (typeof next === "function")
                         next();
                 },
-                ng: function (res) {
+                ng: function (res, xhr) {
                     display.notify("Failed to get access token :: " + xhr.responseText);
                 }
             });
