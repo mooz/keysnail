@@ -3426,17 +3426,23 @@ var twitterClient =
         }
 
         function updateFriendsCache() {
-            // TODO: number of friends is currently limited up to 100
-            twitterAPI.request('statuses/friends', {
-                ok: function (res, xhr) {
-                    share.friendsCache = [];
-                    ($U.decodeJSON(res) || []).forEach(function(i) {
-                        share.friendsCache.push("@" + i.screen_name);
-                        share.friendsCache.push("D " + i.screen_name);
-                    });
-                    share.friendsCache.sort();
-                }
-            });
+            share.friendsCache = [];
+            (function update(cursor){
+                twitterAPI.request('statuses/friends', {
+                    params: { cursor: cursor },
+                    ok: function (res, xhr) {
+                        res = $U.decodeJSON(res);
+                        (res.users || []).forEach(function(i) {
+                            share.friendsCache.push("@" + i.screen_name);
+                            share.friendsCache.push("D " + i.screen_name);
+                        });
+                        if (res.next_cursor_str !== "0")
+                            update(res.next_cursor_str);
+                        else
+                            share.friendsCache.sort();
+                    }
+                });
+            })(-1);
         }
 
         /**
