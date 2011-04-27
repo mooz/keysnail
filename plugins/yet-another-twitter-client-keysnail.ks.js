@@ -3426,6 +3426,7 @@ var twitterClient =
         }
 
         function updateFriendsCache() {
+            // TODO: number of friends is currently limited up to 100
             twitterAPI.request('statuses/friends', {
                 ok: function (res, xhr) {
                     share.friendsCache = [];
