@@ -3891,6 +3891,8 @@ var twitterClient =
             self.setUserInfo();
 
         if (!share.friendsCache)
+            share.friendsCache = persist.restore("yatck_friends_cache") || null;
+        if (!share.friendsCache)
             self.updateFriendsCache();
 
         if (pOptions["automatically_begin"])
