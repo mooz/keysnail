@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -3426,17 +3426,25 @@ var twitterClient =
         }
 
         function updateFriendsCache() {
-            // TODO: number of friends is currently limited up to 100
-            twitterAPI.request('statuses/friends', {
-                ok: function (res, xhr) {
-                    share.friendsCache = [];
-                    ($U.decodeJSON(res) || []).forEach(function(i) {
-                        share.friendsCache.push("@" + i.screen_name);
-                        share.friendsCache.push("D " + i.screen_name);
-                    });
-                    share.friendsCache.sort();
-                }
-            });
+            share.friendsCache = [];
+            (function update(cursor){
+                twitterAPI.request('statuses/friends', {
+                    params: { cursor: cursor },
+                    ok: function (res, xhr) {
+                        res = $U.decodeJSON(res);
+                        (res.users || []).forEach(function(i) {
+                            share.friendsCache.push("@" + i.screen_name);
+                            share.friendsCache.push("D " + i.screen_name);
+                        });
+                        if (res.next_cursor_str !== "0") {
+                            update(res.next_cursor_str);
+                        } else {
+                            share.friendsCache.sort();
+                            persist.preserve(share.friendsCache, "yatck_friends_cache");
+                        }
+                    }
+                });
+            })(-1);
         }
 
         /**
@@ -3981,6 +3989,10 @@ plugins.withProvides(function (provide) {
     provide("twitter-client-switch-to", twitterClient.switchTo,
             M({ja: 'リスト, Home, Mentioins, Favorites などを選択',
                en: "Select Lists, Home, Mentions, Favirites, ..."}));
+
+    provide("twitter-client-update-friends-cache", twitterClient.updateFriendsCache,
+            M({ja: 'Friends キャッシュを更新',
+               en: "Update friends cache"}));
 }, PLUGIN_INFO);
 
 // }} ======================================================================= //
