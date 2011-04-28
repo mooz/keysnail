@@ -2453,7 +2453,7 @@ var twitterClient =
                                         gOAuth.tokens.oauth_token,
                                         null, null, null, false);
                 },
-                ng: function (res) {
+                ng: function (res, xhr) {
                     display.notify("Failed to request token :: " + xhr.responseText);
                 }
             });
@@ -2493,7 +2493,7 @@ var twitterClient =
                     if (typeof next === "function")
                         next();
                 },
-                ng: function (res) {
+                ng: function (res, xhr) {
                     display.notify("Failed to get access token :: " + xhr.responseText);
                 }
             });
@@ -3426,17 +3426,25 @@ var twitterClient =
         }
 
         function updateFriendsCache() {
-            // TODO: number of friends is currently limited up to 100
-            twitterAPI.request('statuses/friends', {
-                ok: function (res, xhr) {
-                    share.friendsCache = [];
-                    ($U.decodeJSON(res) || []).forEach(function(i) {
-                        share.friendsCache.push("@" + i.screen_name);
-                        share.friendsCache.push("D " + i.screen_name);
-                    });
-                    share.friendsCache.sort();
-                }
-            });
+            share.friendsCache = [];
+            (function update(cursor){
+                twitterAPI.request('statuses/friends', {
+                    params: { cursor: cursor },
+                    ok: function (res, xhr) {
+                        res = $U.decodeJSON(res);
+                        (res.users || []).forEach(function(i) {
+                            share.friendsCache.push("@" + i.screen_name);
+                            share.friendsCache.push("D " + i.screen_name);
+                        });
+                        if (res.next_cursor_str !== "0") {
+                            update(res.next_cursor_str);
+                        } else {
+                            share.friendsCache.sort();
+                            persist.preserve(share.friendsCache, "yatck_friends_cache")
+                        }
+                    }
+                });
+            })(-1);
         }
 
         /**
@@ -3883,6 +3891,8 @@ var twitterClient =
             self.setUserInfo();
 
         if (!share.friendsCache)
+            share.friendsCache = persist.restore("yatck_friends_cache") || null;
+        if (!share.friendsCache)
             self.updateFriendsCache();
 
         if (pOptions["automatically_begin"])
@@ -3981,6 +3991,10 @@ plugins.withProvides(function (provide) {
     provide("twitter-client-switch-to", twitterClient.switchTo,
             M({ja: 'リスト, Home, Mentioins, Favorites などを選択',
                en: "Select Lists, Home, Mentions, Favirites, ..."}));
+
+    provide("twitter-client-update-friends-cacche", twitterClient.updateFriendsCache,
+            M({ja: 'Friends キャッシュを更新',
+               en: "Update friends cache"}));
 }, PLUGIN_INFO);
 
 // }} ======================================================================= //
