@@ -3436,10 +3436,12 @@ var twitterClient =
                             share.friendsCache.push("@" + i.screen_name);
                             share.friendsCache.push("D " + i.screen_name);
                         });
-                        if (res.next_cursor_str !== "0")
+                        if (res.next_cursor_str !== "0") {
                             update(res.next_cursor_str);
-                        else
+                        } else {
                             share.friendsCache.sort();
+                            persist.preserve(share.friendsCache, "yatck_friends_cache")
+                        }
                     }
                 });
             })(-1);
@@ -3889,6 +3891,8 @@ var twitterClient =
             self.setUserInfo();
 
         if (!share.friendsCache)
+            share.friendsCache = persist.restore("yatck_friends_cache") || null;
+        if (!share.friendsCache)
             self.updateFriendsCache();
 
         if (pOptions["automatically_begin"])
@@ -3987,6 +3991,10 @@ plugins.withProvides(function (provide) {
     provide("twitter-client-switch-to", twitterClient.switchTo,
             M({ja: 'リスト, Home, Mentioins, Favorites などを選択',
                en: "Select Lists, Home, Mentions, Favirites, ..."}));
+
+    provide("twitter-client-update-friends-cacche", twitterClient.updateFriendsCache,
+            M({ja: 'Friends キャッシュを更新',
+               en: "Update friends cache"}));
 }, PLUGIN_INFO);
 
 // }} ======================================================================= //
