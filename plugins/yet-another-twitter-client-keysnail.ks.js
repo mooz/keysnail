@@ -455,6 +455,11 @@ let pOptions = plugins.setupOptions("twitter_client", {
         preset: false,
         description: M({ ja: "ユーザのアイコンが Gif 画像であった場合は隠す",
                          en: "When user icon is Gif, hide it" })
+    },
+    "show_screen_name_on_tweet"                : {
+        preset: false,
+        description: M({ ja: "ツイート入力時に自分のスクリーン名を表示する",
+                         en: "Display your screen name in tweet box." })
     }
 }, PLUGIN_INFO);
 
@@ -2689,8 +2694,18 @@ var twitterClient =
         function tweet(aInitialInput, aReplyID, aCursorEnd) {
             var limit = 140;
             gPrompt.close();
+
+            try {
+                if (pOptions.show_screen_name_on_tweet)
+                    var promptMessage = util.format("tweet (%s):",
+                                                    share.userInfo.screen_name);
+            } finally {
+                if (!promptMessage)
+                    promptMessage = "tweet:";
+            }
+
             prompt.reader({
-                message      : "tweet:",
+                message      : promptMessage,
                 initialcount : 0,
                 initialinput : aInitialInput,
                 group        : "twitter_tweet",
