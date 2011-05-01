@@ -2482,7 +2482,10 @@ var twitterClient =
                     if (str === null)
                         return;
 
-                    getAccessToken(function () { showFollowersStatus(); });
+                    getAccessToken(function () {
+                        showFollowersStatus();
+                        setUserInfo();
+                    });
                 }
             );
         }
