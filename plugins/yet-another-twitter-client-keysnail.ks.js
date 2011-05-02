@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.0.2</version>
+    <version>3.0.3</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -2700,12 +2700,14 @@ var twitterClient =
 
             try {
                 if (pOptions.show_screen_name_on_tweet)
-                    var promptMessage = util.format("tweet (%s):",
-                                                    share.userInfo.screen_name);
-            } finally {
-                if (!promptMessage)
-                    promptMessage = "tweet:";
-            }
+                    var promptMessage = util.format(
+                        "tweet (%s):",
+                        share.userInfo.screen_name
+                    );
+            } catch ([]) {}
+
+            if (!promptMessage)
+                promptMessage = "tweet:";
 
             prompt.reader({
                 message      : promptMessage,
