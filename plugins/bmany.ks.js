@@ -301,7 +301,7 @@ var bmany =
              return filterBookmarks(
                  aItemId,
                  function (childNode, parentNode) {
-                     let tags = PlacesUtils.tagging.getTagsForURI(ioService.newURI(childNode.uri, null, null));
+                     let tags = PlacesUtils.tagging.getTagsForURI(ioService.newURI(childNode.uri, null, null), {});
 
                      if (tags.length)
                      {
