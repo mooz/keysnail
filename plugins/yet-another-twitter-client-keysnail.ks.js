@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.0.3</version>
+    <version>3.0.4</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -855,12 +855,12 @@ const twitterAPI = {
         // ============================================================ //
 
         "oauth/request_token": {
-            action : "http://api.twitter.com/oauth/request_token",
+            action : "https://api.twitter.com/oauth/request_token",
             method : "GET"
         },
 
         "oauth/access_token": {
-            action : "http://api.twitter.com/oauth/access_token",
+            action : "https://api.twitter.com/oauth/access_token",
             method : "GET"
         },
 
@@ -2454,11 +2454,11 @@ var twitterClient =
                     gOAuth.tokens.oauth_token        = parts[0].split("=")[1];
                     gOAuth.tokens.oauth_token_secret = parts[1].split("=")[1];
 
-                    gBrowser.loadOneTab("http://twitter.com/oauth/authorize?oauth_token=" +
+                    gBrowser.loadOneTab("https://twitter.com/oauth/authorize?oauth_token=" +
                                         gOAuth.tokens.oauth_token,
                                         null, null, null, false);
                 },
-                ng: function (res) {
+                ng: function (res, xhr) {
                     display.notify("Failed to request token :: " + xhr.responseText);
                 }
             });
@@ -2501,7 +2501,7 @@ var twitterClient =
                     if (typeof next === "function")
                         next();
                 },
-                ng: function (res) {
+                ng: function (res, xhr) {
                     display.notify("Failed to get access token :: " + xhr.responseText);
                 }
             });
