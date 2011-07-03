@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.0.4</version>
+    <version>3.0.5</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -286,7 +286,7 @@ const LOG_LEVEL_WARNING = 20;
 const LOG_LEVEL_ERROR   = 30;
 
 let pOptions = plugins.setupOptions("twitter_client", {
-    "retry_count"                  : { preset: -1 },
+    "retry_count"                  : { preset: 5 },
     "retry_interval"               : { preset: 2000 },
     "log_level"                    : { preset: LOG_LEVEL_MESSAGE },
     "update_interval"              : {
@@ -833,17 +833,12 @@ const twitterAPI = {
                 if (xhr.status === 200) {
                     context.ok(res, xhr);
                 } else {
-                    // Failed
-                    if (xhr.status === 401) {
-                        if (res.indexOf("expired") !== -1)
-                            return twitterClient.reAuthorize();
-
-                        if ((res.indexOf("Could not authenticate you") !== -1) ||
-                            (res.indexOf("This method requires authentication") !== -1))
-                            return retry();
+                    if (twitterAPI.isRetryable(xhr)) {
+                        retry();
+                    } else if (twitterAPI.ensureReauthorizationNotRequired(xhr)) {
+                        if (typeof context.ng === "function")
+                            context.ng(res, xhr);
                     }
-
-                    context.ng(res, xhr);
                 }
             }
         });
@@ -985,6 +980,54 @@ const twitterAPI = {
         "statuses/friends": {
             action: "http://api.twitter.com/1/statuses/friends.json",
             method: "GET"
+        }
+    },
+
+    ERROR_CODES: {
+        DOES_NOT_HAVE_DM_PRIVILEGE: 93
+    },
+
+    isRetryable:
+    function isRetryable(xhr) {
+        return (xhr.status === 401)
+            && ((xhr.responseText.indexOf("Could not authenticate you") !== -1) ||
+                (xhr.responseText.indexOf("This method requires authentication") !== -1));
+    },
+
+    isDMManipulationNotAllowed:
+    function isDMManipulationNotAllowed(xhr) {
+        let res = $U.decodeJSON(xhr.responseText);
+
+        return res && res.errors && res.errors.some(function (error) {
+            return error.code === twitterAPI.ERROR_CODES.DOES_NOT_HAVE_DM_PRIVILEGE;
+        });
+    },
+
+    isTokenExpired:
+    function isTokenExpired(xhr) {
+        let res = $U.decodeJSON(xhr.responseText);
+
+        return res && res.error &&
+            (res.error.indexOf("Could not authenticate with OAuth") !== -1 ||
+             res.error.indexOf("expired") !== -1);
+    },
+
+    ensureReauthorizationNotRequired:
+    function ensureReauthorizationNotRequired(xhr) {
+        if ((twitterAPI.isDMManipulationNotAllowed(xhr) || twitterAPI.isTokenExpired(xhr)) &&
+            !share.reauthorizeRequisitionShowed) {
+            display.showPopup(M({
+                ja: "再認証が必要です",
+                en: "Reauthorization Required"
+            }), M({
+                ja: "以前に認証したトークンが無効ないし古くなってしまっています．再認証を行なって下さい．",
+                en: "Your access token is no longer valid. Please reauthorize this application."
+            }));
+            ext.exec("twitter-client-reauthorize");
+            share.reauthorizeRequisitionShowed = true;
+            return false;
+        } else {
+            return true;
         }
     }
 };
@@ -1135,7 +1178,7 @@ var twitterClient =
                             context.ok(xhr.responseText, xhr);
                         break;
                     default:
-                        if (typeof context.ng === "function")
+                        if (twitterAPI.ensureReauthorizationNotRequired(xhr))
                             context.ng(xhr.responseText, xhr);
                         break;
                     }
@@ -1181,14 +1224,10 @@ var twitterClient =
                     },
                     ng: function (res, xhr) {
                         self.pending = false;
-
-                        if (isRetryable(xhr)) {
-                            log(LOG_LEVEL_DEBUG, self.name + " => Crawler#update: retry %s", new Date());
-                            self.update(after, noRepeat, fromTimer);
-                        } else {
-                            log(LOG_LEVEL_DEBUG,
-                                self.name + " => Crawler#update: retry (noRepeat: %s, fromTimer: %s) %s",
-                                noRepeat, fromTimer, new Date());
+                        log(LOG_LEVEL_DEBUG,
+                            self.name + " => Crawler#update: retry (noRepeat: %s, fromTimer: %s) %s => %s",
+                            noRepeat, fromTimer, new Date(), xhr.responseText);
+                        if (self.interval > 0) {
                             setTimeout(function () {
                                 self.update(after, noRepeat, fromTimer);
                             }, self.interval);
@@ -1225,7 +1264,7 @@ var twitterClient =
                     ng: function (res, xhr) {
                         self.pending = false;
 
-                        if (isRetryable(xhr)) {
+                        if (twitterAPI.isRetryable(xhr)) {
                             log(LOG_LEVEL_DEBUG, self.name + " => Crawler#updatePrevious: retry %s", new Date());
                             self.updatePrevious(status, after);
                         }
@@ -1469,7 +1508,7 @@ var twitterClient =
             {
                 action     : twitterAPI.get("direct_messages/sent").action,
                 name       : M({ en: "Sent DMs", ja: "Sent DMs" }),
-                interval   : 0,
+                interval   : pOptions["dm_update_interval"],
                 oauth      : gOAuth,
                 mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
                 beginCount : gTimelineCountEveryUpdates
@@ -2409,12 +2448,6 @@ var twitterClient =
 
                 header.userTweet.replaceChild(loading, header.userTweet.firstChild);
             }
-        }
-
-        function isRetryable(xhr) {
-            return (xhr.status === 401)
-                && ((xhr.responseText.indexOf("Could not authenticate you") !== -1) ||
-                    (xhr.responseText.indexOf("This method requires authentication") !== -1));
         }
 
         function getElapsedTimeString(aMillisec) {
