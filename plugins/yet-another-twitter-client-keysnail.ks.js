@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.0.5</version>
+    <version>3.0.6</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -999,7 +999,7 @@ const twitterAPI = {
         let res = $U.decodeJSON(xhr.responseText);
 
         return res && res.errors && res.errors.some(function (error) {
-            return error.code === twitterAPI.ERROR_CODES.DOES_NOT_HAVE_DM_PRIVILEGE;
+            return error && error.code === twitterAPI.ERROR_CODES.DOES_NOT_HAVE_DM_PRIVILEGE;
         });
     },
 
@@ -1227,7 +1227,7 @@ var twitterClient =
                         log(LOG_LEVEL_DEBUG,
                             self.name + " => Crawler#update: retry (noRepeat: %s, fromTimer: %s) %s => %s",
                             noRepeat, fromTimer, new Date(), xhr.responseText);
-                        if (self.interval > 0) {
+                        if (self.interval > 0 || twitterAPI.isRetryable(xhr)) {
                             setTimeout(function () {
                                 self.update(after, noRepeat, fromTimer);
                             }, self.interval);
