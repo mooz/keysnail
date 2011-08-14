@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.2.7</version>
+    <version>1.2.8</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -243,8 +243,8 @@ function addBookMark() {
 
     function remainTextLengthWatcher(arg) {
         let current = arg.textbox.value;
-        let length  = current.length;
-        let count   = limit - length;
+        let tags    = current.match(/(?:\[.*\])*/)[0]; // always match
+        let count   = limit - (current.length - tags.length);
         let msg     = M({ja: ("残り " + count + " 文字"), en: count});
 
         if (count < 0)
