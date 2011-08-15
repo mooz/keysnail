@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.0.6</version>
+    <version>3.0.7</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -864,17 +864,17 @@ const twitterAPI = {
         // ============================================================ //
 
         "statuses/home_timeline": {
-            action : "http://api.twitter.com/1/statuses/home_timeline.json",
+            action : "https://api.twitter.com/1/statuses/home_timeline.json",
             method : "GET"
         },
 
         "statuses/user_timeline": {
-            action : "http://api.twitter.com/1/statuses/user_timeline.json",
+            action : "https://api.twitter.com/1/statuses/user_timeline.json",
             method : "GET"
         },
 
         "statuses/mentions": {
-            action : "http://api.twitter.com/1/statuses/mentions.json",
+            action : "https://api.twitter.com/1/statuses/mentions.json",
             method : "GET"
         },
 
@@ -883,22 +883,22 @@ const twitterAPI = {
         // ============================================================ //
 
         "statuses/update": {
-            action : "http://api.twitter.com/1/statuses/update.json",
+            action : "https://api.twitter.com/1/statuses/update.json",
             method : "POST"
         },
 
         "statuses/destroy": {
-            action : "http://api.twitter.com/1/statuses/destroy/{id}.json",
+            action : "https://api.twitter.com/1/statuses/destroy/{id}.json",
             method : "DELETE"
         },
 
         "statuses/retweet": {
-            action : "http://api.twitter.com/1/statuses/retweet/{id}.json",
+            action : "https://api.twitter.com/1/statuses/retweet/{id}.json",
             method : "POST"
         },
 
         "statuses/show": {
-            action : "http://api.twitter.com/1/statuses/show/{id}.json",
+            action : "https://api.twitter.com/1/statuses/show/{id}.json",
             method : "GET"
         },
 
@@ -907,22 +907,22 @@ const twitterAPI = {
         // ============================================================ //
 
         "favorites": {
-            action : "http://api.twitter.com/1/favorites.json",
+            action : "https://api.twitter.com/1/favorites.json",
             method : "GET"
         },
 
         "favorites/user": {
-            action : "http://api.twitter.com/1/favorites/{user}.json",
+            action : "https://api.twitter.com/1/favorites/{user}.json",
             method : "GET"
         },
 
         "favorites/create": {
-            action : "http://api.twitter.com/1/favorites/create/{id}.json",
+            action : "https://api.twitter.com/1/favorites/create/{id}.json",
             method : "POST"
         },
 
         "favorites/destroy": {
-            action : "http://api.twitter.com/1/favorites/destroy/{id}.json",
+            action : "https://api.twitter.com/1/favorites/destroy/{id}.json",
             method : "POST"
         },
 
@@ -931,13 +931,13 @@ const twitterAPI = {
         // ============================================================ //
 
         "lists/index": {
-            action : "http://api.twitter.com/1/{user}/lists.json",
+            action : "https://api.twitter.com/1/{user}/lists.json",
             method : "GET"
         },
 
         "lists/statuses": {
-            action : "http://api.twitter.com/1/{user}/lists/{id}/statuses.json",
-            host   : "http://api.twitter.com/",
+            action : "https://api.twitter.com/1/{user}/lists/{id}/statuses.json",
+            host   : "https://api.twitter.com/",
             method : "GET"
         },
 
@@ -946,7 +946,7 @@ const twitterAPI = {
         // ============================================================ //
 
         "search": {
-            action : "http://search.twitter.com/search.json",
+            action : "https://search.twitter.com/search.json",
             method : "GET"
         },
 
@@ -955,12 +955,12 @@ const twitterAPI = {
         // ============================================================ //
 
         "direct_messages": {
-            action : "http://api.twitter.com/1/direct_messages.json",
+            action : "https://api.twitter.com/1/direct_messages.json",
             method : "GET"
         },
 
         "direct_messages/sent": {
-            action : "http://api.twitter.com/1/direct_messages/sent.json",
+            action : "https://api.twitter.com/1/direct_messages/sent.json",
             method : "GET"
         },
 
@@ -969,7 +969,7 @@ const twitterAPI = {
         // ============================================================ //
 
         "account/verify_credentials": {
-            action: "http://api.twitter.com/1/account/verify_credentials.json",
+            action: "https://api.twitter.com/1/account/verify_credentials.json",
             method: "GET"
         },
 
@@ -978,7 +978,7 @@ const twitterAPI = {
         // ============================================================ //
 
         "statuses/friends": {
-            action: "http://api.twitter.com/1/statuses/friends.json",
+            action: "https://api.twitter.com/1/statuses/friends.json",
             method: "GET"
         }
     },
@@ -1314,10 +1314,10 @@ var twitterClient =
             signatureMethod : "HMAC-SHA1",
             consumerKey     : "q8bLrmPJJ54hv5VGSXUfvQ",
             consumerSecret  : "34Xtbtmqikl093nzaXg6ePay5EJJMu0cm3qervD4",
-            requestToken    : "http://twitter.com/oauth/request_token",
-            accessToken     : "http://twitter.com/oauth/access_token",
-            authorizeURL    : "http://twitter.com/oauth/authorize",
-            authHeader      : "http://twitter.com/"
+            requestToken    : "https://twitter.com/oauth/request_token",
+            accessToken     : "https://twitter.com/oauth/access_token",
+            authorizeURL    : "https://twitter.com/oauth/authorize",
+            authHeader      : "https://twitter.com/"
         };
 
         var gPrefKeys = {
@@ -3026,7 +3026,7 @@ var twitterClient =
                     }
 
                     util.httpGet(
-                        "http://api.twitter.com/1/statuses/show/" + from + ".json",
+                        "https://api.twitter.com/1/statuses/show/" + from + ".json",
                         false,
                         function (xhr) {
                             if (xhr.status === 200) {
