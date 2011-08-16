@@ -2762,7 +2762,24 @@ var twitterClient =
                 cursorEnd    : aCursorEnd,
                 onChange     : function (arg) {
                     var current = arg.textbox.value;
-                    var length  = current.length;
+
+                    // take t.co shorten into account
+                    // https://dev.twitter.com/blog/next-steps-with-the-tco-link-wrapper
+                    var regex  = /(?:https?\:\/\/|www\.)[^\s]+/g;
+                    var noURL  = current.replace(regex, "");
+                    var URLs   = current.match(regex);
+                    var length = noURL.length;
+
+                    if (URLs) {
+                        URLs.forEach(function (url) {
+                            if (url.match("https://")){
+                                length += 21;
+                            } else {
+                                length += 20;
+                            }
+                        });
+                    }
+
                     var count   = limit - length;
                     var msg     = M({ja: ("残り " + count + " 文字"), en: count});
 
