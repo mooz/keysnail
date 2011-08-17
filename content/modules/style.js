@@ -21,8 +21,8 @@ const style = function () {
 
     function cssURI(aCss, aNs) {
         return ios.newURI((aCss.indexOf("file://") === 0) ?
-                          window.encodeURI(aCss) :
-                          "data:text/css," + window.encodeURI((aNs || XUL) + aCss), null, null);
+                          window.encodeURIComponent(aCss) :
+                          "data:text/css," + window.encodeURIComponent((aNs || XUL) + aCss), null, null);
     }
 
     /**
