@@ -1116,7 +1116,7 @@ var twitterClient =
             function combineCache(aNew) {
                 var aOld = this.cache;
 
-                if (!aOld.length)
+                if (!aOld || (aOld && !aOld.length))
                     return aNew;
 
                 if (share.twitterImmediatelyAddedStatuses.length)
