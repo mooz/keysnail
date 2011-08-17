@@ -2,8 +2,8 @@
 
 require "readline"
 
-version     = Readline.readline("Input version> ", true)
-max_version = Readline.readline("Input max version> ", true)
+version     = Readline.readline("Input next version of this addon: ", true)
+max_version = Readline.readline("Input next max version for target application: ", true)
 
 replace_info = {
   "install.rdf" => {
