@@ -938,7 +938,7 @@ const command = {
 
         var clipboardText = command.getClipboardText();
 
-        if (clipboardText === null)
+        if (clipboardText === null || input.localName === "html")
         {
             goDoCommand('cmd_paste');
             return;
