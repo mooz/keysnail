@@ -3027,7 +3027,8 @@ const prompt = function () {
                 clearTimeout(delayedCommandTimeout);
                 delayedCommandTimeout = null;
             }
-            eventListenerRemover();
+            if (typeof eventListenerRemover === "function")
+                eventListenerRemover();
 
             // -------------------- common -------------------- //
 

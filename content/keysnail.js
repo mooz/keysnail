@@ -217,8 +217,7 @@
         },
 
         settingsForBrowserWindow: function () {
-            gBrowser.addProgressListener(KeySnail.urlBarListener,
-                                         Ci.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
+            gBrowser.addProgressListener(KeySnail.urlBarListener);
 
             // add context menu
             this.createInstallPluginMenu();
