@@ -82,27 +82,27 @@ const style = function () {
          *                            window.content.location.href),
          *                style.XHTML);
          */
-        register: function () {
+        register: function (aCss, aNs, aAgent) {
             var arg = getArg(arguments);
 
-            if (!sss.sheetRegistered.apply(null, arg))
-                sss.loadAndRegisterSheet.apply(null, arg);
+            if (!sss.sheetRegistered.apply(sss, arg))
+                sss.loadAndRegisterSheet.apply(sss, arg);
         },
 
-        unregister: function () {
+        unregister: function (aCss, aNs, aAgent) {
             var arg = getArg(arguments);
 
-            if (sss.sheetRegistered.apply(null, arg))
-                sss.unregisterSheet.apply(null, arg);
+            if (sss.sheetRegistered.apply(sss, arg))
+                sss.unregisterSheet.apply(sss, arg);
         },
 
-        toggle: function () {
+        toggle: function (aCss, aNs, aAgent) {
             var arg = getArg(arguments);
 
-            if (sss.sheetRegistered.apply(null, arg))
-                sss.unregisterSheet.apply(null, arg);
+            if (sss.sheetRegistered.apply(sss, arg))
+                sss.unregisterSheet.apply(sss, arg);
             else
-                sss.loadAndRegisterSheet.apply(null, arg);
+                sss.loadAndRegisterSheet.apply(sss, arg);
         },
 
         local: function (aCss, aURIs) {
