@@ -472,8 +472,10 @@ const command = {
         aVPercent = typeof aVPercent === "number" ? aVPercent : 50;
         aHPercent = typeof aHPercent === "number" ? aHPercent : 50;
 
-        selection.QueryInterface(Components.interfaces.nsISelection2)
-	    .scrollIntoView(editor.selectionController.SELECTION_ANCHOR_REGION, true, aVPercent, aHPercent);
+        try {
+            selection.QueryInterface(Components.interfaces.nsISelection2)
+	        .scrollIntoView(editor.selectionController.SELECTION_ANCHOR_REGION, true, aVPercent, aHPercent);
+        } catch ([]) {}
     },
 
     // ==================== Insertion ==================== //
