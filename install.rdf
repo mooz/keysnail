@@ -6,7 +6,7 @@
     <Description about="urn:mozilla:install-manifest">
         <em:id>keysnail@mooz.github.com</em:id>
         <em:type>2</em:type> <!-- type of the addon, 2 means the extension -->
-        <em:version>1.8.9</em:version>
+        <em:version>1.9</em:version>
         <em:name>KeySnail</em:name>
         <em:creator>mooz</em:creator>
         <em:developer>mooz</em:developer>
@@ -17,7 +17,7 @@
         <em:updateKey>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGO9hYnSCroKCLRqGbV1czqWsQfZBsuU3EjnvumarZYQ4YE5tp3RCSploa6+qs4GLL7/aqtDnasWlM+cECJDh2XdrhHjm+vxc4X38Ym7BRL1x/Np0ujQ7o0F6hdD9CGPFdOvYMgqszO8GxJg8eshaTy1nr8fStUF9HwVXRfYqT1QIDAQAB</em:updateKey>
         <em:unpack>true</em:unpack>
         <!-- en-US -->
-        <em:description>Bind function to the key sequence!</em:description>
+        <em:description>Bind functions to key sequences</em:description>
         <!-- ja -->
         <em:localized>
             <Description>
@@ -32,8 +32,8 @@
         <em:targetApplication>
             <Description>
                 <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-                <em:minVersion>3.0</em:minVersion>
-                <em:maxVersion>5.*</em:maxVersion>
+                <em:minVersion>3.5</em:minVersion>
+                <em:maxVersion>7.*</em:maxVersion>
             </Description>
         </em:targetApplication>
     </Description>

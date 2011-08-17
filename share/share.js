@@ -5,8 +5,6 @@ const Ci = Components.interfaces;
 
 const extensionName = "keysnail";
 
-let json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-
 let util = {
     log: function util_log(aMsg) {
         let logs = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
@@ -195,7 +193,7 @@ let persist = {
     },
 
     preserveTo: function (aObj, aFile) {
-        let encoded = json.encode(aObj);
+        let encoded = JSON.stringify(aObj);
 
         util.writeTextFile(util.convertCharCodeFrom(encoded, "UTF-8"), aFile.path, true);
     },
@@ -215,7 +213,7 @@ let persist = {
             return null;
         }
 
-        return json.decode(str);
+        return JSON.parse(str);
     }
 };
 

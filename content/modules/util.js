@@ -26,8 +26,7 @@ const util = function () {
 
             const responseType = "application/x-suggestions+json";
 
-            let ss   = Cc["@mozilla.org/browser/search-service;1"].getService(Ci.nsIBrowserSearchService);
-            let json = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+            let ss = Cc["@mozilla.org/browser/search-service;1"].getService(Ci.nsIBrowserSearchService);
 
             this.suggest = {
                 ss            : ss,
@@ -80,7 +79,7 @@ const util = function () {
                         {
                             util.requestGet(queryURI, {
                                 callback: function (xhr) {
-                                    let results = json.decode(xhr.responseText) || {1:[]};
+                                    let results = JSON.parse(xhr.responseText) || {1:[]};
                                     callback(results[1]);
                                 }
                             });
@@ -90,7 +89,7 @@ const util = function () {
                         else
                         {
                             let xhr = util.requestGet(queryURI);
-                            let results = json.decode(xhr.responseText) || {1:[]};
+                            let results = JSON.parse(xhr.responseText) || {1:[]};
                             return results[1];
                         }
                     }
