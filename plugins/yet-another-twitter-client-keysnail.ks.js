@@ -439,6 +439,11 @@ let pOptions = plugins.setupOptions("twitter_client", {
     "selected_user_reply_to_reply_to_style" : { preset: "background-color:#ffe9d4; color:black;" },
     "search_result_user_name_style"         : { preset: "color:#003870;" },
     // j.mp settings
+    "use_jmp"                               : {
+        preset: false,
+        description: M({en: "Use j.mp or not. If not, URLs will be automatically shortened by Twitter.",
+                        ja: "j.mp をつかって URL を短縮するか指定します。しない場合、 Twitter が自動で短縮します。" })
+    },
     "jmp_id"                                : {
         preset: "stillpedant",
         description: M({en: "Specify ID of your j.mp account if you want use your one",
@@ -520,23 +525,28 @@ const $U = {
 
     shortenURL:
     function shortenURL(aURL, next) {
-        const id  = pOptions["jmp_id"];
-        const key = pOptions["jmp_key"];
+        if (pOptions["use_jmp"]) {
+            const id  = pOptions["jmp_id"];
+            const key = pOptions["jmp_key"];
 
-        var endPoint = "http://api.j.mp/shorten?" +
-            util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s',
-                        id, key,
-                        encodeURIComponent(aURL));
+            var endPoint = "http://api.j.mp/shorten?" +
+                util.format('version=2.0.1&login=%s&apiKey=%s&longUrl=%s',
+                            id, key,
+                            encodeURIComponent(aURL));
 
-        util.httpGet(endPoint, false, function (xhr) {
-            let response = $U.decodeJSON(xhr.responseText);
+            util.httpGet(endPoint, false, function (xhr) {
+                let response = $U.decodeJSON(xhr.responseText);
 
-            let url = (response && response.results && response.results[aURL]) ?
-                response.results[aURL].shortUrl :
-                aURL;
+                let url = (response && response.results && response.results[aURL]) ?
+                    response.results[aURL].shortUrl :
+                    aURL;
 
-            next(url);
-        });
+                next(url);
+            });
+        } else {
+            next(aURL);
+        }
+
     },
 
     delayed: function (f) {
@@ -2752,7 +2762,24 @@ var twitterClient =
                 cursorEnd    : aCursorEnd,
                 onChange     : function (arg) {
                     var current = arg.textbox.value;
-                    var length  = current.length;
+
+                    // take t.co shorten into account
+                    // https://dev.twitter.com/blog/next-steps-with-the-tco-link-wrapper
+                    var regex  = /(?:https?\:\/\/|www\.)[^\s]+/g;
+                    var noURL  = current.replace(regex, "");
+                    var URLs   = current.match(regex);
+                    var length = noURL.length;
+
+                    if (URLs) {
+                        URLs.forEach(function (url) {
+                            if (url.match("https://")){
+                                length += 21;
+                            } else {
+                                length += 20;
+                            }
+                        });
+                    }
+
                     var count   = limit - length;
                     var msg     = M({ja: ("残り " + count + " 文字"), en: count});
 
