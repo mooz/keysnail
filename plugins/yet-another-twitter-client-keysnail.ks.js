@@ -461,15 +461,15 @@ let pOptions = plugins.setupOptions("twitter_client", {
         description: M({ ja: "ユーザのアイコンが Gif 画像であった場合は隠す",
                          en: "When user icon is Gif, hide it" })
     },
-    "show_screen_name_on_tweet"                : {
+    "show_screen_name_on_tweet": {
         preset: false,
         description: M({ ja: "ツイート入力時に自分のスクリーン名を表示する",
                          en: "Display your screen name in tweet box." })
     },
-    "filters"                               : {
+    "filters": {
         preset: [],
-        description: M({ ja: "登録された関数に status をわたし、 true を返した tweet を消します",
-                         en: "Remove tweets when one of the functions returns true." })
+        description: M({ ja: "各 status (つぶやき) はこのオプションに登録された関数に渡され、関数が false, null, undefined など falsy な値を返した場合、一覧から削除されます。",
+                         en: "Remove tweets when one of the functions returns falsy value." })
     }
 }, PLUGIN_INFO);
 
@@ -3264,9 +3264,11 @@ var twitterClient =
             // ignore black users
             var statuses = options.supressFilter ? aStatuses : aStatuses.filter(notBlack);
 
-            pOptions["filters"].forEach( function(filter_func){
-                statuses = statuses.filter(filter_func);
-            });
+            // apply filters
+            let (filters = pOptions.filters)
+                filters &&
+                filters.length &&
+                filters.forEach(function (f) statuses = statuses.filter(f));
 
             // ============================================================ //
 
