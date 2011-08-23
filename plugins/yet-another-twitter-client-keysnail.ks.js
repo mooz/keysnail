@@ -465,6 +465,11 @@ let pOptions = plugins.setupOptions("twitter_client", {
         preset: false,
         description: M({ ja: "ツイート入力時に自分のスクリーン名を表示する",
                          en: "Display your screen name in tweet box." })
+    },
+    "filters"                               : {
+        preset: [],
+        description: M({ ja: "登録された関数に status をわたし、 true を返した tweet を消します",
+                         en: "Remove tweets when one of the functions returns true." })
     }
 }, PLUGIN_INFO);
 
@@ -3258,6 +3263,10 @@ var twitterClient =
 
             // ignore black users
             var statuses = options.supressFilter ? aStatuses : aStatuses.filter(notBlack);
+
+            pOptions["filters"].forEach( function(filter_func){
+                statuses = statuses.filter(filter_func);
+            });
 
             // ============================================================ //
 
