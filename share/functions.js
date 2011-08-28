@@ -299,8 +299,7 @@ var ksBuiltin = {
 
         restart_firefox: [
             function (ev) {
-                var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"].getService(Ci.nsIAppStartup);
-                appStartup.quit(appStartup.eRestart | appStartup.eAttemptQuit);
+                command.restartApp();
             }, false]
     },
 
