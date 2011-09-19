@@ -777,9 +777,12 @@ const command = {
 
     /**
      * store <aText> to the system clipboard
+     * if selection is true, also store it into the selection
+     clipboard (available on most unix system)
      * @param {} aText
+     * @param {} selection
      */
-    setClipboardText: function (aText) {
+    setClipboardText: function (aText, selection) {
         var ss = Components.classes['@mozilla.org/supports-string;1']
             .createInstance(Components.interfaces.nsISupportsString);
         if (!ss)
@@ -798,6 +801,8 @@ const command = {
         ss.data = aText;
         trans.addDataFlavor('text/unicode');
         trans.setTransferData('text/unicode', ss, aText.length * 2);
+        if (selection === true)
+            clip.setData(trans, null, clipid.kSelectionClipboard);
         clip.setData(trans, null, clipid.kGlobalClipboard);
     },
 
