@@ -293,7 +293,20 @@ var ksBuiltin = {
                     null, null, null, false
                 );
             }, false
+        ],
+
+        open_url_from_selection_clipboard: [
+            function (ev, arg) {
+                gBrowser.loadOneTab(
+                    let (url = command.getClipboardText(true))
+                        url.indexOf("://") === -1 ?
+                        util.format("http://www.google.com/search?q=%s&ie=utf-8&oe=utf-8", encodeURIComponent(url)) :
+                        url,
+                    null, null, null, false
+                );
+            }, false
         ]
+
     },
 
     categoryFirefox: {

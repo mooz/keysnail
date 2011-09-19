@@ -807,11 +807,14 @@ const command = {
     },
 
     /**
-     *
+     * Returns the text from the content of the system clipboard
+     * or, if selection is true, returns the content of the
+     * selection clipboard.
+     * @param {} selection
      * @throws Exception
      * @returns {}
      */
-    getClipboardText: function () {
+    getClipboardText: function (selection) {
         var clip = Components.classes["@mozilla.org/widget/clipboard;1"]
             .getService(Components.interfaces.nsIClipboard);
         if (!clip)
@@ -823,7 +826,10 @@ const command = {
             return null;
         trans.addDataFlavor("text/unicode");
 
-        clip.getData(trans, clip.kGlobalClipboard);
+	if (selection == true)
+            clip.getData(trans, clip.kSelectionClipboard);
+	else
+	    clip.getData(trans, clip.kGlobalClipboard);
 
         var str       = {};
         var strLength = {};
