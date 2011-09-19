@@ -777,9 +777,12 @@ const command = {
 
     /**
      * store <aText> to the system clipboard
+     * if selection is true, also store it into the selection
+     clipboard (available on most unix system)
      * @param {} aText
+     * @param {} selection
      */
-    setClipboardText: function (aText) {
+    setClipboardText: function (aText, selection) {
         var ss = Components.classes['@mozilla.org/supports-string;1']
             .createInstance(Components.interfaces.nsISupportsString);
         if (!ss)
@@ -798,15 +801,20 @@ const command = {
         ss.data = aText;
         trans.addDataFlavor('text/unicode');
         trans.setTransferData('text/unicode', ss, aText.length * 2);
+        if (selection === true)
+            clip.setData(trans, null, clipid.kSelectionClipboard);
         clip.setData(trans, null, clipid.kGlobalClipboard);
     },
 
     /**
-     *
+     * Returns the text from the content of the system clipboard
+     * or, if selection is true, returns the content of the
+     * selection clipboard.
+     * @param {} selection
      * @throws Exception
      * @returns {}
      */
-    getClipboardText: function () {
+    getClipboardText: function (selection) {
         var clip = Components.classes["@mozilla.org/widget/clipboard;1"]
             .getService(Components.interfaces.nsIClipboard);
         if (!clip)
@@ -818,7 +826,10 @@ const command = {
             return null;
         trans.addDataFlavor("text/unicode");
 
-        clip.getData(trans, clip.kGlobalClipboard);
+	if (selection == true)
+            clip.getData(trans, clip.kSelectionClipboard);
+	else
+	    clip.getData(trans, clip.kGlobalClipboard);
 
         var str       = {};
         var strLength = {};
