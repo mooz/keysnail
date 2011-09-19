@@ -265,9 +265,21 @@ var ksBuiltin = {
             }, false
         ],
 
+        copy_document_title_to_selection_clipboard: [
+            function (ev, arg) {
+                command.setClipboardText(content.document.title, true);
+            }, false
+        ],
+
         copy_document_url: [
             function (ev, arg) {
                 command.setClipboardText(content.location.href);
+            }, false
+        ],
+
+        copy_document_url_to_selection_clipboard: [
+            function (ev, arg) {
+                command.setClipboardText(content.location.href, true);
             }, false
         ],
 
@@ -281,7 +293,20 @@ var ksBuiltin = {
                     null, null, null, false
                 );
             }, false
+        ],
+
+        open_url_from_selection_clipboard: [
+            function (ev, arg) {
+                gBrowser.loadOneTab(
+                    let (url = command.getClipboardText(true))
+                        url.indexOf("://") === -1 ?
+                        util.format("http://www.google.com/search?q=%s&ie=utf-8&oe=utf-8", encodeURIComponent(url)) :
+                        url,
+                    null, null, null, false
+                );
+            }, false
         ]
+
     },
 
     categoryFirefox: {
