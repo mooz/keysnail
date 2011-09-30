@@ -475,6 +475,11 @@ let pOptions = plugins.setupOptions("twitter_client", {
         preset: true,
         description: M({ ja: "リストのタイムラインに公式RTを含めるかどうか",
                          en: "When set to either true, t or 1, list timelines will contain native retweets (if they exist) in addition to the standard stream of tweets."})
+    },
+   "user_include_rts": {
+        preset: true,
+        description: M({ ja: "ユーザのタイムラインに公式RTを含めるかどうか",
+                         en: "When set to either true, t or 1, user timelines will contain native retweets (if they exist) in addition to the standard stream of tweets."})
     }
 }, PLUGIN_INFO);
 
@@ -3166,7 +3171,8 @@ var twitterClient =
                     params: {
                         screen_name : target,
                         count       : gTimelineCountEveryUpdates,
-                        max_id      : opts.max_id
+                        max_id      : opts.max_id,
+                        include_rts : !!pOptions["user_include_rts"]
                     },
                     ok: function (res, xhr) {
                         var statuses = $U.decodeJSON(xhr.responseText) || [];
