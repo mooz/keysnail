@@ -470,6 +470,11 @@ let pOptions = plugins.setupOptions("twitter_client", {
         preset: [],
         description: M({ ja: "各 status (つぶやき) はこのオプションに登録された関数に渡され、関数が false, null, undefined など falsy な値を返した場合、一覧から削除されます。",
                          en: "Remove tweets when one of the functions returns falsy value." })
+    },
+    "list_include_rts": {
+        preset: true,
+        description: M({ ja: "リストのタイムラインに公式RTを含めるかどうか",
+                         en: "When set to either true, t or 1, list timelines will contain native retweets (if they exist) in addition to the standard stream of tweets."})
     }
 }, PLUGIN_INFO);
 
@@ -1086,6 +1091,7 @@ var twitterClient =
             this.setLastID    = arg.setLastID;
             this.lastIDHook   = arg.lastIDHook;
             this.beginCount   = arg.beginCount;
+            this.params       = arg.params;
         }
 
         Crawler.prototype = {
@@ -1107,6 +1113,15 @@ var twitterClient =
                 : this.lastKey ? util.setUnicharPref(this.lastKey, id) : this._lastID = id,
 
             get nameEscaped() $U.toEscapedString(this.name),
+
+            createParams: function () {
+                let params = {};
+                if (this.params)
+                    [[k, v] for ([k, v] in Iterator(this.params))].forEach(
+                        function ([k, v]) params[k] = v
+                    );
+                return params;
+            },
 
             stop:
             function stop() {
@@ -1206,7 +1221,7 @@ var twitterClient =
 
                 let self = this;
 
-                let params = {};
+                let params = this.createParams();
 
                 if (!this.cache)
                     params[this.countName] = this.beginCount;
@@ -1256,7 +1271,7 @@ var twitterClient =
 
                 let self = this;
 
-                let params = {};
+                let params = this.createParams();
                 params[this.maxIDName] = status.id_str;
                 params[this.countName] = this.beginCount;
 
@@ -1413,7 +1428,10 @@ var twitterClient =
                         oauth      : gOAuth,
                         countName  : "per_page",
                         lastIDHook : $U.bind(Notifier.updateAllListButtons, Notifier),
-                        beginCount : gTimelineCountBeginning
+                        beginCount : gTimelineCountBeginning,
+                        params     : {
+                            include_rts: !!pOptions["list_include_rts"]
+                        }
                     }
                 );
             });
