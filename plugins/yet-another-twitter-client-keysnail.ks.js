@@ -956,12 +956,12 @@ const twitterAPI = {
         // ============================================================ //
 
         "lists/index": {
-            action : "https://api.twitter.com/1/{user}/lists.json",
+            action : "https://api.twitter.com/1/lists.json",
             method : "GET"
         },
 
         "lists/statuses": {
-            action : "https://api.twitter.com/1/{user}/lists/{id}/statuses.json",
+            action : "https://api.twitter.com/1/lists/statuses.json",
             host   : "https://api.twitter.com/",
             method : "GET"
         },
@@ -1418,9 +1418,9 @@ var twitterClient =
                 let [user, listName] = name.split("/");
 
                 // list
-                let listAction = twitterAPI.get("lists/statuses", {}, {
-                    user : user,
-                    id   : listName
+                let listAction = twitterAPI.get("lists/statuses", {
+                    owner_screen_name : user,
+                    slug              : listName
                 });
 
                 gLists[name] = new Crawler(
@@ -2902,12 +2902,10 @@ var twitterClient =
 
         function showListStatuses(aScreenName, aListName) {
             twitterAPI.request("lists/statuses", {
-                args: {
-                    user : aScreenName,
-                    id   : aListName
-                },
                 params: {
-                    per_page : gTimelineCountBeginning
+                    per_page          : gTimelineCountBeginning,
+                    owner_screen_name : aScreenName,
+                    slug              : aListName
                 },
                 ok: function (res, xhr) {
                     var statuses = $U.decodeJSON(xhr.responseText) || [];
@@ -2918,8 +2916,8 @@ var twitterClient =
                     );
                 },
                 ng: function (res, xhr) {
-                    display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。',
-                                             en: "Failed to get statuses"}), 2000);
+                    display.echoStatusBar(M({ja: 'ステータスの取得に失敗しました。 (自分のプライベートリストは取得できません。)',
+                                             en: "Failed to get statuses. (Your private list cannot be fetched with this method.)"}), 2000);
                 }
             });
         }
@@ -2936,8 +2934,8 @@ var twitterClient =
             else
             {
                 twitterAPI.request("lists/index", {
-                    args: {
-                        user : aScreenName
+                    params: {
+                        screen_name : aScreenName
                     },
                     ok: function (res) {
                             let result = $U.decodeJSON(res);
