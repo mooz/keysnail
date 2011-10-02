@@ -1712,7 +1712,15 @@ var twitterClient =
             [function (status) {
                  switchTo();
              }, M({ja: "移動 (リスト, Home, Mentions, ...)", en: "Switch to (Lists, Home, Mentions, ...)"}),
-             "switch-to"]
+             "switch-to"],
+            [function (status) {
+                if (gStatuses.updater) {
+                    gStatuses.stop();
+                } else {
+                    gStatuses.update(0, false, false);
+                }
+             }, M({ja: "home timeline の自動読み込みきりかえ", en: "Toggle auto-update of home timeline"}),
+             "toggle-homeline-updating"]
         ];
 
         // }} ======================================================================= //
