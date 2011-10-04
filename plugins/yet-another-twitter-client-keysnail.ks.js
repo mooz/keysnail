@@ -3815,6 +3815,21 @@ var twitterClient =
                 showTargetStatus();
             },
 
+            selectUserAndShowTimeline: function (ev, arg) {
+                const namePattern = /^@?(.*)$/;
+                prompt.reader({
+                    message: "Input screen name: ",
+                    collection: (share.friendsCache || []).map(
+                        function (s) (namePattern.exec(s), RegExp.$1)
+                    ),
+                    callback: function (name) {
+                        setTimeout(function () {
+                            showTargetStatus(name);
+                        }, 0);
+                    }
+                });
+            },
+
             updateStatusbar: function () {
                 // calc unread statuses count
                 if (gStatuses.cache)
@@ -4116,6 +4131,10 @@ plugins.withProvides(function (provide) {
     provide("twitter-client-update-friends-cache", twitterClient.updateFriendsCache,
             M({ja: 'Friends キャッシュを更新',
                en: "Update friends cache"}));
+
+    provide("twitter-client-select-user-show-timeline", twitterClient.selectUserAndShowTimeline,
+            M({ja: '指定したユーザのタイムラインを表示',
+               en: "Select user and display timeline"}));
 }, PLUGIN_INFO);
 
 // }} ======================================================================= //
