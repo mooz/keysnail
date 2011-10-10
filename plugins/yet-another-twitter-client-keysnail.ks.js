@@ -1680,6 +1680,11 @@ var twitterClient =
              "show-mentions"],
             // ======================================== //
             [function (status) {
+                 if (status) self.showDMs();
+             }, M({ja: "自分宛の DM を一覧表示: ", en: ""}) + "Show DMs",
+             "show-dms"],
+            // ======================================== //
+            [function (status) {
                  if (status) self.tweetWithTitleAndURL();
              }, M({ja: "現在のページのタイトルと URL を使ってつぶやく : ", en: ""}) + "Tweet with the current web page URL",
              "tweet-current-page"],
