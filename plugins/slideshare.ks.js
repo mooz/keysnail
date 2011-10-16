@@ -69,6 +69,15 @@ function HTML5Slideshare(doc, callback) {
   let player = win.player;
 
   callback({
+    leaveFullScreenClass: ".btnLeaveFullScreen",
+    enterFullScreenClass: ".btnFullScreen",
+
+    get isFullScreen() {
+      return Array.slice(doc.querySelectorAll(this.leaveFullScreenClass))
+        .map(function (elem) doc.defaultView.getComputedStyle(elem).display)
+        .some(function (display) display !== "none");
+    },
+
     next: function () {
       player.play(this.current + 1);
     },
@@ -81,7 +90,11 @@ function HTML5Slideshare(doc, callback) {
     get current () player.controller.currentPosition,
 
     toggleFullScreen: function () {
-      doc.querySelector('.btnFullScreen').click();
+      doc.querySelector(
+        this.isFullScreen
+          ? this.leaveFullScreenClass
+          : this.enterFullScreenClass
+      ).click();
     }
   });
 }
