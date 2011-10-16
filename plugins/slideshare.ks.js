@@ -100,7 +100,6 @@ function HTML5Slideshare(doc, callback) {
 }
 
 function FlashSlideshare(doc, callback) {
-  let player = doc.querySelector('#player');
   let include = doc.querySelector('#h-flashplayer-inclusions').textContent;
   doc.defaultView.eval(include);
 
@@ -114,27 +113,30 @@ function FlashSlideshare(doc, callback) {
   ]]></>;
 
   setTimeout(function () {
-    player = doc.querySelector('#player');
+    let instance = {
+      get player() doc.querySelector('#player'),
 
-    const originalPlayerStyle = player.getAttribute('style');
-    let isFullScreen = false;
-
-    callback({
       next: function () {
-        player.next();
+        this.player.next();
       },
 
       previous: function () {
-        player.previous();
+        this.player.previous();
       },
 
-      get current () player.controller.currentPosition,
+      get current () this.player.controller.currentPosition,
 
       toggleFullScreen: function () {
-        player.setAttribute('style', originalPlayerStyle + (isFullScreen ? "" : fullScreenStyle));
+        this.player.setAttribute('style', originalPlayerStyle + (isFullScreen ? "" : fullScreenStyle));
+        // TODO: toggle objects visibility
         isFullScreen = !isFullScreen;
       }
-    });
+    };
+
+    let isFullScreen = false;
+    const originalPlayerStyle = instance.player.getAttribute('style');
+
+    callback(instance);
   }, 100);
 }
 
