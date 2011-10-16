@@ -29,7 +29,7 @@ let PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Slideshare</name>
     <description>Manipulate Slideshare</description>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/slideshare.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/slideshare.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
