@@ -1596,7 +1596,7 @@ var twitterClient =
              "tweet"],
             // ======================================== //
             [function (status) {
-                 if (status) reply(status.screen_name, status.id_str, status.text);
+                 if (status) reply(status);
              }, M({ja: "このつぶやき => 返信 : ", en: ""}) + "Send reply message",
              "reply"],
             // ======================================== //
@@ -2735,12 +2735,16 @@ var twitterClient =
             display.echoStatusBar(M({ja: "コピーしました", en: "Copied"}) + " : " + aMsg, 2000);
         }
 
-        function reply(aUserID, aStatusID, aStatusText) {
-            let users = Array.slice(aStatusText.match(/@[a-zA-Z0-9_]+/g) || []);
-            users.unshift("@" + aUserID);
+        function reply(status) {
+            let users = Array
+                    .slice(status.text.match(/@[a-zA-Z0-9_]+/g) || [])
+                    .filter(function (userName)
+                            !share.userInfo ||
+                            "@" + share.userInfo.screen_name !== userName);
+            users.unshift("@" + status.screen_name);
             users.push("");
             let init = users.join(" ");
-            tweet(init, aStatusID, init.length);
+            tweet(init, status.id_str, init.length);
         }
 
         function sendDM(userID, statusID) {
@@ -3660,7 +3664,7 @@ var twitterClient =
                 if (status)
                 {
                     gPrompt.forced = true;
-                    reply(status.user.screen_name, status.id_str, status.text);
+                    reply(status);
                 }
             },
 
