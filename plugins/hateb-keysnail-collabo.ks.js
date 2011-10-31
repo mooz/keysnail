@@ -12,11 +12,6 @@ var PLUGIN_INFO =
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.5.6</minVersion>
     <include>main</include>
-    <provides>
-        <ext>list-hateb-comments</ext>
-        <ext>list-hateb-items</ext>
-        <ext>hateb-bookmark-this-page</ext>
-    </provides>
     <options>
         <option>
             <name>hatebnail.list_bookmarks_limit</name>
@@ -112,47 +107,36 @@ a を入力することで現在閲覧中のページをブックマークする
 
 var hblist;
 
-ext.add("list-hateb-comments", listHBComments, M({
-    ja: 'このページのはてなブックマークコメントを一覧表示',
-    en: 'List hatena bookmark comments of this page'
-}));
+plugins.withProvides(function (provide) {
+    provide("list-hateb-comments", listHBComments, M({
+        ja: 'このページのはてなブックマークコメントを一覧表示',
+        en: 'List hatena bookmark comments of this page'
+    }));
 
-ext.add("list-hateb-items" , listHBItems, M({
-    ja: "はてなブックマークのアイテムを一覧表示しジャンプ",
-    en: 'List all hatena bookmark entries in prompt.selector'
-}));
+    provide("list-hateb-items" , listHBItems, M({
+        ja: "はてなブックマークのアイテムを一覧表示しジャンプ",
+        en: 'List all hatena bookmark entries in prompt.selector'
+    }));
 
-ext.add("hateb-bookmark-this-page", addBookMark, M({
-    ja: "このページをはてなブックマークに追加",
-    en: 'Add this page to the hatena bookmark'
-}));
+    provide("hateb-bookmark-this-page", function (arg) {
+        addBookMark({
+            postTwitter: arg
+        });
+    }, M({
+        ja: "このページをはてなブックマークに追加",
+        en: 'Add this page to the hatena bookmark'
+    }));
 
-ext.add("hatebnail-login", loginWithPrompt, M({
-    ja: "ユーザ名を入力してはてなにログイン",
-    en: 'Login to Hatena by inputting user name'
-}));
+    provide("hatebnail-login", loginWithPrompt, M({
+        ja: "ユーザ名を入力してはてなにログイン",
+        en: 'Login to Hatena by inputting user name'
+    }));
 
-ext.add("hatebnail-logout", logout, M({
-    ja: "はてなからログアウト",
-    en: 'Log out from Hatena'
-}));
-
-let alertsService = null;
-try {
-    var alertsService = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
-} catch (x) {}
-
-function showPopup(arg) {
-    if (!alertsService)
-        return;
-
-    alertsService.showAlertNotification(arg.icon,
-                                        arg.title,
-                                        arg.message,
-                                        !!arg.link,
-                                        arg.link,
-                                        arg.observer);
-}
+    provide("hatebnail-logout", logout, M({
+        ja: "はてなからログアウト",
+        en: 'Log out from Hatena'
+    }));
+}, PLUGIN_INFO);
 
 function doLogin(username, password, next) {
     display.echoStatusBar(M({
@@ -224,12 +208,13 @@ function logout(callback) {
 
 function isLoggedIn() !!hBookmark.User.user;
 
-function addBookMark() {
-    if (KeySnail.windowType != "navigator:browser" || !("hBookmark" in window))
+function addBookMark(options) {
+    options = options || {};
+
+    if (KeySnail.windowType !== "navigator:browser" || !("hBookmark" in window))
         return;
 
-    if (!isLoggedIn())
-    {
+    if (!isLoggedIn()) {
         login(arguments);
         return;
     }
@@ -284,43 +269,40 @@ function addBookMark() {
     function inputPost(aInit) {
         aInit = aInit || "";
 
-        prompt.reader(
-            {
-                message      : "add bookmark:",
-                onChange     : remainTextLengthWatcher,
-                initialInput : aInit,
-                initialinput : aInit,
-                cursorEnd    : aInit.length,
-                callback     : function post(aMsg) {
-                    let bookmark = {
-                        url     : url,
-                        comment : aMsg
-                    };
+        let message = util.format("add bookmark%s:", options.postTwitter ? " (+ tweet)" : "");
 
-                    let command = new hBookmark.RemoteCommand(
-                        "edit", {
-                            bookmark   : bookmark,
-                            onComplete : function () {
-                                hBookmark.HTTPCache.entry.clear(bookmark.url);
+        prompt.reader({
+            message      : message,
+            onChange     : remainTextLengthWatcher,
+            initialInput : aInit,
+            initialinput : aInit,
+            cursorEnd    : aInit.length,
+            callback     : function post(aMsg) {
+                let bookmark = {
+                    url     : url,
+                    comment : aMsg
+                };
 
-                                showPopup(
-                                    {
-                                        icon    : PLUGIN_INFO.iconURL,
-                                        title   : M({ja: "ブックマークに追加しました", en: "Bookmarked"}),
-                                        message : title
-                                    }
-                                );
-                            },
-                            onError       : function () {
-                                display.echoStatusBar(M({ja: "はてなブックマークの追加に失敗しました",
-                                                         en: "Failed to add hatena bookmark"}), 3000);
-                            }
+                let command = new hBookmark.RemoteCommand("edit", {
+                    bookmark: bookmark,
+                    sendMail: options.sendMail,
+                    postTwitter: options.postTwitter,
+                    postMixiCheck: options.postMixiCheckCheck,
+                    onComplete: function () {
+                        hBookmark.HTTPCache.entry.clear(bookmark.url);
+                        display.showPopup(M({ja: "ブックマークに追加しました", en: "Bookmarked"}), title, {
+                            icon: PLUGIN_INFO.iconURL
                         });
+                    },
+                    onError: function () {
+                        display.echoStatusBar(M({ja: "はてなブックマークの追加に失敗しました",
+                                                 en: "Failed to add hatena bookmark"}), 3000);
+                    }
+                });
 
-                    command.execute();
-                }
+                command.execute();
             }
-        );
+        });
     }
 
     inputTag();
