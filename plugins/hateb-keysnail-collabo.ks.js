@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.2.9</version>
+    <version>1.3.0</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -118,7 +118,7 @@ plugins.withProvides(function (provide) {
         en: 'List all hatena bookmark entries in prompt.selector'
     }));
 
-    provide("hateb-bookmark-this-page", function (arg) {
+    provide("hateb-bookmark-this-page", function (ev, arg) {
         addBookMark({
             postTwitter: arg
         });
