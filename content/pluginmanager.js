@@ -806,6 +806,28 @@ let ksPluginManager = (function () {
                 alert("Plugin " + info.name + " doesn't have an updateURL");
         },
 
+        onReloadPluginClicked: function (ev) {
+            let item = pluginListbox.selectedItem;
+            if (!item)
+                return;
+
+            let path = item.value;
+            let info = infoHolder[path];
+            let file = modules.util.openFile(path);
+
+            let before = Date.now();
+            modules.userscript.loadPlugin(file);
+            let after = Date.now();
+
+            modules.display.echoStatusBar(
+                modules.util.format(
+                    "Reloaded plugin \"%s\". Took %s msec.",
+                    info.name,
+                    after - before
+                )
+            );
+        },
+
         set modules(aModules) {
             modules = aModules;
         }

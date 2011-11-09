@@ -5,6 +5,7 @@
 <!ENTITY keySnail.pluginManager.showContainingFolder "Show containing folder">
 <!ENTITY keySnail.pluginManager.viewFile "View file in a new tab">
 <!ENTITY keySnail.pluginManager.viewRemoteFile "View remote file in a new tab">
+<!ENTITY keySnail.pluginManager.reloadPlugin "Reload this plugin">
 
 <!ENTITY keySnail.pluginManager.enabled "Enabled">
 <!ENTITY keySnail.pluginManager.checkForUpdates "Check for update">

@@ -28,8 +28,13 @@
 		      oncommand="ksPluginManager.onViewFileClicked(event);"/>
 	    <menuitem id="keysnail-pm-menu-view-remote-file"
 		      label="&keySnail.pluginManager.viewRemoteFile;"
-                      accesskey="r"
+                      accesskey="m"
 		      oncommand="ksPluginManager.onViewRemoteFileClicked(event);"/>
+            <menuseparator/>
+	    <menuitem id="keysnail-pm-menu-reload-plugin"
+		      label="&keySnail.pluginManager.reloadPlugin;"
+                      accesskey="r"
+		      oncommand="ksPluginManager.onReloadPluginClicked(event);"/>
         </menupopup>
 
         <!-- plugin list -->
