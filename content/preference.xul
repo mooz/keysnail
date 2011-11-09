@@ -525,12 +525,12 @@
             <description>mooz &lt;stillpedant@gmail.com&gt; &#169; 2009-2010</description>
             <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://wiki.github.com/mooz/keysnail/')"
-                         >Visit KeySnail wiki</description>
+                         >KeySnail wiki</description>
             <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://d.hatena.ne.jp/mooz/')"
-                         >Visit Authors blog (Japanese)</description>
+                         >Authors blog (Japanese)</description>
             <spacer height="10px"/>
-            <description>KeySnail using ...</description>
+            <description>Thanks to</description>
             <description class="text-link"
                          onclick="ksPreference.modules.key.viewURI('http://jsbeautifier.org/')"
                          >Javascript beautifier</description>
