@@ -13,16 +13,16 @@
 
 <!ENTITY keySnail.pluginManager.enabled "有効">
 <!ENTITY keySnail.pluginManager.checkForUpdates "更新を確認">
-<!ENTITY keySnail.pluginManager.reloadPlugins "プラグインをリロード">
-<!ENTITY keySnail.pluginManager.installPlugin "プラグインをインストール">
+<!ENTITY keySnail.pluginManager.reloadPlugins "全てのプラグインをリロード">
+<!ENTITY keySnail.pluginManager.installPlugin "ファイルからプラグインをインストール">
 <!ENTITY keySnail.pluginManager.checkForAllUpdates "全てのプラグインの更新を確認">
 
 <!-- help -->
 <!ENTITY keySnail.pluginManager.howto.title "プラグインのインストール方法">
-<!ENTITY keySnail.pluginManager.howto.download "プラグインをダウンロード">
-<!ENTITY keySnail.pluginManager.howto.clickButton "「インストール」ボタンをクリック">
-<!ENTITY keySnail.pluginManager.howto.selectFile "プラグインを選択">
-<!ENTITY keySnail.pluginManager.howto.visitWiki "KeySnail Wiki のプラグインページを開く">
+<!ENTITY keySnail.pluginManager.howto.rightClick "プラグインへのリンクを右クリック">
+<!ENTITY keySnail.pluginManager.howto.selectInstallMenu "「このプラグインをインストール」を選択">
+<!ENTITY keySnail.pluginManager.howto.customize "ドキュメントを読んでカスタマイズ！">
+<!ENTITY keySnail.pluginManager.howto.visitWiki "プラグインの紹介ページへ">
 
 <!ENTITY keySnail.pluginManager.ext "エクステ">
 <!ENTITY keySnail.pluginManager.ext.title "エクステとは">

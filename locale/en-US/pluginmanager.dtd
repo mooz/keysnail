@@ -18,12 +18,11 @@
 <!ENTITY keySnail.pluginManager.checkForAllUpdates "Check for all plugin's updates">
 
 <!-- help -->
-<!ENTITY keySnail.pluginManager.howto.title "How to install plugins">
-<!ENTITY keySnail.pluginManager.howto.download "Download plugin">
-<!ENTITY keySnail.pluginManager.howto.clickButton "Click 'Install Plugin' button">
-<!ENTITY keySnail.pluginManager.howto.selectFile "Select the plugin file">
-
-<!ENTITY keySnail.pluginManager.howto.visitWiki "Visit plugin page at KeySnail Wiki">
+<!ENTITY keySnail.pluginManager.howto.title "How to install a plugin">
+<!ENTITY keySnail.pluginManager.howto.rightClick "Open the context menu for the link to the plugin">
+<!ENTITY keySnail.pluginManager.howto.selectInstallMenu "Select 'Install this plugin'">
+<!ENTITY keySnail.pluginManager.howto.customize "Installation finished. Let's Customize it.">
+<!ENTITY keySnail.pluginManager.howto.visitWiki "Get Plugins!">
 
 <!ENTITY keySnail.pluginManager.ext "Ext">
 <!ENTITY keySnail.pluginManager.ext.title "What's the ext?">
