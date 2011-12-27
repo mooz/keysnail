@@ -38,7 +38,7 @@
         </menupopup>
 
         <!-- plugin list -->
-        <vbox id="plugin-area" persist="width">
+        <vbox id="plugin-area" persist="width" flex="1">
             <toolbar id="plugin-toolbar" align="left">
                 <toolbarbutton id="advanced-menu"
                                type="menu"
@@ -67,7 +67,7 @@
         <splitter collapse="none" resizeafter="closest">
         </splitter>
         <!-- plugin detail -->
-        <vbox id="plugin-detail" persist="width">
+        <vbox id="plugin-detail" persist="width" flex="7">
             <iframe id="plugin-description"
                     src="chrome://keysnail/content/pluginmanager.xhtml"
                     flex="1"/>
