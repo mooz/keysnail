@@ -1,5 +1,9 @@
 <!ENTITY keySnail.pluginManager.title "Plugin manager">
 
+<!-- toolbar button -->
+<!ENTITY keySnail.pluginManager.manageMenu "Manage">
+<!ENTITY keySnail.pluginManager.manageMenu.tooltip "Manage plugins">
+
 <!-- context menu -->
 <!ENTITY keySnail.pluginManager.editThisFile "Edit this file">
 <!ENTITY keySnail.pluginManager.showContainingFolder "Show containing folder">

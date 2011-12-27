@@ -38,28 +38,36 @@
         </menupopup>
 
         <!-- plugin list -->
-        <vbox flex="1" id="plugin-area">
+        <vbox id="plugin-area" persist="width">
+            <toolbar id="plugin-toolbar" align="left">
+                <toolbarbutton id="advanced-menu"
+                               type="menu"
+                               label="&keySnail.pluginManager.manageMenu;"
+                               tooltiptext="&keySnail.pluginManager.manageMenu.tooltip;">
+                    <menupopup>
+                        <menuitem label="&keySnail.pluginManager.installPlugin;"
+                                  oncommand="ksPluginManager.installPlugin();"
+                                  accesskey="i"/>
+                        <menuseparator />
+                        <menuitem label="&keySnail.pluginManager.checkForAllUpdates;"
+                                  oncommand="ksPluginManager.checkForAllUpdates();"
+                                  accesskey="u"/>
+                        <menuitem label="&keySnail.pluginManager.reloadPlugins;"
+                                  oncommand="ksPluginManager.reloadPlugin();"
+                                  accesskey="r"/>
+                    </menupopup>
+                </toolbarbutton>
+            </toolbar>
             <richlistbox id="plugin-listbox" flex="1"
                          onselect="ksPluginManager.pluginListboxOnSelect(event);"
                          context="keysnail-pm-menu"
                          >
             </richlistbox>
-            <hbox align="center">
-                <button label="&keySnail.pluginManager.reloadPlugins;"
-                        oncommand="ksPluginManager.reloadPlugin();"
-                        accesskey="r"/>
-                <button label="&keySnail.pluginManager.installPlugin;"
-                        oncommand="ksPluginManager.installPlugin();"
-                        accesskey="i"/>
-            </hbox>
-            <hbox align="center">
-                <button label="&keySnail.pluginManager.checkForAllUpdates;"
-                        oncommand="ksPluginManager.checkForAllUpdates();"
-                        accesskey="u"/>
-            </hbox>
         </vbox>
+        <splitter collapse="none" resizeafter="closest">
+        </splitter>
         <!-- plugin detail -->
-        <vbox id="plugin-detail" flex="8">
+        <vbox id="plugin-detail" persist="width">
             <iframe id="plugin-description"
                     src="chrome://keysnail/content/pluginmanager.xhtml"
                     flex="1"/>
