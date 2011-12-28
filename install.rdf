@@ -10,6 +10,12 @@
         <em:name>KeySnail</em:name>
         <em:creator>mooz</em:creator>
         <em:developer>mooz</em:developer>
+        <em:contributor>958</em:contributor>
+        <em:contributor>Florent Le Coz</em:contributor>
+        <em:contributor>SHIMODA Hiroshi</em:contributor>
+        <em:contributor>hogelog</em:contributor>
+        <em:contributor>tomykaira</em:contributor>
+        <em:contributor>usk</em:contributor>
         <em:homepageURL>https://wiki.github.com/mooz/keysnail/</em:homepageURL>
         <em:optionsURL>chrome://keysnail/content/preference.xul</em:optionsURL>
 	<em:iconURL>chrome://keysnail/skin/icon.png</em:iconURL>
@@ -24,6 +30,12 @@
                 <em:locale>ja</em:locale>
                 <em:name>KeySnail</em:name>
                 <em:creator>mooz</em:creator>
+                <em:contributor>958</em:contributor>
+                <em:contributor>Florent Le Coz</em:contributor>
+                <em:contributor>SHIMODA Hiroshi</em:contributor>
+                <em:contributor>hogelog</em:contributor>
+                <em:contributor>tomykaira</em:contributor>
+                <em:contributor>usk</em:contributor>
                 <em:description>JavaScript の関数をキーシーケンスに割り当て</em:description>
                 <em:homepageURL>https://wiki.github.com/mooz/keysnail/keysnail-japanese</em:homepageURL>
             </Description>
