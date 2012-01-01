@@ -25,6 +25,7 @@ zip -r -0 chrome/keysnail.jar \
     content/resources/*~*~ \
     content/prettifier/*~*~ \
     content/modules/*.js~(*~) \
+    content/images/*.png~(*~) \
     locale/**/*.*~(*~) \
     skin/**/*.*~(*~|*.svg) \
     skin/**/filter.svg
