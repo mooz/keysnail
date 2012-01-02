@@ -704,7 +704,7 @@ let ksPluginManager = (function () {
 
         reloadPlugin: function () {
             modules.plugins.context = {};
-            modules.userscript.loadPlugins();
+            modules.userscript.loadPlugins(true /* ignore cache */);
 
             helpBox.removeAttribute("style");
             infoBox.innerHTML   = "";
@@ -816,7 +816,7 @@ let ksPluginManager = (function () {
             let file = modules.util.openFile(path);
 
             let before = Date.now();
-            modules.userscript.loadPlugin(file);
+            modules.userscript.loadPlugin(file, true /* ignore cache */);
             let after = Date.now();
 
             modules.display.echoStatusBar(

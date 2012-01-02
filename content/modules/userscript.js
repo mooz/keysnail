@@ -98,10 +98,18 @@ const userscript = {
         }, this);
     },
 
-    loadSubScript: function (aURI, aContext) {
-        if (aURI.indexOf("://") == -1)
+    loadSubScript: function (aURI, aContext, aIgnoreCache) {
+        if (aURI.indexOf("://") === -1)
             aURI = util.pathToURL(aURI);
 
+        if (aIgnoreCache) {
+            // add a parameter to avoid startup cache
+            var uuidGenerator = Components.classes["@mozilla.org/uuid-generator;1"]
+                    .getService(Components.interfaces.nsIUUIDGenerator);
+            var uuid = uuidGenerator.generateUUID();
+            var uuidString = uuid.toString();
+            aURI = aURI + (aURI.indexOf("?") === -1 ? "?" : "&") + "x=" + uuidString;
+        }
         Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
             .getService(Components.interfaces.mozIJSSubScriptLoader)
             .loadSubScript(aURI, aContext);
@@ -524,7 +532,7 @@ const userscript = {
 
             try {
                 if (!userscript.isDisabledPlugin(installed.path) && !context.suppressLoad) {
-                    userscript.loadPlugin(installed);
+                    userscript.loadPlugin(installed, true /* ignore cache */);
                 }
             } catch (x) {
                 util.message("An error occured while updating plugin :: " + x.message);
@@ -806,7 +814,7 @@ const userscript = {
         return true;
     },
 
-    loadPlugin: function (aFile) {
+    loadPlugin: function (aFile, aIgnoreCache) {
         var filePath = aFile.path;
         var context;
 
@@ -845,7 +853,7 @@ const userscript = {
         key.withExternalFileStatus(true, function () {
             try
             {
-                this.loadSubScript(filePath, context);
+                this.loadSubScript(filePath, context, aIgnoreCache);
                 context.__ksLoaded__ = true;
             }
             catch (e)
@@ -895,7 +903,7 @@ const userscript = {
     /**
      * Load all plugins in the plugin directory
      */
-    loadPlugins: function () {
+    loadPlugins: function (aIgnoreCache) {
         var aPath = this.pluginDir;
 
         if (!aPath)
@@ -919,7 +927,7 @@ const userscript = {
                     return;
 
                 try {
-                    this.loadPlugin(aFile);
+                    this.loadPlugin(aFile, aIgnoreCache);
                 } catch (x) {}
             }, this);
     },
@@ -931,7 +939,7 @@ const userscript = {
      * @param {string} aFileName file name of the script which will be loaded
      * @param {object} aContext context scripts will be evaluated under
      */
-    require: function (aFileName, aContext) {
+    require: function (aFileName, aContext, aIgnoreCache) {
         var file, filePath;
         var loaded = false;
 
@@ -948,7 +956,7 @@ const userscript = {
 
                 try
                 {
-                    this.loadSubScript(filePath, aContext);
+                    this.loadSubScript(filePath, aContext, aIgnoreCache);
                     loaded = true;
                     break;
                 }
