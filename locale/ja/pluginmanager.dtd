@@ -21,8 +21,8 @@
 <!ENTITY keySnail.pluginManager.howto.title "プラグインのインストール方法">
 <!ENTITY keySnail.pluginManager.howto.rightClick "プラグインへのリンクを右クリック">
 <!ENTITY keySnail.pluginManager.howto.selectInstallMenu "「このプラグインをインストール」を選択">
-<!ENTITY keySnail.pluginManager.howto.customize "ドキュメントを読んでカスタマイズ！">
-<!ENTITY keySnail.pluginManager.howto.visitWiki "プラグインの紹介ページへ">
+<!ENTITY keySnail.pluginManager.howto.customize "ドキュメントを読んでカスタマイズ">
+<!ENTITY keySnail.pluginManager.howto.visitWiki "プラグインのダウンロードページへ">
 
 <!ENTITY keySnail.pluginManager.ext "エクステ">
 <!ENTITY keySnail.pluginManager.ext.title "エクステとは">
