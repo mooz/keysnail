@@ -1087,9 +1087,13 @@ var hok = function () {
                 updateHeaderMatchHints();
             return;
         case 'Enter':
-            if (lastMatchHint)
-                fire(lastMatchHint.element);
-            destruction();
+            if (lastMatchHint) {
+                let elem = lastMatchHint.element;
+                destruction();
+                fire(elem);
+            } else {
+                destruction();
+            }
             return;
         default :
             inputKey += role;
