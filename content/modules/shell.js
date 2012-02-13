@@ -263,11 +263,13 @@ const shell =
                          count : prefixArg
                      };
 
+                     let commandExtra = command.extra || {};
+
                      let [args, state] = completer.utils.lex(left);
 
-                     if (command.extra.options)
+                     if (commandExtra.options)
                      {
-                         let parseResult = parseOptions(args, command.extra.options);
+                         let parseResult = parseOptions(args, commandExtra.options);
 
                          if (parseResult.errorMsg)
                          {
@@ -281,9 +283,9 @@ const shell =
                      }
 
                      // check for argCount
-                     if (typeof command.extra.argCount !== "undefined")
+                     if (typeof commandExtra.argCount !== "undefined")
                      {
-                         let [valid, msg] = validateArgumentsCount(args.length, command.extra.argCount);
+                         let [valid, msg] = validateArgumentsCount(args.length, commandExtra.argCount);
 
                          if (!valid)
                          {
