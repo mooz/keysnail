@@ -325,6 +325,8 @@ let dialogs = [
      function () { window.BrowserPageInfo(); }],
     ["pagesource",       "View page source",
      function () { window.BrowserViewSourceOfDocument(content.document); }],
+    ["passwordmanager",  "Manage passwords",
+     function () { window.openDialog("chrome://passwordmgr/content/passwordManager.xul", "_blank", "chrome,dialog,centerscreen"); }],
     ["places",           "Places Organizer: Manage your bookmarks and history",
      function () { PlacesCommandHook.showPlacesOrganizer(ORGANIZER_ROOT_BOOKMARKS); }],
     ["preferences",      "Show Firefox preferences dialog",
