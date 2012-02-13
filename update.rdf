@@ -2,22 +2,22 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="1.9.4">
-    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAJ4EDctVFv7eKqHCnhxMrWvMn/sjjkr0UrPJBf+HzGH5mQMg7eM8X0INtRkh+DFWiy8OZ1LD9vygx1mWWgnKItHc/rPW0EaTmL1SrW4g14KKCpSc4+qr3v61azO4j7jVc8zWsS3GBpm+oNevhvK/mtZkS5ac2CMidXx3IHAldqi3">
-    <em:updates RDF:resource="rdf:#$mtJrB"/>
-  </RDF:Description>
   <RDF:Seq RDF:about="rdf:#$mtJrB">
     <RDF:li RDF:resource="rdf:#$ntJrB"/>
   </RDF:Seq>
   <RDF:Description RDF:about="rdf:#$qtJrB"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.5"
-                   em:maxVersion="9.*"
+                   em:maxVersion="10.*"
                    em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.9.4.xhtml"
-                   em:updateHash="sha1:02c312375165a3b42098c56073d89e6935d0b324" />
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/1.9.5.xhtml"
+                   em:updateHash="sha1:f7749a348cff939d1075174e83ab009a421155e6" />
+  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAMVviZC8egwok10zawQgz46gR8O506zGVIo+vTSZiWUj//IiNRHu8M5eK7R9cYaEG7L/kq49c7TXZQI1iKOxBzU+WvRWVFyQw9/Gz6/PInOWM5oCpx/EnNkFrF7h/sAxAQ9bhL4ajhhFeaXCkxfhzYDs/NVqVrZpMYKNDMY3d2RT">
+    <em:updates RDF:resource="rdf:#$mtJrB"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="rdf:#$ntJrB"
+                   em:version="1.9.5">
+    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
+  </RDF:Description>
 </RDF:RDF>
