@@ -16,6 +16,7 @@
         <em:contributor>hogelog</em:contributor>
         <em:contributor>tomykaira</em:contributor>
         <em:contributor>usk</em:contributor>
+        <em:contributor>Yuki Ibe</em:contributor>
         <em:homepageURL>https://wiki.github.com/mooz/keysnail/</em:homepageURL>
         <em:optionsURL>chrome://keysnail/content/preference.xul</em:optionsURL>
 	<em:iconURL>chrome://keysnail/skin/icon.png</em:iconURL>
@@ -36,6 +37,7 @@
                 <em:contributor>hogelog</em:contributor>
                 <em:contributor>tomykaira</em:contributor>
                 <em:contributor>usk</em:contributor>
+                <em:contributor>Yuki Ibe</em:contributor>
                 <em:description>JavaScript の関数をキーシーケンスに割り当て</em:description>
                 <em:homepageURL>https://wiki.github.com/mooz/keysnail/keysnail-japanese</em:homepageURL>
             </Description>
