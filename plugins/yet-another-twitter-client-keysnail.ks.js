@@ -1435,7 +1435,8 @@ var twitterClient =
                         lastIDHook : $U.bind(Notifier.updateAllListButtons, Notifier),
                         beginCount : gTimelineCountBeginning,
                         params     : {
-                            include_rts: !!pOptions["list_include_rts"]
+                            include_rts: !!pOptions["list_include_rts"],
+                            include_entities : true
                         }
                     }
                 );
@@ -2698,7 +2699,8 @@ var twitterClient =
                     params: {
                         rpp    : 100,
                         q      : word,
-                        max_id : opts.max_id
+                        max_id : opts.max_id,
+                        include_entities : true
                     },
                     ok: function (res, xhr) {
                         let results = ($U.decodeJSON( xhr.responseText) || {"results":[]}).results;
@@ -3190,7 +3192,8 @@ var twitterClient =
                         screen_name : target,
                         count       : gTimelineCountEveryUpdates,
                         max_id      : opts.max_id,
-                        include_rts : !!pOptions["user_include_rts"]
+                        include_rts : !!pOptions["user_include_rts"],
+                        include_entities : true
                     },
                     ok: function (res, xhr) {
                         var statuses = $U.decodeJSON(xhr.responseText) || [];
@@ -3224,67 +3227,136 @@ var twitterClient =
             _content.focus();
         }
 
-        function createMessage(msg, status) {
-            let specialPattern = /(@[a-zA-Z0-9_]+|((http|ftp)s?\:\/\/|www\.)[^\s]+)|(#[a-zA-Z0-9_]+)/g;
+        function createMessageNode(messageText, status) {
+            let messageNode = status.entities
+                    ? createMessageNodeFromEntities(messageText, status.entities)
+                    : createMessageNodeWithoutEntities(messageText);
 
-            let matched = msg.match(specialPattern);
-            let message = $U.createElement("description", {
-                style : "-moz-user-select : text !important;"
-            });
-
-            if (matched)
-            {
-                for (let i = 0; i < matched.length; ++i)
-                {
-                    let pos   = msg.indexOf(matched[i]);
-                    let left  = msg.slice(0, pos);
-                    let right = msg.slice(pos + matched[i].length);
-
-                    let url;
-                    let type =
-                        matched[i][0] === '@' ? "user" :
-                        matched[i][0] === '#' ? "hash" : "url";
-
-                    if (type === "user")
-                        url = "http://twitter.com/" + matched[i].slice(1);
-                    else if (type === "hash")
-                        url = "http://twitter.com/search?q=" + encodeURIComponent(matched[i]);
-                    else
-                    {
-                        url = matched[i];
-                        if (url.indexOf("www") === 0)
-                            url = "http://" + url;
-                    }
-
-                    message.appendChild(document.createTextNode(left));
-                    message.appendChild($U.createElement("description", {
-                        "class"       : gLinkClass,
-                        "tooltiptext" : url,
-                        "value"       : matched[i]
-                    }));
-
-                    msg = right;
-                }
-
-                if (msg.length)
-                    message.appendChild(document.createTextNode(msg));
-            }
-            else
-            {
-                message.appendChild(document.createTextNode(msg));
-            }
-
-            if (status.in_reply_to_status_id_str)
-            {
-                let url = "http://twitter.com/" + status.in_reply_to_screen_name + "/status/" + status.in_reply_to_status_id_str;
-                message.appendChild($U.createElement("description", {
+            if (status.in_reply_to_status_id_str) {
+                let url = util.format(
+                    "http://twitter.com/%s/status/%s",
+                    status.in_reply_to_screen_name,
+                    status.in_reply_to_status_id_str
+                );
+                messageNode.appendChild($U.createElement("description", {
                     "class"       : gLinkClass,
                     "tooltiptext" : url,
                     "value"       : "[in reply to]"
                 }));
             }
 
-            return message;
+            return messageNode;
+        }
+
+        function getSortedEntitiesWithType(entities) {
+            let sortedEntities = [[entityType, entityList] for ([entityType, entityList] in Iterator(entities))].reduce(
+                function (entityWithTypes, [entityType, entityList]) {
+                    return entityWithTypes.concat(entityList.map(function (entity) {
+                        return {
+                            type: entityType,
+                            entity: entity
+                        };
+                    }));
+                }, []
+            ).sort(function (entityWithType1, entityWithType2) {
+                return entityWithType1.entity.indices[0] > entityWithType2.entity.indices[0];
+            });
+
+            return sortedEntities;
+        }
+
+        function createMessageNodeFromEntities(messageText, entities) {
+            let messageNode = $U.createElement("description", {
+                style : "-moz-user-select : text !important;"
+            });
+
+            let cursor = 0;
+
+            let sortedEntitiesWithType = getSortedEntitiesWithType(entities);
+            sortedEntitiesWithType.forEach(function ({ type, entity }) {
+                let leftMessage = messageText.slice(cursor, entity.indices[0]);
+                messageNode.appendChild(document.createTextNode(leftMessage));
+
+                // move cursor
+                cursor = entity.indices[1];
+
+                switch (type) {
+                case "hashtags":
+                    messageNode.appendChild($U.createElement("description", {
+                        "class"       : gLinkClass,
+                        "tooltiptext" : "http://twitter.com/search?q=" + encodeURIComponent(entity.text),
+                        "value"       : "#" + entity.text
+                    }));
+                    break;
+                case "urls":
+                    messageNode.appendChild($U.createElement("description", {
+                        "class"       : gLinkClass,
+                        "tooltiptext" : entity.expanded_url,
+                        "value"       : decodeURIComponent(entity.expanded_url)
+                    }));
+                    break;
+                case "user_mentions":
+                    messageNode.appendChild($U.createElement("description", {
+                        "class"       : gLinkClass,
+                        "tooltiptext" : "http://twitter.com/" + entity.screen_name,
+                        "value"       : "@" + entity.screen_name
+                    }));
+                    break;
+                }
+            });
+
+            if (cursor < messageText.length) {
+                let rightMessage = messageText.slice(cursor);
+                messageNode.appendChild(document.createTextNode(rightMessage));
+            }
+
+            return messageNode;
+        }
+
+        function createMessageNodeWithoutEntities(messageText) {
+            let specialPattern = /(@[a-zA-Z0-9_]+|((http|ftp)s?\:\/\/|www\.)[^\s]+)|(#[a-zA-Z0-9_]+)/g;
+
+            let matched = messageText.match(specialPattern);
+            let messageNode = $U.createElement("description", {
+                style : "-moz-user-select : text !important;"
+            });
+
+            if (matched) {
+                for (let i = 0; i < matched.length; ++i) {
+                    let pos   = messageText.indexOf(matched[i]);
+                    let left  = messageText.slice(0, pos);
+                    let right = messageText.slice(pos + matched[i].length);
+
+                    let url;
+                    let type =
+                            matched[i][0] === '@' ? "user" :
+                            matched[i][0] === '#' ? "hash" : "url";
+
+                    if (type === "user")
+                        url = "http://twitter.com/" + matched[i].slice(1);
+                    else if (type === "hash")
+                        url = "http://twitter.com/search?q=" + encodeURIComponent(matched[i]);
+                    else {
+                        url = matched[i];
+                        if (url.indexOf("www") === 0)
+                            url = "http://" + url;
+                    }
+
+                    messageNode.appendChild(document.createTextNode(left));
+                    messageNode.appendChild($U.createElement("description", {
+                        "class"       : gLinkClass,
+                        "tooltiptext" : url,
+                        "value"       : matched[i]
+                    }));
+
+                    messageText = right;
+                }
+
+                if (messageText.length)
+                    messageNode.appendChild(document.createTextNode(messageText));
+            } else {
+                messageNode.appendChild(document.createTextNode(messageText));
+            }
         }
 
         function callSelector(aStatuses, aMessage, options) {
@@ -3450,7 +3522,7 @@ var twitterClient =
 
                         header.buttonTwitter.setAttribute("onclick", Commands.openLink('http://twitter.com/' + status.user.screen_name));
 
-                        header.userTweet.replaceChild(createMessage(html.unEscapeTag(status.text), status), header.userTweet.firstChild);
+                        header.userTweet.replaceChild(createMessageNode(html.unEscapeTag(status.text), status), header.userTweet.firstChild);
 
                         my.twitterClientHeaderUpdater = null;
                     }
