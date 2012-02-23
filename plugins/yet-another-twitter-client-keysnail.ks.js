@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.1.1</version>
+    <version>3.1.2</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -1481,7 +1481,11 @@ var twitterClient =
                         persist.preserve(share.twitterTrackingInfo, "yatck_tracking_info");
                     },
                     lastIDHook   : $U.bind(Notifier.updateAllTrackingButtons, Notifier),
-                    beginCount   : gTimelineCountBeginning
+                    beginCount   : gTimelineCountBeginning,
+                    params : {
+                        include_rts: !!pOptions["list_include_rts"],
+                        include_entities : true
+                    }
                 }
             );
         }
@@ -3353,6 +3357,8 @@ var twitterClient =
             } else {
                 messageNode.appendChild(document.createTextNode(messageText));
             }
+
+            return messageNode;
         }
 
         function extractAllURLsFromStatus(status) {
