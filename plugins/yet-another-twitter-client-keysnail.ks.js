@@ -1696,11 +1696,7 @@ var twitterClient =
              "search-word"],
             // ======================================== //
             [function (status) {
-                 if (status) {
-                     $U.extractLinks(status.text).forEach(function (url) {
-                         gBrowser.loadOneTab(url, null, null, null, false);
-                     });
-                 }
+                 if (status) openAllURLs(status.raw);
              }, M({ja: "メッセージ中の URL を開く : ", en: ""}) + "Visit URL in the message",
              "open-url,c"],
             // ======================================== //
@@ -3357,6 +3353,26 @@ var twitterClient =
             } else {
                 messageNode.appendChild(document.createTextNode(messageText));
             }
+        }
+
+        function extractAllURLsFromStatus(status) {
+            util.message("entities => " + status.entities);
+
+            if (status.entities) {
+                return getSortedEntitiesWithType(status.entities).filter(function ({ type, entity }) {
+                    return type === "urls";
+                }).map(function ({ type, entity }) {
+                    return entity.expanded_url;
+                });
+            } else {
+                return $U.extractLinks(status.text);
+            }
+        }
+
+        function openAllURLs(status) {
+            extractAllURLsFromStatus(status).forEach(function (url) {
+                gBrowser.loadOneTab(url, null, null, null, false);
+            });
         }
 
         function callSelector(aStatuses, aMessage, options) {
