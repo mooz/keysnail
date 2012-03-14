@@ -35,7 +35,7 @@ var PLUGIN_INFO =
     <name>Caret hint</name>
     <description>Move caret by hitting hints</description>
     <description lang="ja">ヒントを使ってキャレット移動</description>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/caret-hint.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/caret-hint.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -207,7 +207,7 @@ function getOption(aName) {
          if (select)
          {
              util.setBoolPref("accessibility.browsewithcaret", true);
-             content.document.documentElement.ksMarked = true;
+             content.document.documentElement.ksMarked = content.document.body.ksMarked = true;
          }
          else
          {
