@@ -3227,9 +3227,25 @@ var twitterClient =
             _content.focus();
         }
 
+        function getEntitiesFromStatus(status) {
+            let entities = {};
+
+            ["entities", "media"].forEach(function (entityContainerName) {
+                let entityContainer = status[entityContainerName];
+                if (status[entityContainerName]) {
+                    for (let [entityName, entity] in Iterator(entityContainer)) {
+                        entities[entityName] = entity;
+                    }
+                }
+            });
+
+            return entities;
+        }
+
         function createMessageNode(messageText, status) {
-            let messageNode = status.entities
-                    ? createMessageNodeFromEntities(messageText, status.entities)
+            let entities = getEntitiesFromStatus(status);
+            let messageNode = entities
+                    ? createMessageNodeFromEntities(messageText, entities)
                     : createMessageNodeWithoutEntities(messageText);
 
             if (status.in_reply_to_status_id_str) {
@@ -3289,6 +3305,7 @@ var twitterClient =
                     }));
                     break;
                 case "urls":
+                case "media":
                     messageNode.appendChild($U.createElement("description", {
                         "class"       : gLinkClass,
                         "tooltiptext" : entity.expanded_url,
@@ -3362,11 +3379,12 @@ var twitterClient =
         }
 
         function extractAllURLsFromStatus(status) {
-            util.message("entities => " + status.entities);
+            let entities = getEntitiesFromStatus(status);
 
-            if (status.entities) {
-                return getSortedEntitiesWithType(status.entities).filter(function ({ type, entity }) {
-                    return type === "urls";
+            if (entities) {
+                let sortedEntitiesWithType = getSortedEntitiesWithType(entities);
+                return sortedEntitiesWithType.filter(function ({ type, entity }) {
+                    return type === "urls" || type === "media";
                 }).map(function ({ type, entity }) {
                     return entity.expanded_url;
                 });
