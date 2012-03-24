@@ -3309,7 +3309,7 @@ var twitterClient =
                     messageNode.appendChild($U.createElement("description", {
                         "class"       : gLinkClass,
                         "tooltiptext" : entity.expanded_url,
-                        "value"       : decodeURIComponent(entity.expanded_url)
+                        "value"       : decodeURIComponent(entity.display_url)
                     }));
                     break;
                 case "user_mentions":
