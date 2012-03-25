@@ -3101,7 +3101,7 @@ var twitterClient =
                     }
 
                     util.httpGet(
-                        "https://api.twitter.com/1/statuses/show/" + from + ".json",
+                        "https://api.twitter.com/1/statuses/show/" + from + ".json?include_entities=true",
                         false,
                         function (xhr) {
                             if (xhr.status === 200) {
