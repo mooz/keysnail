@@ -1518,7 +1518,10 @@ var twitterClient =
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_status_id",
                 oauth      : gOAuth,
                 lastIDHook : $U.bind(Notifier.updateAllStatusbars, Notifier),
-                beginCount : gTimelineCountBeginning
+                beginCount : gTimelineCountBeginning,
+                params     : {
+                    include_entities : true
+                }
             }
         );
 
@@ -1530,7 +1533,10 @@ var twitterClient =
                 lastKey    : "extensions.keysnail.plugins.twitter_client.last_mention_id",
                 oauth      : gOAuth,
                 lastIDHook : $U.bind(Notifier.updateAllStatusbars, Notifier),
-                beginCount : gTimelineCountEveryUpdates
+                beginCount : gTimelineCountEveryUpdates,
+                params     : {
+                    include_entities : true
+                }
             }
         );
 
@@ -1543,7 +1549,10 @@ var twitterClient =
                 oauth      : gOAuth,
                 mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
                 lastIDHook : $U.bind(Notifier.updateAllStatusbars, Notifier),
-                beginCount : gTimelineCountEveryUpdates
+                beginCount : gTimelineCountEveryUpdates,
+                params     : {
+                    include_entities : true
+                }
             }
         );
 
@@ -1554,7 +1563,10 @@ var twitterClient =
                 interval   : pOptions["dm_update_interval"],
                 oauth      : gOAuth,
                 mapper     : function (statuses) statuses.map(function (status) (status.user = status.sender, status)),
-                beginCount : gTimelineCountEveryUpdates
+                beginCount : gTimelineCountEveryUpdates,
+                params     : {
+                    include_entities : true
+                }
             }
         );
 
@@ -3309,7 +3321,7 @@ var twitterClient =
                     messageNode.appendChild($U.createElement("description", {
                         "class"       : gLinkClass,
                         "tooltiptext" : entity.expanded_url,
-                        "value"       : entity.display_url
+                        "value"       : entity.display_url || entity.url
                     }));
                     break;
                 case "user_mentions":
@@ -3386,7 +3398,7 @@ var twitterClient =
                 return sortedEntitiesWithType.filter(function ({ type, entity }) {
                     return type === "urls" || type === "media";
                 }).map(function ({ type, entity }) {
-                    return entity.expanded_url;
+                    return entity.expanded_url || entity.url;
                 });
             } else {
                 return $U.extractLinks(status.text);
