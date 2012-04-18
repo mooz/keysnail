@@ -1474,7 +1474,7 @@ var twitterClient =
                     interval     : infoHolder["interval"] || pOptions["tracking_update_interval"],
                     oauth        : gOAuth,
                     countName    : "rpp",
-                    mapper       : function (response) response.results.map(filterSearchResult),
+                    mapper       : function (response) response.results.filter( function (st) {return st.text.indexOf("RT @") !== 0;} ).map(filterSearchResult),
                     getLastID    : function () infoHolder["lastID"],
                     setLastID    : function (v) {
                         infoHolder["lastID"] = v;
