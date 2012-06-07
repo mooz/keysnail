@@ -63,6 +63,12 @@ QueryReplacer.prototype = {
     this.limitEnd = this.currentText.length;
   },
 
+  get editor() {
+    this.input.QueryInterface(Ci.nsIDOMNSEditableElement);
+    this.input.editor.QueryInterface(Ci.nsIPlaintextEditor);
+    return this.input.editor;
+  },
+
   get replacingMessage() util.format("Query replacing %s with %s", this.fromText, this.toText),
 
   get regexpMode() this.fromText instanceof RegExp,
@@ -90,8 +96,7 @@ QueryReplacer.prototype = {
   },
 
   repaintSelection: function (input) {
-    input.QueryInterface(Ci.nsIDOMNSEditableElement);
-    var selectionController = input.editor.selectionController;
+    var selectionController = this.editor.selectionController;
     try {
       selectionController.setDisplaySelection(selectionController.SELECTION_ATTENTION);
       selectionController.repaintSelection(selectionController.SELECTION_NORMAL);
@@ -127,8 +132,6 @@ QueryReplacer.prototype = {
   },
 
   getReplacingText: function () {
-    var targetText = this.currentText.slice(this.nextFromTextPositionBegin,
-                                            this.nextFromTextPositionEnd);
     var replacingText = this.regexpMode
           ? this.currentText.slice(this.nextFromTextPositionBegin,
                                    this.nextFromTextPositionEnd).replace(this.fromText, this.toText)
@@ -139,15 +142,8 @@ QueryReplacer.prototype = {
 
   doReplace: function () {
     var replacingText = this.getReplacingText();
-
-    /* Replace */
-    var replacedText = this.currentText.slice(0, this.nextFromTextPositionBegin)
-          + replacingText
-          + this.currentText.slice(this.nextFromTextPositionEnd);
-    this.input.value = replacedText;
-
-    command.inputScrollSelectionIntoView(this.input);
-    this.caret = this.nextFromTextPositionBegin + replacingText.length;
+    this.selectNextFromText();
+    this.editor.insertText(replacingText);
   },
 
   skipReplace: function () {
