@@ -2,35 +2,34 @@
 
 let PLUGIN_INFO =
 <KeySnailPlugin>
-    <name>Expander</name>
+    <name>dabbrev</name>
     <description>Generate abbreviation.</description>
     <description lang="ja">動的略語展開</description>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/dabbrev.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/dabbrev.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>The MIT License</license>
     <license lang="ja">MIT ライセンス</license>
     <minVersion>1.2.4</minVersion>
-    <provides>
-        <ext>dabbrev-start</ext>
-    </provides>
-    <options>
-        <option>
-            <name>dmacro.predicate_length</name>
-            <type>number</type>
-            <description>Max length of the predicated repetetition (Default: 20)</description>
-            <description lang="ja">「次の動作を予測した繰り返し」において「操作の単位」とみなすキー入力数の上限</description>
-        </option>
-    </options>
     <detail><![CDATA[
 === Usage ===
 
-    ]]></detail>
-    <detail lang="ja"><![CDATA[
-=== 使い方 ===
+>|javascript|
+key.setEditKey('C-j', function (ev, arg) {
+    ext.exec("dabbrev-expand", arg, ev);
+}, 'Expand previous word "dynamically".');
+||<
 
-]]></detail>
+>|javascript|
+plugins.options["dabbrev.next_key"]   = "C-j";
+plugins.options["dabbrev.prev_key"]   = "C-k";
+plugins.options["dabbrev.candidates"] = [
+    "The quick brown fox jumps over the lazy dog",
+    "foo_bar_baz"
+];
+||<
+    ]]></detail>
 </KeySnailPlugin>;
 
 // }} ======================================================================= //
@@ -43,22 +42,28 @@ let PLUGIN_INFO =
 //
 // }} ======================================================================= //
 
-let optionsDefaultValue = {
-    "candidates"         : [],
-    "next_key"           : "M-/",
-    "prev_key"           : "M-S-/",
-    "use_migemo"         : true,
-    "cancel_key_on_exit" : false
-};
-
-function getOption(aName) {
-    let fullName = "dabbrev." + aName;
-
-    if (typeof plugins.options[fullName] !== "undefined")
-        return plugins.options[fullName];
-    else
-        return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
-}
+const pOptions = plugins.setupOptions("dabbrev", {
+    "candidates"         : {
+        preset: [],
+        description: "Preset snippets"
+    },
+    "next_key"           : {
+        preset: "M-/",
+        description: "Next key"
+    },
+    "prev_key"           : {
+        preset: "M-S-/",
+        description: "Previous key"
+    },
+    "use_migemo"         : {
+        preset: true,
+        description: "Use migemo while expanding abbreviations"
+    },
+    "cancel_key_on_exit" : {
+        preset: false,
+        description: "Do not pass exit key event to Firefox"
+    }
+}, PLUGIN_INFO);
 
 let counter =
     (function () {
@@ -92,8 +97,8 @@ let counter =
 
 let dabbrev =
     (function () {
-         const nextKey = getOption("next_key");
-         const prevKey = getOption("prev_key");
+         const nextKey = pOptions["next_key"];
+         const prevKey = pOptions["prev_key"];
 
          let currentQuery;
          let currentIndex;
@@ -246,7 +251,7 @@ let dabbrev =
                                     return true;
                             });
 
-             if (getOption("use_migemo") && "xulMigemoCore" in window)
+             if (pOptions["use_migemo"] && "xulMigemoCore" in window)
              {
                  let migexp = new RegExp("^(" + xulMigemoCore.getRegExp(query) + ")");
                  remains.forEach(function (s) { if (migexp.test(s)) matched.push(s); });
@@ -271,7 +276,7 @@ let dabbrev =
 
                  window.removeEventListener("keypress", arguments.callee, true);
 
-                 if (getOption("cancel_key_on_exit"))
+                 if (pOptions["cancel_key_on_exit"])
                  {
                      ev.stopPropagation();
                      ev.preventDefault();
@@ -295,7 +300,7 @@ let dabbrev =
 
          let original = {};
 
-         function start(input, abbrevsGetter) {
+         function start(input, abbrevsGetter, options) {
              key.passAllKeys = true;
 
              try
@@ -305,8 +310,8 @@ let dabbrev =
                  let query    = getQuery(input);
                  let cands    = split(input.value, acode);
 
-                 if (getOption("candidates") instanceof Array)
-                     cands = cands.concat(getOption("candidates"));
+                 if (pOptions["candidates"] instanceof Array)
+                     cands = cands.concat(pOptions["candidates"]);
 
                  let dabbrevs = reduceCandidates(cands, query);
 
@@ -449,13 +454,21 @@ plugins.dabbrev = dabbrev;
 
 // Add exts {{ ============================================================== //
 
-ext.add("dabbrev-expand", function (ev, arg) {
-            dabbrev.start(ev.originalTarget, function (query) {
-                              let engine = util.suggest.filterEngines(util.suggest.getEngines())[0];
+plugins.withProvides(function (provide) {
+    provide("dabbrev-expand-with-suggestions", function (ev, arg) {
+        dabbrev.start(ev.originalTarget, function (query) {
+            let engine = util.suggest.filterEngines(util.suggest.getEngines())[0];
 
-                              if (engine)
-                                  return util.suggest.getSuggestions(engine, query);
-                          });
-        }, "Expand previous word \"dynamically\".");
+            if (engine)
+                return util.suggest.getSuggestions(engine, query);
+        });
+    }, "Expand previous word \"dynamically\".");
+}, PLUGIN_INFO);
+
+plugins.withProvides(function (provide) {
+    provide("dabbrev-expand", function (ev, arg) {
+        dabbrev.start(ev.originalTarget);
+    }, "Expand previous word \"dynamically\".");
+}, PLUGIN_INFO);
 
 // }} ======================================================================= //
