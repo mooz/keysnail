@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>組み込みコマンドをエクステ化</name>
     <description>Make builtin commands to ext</description>
     <description lang="ja">組み込みコマンドをエクステ化します</description>
-    <version>1.0</version>
+    <version>1.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/builtin-commands-ext.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/builtin-commands-ext.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -33,6 +33,19 @@ key.setGlobalKey('M-x', function (aEvent, aArg) {
 ||<
 
 You can list all builtin commands by pressing M-x.
+
+=== Usage ===
+You can choose which ext to be fetched from buildin commands by setting ext_list option.
+
+>|javascript|
+plugins.options["builtin_commands_ext.ext_list"] = [
+    "back",
+    "open-url-from-clipboard",
+    "restart-firefox"
+];
+||<
+
+If the value is empty list, no ext is added. If the value is null, all commands are added as ext.
     ]]></detail>
     <detail lang="ja"><![CDATA[
 === 説明 ===
@@ -55,8 +68,32 @@ key.setGlobalKey('M-x', function (aEvent, aArg) {
 ||<
 
 こうすることにより M-x を入力することで組み込みコマンドを一覧表示し、実行することが可能となります。
+
+=== Usage ===
+ext_list オプションを設定することで、追加するコマンドを指定することができます。
+
+>|javascript|
+plugins.options["builtin_commands_ext.ext_list"] = [
+    "back",
+    "open-url-from-clipboard",
+    "restart-firefox"
+];
+||<
+
+空リストが設定された場合、エクステは追加されません。値として null が設定された場合、すべてのコマンドがエクステとして追加されます。
     ]]></detail>
 </KeySnailPlugin>;
+
+let pOptions = plugins.setupOptions("builtin_commands_ext", {
+    "ext_list": {
+        preset: null,
+        description: M({
+            ja: "組み込みコマンドから追加するエクステのリスト",
+            en: "List of exts you want to fetch from builtin commands"
+        }),
+        type: "array"
+    }
+}, PLUGIN_INFO);
 
 function main() {
     var bundleSvc = Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -76,6 +113,13 @@ function main() {
         return aProperty.replace(/_/g, "-");
     }
 
+    function strInArray(aArray, aString){
+        for(var i = 0; i < aArray.length; i++){
+            if(aArray[i] == aString){ return true; }
+        }
+        return false;
+    }
+
     var context = {
         __proto__ : KeySnail.modules
     };
@@ -90,10 +134,13 @@ function main() {
 
     for (let [, commands] in Iterator(context.ksBuiltin)) {
         for (var name in commands) {
-            if (name == "__mode__")
+            var ename = propertyToExtName(name);
+
+
+            if (name == "__mode__" || (pOptions["ext_list"] !== null && ! strInArray(pOptions["ext_list"], ename)))
                 continue;
 
-            ext.add(propertyToExtName(name),
+            ext.add(ename,
                     commands[name][0],
                     getLocaleString(name));
         }
