@@ -113,13 +113,6 @@ function main() {
         return aProperty.replace(/_/g, "-");
     }
 
-    function strInArray(aArray, aString){
-        for(var i = 0; i < aArray.length; i++){
-            if(aArray[i] == aString){ return true; }
-        }
-        return false;
-    }
-
     var context = {
         __proto__ : KeySnail.modules
     };
@@ -137,7 +130,7 @@ function main() {
             var ename = propertyToExtName(name);
 
 
-            if (name == "__mode__" || (pOptions["ext_list"] !== null && ! strInArray(pOptions["ext_list"], ename)))
+            if (name == "__mode__" || (pOptions["ext_list"] !== null && pOptions["ext_list"].indexOf(ename) < 0))
                 continue;
 
             ext.add(ename,
