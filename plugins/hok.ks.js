@@ -943,8 +943,18 @@ var hok = function () {
             hintColorLink : hintColorForm;
     }
 
+    function getAliveLastMatchHint() {
+        try {
+            if (lastMatchHint && lastMatchHint.style)
+                return lastMatchHint;
+        } catch (x) {
+            lastMatchHint = null;
+        }
+        return null;
+    }
+
     function blurHint() {
-        if (lastMatchHint)
+        if (getAliveLastMatchHint())
         {
             lastMatchHint.style.backgroundColor = getHintColor(lastMatchHint.element);
             lastMatchHint = null;
@@ -1099,7 +1109,7 @@ var hok = function () {
                 updateHeaderMatchHints();
             return;
         case 'Enter':
-            if (lastMatchHint) {
+            if (getAliveLastMatchHint()) {
                 let elem = lastMatchHint.element;
                 destruction();
                 fire(elem);
@@ -1125,7 +1135,7 @@ var hok = function () {
 
         // fire if hint is unique
         if (uniqueFire && !supressUniqueFire) {
-            if (foundCount == 1 && lastMatchHint) {
+            if (foundCount == 1 && getAliveLastMatchHint()) {
                 var targetElem = lastMatchHint.element;
                 destruction();
 
