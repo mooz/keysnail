@@ -56,6 +56,15 @@ const prompt = function () {
 
     // Saved last user focsed element
     var savedFocusedElement;
+    function savedFocusedElementLives() {
+        try {
+            var tryToAccessProperty = savedFocusedElement.focus;
+            return true;
+        } catch (x) {
+            savedFocusedElement = null;
+        }
+        return false;
+    }
 
     var cellStylist;
 
@@ -2999,7 +3008,7 @@ const prompt = function () {
             // continuous
             if (aAgain)
             {
-                if (savedFocusedElement)
+                if (savedFocusedElementLives())
                     savedFocusedElement.focus();
                 executeCallback(savedCallback, callbackArg);
                 textbox.focus();
@@ -3017,7 +3026,7 @@ const prompt = function () {
              * e.g. opening the URL in a new tab,
              * and the window.focus() does not work that time.
              */
-            if (savedFocusedElement)
+            if (savedFocusedElementLives())
             {
                 savedFocusedElement.focus();
                 savedFocusedElement = null;
