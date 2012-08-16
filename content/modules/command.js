@@ -1156,8 +1156,13 @@ const command = {
         {
             aProcess.call(this, input, subword, selected, current);
             // recover scroll position
-
-            this.inputScrollSelectionIntoView(input);
+            if (aInput.nodeName === "html:input" && !oldScrollLeft && !oldScrollTop)
+                this.inputScrollSelectionIntoView(input);
+            else
+            {
+                input.scrollLeft = oldScrollLeft;
+                input.scrollTop  = oldScrollTop;
+            }
         }
     },
 
