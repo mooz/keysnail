@@ -16,7 +16,7 @@ let ksUpdatePluginDialog = (function () {
             return new Plugin(script);
 
         this.script = script;
-        this.info   = script.info;
+        this.info   = script.pluginInfo;
         this.path   = script.path;
         this.elem   = elementFromInfo(this.info);
 
@@ -30,14 +30,13 @@ let ksUpdatePluginDialog = (function () {
 
     const defaultIconURL = "chrome://keysnail/skin/script.png";
 
-    function elementFromInfo(info) {
-        function getString(name) L(util.xmlGetLocaleString(info[name]));
+    function elementFromInfo(pluginInfo) {
+        let iconURL     = pluginInfo.iconURL;
+        let name        = pluginInfo.name;
+        let version     = pluginInfo.version;
+        let description = pluginInfo.description;
 
-        let iconURL     = getString("iconURL") || defaultIconURL;
-        let name        = getString("name");
-        let version     = getString("version");
-        let description = getString("description");
-
+        // FIXME: E4X
         let elem = util.xmlToDom(
             <richlistitem class="plugin-info-box">
                 <hbox>
@@ -58,7 +57,7 @@ let ksUpdatePluginDialog = (function () {
                         </vbox>
                     </hbox>
                 </hbox>
-            </richlistitem>
+            </richlistitem> + ""
         , null, document);
 
         return elem;

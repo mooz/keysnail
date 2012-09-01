@@ -1,28 +1,19 @@
 var ksInstallPluginDialog = function () {
     var modules;
 
-    var dom;
+    var elementContainer;
     var pluginPath;
 
-    var defaultIconURL = "chrome://keysnail/skin/script.png";
-
     function setInfo() {
-        var xml = window.arguments[0].xml;
+        var pluginInfo = window.arguments[0].pluginInfo;
 
-        if (!xml)
+        if (!pluginInfo)
             return;
 
-        function setAttributeFromXml(destination, attribute, xml) {
-            destination.setAttribute(attribute, modules.util.xmlGetLocaleString(xml));
-        }
-
-        setAttributeFromXml(dom["plugin-info-name"]        , "value", xml.name);
-        setAttributeFromXml(dom["plugin-info-description"] , "value", xml.description);
-        setAttributeFromXml(dom["plugin-info-version"]     , "value", xml.version);
-
-        dom["plugin-info-icon"].setAttribute("src",
-                                             modules.util.xmlGetLocaleString(xml.iconURL) ||
-                                             defaultIconURL);
+        elementContainer["plugin-info-name"].setAttribute("value", pluginInfo.name);
+        elementContainer["plugin-info-description"].setAttribute("value", pluginInfo.description);
+        elementContainer["plugin-info-version"].setAttribute("value", pluginInfo.version);
+        elementContainer["plugin-info-icon"].setAttribute("src", pluginInfo.iconURL);
     }
 
     function createScriptItem(aURL) {
@@ -49,22 +40,19 @@ var ksInstallPluginDialog = function () {
     }
 
     function setScriptList() {
-        var xml       = window.arguments[0].xml;
-        var pluginURL = window.arguments[0].pluginURL;
+        var pluginInfo = window.arguments[0].pluginInfo;
+        var pluginURL  = window.arguments[0].pluginURL;
 
-        if (!xml)
+        if (!pluginInfo)
             return;
 
         var item;
 
-        dom["plugin-script-list"].appendChild(
-            createScriptItem(pluginURL));
+        elementContainer["plugin-script-list"].appendChild(createScriptItem(pluginURL));
 
-        for (let [, script] in Iterator(xml.require.script))
-        {
-            dom["plugin-script-list"].appendChild(
-                createScriptItem(script.text()));
-        }
+        pluginInfo.requiredScripts.forEach(function (scriptURL) {
+            elementContainer["plugin-script-list"].appendChild(createScriptItem(scriptURL));
+        });
     }
 
     var self = {
@@ -78,13 +66,11 @@ var ksInstallPluginDialog = function () {
                        "plugin-info-description",
                        "plugin-script-list",
                        "plugin-info-version"];
-            dom = new Object();
+            elementContainer = new Object();
 
-            ids.forEach(
-                function (id) {
-                    dom[id] = document.getElementById(id);
-                }
-            );
+            ids.forEach(function (id) {
+                elementContainer[id] = document.getElementById(id);
+            });
 
             pluginPath = window.arguments[0].pluginPath;
             setInfo();
@@ -114,8 +100,8 @@ var ksInstallPluginDialog = function () {
 }();
 
 (function () {
-     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-         .getService(Components.interfaces.nsIWindowMediator);
-     var browserWindow = wm.getMostRecentWindow("navigator:browser");
-     ksInstallPluginDialog.modules = browserWindow.KeySnail.modules;
- })();
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+            .getService(Components.interfaces.nsIWindowMediator);
+    var browserWindow = wm.getMostRecentWindow("navigator:browser");
+    ksInstallPluginDialog.modules = browserWindow.KeySnail.modules;
+})();

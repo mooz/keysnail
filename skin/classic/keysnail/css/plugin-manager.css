@@ -18,3 +18,39 @@ description.plugin-name {
 hbox#plugin-button-container {
     padding: 5px;
 }
+
+/* Hide buttons for not selected items */
+.plugin-listitem button {
+    display : none;
+}
+
+.plugin-listitem[selected="true"] button {
+    display : block;
+}
+
+.plugin-listitem[data-plugin-status="enabled"] button.enable-button,
+.plugin-listitem[data-plugin-status="disabled"] button.disable-button {
+    display : none;
+}
+
+.plugin-listitem[data-plugin-status="not-compatible"] button.enable-button,
+.plugin-listitem[data-plugin-status="not-compatible"] button.disable-button {
+    display : none;
+}
+
+/* Opacity */
+
+/* On */
+.plugin-listitem[data-plugin-status="disabled"] description,
+.plugin-listitem[data-plugin-status="disabled"] image {
+    opacity : 0.4;
+}
+
+/* Not */
+.not-compatible-notification {
+    font-weight : bold;
+}
+.plugin-listitem[data-plugin-status="enabled"] .not-compatible-notification,
+.plugin-listitem[data-plugin-status="disabled"] .not-compatible-notification {
+    display : none;
+}

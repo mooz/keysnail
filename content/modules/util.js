@@ -1412,14 +1412,17 @@ const util = function () {
          * @param {} xmlns
          * @returns {}
          */
-        xmlToDom: function (xml, xmlns, doc) {
+        xmlToDom: function (xmlString, xmlns, doc) {
             if (!xmlns)
                 xmlns = this.XUL;
+
+            if (typeof xmlString === "xml")
+                xmlString = xmlString.toXMLString();
 
             doc = doc || document;
 
             var docElem = (new DOMParser).parseFromString(
-                '<root xmlns="' + xmlns + '">' + xml.toXMLString() + "</root>", "application/xml"
+                '<root xmlns="' + xmlns + '">' + xmlString + "</root>", "application/xml"
             ).documentElement;
             var imported = document.importNode(docElem, true);
             var range = document.createRange();

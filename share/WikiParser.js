@@ -136,7 +136,7 @@ WikiParser.prototype = {
         }
         //} catch (e){ alert(num + ":"+ e); }
         this.xmlstack.reorg();
-        return this.xmlstack.last;
+        return this.xmlstack.last.toString();
     }
 };
 

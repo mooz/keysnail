@@ -630,7 +630,7 @@
                 userscript.installPluginAndRequiredFiles({
                     name           : util.getLeafNameFromURL(util.pathToURL(script.path)),
                     code           : script.code,
-                    info           : script.info,
+                    pluginInfo     : script.pluginInfo,
                     forceOverWrite : true,
                     next           : function (succeeded) {
                         if (typeof next === "function")
