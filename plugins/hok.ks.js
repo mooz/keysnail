@@ -1,11 +1,11 @@
 // Plugin info {{ =========================================================== //
 
-const PLUGIN_INFO =
+var PLUGIN_INFO =
 <KeySnailPlugin>
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクを開く</description>
-    <version>1.3.3</version>
+    <version>1.3.5</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -396,6 +396,15 @@ const pOptions = plugins.setupOptions("hok", {
             ja: "現在の入力から始まる候補一覧の色"
         }),
         type: "string"
+    },
+
+    "hide_unmatched_hint" : {
+        preset: true,
+        description: M({
+            en: "Hide unmatched hints or not",
+            ja: "マッチしないヒントを隠すかどうか"
+        }),
+        type: "boolean"
     },
 
     "hint_base_style" : {
@@ -987,6 +996,7 @@ var hok = function () {
     }
 
     function updateHeaderMatchHints() {
+        const hideUnmatchedHint = pOptions["hide_unmatched_hint"];
         let foundCount = 0;
 
         for (let [hintStr, hintElem] in Iterator(hintElements)) {
@@ -995,6 +1005,8 @@ var hok = function () {
                     hintElem.style.backgroundColor = hintColorCandidates;
                 foundCount++;
             } else {
+                if (hideUnmatchedHint)
+                    hintElem.hidden = true;
                 hintElem.style.backgroundColor = getHintColor(hintElem.element);
             }
         }
@@ -1003,8 +1015,10 @@ var hok = function () {
     }
 
     function resetHintsColor() {
-        for (let [, span] in Iterator(hintElements))
+        for (let [, span] in Iterator(hintElements)) {
             span.style.backgroundColor = getHintColor(span.element);
+            span.hidden = false;
+        }
     }
 
     function removeHints(win) {
