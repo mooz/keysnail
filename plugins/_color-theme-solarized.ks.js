@@ -34,33 +34,35 @@ let PLUGIN_INFO =
 
     function arrange(seed) {
         let colors = [
-            ["%FG%"              , $base0],
-            ["%FG_SELECTED_ROW%" , $base0],
+            ["%FG%"              , $base1],
+            ["%FG_SELECTED_ROW%" , $base3],
             ["%BG%"              , $base03],
-            ["%BG_SELECTED_ROW%" , $base02],
+            ["%BG_SELECTED_ROW%" , $base01],
             ["%BG_INPUT%"        , $base02],
             ["%BG_INPUT_FOCUS%"  , $base02],
-            ["%FG_MESSAGE%"      , $orange],
-            ["%FG_HOVER%"        , $orange],
+            ["%FG_MESSAGE%"      , $green],
+            ["%FG_HOVER%"        , $green],
             ["%FG_HEADER%"       , $magenta],
             ["%BORDER_HEADER%"   , $magenta],
             ["%BORDER_BOTTOM%"   , $magenta],
             ["%LINK_BASE%"       , $blue],
-            ["%LINK_HOVER%"      , $blue]
+            ["%LINK_HOVER%"      , $cyan]
         ];
 
         colors.forEach(function ([k, v]) { seed = seed.replace(k, v, "g"); } );
         return seed;
     }
 
+    function color(colorName) "color:" + colorName + ";";
+
     let ooo = {
         "twitter_client": {
             "unread_message_style"                  : "text-decoration:underline;",
             "normal_tweet_style"                    : "color:%FG%;",
-            "my_tweet_style"                        : "color:#7ad3f2;",
-            "reply_to_me_style"                     : "color:#f279d2;",
-            "retweeted_status_style"                : "color:#d2f279;",
-            "selected_row_style"                    : "color:%FG%; background-color:%BG_SELECTED_ROW%;",
+            "my_tweet_style"                        : color($blue),
+            "reply_to_me_style"                     : color($magenta),
+            "retweeted_status_style"                : color($green),
+            "selected_row_style"                    : "color:%FG_SELECTED_ROW%; background-color:%BG_SELECTED_ROW%;",
             "selected_user_style"                   : "color:%FG%; background-color:rgba(60,76,82,0.4);",
             "selected_user_reply_to_style"          : "color:%FG%; background-color:rgba(82,60,76,0.4);",
             "selected_user_reply_to_reply_to_style" : "color:%FG%; background-color:rgba(79,60,82,0.4);",
@@ -68,23 +70,21 @@ let PLUGIN_INFO =
         }
     };
 
-    function color(colorName) "color:" + colorName + ";";
+    style.prompt["default"]     = color($base0);
+    style.prompt["description"] = color($base1);
+    style.prompt["url"]         = color($cyan) + "text-decoration:underline;";
+    style.prompt["engine"]      = color($blue);
+    style.prompt["bookmark"]    = color($orange);
+    style.prompt["history"]     = color($green);
 
-    style.prompt["default"]     = "color:#e2e2e2;";
-    style.prompt["description"] = "color:#abbac0;";
-    style.prompt["url"]         = "color:#98d3e7;text-decoration:underline;";
-    style.prompt["engine"]      = "color:#1782de;";
-    style.prompt["bookmark"]    = "color:#f14b0d;";
-    style.prompt["history"]     = "color:#62e500;";
-
-    style.js["function"]  = "color:#1782de;";
-    style.js["object"]    = "color:#f14b0d;";
-    style.js["string"]    = "color:#62e500;";
-    style.js["xml"]       = "color:#6621dd;";
-    style.js["number"]    = "color:#b616e7;";
-    style.js["boolean"]   = "color:#e63535;";
-    style.js["undefined"] = "color:#e000a5;";
-    style.js["null"]      = "color:#07d8a8;";
+    style.js["function"]  = color($blue);
+    style.js["object"]    = color($orange);
+    style.js["string"]    = color($green);
+    style.js["xml"]       = color($violet);
+    style.js["number"]    = color($magenta);
+    style.js["boolean"]   = color($yellow);
+    style.js["undefined"] = color($red);
+    style.js["null"]      = color($cyan);
 
     for (let [prefix, opts] in Iterator(ooo))
         for (let [k, v] in Iterator(opts))
@@ -159,8 +159,8 @@ let PLUGIN_INFO =
     /* Bottom line */
     listbox#keysnail-completion-list
     {
-        border-bottom : 1px solid %FG_HOVER% !important;
-        margin        : 0px                  !important;
+        border-bottom : 1px solid %FG_HEADER% !important;
+        margin        : 0px                   !important;
     }
 
     /* Header */
