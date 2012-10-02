@@ -2,7 +2,7 @@ let PLUGIN_INFO =
         <KeySnailPlugin>
         <name>Color Theme Solarized</name>
         <description>A color scheme inspired by Solarized</description>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
         <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_color-theme-solarized.ks.js</updateURL>
         <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_color-theme-solarized.icon.png</iconURL>
         <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -91,6 +91,16 @@ let PLUGIN_INFO =
             plugins.options[prefix + "." + k] = arrange(v);
 
     let colorThemeSolarized = arrange(<><![CDATA[
+    /* font size */
+    #keysnail-prompt,
+    #keysnail-prompt textbox,
+    listbox#keysnail-completion-list,
+    listbox#keysnail-completion-list listheader,
+    #keysnail-twitter-client-user-tweet
+    {
+        font-size : 110% !important;
+    }
+
     /* charm */
     #keysnail-prompt,
     #keysnail-prompt textbox,
@@ -164,15 +174,24 @@ let PLUGIN_INFO =
     }
 
     /* Header */
-    listbox#keysnail-completion-list listheader
+    listbox#keysnail-completion-list listhead
     {
-        font-size                 : 110% !important;
-        font-weight               : bold                      !important;
-        padding                   : 2px                       !important;
-        color                     : %FG_HEADER%               !important;
+        padding                   : 2px 0px                   !important;
+        margin                    : 2px 0px 4px 0px           !important;
         border-bottom             : 1px solid %BORDER_HEADER% !important;
         -moz-border-bottom-colors : %BORDER_HEADER%           !important;
-        margin-bottom             : 4px                       !important;
+    }
+
+    /* Header Cell */
+    listbox#keysnail-completion-list listheader {
+        font-weight               : bold                      !important;
+        color                     : %FG_HEADER%               !important;
+    }
+
+    /* Completion List */
+    listbox#keysnail-completion-list listcell
+    {
+        padding: 2px 0px !important;
     }
     ]]></>.toString());
 
