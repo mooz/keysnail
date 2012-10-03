@@ -120,7 +120,7 @@ let PLUGIN_INFO =
     listbox#keysnail-completion-list listheader,
     #keysnail-twitter-client-user-tweet
     {
-        font-family      : Monaco, Consolas, "Bitstream Vera Sans Mono", monospace !important;
+        font-family      : "Consolas", "Bitstream Vera Sans Mono", "Menlo", "Courier New", monospace !important;
         background-color : %BG% !important;
         color            : %FG% !important;
     }
