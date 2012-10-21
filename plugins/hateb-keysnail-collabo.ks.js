@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.3.0</version>
+    <version>1.3.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -125,6 +125,16 @@ plugins.withProvides(function (provide) {
     }, M({
         ja: "このページをはてなブックマークに追加",
         en: 'Add this page to the hatena bookmark'
+    }));
+
+    provide("hateb-bookmark-this-page-private", function (ev, arg) {
+        addBookMark({
+            postTwitter: arg,
+            isPrivate: true
+        });
+    }, M({
+        ja: "このページをはてなブックマークに追加（非公開）",
+        en: 'Add this page to the hatena bookmark (private)'
     }));
 
     provide("hatebnail-login", loginWithPrompt, M({
@@ -269,7 +279,9 @@ function addBookMark(options) {
     function inputPost(aInit) {
         aInit = aInit || "";
 
-        let message = util.format("add bookmark%s:", options.postTwitter ? " (+ tweet)" : "");
+        let message = util.format("add %sbookmark%s:",
+                                  options.isPrivate ? "*PRIVATE* " : "",
+                                  options.postTwitter ? " (+ tweet)" : "");
 
         prompt.reader({
             message      : message,
@@ -286,8 +298,11 @@ function addBookMark(options) {
                 let command = new hBookmark.RemoteCommand("edit", {
                     bookmark: bookmark,
                     sendMail: options.sendMail,
+                    isPrivate: options.isPrivate,
+                    postFacebook: options.postFacebook,
+                    postEvernote: options.postEvernote,
                     postTwitter: options.postTwitter,
-                    postMixiCheck: options.postMixiCheckCheck,
+                    postMixiCheck: options.postMixiCheck,
                     onComplete: function () {
                         hBookmark.HTTPCache.entry.clear(bookmark.url);
                         display.showPopup(M({ja: "ブックマークに追加しました", en: "Bookmarked"}), title, {
