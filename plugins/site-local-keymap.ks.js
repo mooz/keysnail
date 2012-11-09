@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.1.2</version>
+    <version>1.1.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -45,20 +45,20 @@ function pass(k, i) [k, fake(k, i)];
 function ignore(k, i) [k, null];
 
 local["^https?://mail.google.com/mail/"] = [
-    pass(['g', 'i'], 3),
-    pass(['g', 's'], 3),
-    pass(['g', 't'], 3),
-    pass(['g', 'd'], 3),
-    pass(['g', 'a'], 3),
-    pass(['g', 'c'], 3),
-    pass(['g', 'k'], 3),
+    pass(['g', 'i']),
+    pass(['g', 's']),
+    pass(['g', 't']),
+    pass(['g', 'd']),
+    pass(['g', 'a']),
+    pass(['g', 'c']),
+    pass(['g', 'k']),
     // thread list
-    pass(['*', 'a'], 3),
-    pass(['*', 'n'], 3),
-    pass(['*', 'r'], 3),
-    pass(['*', 'u'], 3),
-    pass(['*', 's'], 3),
-    pass(['*', 't'], 3),
+    pass(['*', 'a']),
+    pass(['*', 'n']),
+    pass(['*', 'r']),
+    pass(['*', 'u']),
+    pass(['*', 's']),
+    pass(['*', 't']),
     // navigation
     ['u', null],
     ['k', null],
@@ -86,7 +86,7 @@ local["^https?://mail.google.com/mail/"] = [
     ['f', null],
     ['F', null],
     ['N', null],
-    pass(['<tab>', 'RET'], 3),
+    pass(['<tab>', 'RET']),
     ['ESC', null],
     [']', null],
     ['[', null],
@@ -186,20 +186,20 @@ function pass(k, i) [k, fake(k, i)];
 function ignore(k, i) [k, null];
 
 local["^https?://mail.google.com/mail/"] = [
-    pass(['g', 'i'], 3),
-    pass(['g', 's'], 3),
-    pass(['g', 't'], 3),
-    pass(['g', 'd'], 3),
-    pass(['g', 'a'], 3),
-    pass(['g', 'c'], 3),
-    pass(['g', 'k'], 3),
+    pass(['g', 'i']),
+    pass(['g', 's']),
+    pass(['g', 't']),
+    pass(['g', 'd']),
+    pass(['g', 'a']),
+    pass(['g', 'c']),
+    pass(['g', 'k']),
     // thread list
-    pass(['*', 'a'], 3),
-    pass(['*', 'n'], 3),
-    pass(['*', 'r'], 3),
-    pass(['*', 'u'], 3),
-    pass(['*', 's'], 3),
-    pass(['*', 't'], 3),
+    pass(['*', 'a']),
+    pass(['*', 'n']),
+    pass(['*', 'r']),
+    pass(['*', 'u']),
+    pass(['*', 's']),
+    pass(['*', 't']),
     // navigation
     ['u', null],
     ['k', null],
@@ -227,7 +227,7 @@ local["^https?://mail.google.com/mail/"] = [
     ['f', null],
     ['F', null],
     ['N', null],
-    pass(['<tab>', 'RET'], 3),
+    pass(['<tab>', 'RET']),
     ['ESC', null],
     [']', null],
     ['[', null],
@@ -512,6 +512,10 @@ var siteLocalKeymap =
              }
          }
 
+         function checkLocationNow() {
+             locationChangeHandler({spec : window.content.location.href});
+         }
+
          function toggleStatus() {
              if (self.status)
              {
@@ -524,7 +528,7 @@ var siteLocalKeymap =
              {
                  // enable
                  self.status = true;
-                 locationChangeHandler({spec : window.content.location.href});
+                 checkLocationNow();
              }
 
              gBrowser.focus();
@@ -546,6 +550,7 @@ var siteLocalKeymap =
 
              init: function () {
                  processLocalKeyMap();
+                 checkLocationNow();
              },
 
              toggleStatus: toggleStatus
