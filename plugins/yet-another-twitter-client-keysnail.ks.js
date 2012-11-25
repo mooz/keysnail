@@ -2157,15 +2157,65 @@ var twitterClient =
 
             let labelTimeline = M({ja: "タイムライン", en: "Timeline"});
 
+            if (!share.ksYatckStyleRegistered)
+            {
+                style.register(_.template("" + <![CDATA[
+                    #yatck-header {
+                        margin-left  : 4px;
+                        margin-right : 4px;
+                        overflow:auto;
+                    }
+
+                    #<%= HEAD_USER_NAME %> {
+                        font-weight : bold;
+                        margin      : 0px 4px;
+                    }
+
+                    #<%= HEAD_USER_ICON %> {
+                        border-left   : 1px solid ThreeDShadow;
+                        border-top    : 1px solid ThreeDShadow;
+                        border-right  : 1px solid ThreeDHighlight;
+                        border-bottom : 1px solid ThreeDHighlight;
+                        width         : 46px;
+                        height        : 46px;
+                        margin-left   : 4px;
+                        margin-right  : 4px;
+                    }
+
+                    #<%= HEAD_USER_TWEET %> {
+                        background-color : white;
+                        height           : 50px;
+                        margin           : 0 4px 4px 4px;
+                        border-left      : 1px solid ThreeDShadow;
+                        border-top       : 1px solid ThreeDShadow;
+                        border-right     : 1px solid ThreeDHighlight;
+                        border-bottom    : 1px solid ThreeDHighlight;
+                        resize           : vertical;
+                        overflow         : auto;
+                    }
+
+                    #yatck-header toolbarseparator {
+                        height  : 16px;
+                        margin  : 0 4px;
+                        padding : 0;
+                    }
+
+                    #yatck-header toolbarseparator[id] {
+                        margin : 0 2px;
+                    }
+                ]]>)({
+                  HEAD_USER_NAME  : HEAD_USER_NAME,
+                  HEAD_USER_ICON  : HEAD_USER_ICON,
+                  HEAD_USER_TWEET : HEAD_USER_TWEET
+                }));
+
+                share.ksYatckStyleRegistered = true;
+            }
+
             let containerXML =
-                <vbox style="margin-left  : 4px;
-                             margin-right : 4px;
-                             overflow:auto;"
-                      >
+                <vbox id="yatck-header">
                     <hbox align="center" flex="1">
-                        <description style="font-weight : bold;
-                                            margin      : 0px 4px;"
-                                     id={HEAD_USER_NAME} />
+                        <description id={HEAD_USER_NAME} />
                         <spacer flex="1" />
                         <!-- misc -->
                         <toolbarbutton label="Home"
@@ -2184,19 +2234,19 @@ var twitterClient =
                                        image={MESSAGE_ICON}
                                        oncommand={root + ".showDMs();"}
                                        />
-                        <toolbarseparator style="height : 16px; margin : 0 4px; padding : 0;" />
+                        <toolbarseparator />
                         <!-- limit -->
                         <image src={LIMIT_ICON} style="margin-right: 4px;"/>
                         <description style="margin:auto 4px;" id={HEAD_API_USAGE} />
-                        <toolbarseparator style="height : 16px; margin : 0 4px; padding : 0;" />
+                        <toolbarseparator />
                         <!-- misc -->
                         <toolbarbutton tooltiptext={tooltipTextClose} class="tab-close-button"
                                        oncommand="KeySnail.modules.prompt.finish(true);" />
                     </hbox>
                     <hbox id={HEAD_CRAWLER_BUTTON_CONTAINER}>
                         <spacer flex="1" />
-                        <toolbarseparator id={HEAD_LIST_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
-                        <toolbarseparator id={HEAD_SEARCH_ORIGIN} style="height : 16px; margin : 0 2px; padding : 0;" />
+                        <toolbarseparator id={HEAD_LIST_ORIGIN} />
+                        <toolbarseparator id={HEAD_SEARCH_ORIGIN} />
                         <toolbarbutton id={HEAD_ADD_SEARCH}
                                        image={SEARCH_ADD_ICON}
                                        tooltiptext={tooltipTextAddTracking}
@@ -2204,15 +2254,7 @@ var twitterClient =
                     </hbox>
                     <hbox align="center" flex="1">
                         <vbox align="center">
-                            <image style="border-left   : 1px solid ThreeDShadow;
-                                          border-top    : 1px solid ThreeDShadow;
-                                          border-right  : 1px solid ThreeDHighlight;
-                                          border-bottom : 1px solid ThreeDHighlight;
-                                          width         : 46px;
-                                          height        : 46px;
-                                          margin-left   : 4px;
-                                          margin-right  : 4px;"
-                                   id={HEAD_USER_ICON} />
+                            <image id={HEAD_USER_ICON} />
                         </vbox>
                         <vbox align="center" id={HEAD_USER_INFO} >
                             <vbox align="center">
@@ -2226,16 +2268,7 @@ var twitterClient =
                         </vbox>
                         <vbox flex="1"
                               onclick={root + ".tweetBoxClicked(event);"}
-                              id={HEAD_USER_TWEET}
-                              style="background-color : white;
-                                     height           : 50px;
-                                     margin           : 0 4px 4px 4px;
-                                     border-left      : 1px solid ThreeDShadow;
-                                     border-top       : 1px solid ThreeDShadow;
-                                     border-right     : 1px solid ThreeDHighlight;
-                                     border-bottom    : 1px solid ThreeDHighlight;
-                                     overflow         : auto;"
-                              >
+                              id={HEAD_USER_TWEET}>
                             <description />
                         </vbox>
                     </hbox>
