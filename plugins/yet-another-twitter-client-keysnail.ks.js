@@ -535,7 +535,7 @@ const $U = {
 
     insertAfter:
     function insertAfter(parent, node, referenceNode) {
-	parent.insertBefore(node, referenceNode.nextSibling);
+        parent.insertBefore(node, referenceNode.nextSibling);
     },
 
     shortenURL:
