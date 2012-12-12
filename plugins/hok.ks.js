@@ -447,11 +447,11 @@ const pOptions = plugins.setupOptions("hok", {
     },
 
     "follow_link_nextpattern": {
-        preset: "\\bnext\\b|\\bnewer\\b|\\bmore\\b|→|>>|≫|»|^>$|^次|進む|^つぎへ|続"
+        preset: "\\bnext\\b|\\bnewer\\b|\\bmore\\b|→$|>>$|≫$|»$|^>$|^次|進む|^つぎへ|続"
     },
 
     "follow_link_prevpattern": {
-        preset: "\\bback\\b|\\bprev\\b|\\bprevious\\b|\\bolder|←|<<|≪|«|^<$|戻る|^もどる|^前.*|^<前"
+        preset: "\\bback\\b|\\bprev\\b|\\bprevious\\b|\\bolder|^←|^<<|^≪|^«|^<$|戻る|^もどる|^前.*|^<前"
     },
 
     "follow_link_nextrel_selector": {
