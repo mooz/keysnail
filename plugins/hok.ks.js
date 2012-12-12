@@ -444,6 +444,26 @@ const pOptions = plugins.setupOptions("hok", {
             en: "Make unique hints only (Free from Enter key)",
             ja: "必ずユニークなヒントを生成する (Enter を押す必要が無くなる)"
         })
+    },
+
+    "follow_link_nextpattern": {
+        preset: "\\bnext\\b|\\bnewer\\b|\\bmore\\b|→|>>|≫|»|^>$|^次|進む|^つぎへ|続"
+    },
+
+    "follow_link_prevpattern": {
+        preset: "\\bback\\b|\\bprev\\b|\\bprevious\\b|\\bolder|←|<<|≪|«|^<$|戻る|^もどる|^前.*|^<前"
+    },
+
+    "follow_link_nextrel_selector": {
+        preset: "a[rel='next']"
+    },
+
+    "follow_link_prevrel_selctor": {
+        preset: "a[rel='prev']"
+    },
+
+    "follow_link_candidate_selector": {
+        preset: "a[href], input:not([type='hidden']), button"
     }
 }, PLUGIN_INFO);
 
@@ -546,6 +566,27 @@ function followLink(elem, where) {
             });
     }
     catch (x) {}
+}
+
+// Follow previous / next
+function followRel(doc, rel, pattern) {
+    let target  = doc.querySelector(rel);
+    if (target) {
+        followLink(target, CURRENT_TAB);
+        return;
+    }
+
+    let relLinkPattern   = new RegExp(pattern, "i");
+    let relLinkCandidates = Array.slice(
+        doc.querySelectorAll(pOptions["follow_link_candidate_selector"])
+    );
+
+    for (let [, elem] in Iterator(relLinkCandidates.reverse())) {
+        if (relLinkPattern.test(elem.textContent) /*|| regex.test(elem.value) */) {
+            followLink(elem, CURRENT_TAB);
+            return;
+        }
+    }
 }
 
 function openContextMenu(elem) {
@@ -1385,6 +1426,18 @@ plugins.withProvides(function (provide) {
             }
         });
     }, M({ja: "HoK - 拡張ヒントモードを開始", en: "Start Hit a Hint extended mode"}));
+
+    provide("hok-follow-next-link", function () {
+        followRel(content.document,
+                  pOptions["follow_link_nextrel_selector"],
+                  pOptions["follow_link_nextpattern"]);
+    }, "Follow next link");
+
+    provide("hok-follow-prev-link", function () {
+        followRel(content.document,
+                  pOptions["follow_link_prevrel_selector"],
+                  pOptions["follow_link_prevpattern"]);
+    }, "Follow previous link");
 }, PLUGIN_INFO);
 
 // }} ======================================================================= //
