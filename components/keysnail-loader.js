@@ -104,6 +104,7 @@ KeySnailLoader.prototype = {
             "key",
             "hook",
             "macro",
+            "plugins",
             "userscript",
             "prompt",
             "ext",

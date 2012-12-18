@@ -169,61 +169,7 @@ const userscript = {
             return L(msg);
         };
 
-        // Arrange plugin scope, option holder, and lib area
-        let plugins = modules.plugins = {};
-        plugins.context = {};
-        plugins.options = {};
-        plugins.lib     = {};
-        plugins.setupOptions = function (prefix, defaults, pluginInfo) {
-            let options = {};
-
-            for (let [name, { preset, description, type, hidden }] in Iterator(defaults)) {
-                let fullName = prefix + "." + name;
-
-                // XXX: bind values
-                let _preset = preset;
-                let _name   = name;
-                options.__defineGetter__(name, function () {
-                    return (fullName in plugins.options) ?
-                        plugins.options[fullName] : _preset;
-                });
-
-                options.__defineSetter__(name, function (val) {
-                    plugins.options[fullName] = val;
-                });
-
-                if (pluginInfo && !hidden) {
-                    try {
-                        pluginInfo.addOption({
-                            name: fullName,
-                            type: type || typeof preset,
-                            description: description
-                        });
-                    } catch (x) {
-                        util.message("Failed to add an option: " + x);
-                    }
-                }
-            }
-
-            return options;
-        };
-
-        plugins.withProvides = function (context, pluginInfo) {
-            try {
-                var pluginGlobal = Components.utils.getGlobalForObject(context);
-            } catch (x) {}
-
-            function provide(name, action, description) {
-                ext.add.apply(ext, arguments);
-                try {
-                    pluginInfo.addExt(name);
-                } catch (x) {
-                    util.message("Failed to add an ext: " + x);
-                }
-            }
-
-            context(provide);
-        };
+        // Arrange modules.plugins
 
         if (this.pluginDir)
             this.addLoadPath(this.pluginDir);
