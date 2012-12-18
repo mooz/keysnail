@@ -88,8 +88,7 @@ QueryReplacer.prototype = {
     }
   },
   select: function (begin, end) {
-    this.input.selectionStart = begin;
-    this.input.selectionEnd = end;
+    this.input.setSelectionRange(begin, end);
   },
   selectNextFromText: function () {
     this.select(this.nextFromTextPositionBegin, this.nextFromTextPositionEnd);
