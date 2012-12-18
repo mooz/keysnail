@@ -537,7 +537,7 @@ shell.add(["pl[ugin]"], "Manage plugins", function (args, extra) {
 
         switch (command) {
         case "enable":
-            if (userscript.enablePlugin(pluginPath))
+            if (userscript.enablePlugin(pluginFile))
                 display.echoStatusBar("Enabled " + pluginPath + " (" + info.name + ")");
             break;
         case "disable":

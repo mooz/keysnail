@@ -857,13 +857,12 @@ const userscript = {
     enablePlugin: function (pluginFile) {
         var toEnablePluginPath = pluginFile.path;
 
+        userscript.disabledPlugins = userscript.disabledPlugins.filter(function (disabledPluginPath) {
+            return disabledPluginPath !== toEnablePluginPath;
+        });
+
         if (!plugins.context[toEnablePluginPath].__ksLoaded__) {
             userscript.loadPlugin(pluginFile);
-            if (plugins.context[toEnablePluginPath].__ksLoaded__) {
-                userscript.disabledPlugins = userscript.disabledPlugins.filter(function (disabledPluginPath) {
-                    return disabledPluginPath !== toEnablePluginPath;
-                });
-            }
         }
 
         return plugins.context[toEnablePluginPath].__ksLoaded__;
