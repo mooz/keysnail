@@ -69,8 +69,11 @@ const userscript = {
     },
 
     get disabledPlugins() {
-        return (util.getUnicharPref("extensions.keysnail.plugin.disabled_plugins")
-                || "").split(",");
+        return (util.getUnicharPref("extensions.keysnail.plugin.disabled_plugins") || "").split(",");
+    },
+
+    set disabledPlugins(plugins) {
+        util.setUnicharPref("extensions.keysnail.plugin.disabled_plugins", plugins.join(","));
     },
 
     // ==================== Loader ==================== //
@@ -399,10 +402,6 @@ const userscript = {
         }
     },
 
-    uninstallPlugin: function (aFile) {
-        aFile.remove(false);
-    },
-
     /**
      * Install required files for plugin specified by <b>info</b>
      * @param {PluginInfo} info
@@ -624,6 +623,22 @@ const userscript = {
         });
     },
 
+    installPluginsFromURLs: function (aURLs, onFinal) {
+        var toInstallUrls = Array.slice(aURLs);
+
+        (function installNext(installStatus) {
+            if (!toInstallUrls.length) {
+                if (typeof onFinal === "function")
+                    onFinal(installStatus);
+                return;
+            }
+
+            userscript.installPluginFromURL(toInstallUrls.shift(), function (installStatus) {
+                installNext(installStatus);
+            });
+        })(true);
+    },
+
     /**
      * Inspired from pluginManager.js
      * http://coderepos.org/share/browser/lang/javascript/vimperator-plugins/trunk/pluginManager.js
@@ -692,7 +707,9 @@ const userscript = {
                 return doNext(false);
             }
         } else {
+            display.echoStatusBar("Fetching a plugin ...");
             util.httpGet(aURL, false, function (req) {
+                display.echoStatusBar("");
                 if (req.status !== 200)
                     return doNext(false);
 
@@ -701,7 +718,10 @@ const userscript = {
         }
     },
 
-    openPluginManager: function () {
+    openPluginManager: function (initiallySelectedPluginPath) {
+        if (initiallySelectedPluginPath)
+            userscript.initiallySelectedPluginPath = initiallySelectedPluginPath;
+
         var pluginManagerURL = "chrome://keysnail/content/pluginmanager.xul";
 
         var tabs = gBrowser.mTabContainer.childNodes;
@@ -832,6 +852,51 @@ const userscript = {
                 util.message(msgstr + "\n" + e + " (in " + filePath + ")");
             }
         }, this);
+    },
+
+    enablePlugin: function (pluginFile) {
+        var toEnablePluginPath = pluginFile.path;
+
+        if (!plugins.context[toEnablePluginPath].__ksLoaded__) {
+            userscript.loadPlugin(pluginFile);
+            if (plugins.context[toEnablePluginPath].__ksLoaded__) {
+                userscript.disabledPlugins = userscript.disabledPlugins.filter(function (disabledPluginPath) {
+                    return disabledPluginPath !== toEnablePluginPath;
+                });
+            }
+        }
+
+        return plugins.context[toEnablePluginPath].__ksLoaded__;
+    },
+
+    disablePlugin: function (pluginFile) {
+        var toDisablePluginPath = pluginFile.path;
+
+        if (userscript.disabledPlugins.indexOf(toDisablePluginPath) < 0) {
+            userscript.disabledPlugins = userscript.disabledPlugins.concat(toDisablePluginPath);
+            // TODO: unload mechanism?
+        }
+
+        return true;
+    },
+
+    uninstallPlugin: function (pluginFile, noConfirm) {
+        var toUninstallPluginPath = pluginFile.path;
+        var pluginInfo = plugins.context[toUninstallPluginPath];
+
+        var reallyDelete = noConfirm || util.confirm(util.getLocaleString("deletePluginTitle",
+                                                                          [pluginInfo.name]),
+                                                     util.getLocaleString("deletePluginMessage",
+                                                                          [pluginInfo.name || toUninstallPluginPath]));
+        if (reallyDelete) {
+            if (pluginFile && pluginFile.exists()) {
+                pluginFile.remove(true);
+                delete plugins.context[toUninstallPluginPath];
+                return true;
+            }
+        }
+
+        return false;
     },
 
     /**

@@ -523,32 +523,28 @@ let ksPluginManager = (function () {
             return;
 
         var pluginPath = item.value;
-        var pluginInfo = pluginInfoHolder[pluginPath];
-        var reallyDelete = util.confirm(util.getLocaleString("deletePluginTitle",
-                                                             [pluginInfo.name]),
-                                        util.getLocaleString("deletePluginMessage",
-                                                             [pluginInfo.name]));
+        var pluginFile = util.openFile(pluginPath);
 
-        if (reallyDelete) {
-            var file = util.openFile(pluginPath);
-            if (file && file.exists()) {
-                try {
-                    userscript.uninstallPlugin(file);
-                    delete plugins.context[pluginPath];
-                    pluginListbox.removeItemAt(pluginListbox.selectedIndex);
-                    display.notify(util.getLocaleString("pluginDeleted"));
-                } catch (x) {}
-            }
+        try {
+            var pluginUnInstalled = userscript.uninstallPlugin(pluginFile);
+        } catch (x) {
+            alert("Failed to uninstall plugin: " + x);
+            return;
+        }
+
+        if (pluginUnInstalled) {
+            pluginListbox.removeItemAt(pluginListbox.selectedIndex);
+            display.notify(util.getLocaleString("pluginDeleted"));
         }
     }
 
-    function selectNewlyInstalledPlugin() {
-        var holder = xulHolder[userscript.newlyInstalledPlugin];
+    function selectPluginByPath(pluginPath) {
+        var holder = xulHolder[pluginPath];
         if (holder && holder.item) {
             pluginListbox.selectedItem = holder.item;
+            return true;
         }
-
-        display.notify(util.getLocaleString("newPluginInstalled"));
+        return false;
     }
 
     function getNotCompatibleMessage(aPluginPath) {
@@ -611,12 +607,19 @@ let ksPluginManager = (function () {
             /**
              * When plugin manager is opened from userscript.loadPlugin(),
              */
-            if (userscript.newlyInstalledPlugin) {
-                selectNewlyInstalledPlugin();
-                userscript.newlyInstalledPlugin = null;
+            if (userscript.newlyInstalledPlugin &&
+                selectPluginByPath(userscript.newlyInstalledPlugin)) {
+                display.notify(util.getLocaleString("newPluginInstalled"));
+            } else if (userscript.initiallySelectedPluginPath &&
+                       selectPluginByPath(userscript.initiallySelectedPluginPath)) {
+                // Nothing
             } else {
+                // Prettify plugin-installation guide
                 prettifyAll();
             }
+
+            userscript.newlyInstalledPlugin = null;
+            userscript.pinitiallySelectedPluginPath = null;
         },
 
         selectPlugin: function (aNext) {

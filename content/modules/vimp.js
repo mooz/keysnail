@@ -139,8 +139,6 @@ function uriOpener(args, extra, callback) {
 
             let [args, state] = completer.utils.lex(left);
 
-            util.message(args);
-
             let uri  = null;
 
             if (args.length > 1)
@@ -387,25 +385,6 @@ shell.add(["res[tart]"],
           function () { command.restartApp(); },
           { argCount: "0" });
 
-// shell.add(["b[uffer]"],
-//           "Switch to a buffer",
-//           function (args, extra) {
-//               let title = completer.utils.unescape(extra.left);
-//               let tabs  = getBrowser().mTabContainer.childNodes;
-
-//               for (let i = 0; i < tabs.length; ++i)
-//                   if (tabs.label === extra.left)
-//                       return getBrowser().mTabContainer.selectedIndex = i;
-//           },
-//           {
-//               argCount  : "?",
-//               bang      : true,
-//               count     : true,
-//               literal   : 0,
-//               completer : function (a, e) completer.fetch.tabs()(e.left, e.whole)
-//           }
-//          );
-
 shell.add(["reloada[ll]"],
           "Reload all tab pages",
           function (args) { getBrowser().reloadAllTabs(); },
@@ -413,3 +392,173 @@ shell.add(["reloada[ll]"],
               argCount : "0",
               bang     : true
           });
+
+var remotePluginListCache = null;
+function getRemotePluginListCached(purgeCache) {
+    if (purgeCache)
+        remotePluginListCache = null;
+    if (!remotePluginListCache) {
+        display.echoStatusBar("Fetching remote plugin list...");
+        remotePluginListCache = plugins.getRemotePluginList();
+    }
+    return remotePluginListCache;
+}
+function getRemotePluginInfoByPluginName(pluginName) {
+    for (let [, remotePluginInfo] in Iterator(getRemotePluginListCached()))
+        if (remotePluginInfo.leafName === pluginName)
+            return remotePluginInfo;
+    return null;
+}
+
+function pluginCompleter(args, extra) {
+    let cc    = null;
+    let left  = extra.left;
+    let query = null;
+
+    let [args, state] = completer.utils.lex(left);
+
+    if (state !== completer.states.NEUTRAL)
+        query = args.pop();
+
+    var inputPluginName = args[0];
+
+    if (args.length === 0) {
+        /* List commands */
+        let options = {
+            flags   : [0, 0],
+            style   : [style.prompt["default"], style.prompt["description"]]
+        };
+        let commands = {};
+        commands["enable"]   = "Enable plugin";
+        commands["disable"]  = "Disable plugin";
+        commands["update"]   = "Update plugin";
+        commands["document"] = "See plugin documentation (Open plugin in plugin manager)";
+        commands["install"]  = "Install plugin from repository";
+        commands["uninstall"]  = "Uninstall plugin from your computer";
+        cc = completer.matcher.migemo([[name, description]
+                                       for ([name, description] in Iterator(commands))],
+                                      null)(left);
+    } else if (args.length >= 1) {
+        /* List plugin names */
+
+        let selectedPluginNames = args.slice(1);
+
+        let command = args[0];
+        let options = null;
+
+        function pluginShouldBeDisplayed(pluginPath) {
+            switch (command) {
+            case "enable":
+                return userscript.isDisabledPlugin(pluginPath);
+            case "disable":
+                return !userscript.isDisabledPlugin(pluginPath);
+            default:
+                return true;
+            }
+        }
+
+        let pluginList = null;
+        if (command === "install") {
+            /* list remote plugins */
+            options = {
+                flags    : [
+                    modules.ICON | modules.IGNORE,    /* plugin icon */
+                    0,                                /* plugin name */
+                    0,                                /* plugin description */
+                    0                                 /* plugin author */
+                ],
+                style    : [style.prompt["default"], style.prompt["description"], style.prompt["engine"]],
+                header   : ["Name", "Description", "Author"],
+                multiple : true
+            };
+            pluginList = [[
+                pluginInfo.iconURL, pluginInfo.leafName, pluginInfo.description, pluginInfo.authorName
+            ] for ([, pluginInfo] in Iterator(getRemotePluginListCached()))];
+        } else {
+            /* list installed plugins */
+            let installedPluginTable = plugins.getInstalledPlugins();
+
+            options = {
+                flags    : [
+                    modules.ICON | modules.IGNORE,    /* plugin icon */
+                    0,                                /* plugin name */
+                    0                                 /* plugin description */
+                ],
+                style    : [style.prompt["default"], style.prompt["description"]],
+                header   : ["Name", "Description"],
+                multiple : true
+            };
+
+            pluginList = [[
+                pluginInfo.iconURL, pluginName, pluginInfo.description
+            ] for ([pluginName, {pluginPath, pluginInfo}] in Iterator(installedPluginTable))
+              if (pluginShouldBeDisplayed(pluginPath))];
+        }
+
+        /* Remove already selected plugins */
+        pluginList = pluginList.filter(function ([_, pluginName]) {
+            return selectedPluginNames.indexOf(pluginName) < 0;
+        });
+
+        cc = completer.matcher.migemo(pluginList, options)(query || "");
+        cc.origin = left.lastIndexOf(completer.utils.escape(query || ""));
+    } else {
+        cc = { errorMsg: "No completions" };
+    }
+    cc.query = query;
+    cc.origin += extra.left.lastIndexOf(left);
+
+    return cc;
+}
+
+shell.add(["pl[ugin]"], "Manage plugins", function (args, extra) {
+    let command     = args[0];
+    let pluginNames = args.slice(1);
+
+    if (command === "install") {
+        let remotePluginURLs = pluginNames
+                .map(function (name) {
+                    return getRemotePluginInfoByPluginName(name);
+                })
+                .filter(function (info) info && info.remoteURL)
+                .map(function (info) info.remoteURL);
+        userscript.installPluginsFromURLs(remotePluginURLs);
+        return;
+    }
+
+    let pluginTable = plugins.getInstalledPlugins();
+    let localPluginInfos = pluginNames
+            .map(function (name) pluginTable[name])
+            .filter(function (info) info);
+
+    localPluginInfos.forEach(function (info) {
+        let pluginPath = info.pluginPath;
+        let pluginFile = util.openFile(pluginPath);
+
+        switch (command) {
+        case "enable":
+            if (userscript.enablePlugin(pluginPath))
+                display.echoStatusBar("Enabled " + pluginPath + " (" + info.name + ")");
+            break;
+        case "disable":
+            if (userscript.disablePlugin(pluginFile))
+                display.echoStatusBar("Disabled " + pluginPath + " (" + info.name + ")");
+            break;
+        case "document":
+            userscript.openPluginManager(pluginPath);
+            break;
+        case "update":
+            userscript.updatePlugin(pluginPath);
+            break;
+        case "uninstall":
+            userscript.uninstallPlugin(pluginFile);
+            break;
+        default:
+            break;
+        }
+    });
+}, {
+    bang      : true,
+    completer : pluginCompleter,
+    literal   : 0
+}, true);
