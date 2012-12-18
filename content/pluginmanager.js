@@ -70,10 +70,10 @@ let ksPluginManager = (function () {
         pluginInfoHolder = {};
         xulHolder = {};
 
-        for (let pluginPath in modules.plugins.context)
+        for (let pluginPath in plugins.context)
         {
-            let pluginContext   = modules.plugins.context[pluginPath];
-            let isDisabled      = modules.userscript.isDisabledPlugin(pluginPath);
+            let pluginContext   = plugins.context[pluginPath];
+            let isDisabled      = userscript.isDisabledPlugin(pluginPath);
             let isNotCompatible = pluginContext.__ksNotCompatible__;
 
             if (!pluginContext.__ksLoaded__)
@@ -83,12 +83,12 @@ let ksPluginManager = (function () {
 
                 try
                 {
-                    let pluginText = modules.util.readTextFile(pluginPath);
-                    pluginContext.__ksPluginInfo__ = modules.userscript.getPluginInformation(pluginText);
+                    let pluginText = util.readTextFile(pluginPath);
+                    pluginContext.__ksPluginInfo__ = userscript.getPluginInformation(pluginText);
                 }
                 catch (x)
                 {
-                    modules.util.message("initPluginList : " + x);
+                    util.message("initPluginList : " + x);
                     continue;
                 }
             }
@@ -162,7 +162,7 @@ let ksPluginManager = (function () {
             let button;
 
             button = document.createElement("button");
-            button.setAttribute("label", modules.util.getLocaleString("checkForUpdates"));
+            button.setAttribute("label", util.getLocaleString("checkForUpdates"));
             button.setAttribute("class", "check-updates-button");
             button.setAttribute("accesskey", "c");
             button.onclick = checkForUpdatesButtonClicked;
@@ -174,7 +174,7 @@ let ksPluginManager = (function () {
             buttonsContainer.appendChild(spacer);
 
             button = document.createElement("button");
-            button.setAttribute("label", modules.util.getLocaleString("enable"));
+            button.setAttribute("label", util.getLocaleString("enable"));
             button.setAttribute("class", "enable-button");
             button.setAttribute("accesskey", "e");
             button.onclick = enableButtonClicked;
@@ -182,7 +182,7 @@ let ksPluginManager = (function () {
             xulHolder[pluginPath].enableButton = button;
 
             button = document.createElement("button");
-            button.setAttribute("label", modules.util.getLocaleString("disable"));
+            button.setAttribute("label", util.getLocaleString("disable"));
             button.setAttribute("class", "disable-button");
             button.setAttribute("accesskey", "d");
             button.onclick = disableButtonClicked;
@@ -190,7 +190,7 @@ let ksPluginManager = (function () {
             xulHolder[pluginPath].disableButton = button;
 
             button = document.createElement("button");
-            button.setAttribute("label", modules.util.getLocaleString("delete"));
+            button.setAttribute("label", util.getLocaleString("delete"));
             button.setAttribute("class", "delete-button");
             button.setAttribute("accesskey", "u");
             button.onclick = deleteButtonClicked;
@@ -271,9 +271,9 @@ let ksPluginManager = (function () {
              maxVersion = pluginInfo.maxKeySnailVersion)
         {
             if (minVersion)
-                versionMsg += modules.util.getLocaleString("compatibleMinVersion", [minVersion]);
+                versionMsg += util.getLocaleString("compatibleMinVersion", [minVersion]);
             if (maxVersion)
-                versionMsg += (minVersion ? " " : "") + modules.util.getLocaleString("compatibleMinVersion", [maxVersion]);
+                versionMsg += (minVersion ? " " : "") + util.getLocaleString("compatibleMinVersion", [maxVersion]);
         };
         if (!versionMsg) versionMsg = "Not specified";
 
@@ -313,16 +313,16 @@ let ksPluginManager = (function () {
         // ext
         if (pluginInfo.exts && pluginInfo.exts.length)
         {
-            h3 = createElementWithText("h3", modules.util.getLocaleString("ext"));
+            h3 = createElementWithText("h3", util.getLocaleString("ext"));
             table = iframeDoc.createElement("table");
 
             tr = iframeDoc.createElement("tr");
-            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("name")));
-            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
+            tr.appendChild(createElementWithText("th", util.getLocaleString("name")));
+            tr.appendChild(createElementWithText("th", util.getLocaleString("description")));
             table.appendChild(tr);
 
             pluginInfo.exts.forEach(function (extName) {
-                let extDescription = modules.ext.description(extName);
+                let extDescription = ext.description(extName);
 
                 tr = iframeDoc.createElement("tr");
                 tr.appendChild(createElementWithText("td", extName));
@@ -338,13 +338,13 @@ let ksPluginManager = (function () {
         // option
         if (pluginInfo.options && pluginInfo.options.length)
         {
-            h3 = createElementWithText("h3", modules.util.getLocaleString("option"));
+            h3 = createElementWithText("h3", util.getLocaleString("option"));
             table = iframeDoc.createElement("table");
 
             tr = iframeDoc.createElement("tr");
-            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("name")));
-            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("type")));
-            tr.appendChild(createElementWithText("th", modules.util.getLocaleString("description")));
+            tr.appendChild(createElementWithText("th", util.getLocaleString("name")));
+            tr.appendChild(createElementWithText("th", util.getLocaleString("type")));
+            tr.appendChild(createElementWithText("th", util.getLocaleString("description")));
             table.appendChild(tr);
 
             let hasOptionsWithNoDescription = false;
@@ -369,7 +369,7 @@ let ksPluginManager = (function () {
                 let buttonContainer = iframeDoc.createElement("div");
                 buttonContainer.setAttribute("class", "centerize");
 
-                let toggler = createElementWithText("span", modules.util.getLocaleString("toggleOptionsWithNoDescription"));
+                let toggler = createElementWithText("span", util.getLocaleString("toggleOptionsWithNoDescription"));
                 toggler.setAttribute("class", "button");
                 toggler.setAttribute("onclick", "pluginManagerContent.toggleOptions(event);");
 
@@ -420,7 +420,7 @@ let ksPluginManager = (function () {
             }
         }
 
-        modules.util.setUnicharPref("extensions.keysnail.plugin.disabled_plugins",
+        util.setUnicharPref("extensions.keysnail.plugin.disabled_plugins",
                                     disabledPlugins.join(","));
     }
 
@@ -471,7 +471,7 @@ let ksPluginManager = (function () {
         setPluginStatus(pluginPath, KS_PLUGIN_DISABLED);
         updateDisabledPluginList();
 
-        modules.display.echoStatusBar(pluginInfo.name + " disabled", 2000);
+        display.echoStatusBar(pluginInfo.name + " disabled", 2000);
     }
 
     function enableButtonClicked(aEvent) {
@@ -490,8 +490,8 @@ let ksPluginManager = (function () {
 
         setPluginStatus(pluginPath, KS_PLUGIN_ENABLED);
 
-        if (modules.plugins.context[pluginPath].__ksLoaded__) {
-            modules.display.echoStatusBar(pluginInfo.name + " enabled", 2000);
+        if (plugins.context[pluginPath].__ksLoaded__) {
+            display.echoStatusBar(pluginInfo.name + " enabled", 2000);
         } else {
             // plugin is not loaded
 
@@ -499,15 +499,15 @@ let ksPluginManager = (function () {
             updateDisabledPluginList();
 
             // load plugin now
-            modules.userscript.loadPlugin(modules.util.openFile(pluginPath));
+            userscript.loadPlugin(util.openFile(pluginPath));
 
-            if (!modules.plugins.context[pluginPath].__ksLoaded__) {
+            if (!plugins.context[pluginPath].__ksLoaded__) {
                 // failed to load plugin
-                setPluginStatus(pluginPath, modules.plugins.context[pluginPath].__ksNotCompatible__ ?
+                setPluginStatus(pluginPath, plugins.context[pluginPath].__ksNotCompatible__ ?
                                 KS_PLUGIN_NOTCOMPATIBLE : KS_PLUGIN_DISABLED);
 
-                var msg = modules.util.getLocaleString("failedToLoadPlugin");
-                modules.util.alert(msg, msg + ' "' + pluginPath + '"');
+                var msg = util.getLocaleString("failedToLoadPlugin");
+                util.alert(msg, msg + ' "' + pluginPath + '"');
             }
         }
 
@@ -524,37 +524,37 @@ let ksPluginManager = (function () {
 
         var pluginPath = item.value;
         var pluginInfo = pluginInfoHolder[pluginPath];
-        var reallyDelete = modules.util.confirm(modules.util.getLocaleString("deletePluginTitle",
-                                                                             [pluginInfo.name]),
-                                                modules.util.getLocaleString("deletePluginMessage",
-                                                                             [pluginInfo.name]));
+        var reallyDelete = util.confirm(util.getLocaleString("deletePluginTitle",
+                                                             [pluginInfo.name]),
+                                        util.getLocaleString("deletePluginMessage",
+                                                             [pluginInfo.name]));
 
         if (reallyDelete) {
-            var file = modules.util.openFile(pluginPath);
+            var file = util.openFile(pluginPath);
             if (file && file.exists()) {
                 try {
-                    modules.userscript.uninstallPlugin(file);
-                    delete modules.plugins.context[pluginPath];
+                    userscript.uninstallPlugin(file);
+                    delete plugins.context[pluginPath];
                     pluginListbox.removeItemAt(pluginListbox.selectedIndex);
-                    modules.display.notify(modules.util.getLocaleString("pluginDeleted"));
+                    display.notify(util.getLocaleString("pluginDeleted"));
                 } catch (x) {}
             }
         }
     }
 
     function selectNewlyInstalledPlugin() {
-        var holder = xulHolder[modules.userscript.newlyInstalledPlugin];
+        var holder = xulHolder[userscript.newlyInstalledPlugin];
         if (holder && holder.item) {
             pluginListbox.selectedItem = holder.item;
         }
 
-        modules.display.notify(modules.util.getLocaleString("newPluginInstalled"));
+        display.notify(util.getLocaleString("newPluginInstalled"));
     }
 
     function getNotCompatibleMessage(aPluginPath) {
-        var current = modules.userscript.parent.version;
+        var current = userscript.parent.version;
 
-        return modules.util.getLocaleString("notCompatiblePlugin", [current]);
+        return util.getLocaleString("notCompatiblePlugin", [current]);
     }
 
     var self = {
@@ -570,7 +570,7 @@ let ksPluginManager = (function () {
 
             parserContext = {};
 
-            if (!modules || !modules.userscript)
+            if (!modules || !userscript)
             {
                 // KeySnail not loaded
 
@@ -596,14 +596,14 @@ let ksPluginManager = (function () {
             }
 
             // Check if plugin directory is specified
-            if (!modules.userscript.pluginDir)
-                modules.userscript.setDefaultPluginDirectory();
+            if (!userscript.pluginDir)
+                userscript.setDefaultPluginDirectory();
 
             // load Wiki parser
             try {
                 Components.utils.import("resource://keysnail-share/WikiParser.js", parserContext);
             } catch (x) {
-                modules.message(x);
+                util.message(x);
             }
 
             initPluginList();
@@ -611,9 +611,9 @@ let ksPluginManager = (function () {
             /**
              * When plugin manager is opened from userscript.loadPlugin(),
              */
-            if (modules.userscript.newlyInstalledPlugin) {
+            if (userscript.newlyInstalledPlugin) {
                 selectNewlyInstalledPlugin();
-                modules.userscript.newlyInstalledPlugin = null;
+                userscript.newlyInstalledPlugin = null;
             } else {
                 prettifyAll();
             }
@@ -660,8 +660,8 @@ let ksPluginManager = (function () {
         },
 
         reloadPlugin: function () {
-            modules.plugins.context = {};
-            modules.userscript.loadPlugins(true /* ignore cache */);
+            plugins.context = {};
+            userscript.loadPlugins(true /* ignore cache */);
 
             helpBox.removeAttribute("style");
             infoBox.innerHTML   = "";
@@ -674,10 +674,10 @@ let ksPluginManager = (function () {
             var nsIFilePicker = Components.interfaces.nsIFilePicker;
             var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 
-            fp.init(window, modules.util.getLocaleString("selectPluginFile"), nsIFilePicker.modeOpen);
+            fp.init(window, util.getLocaleString("selectPluginFile"), nsIFilePicker.modeOpen);
 
-            if (!modules.util.getSystemInfo().getProperty("name").match("mac")) {
-                fp.appendFilter(modules.util.getLocaleString("keySnailPlugin"), "*.ks.js");
+            if (!util.getSystemInfo().getProperty("name").match("mac")) {
+                fp.appendFilter(util.getLocaleString("keySnailPlugin"), "*.ks.js");
             }
             fp.appendFilter("JavaScript","*.js");
 
@@ -687,26 +687,26 @@ let ksPluginManager = (function () {
             }
 
             try {
-                modules.userscript.installPluginFromURL(modules.util.pathToURL(fp.file.path), function (succeeded) {
+                userscript.installPluginFromURL(util.pathToURL(fp.file.path), function (succeeded) {
                     if (succeeded) {
                         initPluginList();
-                        if (modules.userscript.newlyInstalledPlugin) {
+                        if (userscript.newlyInstalledPlugin) {
                             selectNewlyInstalledPlugin();
-                            modules.userscript.newlyInstalledPlugin = null;
+                            userscript.newlyInstalledPlugin = null;
                         }
                     }
                 });
             } catch (x) {
-                modules.display.notify(x);
+                display.notify(x);
             }
         },
 
         checkForAllUpdates: function () {
-            let { pluginUpdater } = modules.share;
+            let { pluginUpdater } = share;
 
             if (pluginUpdater.checking)
-                modules.display.echoStatusBar(
-                    modules.util.getLocaleString("updaterAlreadyRunning"), 3000
+                display.echoStatusBar(
+                    util.getLocaleString("updaterAlreadyRunning"), 3000
                 );
             else
                 pluginUpdater.checkAndAlert();
@@ -723,7 +723,7 @@ let ksPluginManager = (function () {
 
             let path = item.value;
 
-            modules.userscript.editFile(path);
+            userscript.editFile(path);
         },
 
         onShowFolderClicked: function (ev) {
@@ -732,7 +732,7 @@ let ksPluginManager = (function () {
                 return;
 
             let path = item.value;
-            let file = modules.util.openFile(path);
+            let file = util.openFile(path);
 
             file.parent.QueryInterface(Components.interfaces.nsILocalFile).launch();
         },
@@ -743,7 +743,7 @@ let ksPluginManager = (function () {
                 return;
 
             let pluginPath     = item.value;
-            let pluginLocalURL = modules.util.pathToURL(pluginPath);
+            let pluginLocalURL = util.pathToURL(pluginPath);
 
             this.gBrowser.loadOneTab(pluginLocalURL, null, null, null, false);
         },
