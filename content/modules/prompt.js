@@ -1039,11 +1039,11 @@ const prompt = function () {
         removeAllChilds(listbox);
 
         listbox.appendChild(
-            util.xmlToDom(<listcols>
-                          <listcol flex="1" width="10%" />
-                          <listcol flex="4" width="40%" />
-                          <listcol flex="5" width="50%" />
-                          </listcols>)
+            util.xmlToDom('<listcols>\
+                          <listcol flex="1" width="10%" />\
+                          <listcol flex="4" width="40%" />\
+                          <listcol flex="5" width="50%" />\
+                          </listcols>')
         );
 
         function stick(keymap) {

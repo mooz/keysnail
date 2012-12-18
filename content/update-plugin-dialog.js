@@ -31,34 +31,32 @@ let ksUpdatePluginDialog = (function () {
     const defaultIconURL = "chrome://keysnail/skin/script.png";
 
     function elementFromInfo(pluginInfo) {
-        let iconURL     = pluginInfo.iconURL;
-        let name        = pluginInfo.name;
-        let version     = pluginInfo.version;
-        let description = pluginInfo.description;
+        let iconURL     = html.escapeTag(pluginInfo.iconURL);
+        let name        = html.escapeTag(pluginInfo.name);
+        let version     = html.escapeTag(pluginInfo.version);
+        let description = html.escapeTag(pluginInfo.description);
 
-        // FIXME: E4X
-        let elem = util.xmlToDom(
-            <richlistitem class="plugin-info-box">
-                <hbox>
-                    <checkbox class="plugin-install-or-not-checkbox" checked="true" />
-                    <hbox align="center">
-                        <!-- icon -->
-                        <vbox align="center">
-                            <image src={iconURL} class="plugin-icon" />
-                        </vbox>
-                        <vbox>
-                            <!-- name, version -->
-                            <hbox align="center">
-                                <description class="plugin-name">{name}</description>
-                                <description class="plugin-version">{version}</description>
-                            </hbox>
-                            <!-- description -->
-                            <description class="plugin-description">{description}</description>
-                        </vbox>
-                    </hbox>
-                </hbox>
-            </richlistitem> + ""
-        , null, document);
+        let elem = util.xmlToDom('\
+            <richlistitem class="plugin-info-box">\n\
+                <hbox>\n\
+                    <checkbox class="plugin-install-or-not-checkbox" checked="true" />\n\
+                    <hbox align="center">\n\
+                        <!-- icon -->\n\
+                        <vbox align="center">\n\
+                            <image src="' + iconURL + '" class="plugin-icon" />\n\
+                        </vbox>\n\
+                        <vbox>\n\
+                            <!-- name, version -->\n\
+                            <hbox align="center">\n\
+                                <description class="plugin-name">' + name + '</description>\n\
+                                <description class="plugin-version">' + version + '</description>\n\
+                            </hbox>\n\
+                            <!-- description -->\n\
+                            <description class="plugin-description">' + description + '</description>\n\
+                        </vbox>\n\
+                    </hbox>\n\
+                </hbox>\n\
+            </richlistitem>', null, document);
 
         return elem;
     }

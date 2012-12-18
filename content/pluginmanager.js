@@ -1,5 +1,15 @@
 let ksPluginManager = (function () {
-    var modules;
+    // {{%ARRANGE_MODULES%
+    const { classes : Cc, interfaces : Ci } = Components;
+
+    const { modules } = Cc["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Ci.nsIWindowMediator)
+        .getMostRecentWindow("navigator:browser").KeySnail;
+
+    const { my, share, persist, util, display, command, html, hook, macro, style,
+            key, prompt, ext, shell, userscript, completer, vimp, L, M, plugins }
+        = modules;
+    // }}%ARRANGE_MODULES%
 
     var parserContext;
 
@@ -228,31 +238,30 @@ let ksPluginManager = (function () {
 
         // ====================================================================== //
 
-        let h3 = createElementWithText("h3", modules.util.getLocaleString("info"));
+        let h3 = createElementWithText("h3", util.getLocaleString("info"));
 
-        // FIXME: E4X
-        let authorCell = <></>;
+        let authorCell = "";
         let authorInfo = pluginInfo.authorInfo;
         if (authorInfo)
         {
             if (authorInfo.mailAddress)
-                authorCell = <a href={'mailto:' + authorInfo.mailAddress}>{authorInfo.name}</a>;
+                authorCell = '<a href="mailto:' + html.escapeTag(authorInfo.mailAddress) + '">' + html.escapeTag(authorInfo.name) + '</a>';
             else
-                authorCell = <>{authorInfo.name}</>;
+                authorCell = html.escapeTag(authorInfo.name);
 
             if (authorInfo.homepageURL)
-                authorCell += <> [ <a href={authorInfo.homepageURL} target="_blank">Home page</a> ]</>;
+                authorCell += ' (<a href="' + html.escapeTag(authorInfo.homepageURL) + '" target="_blank">Website</a>)';
         }
 
         // license
-        let licenseCell = <></>;
+        let licenseCell = "";
         let licenseInfo = pluginInfo.licenseInfo;
         if (licenseInfo)
         {
             if (licenseInfo.documentationURL)
-                licenseCell = <a href={licenseInfo.documentationURL} target="_blank">{licenseInfo.name}</a>;
+                licenseCell = '<a href="' + html.escapeTag(licenseInfo.documentationURL) + '" target="_blank">' + html.escapeTag(licenseInfo.name) + '</a>';
             else
-                licenseCell = <>{licenseInfo.name}</>;
+                licenseCell = html.escapeTag(licenseInfo.name);
         }
 
         // compatible version
@@ -270,21 +279,21 @@ let ksPluginManager = (function () {
 
         // ====================================================================== //
 
-        // FIXME: E4X
-        let table = modules.util.xmlToDom(<table>
-                                              <tr>
-                                                  <td>{modules.util.getLocaleString("author")}</td>
-                                                  <td>{authorCell}</td>
-                                              </tr>
-                                              <tr>
-                                                  <td>{modules.util.getLocaleString("license")}</td>
-                                                  <td>{licenseCell}</td>
-                                              </tr>
-                                              <tr>
-                                                  <td>{modules.util.getLocaleString("compatibleVersion")}</td>
-                                                  <td>{versionMsg}</td>
-                                              </tr>
-                                          </table> + "", modules.util.XHTML);
+        let table = util.xmlToDom(
+            '<table>\n\
+                <tr>\n\
+                    <td>' + html.escapeTag(util.getLocaleString("author")) + '</td>\n\
+                    <td>' + authorCell + '</td>\n\
+                </tr>\n\
+                <tr>\n\
+                    <td>' + html.escapeTag(util.getLocaleString("license")) + '</td>\n\
+                    <td>' + licenseCell + '</td>\n\
+                </tr>\n\
+                <tr>\n\
+                    <td>' + html.escapeTag(util.getLocaleString("compatibleVersion")) + '</td>\n\
+                    <td>' + versionMsg + '</td>\n\
+                </tr>\n\
+            </table>', util.XHTML);
 
         // ====================================================================== //
 
@@ -761,34 +770,21 @@ let ksPluginManager = (function () {
 
             let pluginPath = item.value;
             let pluginInfo = pluginInfoHolder[pluginPath];
-            let pluginFile = modules.util.openFile(pluginPath);
+            let pluginFile = util.openFile(pluginPath);
 
             let before = Date.now();
-            modules.userscript.loadPlugin(pluginFile, true /* ignore cache */);
+            userscript.loadPlugin(pluginFile, true /* ignore cache */);
             let after = Date.now();
 
-            modules.display.echoStatusBar(
-                modules.util.format(
+            display.echoStatusBar(
+                util.format(
                     "Reloaded plugin \"%s\". Took %s msec.",
                     pluginInfo.name,
                     after - before
                 )
             );
-        },
-
-        set modules(aModules) {
-            modules = aModules;
         }
     };
 
     return self;
 })();
-
-(function () {
-     var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-         .getService(Components.interfaces.nsIWindowMediator);
-     var browserWindow = wm.getMostRecentWindow("navigator:browser");
-     ksPluginManager.modules = (browserWindow.KeySnail || {modules : null}).modules;
-
-     ksPluginManager.gBrowser = browserWindow.gBrowser;
- })();
