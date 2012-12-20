@@ -638,7 +638,7 @@ function OAuth(info, tokens) {
     let context = {};
 
     if (!userscript.require("oauth.js", context)) {
-        display.notify(L(util.xmlGetLocaleString(PLUGIN_INFO.name)) + " : " +
+        display.notify(PLUGIN_INFO.name + " : " +
                        M({ja: "このプラグインの動作には oauth.js が必要です。 oauth.js をプラグインディレクトリ内に配置した上でお試し下さい。",
                           en: "This plugin requires oauth.js but not found. Please locate oauth.js to the plugin directory."}));
     }

@@ -128,9 +128,10 @@ const util = function () {
                     if (!matched)
                         return null;
 
-                    let xml = new XML(matched[1]);
+                    let xml = util.xmlToDom(matched[1], util.XHTML);
 
-                    return [cs.suggestion.@data for each (cs in xml.CompleteSuggestion)];
+                    return Array.slice(xml.querySelectorAll("suggestion[data]"))
+                        .map(function (suggestion) suggestion.getAttribute("data"));
                 }
             };
         },
@@ -1430,33 +1431,6 @@ const util = function () {
             var fragment = range.extractContents();
             range.detach();
             return fragment.childNodes.length > 1 ? fragment : fragment.firstChild;
-        },
-
-        /**
-         * Get locale specific string from given node.
-         * @param {XML} aNodes E4X type XML object
-         * @returns {string} locale specific string of the <b>aNodes</b>
-         */
-        xmlGetLocaleString: function (aNodes) {
-            if (typeof aNodes === "string")
-                return aNodes;
-
-            var length = aNodes.length();
-
-            if (length == 0)
-                return "";
-
-            for (var i = 0; i < length; ++i)
-            {
-                if (aNodes[i].@lang.toString() == this.userLocale)
-                    return aNodes[i].text();
-            }
-
-            return aNodes[0].text();
-        },
-
-        xmlToArray: function (xml) {
-            return [xml[i] for (i in this.range(0, xml.length()))];
         },
 
         // }} ======================================================================= //
