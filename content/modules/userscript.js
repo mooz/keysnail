@@ -6,17 +6,6 @@
  */
 
 const userscript = {
-    /**
-     * load js file and execute its content under *KeySnail.modules* scope
-     * @param {string} aScriptPath
-     */
-    jsFileLoader: function (aScriptPath, aPreserve) {
-        var code = util.readTextFile(aScriptPath);
-        if (KeySnail.isMainWindow && aPreserve)
-            this.preserveCode(code);
-        util.evalInContext(code);
-    },
-
     // ==== user configuration file name ====
     // at first .keysnail.js is used. When the file not found,
     // then the _keysnail.js is used instead. (for the Windows user)
@@ -89,7 +78,7 @@ const userscript = {
 
             try {
                 var start = Date.now();
-                this.jsFileLoader(aInitFilePath, true);
+                this.loadInitFileInternal(aInitFilePath, true);
                 var end = Date.now();
                 display.echoStatusBar("KeySnail :: [" + aInitFilePath + "] :: " +
                                       util.getLocaleString("initFileLoaded", [(end - start) / 1000]),
@@ -99,6 +88,17 @@ const userscript = {
                 throw e;
             }
         }, this);
+    },
+
+    /**
+     * load js file and execute its content under *KeySnail.modules* scope
+     * @param {string} aScriptPath
+     */
+    loadInitFileInternal: function (aScriptPath, aSavePreserveArea) {
+        var code = util.readTextFile(aScriptPath);
+        if (KeySnail.isMainWindow && aSavePreserveArea)
+            this.preserveCode(code);
+        util.evalInContext(code);
     },
 
     loadSubScript: function (aURI, aContext, aIgnoreCache) {
