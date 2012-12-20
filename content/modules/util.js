@@ -389,6 +389,13 @@ const util = function () {
             return this.browserWindow.document;
         },
 
+        get gBrowser() {
+            if (typeof gBrowser !== "undefined")
+                return gBrowser;
+            else
+                return util.browserWindow.gBrowser;
+        },
+
         getBrowserWindows:
         function getBrowserWindows() {
             let windows = [];

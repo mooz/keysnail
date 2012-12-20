@@ -285,12 +285,6 @@ const display = (function () {
         },
 
         notify: function (aMsg, aButtons, aIcon) {
-            if (typeof gBrowser == 'undefined')
-            {
-                window.alert(aMsg);
-                return;
-            }
-
             if (!aButtons)
             {
                 aButtons = [
@@ -306,7 +300,7 @@ const display = (function () {
                 ];
             }
 
-            let notifyBox = gBrowser.getNotificationBox();
+            let notifyBox = util.gBrowser.getNotificationBox();
             let current = notifyBox.currentNotification;
 
             if (current && current.value == NOTIFY_ID)
@@ -323,7 +317,7 @@ const display = (function () {
             if (!aId)
                 aId = NOTIFY_ID;
 
-            let notifyBox = gBrowser.getNotificationBox();
+            let notifyBox = util.gBrowser.getNotificationBox();
             let current = notifyBox.currentNotification;
 
             while (current && current.value === aId)
