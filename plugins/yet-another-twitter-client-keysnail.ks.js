@@ -3368,7 +3368,7 @@ var twitterClient =
 
                 switch (type) {
                 case "hashtags":
-                    messageNode.appendChild($U.createLinkElement("http://twitter.com/search?q=" + encodeURIComponent(entity.text), entity.text));
+                    messageNode.appendChild($U.createLinkElement("http://twitter.com/search?q=" + encodeURIComponent(entity.text), "#" + entity.text));
                     break;
                 case "urls":
                 case "media":
