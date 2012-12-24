@@ -3292,6 +3292,31 @@ var twitterClient =
         }
 
         function createMessageNode(messageText, status) {
+            let retweetedStatus = status.retweeted_status;
+            if (retweetedStatus) {
+                // Retweeted status. Add "RT @screenname: "
+                let retweetedMessageNode = createMessageNode(retweetedStatus.text, retweetedStatus);
+                let retweetedUserName = retweetedStatus.user.screen_name;
+
+                let newChildren = [
+                    retweetedMessageNode.firstChild, document.createTextNode("RT "),
+                    $U.createLinkElement("http://twitter.com/" + retweetedUserName, "@" + retweetedUserName),
+                    document.createTextNode(": ")
+                ].concat(Array.slice(retweetedMessageNode.childNodes));
+
+                while (retweetedMessageNode.firstChild) {
+                    retweetedMessageNode.removeChild(retweetedMessageNode.firstChild);
+                }
+
+                for (let [, childNode] in Iterator(newChildren)) {
+                    retweetedMessageNode.appendChild(childNode);
+                }
+
+                return retweetedMessageNode;
+            }
+
+            // Otherwise
+
             let entities = getEntitiesFromStatus(status);
             let messageNode = entities
                     ? createMessageNodeFromEntities(messageText, status.text, entities)
