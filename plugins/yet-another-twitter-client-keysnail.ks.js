@@ -533,6 +533,15 @@ const $U = {
         return elem;
     },
 
+    linkClass: "ks-text-link",
+    createLinkElement: function (url, text) {
+        return $U.createElement("description", {
+            "class"       : $U.linkClass,
+            "tooltiptext" : url,
+            "value"       : text
+        });
+    },
+
     insertAfter:
     function insertAfter(parent, node, referenceNode) {
         parent.insertBefore(node, referenceNode.nextSibling);
@@ -1576,8 +1585,6 @@ var twitterClient =
         // }} ======================================================================= //
 
         // Styles {{ ================================================================ //
-
-        const gLinkClass = "ks-text-link";
 
         if (!share.ksTextLinkStyleRegistered)
         {
@@ -3296,11 +3303,7 @@ var twitterClient =
                     status.in_reply_to_screen_name,
                     status.in_reply_to_status_id_str
                 );
-                messageNode.appendChild($U.createElement("description", {
-                    "class"       : gLinkClass,
-                    "tooltiptext" : url,
-                    "value"       : "[in reply to]"
-                }));
+                messageNode.appendChild($U.createLinkElement(url, "[in reply to]"));
             }
 
             return messageNode;
@@ -3340,26 +3343,14 @@ var twitterClient =
 
                 switch (type) {
                 case "hashtags":
-                    messageNode.appendChild($U.createElement("description", {
-                        "class"       : gLinkClass,
-                        "tooltiptext" : "http://twitter.com/search?q=" + encodeURIComponent(entity.text),
-                        "value"       : "#" + entity.text
-                    }));
+                    messageNode.appendChild($U.createLinkElement("http://twitter.com/search?q=" + encodeURIComponent(entity.text), entity.text));
                     break;
                 case "urls":
                 case "media":
-                    messageNode.appendChild($U.createElement("description", {
-                        "class"       : gLinkClass,
-                        "tooltiptext" : entity.expanded_url,
-                        "value"       : entity.display_url || entity.url
-                    }));
+                    messageNode.appendChild($U.createLinkElement(entity.expanded_url, entity.display_url || entity.url));
                     break;
                 case "user_mentions":
-                    messageNode.appendChild($U.createElement("description", {
-                        "class"       : gLinkClass,
-                        "tooltiptext" : "http://twitter.com/" + entity.screen_name,
-                        "value"       : "@" + entity.screen_name
-                    }));
+                    messageNode.appendChild($U.createLinkElement("http://twitter.com/" + entity.screen_name, "@" + entity.screen_name));
                     break;
                 }
             });
@@ -3402,11 +3393,7 @@ var twitterClient =
                     }
 
                     messageNode.appendChild(document.createTextNode(left));
-                    messageNode.appendChild($U.createElement("description", {
-                        "class"       : gLinkClass,
-                        "tooltiptext" : url,
-                        "value"       : matched[i]
-                    }));
+                    messageNode.appendChild($U.createLinkElement(url, matched[i]));
 
                     messageText = right;
                 }
@@ -3743,7 +3730,7 @@ var twitterClient =
             tweetBoxClicked: function (aEvent) {
                 let elem   = aEvent.target;
                 let text   = elem.value || "";
-                let isLink = elem.getAttribute("class") === gLinkClass;
+                let isLink = elem.getAttribute("class") === $U.linkClass;
                 let status = my.twitterSelectedStatus;
 
                 if (aEvent.button === 2)
