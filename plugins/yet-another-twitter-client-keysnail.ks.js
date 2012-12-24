@@ -3433,7 +3433,7 @@ var twitterClient =
         }
 
         function extractAllURLsFromStatus(status) {
-            let entities = getEntitiesFromStatus(status);
+            let entities = getEntitiesFromStatus(status.retweeted_status ? status.retweeted_status : status);
 
             if (entities) {
                 let sortedEntitiesWithType = getSortedEntitiesWithType(entities);
