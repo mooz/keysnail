@@ -3287,7 +3287,7 @@ var twitterClient =
         function createMessageNode(messageText, status) {
             let entities = getEntitiesFromStatus(status);
             let messageNode = entities
-                    ? createMessageNodeFromEntities(messageText, entities)
+                    ? createMessageNodeFromEntities(messageText, status.text, entities)
                     : createMessageNodeWithoutEntities(messageText);
 
             if (status.in_reply_to_status_id_str) {
@@ -3323,7 +3323,7 @@ var twitterClient =
             return sortedEntities;
         }
 
-        function createMessageNodeFromEntities(messageText, entities) {
+        function createMessageNodeFromEntities(messageText, escapedMessageText, entities) {
             let messageNode = $U.createElement("description", {
                 style : "-moz-user-select : text !important;"
             });
@@ -3332,7 +3332,7 @@ var twitterClient =
 
             let sortedEntitiesWithType = getSortedEntitiesWithType(entities);
             sortedEntitiesWithType.forEach(function ({ type, entity }) {
-                let leftMessage = messageText.slice(cursor, entity.indices[0]);
+                let leftMessage = html.unEscapeTag(escapedMessageText.slice(cursor, entity.indices[0]));
                 messageNode.appendChild(document.createTextNode(leftMessage));
 
                 // move cursor
