@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>Unfu*k your enemies</name>
     <description>Override the content type</description>
     <description lang="ja">クソ野郎が垂れ流す Content type を上書き</description>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/unfuck-your-enemies.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/unfuck-your-enemies.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -103,8 +103,8 @@ Disposition (attachment / inline のこと) を省略し、コンテンツタイ
 //
 // }}}
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
+let Cc = Components.classes;
+let Ci = Components.interfaces;
 
 var siteInfo = plugins.options["unfuck_your_enemies.site_info"];
 
