@@ -748,7 +748,7 @@ let ksPluginManager = (function () {
             let pluginPath     = item.value;
             let pluginLocalURL = util.pathToURL(pluginPath);
 
-            this.gBrowser.loadOneTab(pluginLocalURL, null, null, null, false);
+            util.gBrowser.loadOneTab(pluginLocalURL, null, null, null, false);
         },
 
         onViewRemoteFileClicked: function (ev) {
@@ -761,7 +761,7 @@ let ksPluginManager = (function () {
             let updateURL  = pluginInfo.updateURL;
 
             if (updateURL)
-                this.gBrowser.loadOneTab(updateURL, null, null, null, false);
+                util.gBrowser.loadOneTab(updateURL, null, null, null, false);
             else
                 alert("Plugin " + pluginInfo.name + " doesn't have an updateURL");
         },
