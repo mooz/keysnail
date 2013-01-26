@@ -456,7 +456,7 @@ let pOptions = plugins.setupOptions("twitter_client", {
     },
     "lists"                                 : { preset: [] },
     "show_sources"                          : { preset: true },
-    "show_retweet_count"                    : { preset: true },
+    "show_retweet_count"                    : { preset: false },
     "hide_profile_image_gif"                : {
         preset: false,
         description: M({ ja: "ユーザのアイコンが Gif 画像であった場合は隠す",
