@@ -90,110 +90,109 @@ let PLUGIN_INFO =
         for (let [k, v] in Iterator(opts))
             plugins.options[prefix + "." + k] = arrange(v);
 
-    let colorThemeSolarized = arrange(<><![CDATA[
-    /* font size */
-    #keysnail-prompt,
-    #keysnail-prompt textbox,
-    listbox#keysnail-completion-list,
-    listbox#keysnail-completion-list listheader,
-    #keysnail-twitter-client-user-tweet
-    {
-        font-size : 110% !important;
-    }
-
-    /* charm */
-    #keysnail-prompt,
-    #keysnail-prompt textbox,
-    listbox#keysnail-completion-list,
-    listbox#keysnail-completion-list listitem,
-    listbox#keysnail-completion-list listheader,
-    #keysnail-twitter-client-user-tweet
-    {
-        -moz-appearance  : none !important;
-        border           : none !important;
-    }
-
-    /* basic */
-    #keysnail-prompt,
-    #keysnail-prompt textbox,
-    listbox#keysnail-completion-list,
-    listbox#keysnail-completion-list listheader,
-    #keysnail-twitter-client-user-tweet
-    {
-        font-family      : "Consolas", "Bitstream Vera Sans Mono", "Menlo", "Courier New", monospace !important;
-        background-color : %BG% !important;
-        color            : %FG% !important;
-    }
-
-    listbox#keysnail-completion-list listitem
-    {
-        padding-left : 4px !important;
-    }
-
-    .ks-text-link       { color : %LINK_BASE% !important; }
-    .ks-text-link:hover { color : %LINK_HOVER% !important; }
-
-    /* selected row */
-    listbox#keysnail-completion-list listitem[selected="true"],
-    listbox#keysnail-completion-list:focus > listitem[selected="true"]
-    {
-        background-color : %BG_SELECTED_ROW% !important;
-        color            : %FG_SELECTED_ROW% !important;
-    }
-
-    #keysnail-prompt textbox
-    {
-        margin             : 5px 0px    !important;
-        -moz-border-radius : 3px        !important;
-        border-radius      : 3px        !important;
-        padding            : 2px        !important;
-    }
-
-    #keysnail-prompt textbox
-    {
-        padding-left       : 0.5em      !important;
-        background-color   : %BG_INPUT% !important;
-    }
-
-    #keysnail-prompt textbox:focus
-    {
-        background-color   : %BG_INPUT_FOCUS% !important;
-    }
-
-    /* Prompt message */
-    .keysnail-prompt-label
-    {
-        color : %FG_MESSAGE% !important;
-    }
-
-    /* Bottom line */
-    listbox#keysnail-completion-list
-    {
-        border-bottom : 1px solid %FG_HEADER% !important;
-        margin        : 0px                   !important;
-    }
-
-    /* Header */
-    listbox#keysnail-completion-list listhead
-    {
-        padding                   : 2px 0px                   !important;
-        margin                    : 2px 0px 4px 0px           !important;
-        border-bottom             : 1px solid %BORDER_HEADER% !important;
-        -moz-border-bottom-colors : %BORDER_HEADER%           !important;
-    }
-
-    /* Header Cell */
-    listbox#keysnail-completion-list listheader {
-        font-weight               : bold                      !important;
-        color                     : %FG_HEADER%               !important;
-    }
-
-    /* Completion List */
-    listbox#keysnail-completion-list listcell
-    {
-        padding: 2px 0px !important;
-    }
-    ]]></>.toString());
+    let colorThemeSolarized = arrange('\
+    /* font size */                                                                                              \
+    #keysnail-prompt,                                                                                            \
+    #keysnail-prompt textbox,                                                                                    \
+    listbox#keysnail-completion-list,                                                                            \
+    listbox#keysnail-completion-list listheader,                                                                 \
+    #keysnail-twitter-client-user-tweet                                                                          \
+    {                                                                                                            \
+        font-size : 110% !important;                                                                             \
+    }                                                                                                            \
+                                                                                                                 \
+    /* charm */                                                                                                  \
+    #keysnail-prompt,                                                                                            \
+    #keysnail-prompt textbox,                                                                                    \
+    listbox#keysnail-completion-list,                                                                            \
+    listbox#keysnail-completion-list listitem,                                                                   \
+    listbox#keysnail-completion-list listheader,                                                                 \
+    #keysnail-twitter-client-user-tweet                                                                          \
+    {                                                                                                            \
+        -moz-appearance  : none !important;                                                                      \
+        border           : none !important;                                                                      \
+    }                                                                                                            \
+                                                                                                                 \
+    /* basic */                                                                                                  \
+    #keysnail-prompt,                                                                                            \
+    #keysnail-prompt textbox,                                                                                    \
+    listbox#keysnail-completion-list,                                                                            \
+    listbox#keysnail-completion-list listheader,                                                                 \
+    #keysnail-twitter-client-user-tweet                                                                          \
+    {                                                                                                            \
+        font-family      : "Consolas", "Bitstream Vera Sans Mono", "Menlo", "Courier New", monospace !important; \
+        background-color : %BG% !important;                                                                      \
+        color            : %FG% !important;                                                                      \
+    }                                                                                                            \
+                                                                                                                 \
+    listbox#keysnail-completion-list listitem                                                                    \
+    {                                                                                                            \
+        padding-left : 4px !important;                                                                           \
+    }                                                                                                            \
+                                                                                                                 \
+    .ks-text-link       { color : %LINK_BASE% !important; }                                                      \
+    .ks-text-link:hover { color : %LINK_HOVER% !important; }                                                     \
+                                                                                                                 \
+    /* selected row */                                                                                           \
+    listbox#keysnail-completion-list listitem[selected="true"],                                                  \
+    listbox#keysnail-completion-list:focus > listitem[selected="true"]                                           \
+    {                                                                                                            \
+        background-color : %BG_SELECTED_ROW% !important;                                                         \
+        color            : %FG_SELECTED_ROW% !important;                                                         \
+    }                                                                                                            \
+                                                                                                                 \
+    #keysnail-prompt textbox                                                                                     \
+    {                                                                                                            \
+        margin             : 5px 0px    !important;                                                              \
+        -moz-border-radius : 3px        !important;                                                              \
+        border-radius      : 3px        !important;                                                              \
+        padding            : 2px        !important;                                                              \
+    }                                                                                                            \
+                                                                                                                 \
+    #keysnail-prompt textbox                                                                                     \
+    {                                                                                                            \
+        padding-left       : 0.5em      !important;                                                              \
+        background-color   : %BG_INPUT% !important;                                                              \
+    }                                                                                                            \
+                                                                                                                 \
+    #keysnail-prompt textbox:focus                                                                               \
+    {                                                                                                            \
+        background-color   : %BG_INPUT_FOCUS% !important;                                                        \
+    }                                                                                                            \
+                                                                                                                 \
+    /* Prompt message */                                                                                         \
+    .keysnail-prompt-label                                                                                       \
+    {                                                                                                            \
+        color : %FG_MESSAGE% !important;                                                                         \
+    }                                                                                                            \
+                                                                                                                 \
+    /* Bottom line */                                                                                            \
+    listbox#keysnail-completion-list                                                                             \
+    {                                                                                                            \
+        border-bottom : 1px solid %FG_HEADER% !important;                                                        \
+        margin        : 0px                   !important;                                                        \
+    }                                                                                                            \
+                                                                                                                 \
+    /* Header */                                                                                                 \
+    listbox#keysnail-completion-list listhead                                                                    \
+    {                                                                                                            \
+        padding                   : 2px 0px                   !important;                                        \
+        margin                    : 2px 0px 4px 0px           !important;                                        \
+        border-bottom             : 1px solid %BORDER_HEADER% !important;                                        \
+        -moz-border-bottom-colors : %BORDER_HEADER%           !important;                                        \
+    }                                                                                                            \
+                                                                                                                 \
+    /* Header Cell */                                                                                            \
+    listbox#keysnail-completion-list listheader {                                                                \
+        font-weight               : bold                      !important;                                        \
+        color                     : %FG_HEADER%               !important;                                        \
+    }                                                                                                            \
+                                                                                                                 \
+    /* Completion List */                                                                                        \
+    listbox#keysnail-completion-list listcell                                                                    \
+    {                                                                                                            \
+        padding: 2px 0px !important;                                                                             \
+    }');
 
     share.colorThemeSolarized = colorThemeSolarized;
     style.register(share.colorThemeSolarized);
