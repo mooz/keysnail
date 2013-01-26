@@ -456,6 +456,7 @@ let pOptions = plugins.setupOptions("twitter_client", {
     },
     "lists"                                 : { preset: [] },
     "show_sources"                          : { preset: true },
+    "show_retweet_count"                    : { preset: true },
     "hide_profile_image_gif"                : {
         preset: false,
         description: M({ ja: "ユーザのアイコンが Gif 画像であった場合は隠す",
@@ -3483,23 +3484,25 @@ var twitterClient =
             function favIconGetter(aRow) aRow[0].favorited ? FAVORITED_ICON : "";
             let preferScreenName = pOptions["prefer_screen_name"];
             let showSources      = pOptions["show_sources"];
+            let showRTCount      = pOptions["show_retweet_count"];
 
             function statusMapper(status) {
                 var created = Date.parse(status.created_at);
                 var matched = status.source ? status.source.match(">(.*)</a>") : "";
 
-                return [status,
-                        let (url = status.user.profile_image_url)
-                            ((pOptions.hide_profile_image_gif && /\.gif$/.test(url)) ?
-                             "http://a1.twimg.com/images/default_profile_0_bigger.png" : url),
-                        preferScreenName ? status.user.screen_name : status.user.name,
-                        html.unEscapeTag(status.text),
-                        favIconGetter,
-                        util.format("%s %s",
-                                    getElapsedTimeString(current - created),
-                                    showSources ? (matched ? matched[1] : "Web") : "",
-                                    (status.in_reply_to_screen_name ?
-                                     " to " + status.in_reply_to_screen_name : ""))];
+                return [
+                    status,
+                    let (url = status.user.profile_image_url)
+                        ((pOptions.hide_profile_image_gif && /\.gif$/.test(url)) ?
+                         "http://a1.twimg.com/images/default_profile_0_bigger.png" : url),
+                    preferScreenName ? status.user.screen_name : status.user.name,
+                    html.unEscapeTag(status.text),
+                    favIconGetter,
+                    getElapsedTimeString(current - created) +
+                        (showRTCount && status.retweet_count ? " (" + status.retweet_count + " RT)" : "") +
+                        (status.in_reply_to_screen_name ? " to " + status.in_reply_to_screen_name : "") +
+                        (showSources ? " " + (matched ? matched[1] : "Web") : "")
+                ];
             }
 
             var collection = statuses.map(statusMapper);
