@@ -103,14 +103,14 @@ function FlashSlideshare(doc, callback) {
   let include = doc.querySelector('#h-flashplayer-inclusions').textContent;
   doc.defaultView.eval(include);
 
-  const fullScreenStyle = <><![CDATA[
-    position : fixed !important;
-    top      : 0px !important;
-    left     : 0px !important;
-    z-index  : 1000;
-    width    : 100% !important;
-    height   : 100% !important;
-  ]]></>;
+  const fullScreenStyle = [
+     'position : fixed !important;',
+     'top      : 0px !important;',
+     'left     : 0px !important;',
+     'z-index  : 1000;',
+     'width    : 100% !important;',
+     'height   : 100% !important;'
+  ].join("\n");
 
   setTimeout(function () {
     let instance = {
