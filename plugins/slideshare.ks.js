@@ -29,9 +29,9 @@ let PLUGIN_INFO =
 <KeySnailPlugin>
     <name>Slideshare</name>
     <description>Manipulate Slideshare</description>
-    <version>0.0.2</version>
-    <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/slideshare.ks.js</updateURL>
-    <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/slideshare.icon.png</iconURL>
+    <version>0.0.3</version>
+    <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/slideshare.ks.js</updateURL>
+    <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/slideshare.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
     <license>New BSD License</license>
     <minVersion>1.2.4</minVersion>
@@ -103,14 +103,14 @@ function FlashSlideshare(doc, callback) {
   let include = doc.querySelector('#h-flashplayer-inclusions').textContent;
   doc.defaultView.eval(include);
 
-  const fullScreenStyle = <><![CDATA[
-    position : fixed !important;
-    top      : 0px !important;
-    left     : 0px !important;
-    z-index  : 1000;
-    width    : 100% !important;
-    height   : 100% !important;
-  ]]></>;
+  const fullScreenStyle = [
+     'position : fixed !important;',
+     'top      : 0px !important;',
+     'left     : 0px !important;',
+     'z-index  : 1000;',
+     'width    : 100% !important;',
+     'height   : 100% !important;'
+  ].join("\n");
 
   setTimeout(function () {
     let instance = {
