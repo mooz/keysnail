@@ -335,7 +335,7 @@ const pOptions = plugins.setupOptions("hok", {
 
     "selector" : {
         preset: 'a[href], input:not([type="hidden"]), textarea, iframe, area, select, button, embed,' +
-            '*[onclick], *[onmouseover], *[onmousedown], *[onmouseup], *[oncommand], *[role="link"], *[role="button"]',
+            '*[onclick], *[onmouseover], *[onmousedown], *[onmouseup], *[oncommand], *[role="link"], *[role="button"], *[role="menuitem"]',
         description: M({
             en: "Selectors API Path query",
             ja: "ヒントの取得に使う Selectors API クエリ"
