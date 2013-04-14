@@ -616,7 +616,7 @@ function saveLink(elem, skipPrompt) {
 
     try {
         window.urlSecurityCheck(url, doc.nodePrincipal);
-        saveURL(url, text, null, true, skipPrompt, makeURI(url, doc.characterSet));
+        saveURL(url, text, null, true, skipPrompt, makeURI(url, doc.characterSet), doc);
     } catch (e) {}
 }
 
