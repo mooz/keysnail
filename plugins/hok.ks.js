@@ -1256,10 +1256,13 @@ var hok = function () {
             originalSuspendedStatus = key.suspended;
             key.suspended = true;
 
-            init();
-            setLocalQuery();
-
-            drawHints();
+            try {
+                init();
+                setLocalQuery();
+                drawHints();
+            } catch (x) {
+                hintCount = 0;
+            }
 
             if (hintCount > 1)
             {
