@@ -1205,23 +1205,16 @@ var hok = function () {
     }
 
     function setLocalQuery() {
-        if (pOptions["local_queries"] && typeof content.location.href == "string")
+        let currentPageURL = content.location.href;
+        if (pOptions["local_queries"] && currentPageURL)
         {
-            for (let [, row] in Iterator(pOptions["local_queries"]))
+            for (let [, [targetURLPattern, localSelector, toOverride]]
+                 in Iterator(pOptions["local_queries"]))
             {
-                if (content.location.href.match(row[0]))
+                if (currentPageURL.match(targetURLPattern))
                 {
-                    if (row[2])
-                    {
-                        // not append
-                        localQuery = row[1];
-                    }
-                    else
-                    {
-                        // append
-                        localQuery = selector + ", " + row[1];
-                    }
-
+                    localQuery = toOverride ? localSelector
+                        : pOptions["selector"] + ", " + localSelector;
                     return;
                 }
             }
