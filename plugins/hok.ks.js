@@ -653,16 +653,12 @@ var useSelector = pOptions["use_selector"] && ("querySelector" in document);
 
 var hok = function () {
     var hintKeys            = pOptions["hint_keys"];
-    var selector            = pOptions["selector"];
-    var xPathExp            = pOptions["xpath"];
     var hintBaseStyle       = pOptions["hint_base_style"];
     var hintColorLink       = pOptions["hint_color_link"];
     var hintColorForm       = pOptions["hint_color_form"];
     var hintColorFocused    = pOptions["hint_color_focused"];
     var hintColorCandidates = pOptions["hint_color_candidates"];
     var elementColorFocused = pOptions["element_color_focused"];
-    var uniqueOnly          = pOptions["unique_only"];
-    var uniqueFire          = pOptions["unique_fire"];
 
     var keyMap = {};
     if (pOptions["user_keymap"])
@@ -720,6 +716,7 @@ var hok = function () {
     function createTextHints(amount) {
         var reverseHints = {};
         var numHints = 0;
+        var uniqueOnly = pOptions["unique_only"];
 
         function next(hint) {
             var l = hint.length;
@@ -920,11 +917,11 @@ var hok = function () {
 
         if (useSelector)
         {
-            result = doc.querySelectorAll(priorQuery || localQuery || selector);
+            result = doc.querySelectorAll(priorQuery || localQuery || pOptions["selector"]);
         }
         else
         {
-            let xpathResult = doc.evaluate(priorQuery || xPathExp, doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            let xpathResult = doc.evaluate(priorQuery || pOptions["xpath"], doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             result = [];
 
             for (let i = 0, len = xpathResult.snapshotLength; i < len; ++i)
@@ -1189,7 +1186,7 @@ var hok = function () {
         let foundCount = updateHeaderMatchHints();
 
         // fire if hint is unique
-        if (uniqueFire && !supressUniqueFire) {
+        if (pOptions["unique_fire"] && !supressUniqueFire) {
             if (foundCount == 1 && getAliveLastMatchHint()) {
                 var targetElem = lastMatchHint.element;
                 destruction();
