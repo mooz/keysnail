@@ -819,8 +819,8 @@ const twitterAPI = {
             action     : action,
             host       : proto.host,
             method     : proto.method,
-            query      : query,
-            parameters : [[k, v] for ([k, v] in Iterator(params))]
+            //query      : query,
+            //parameters : [[k, v] for ([k, v] in Iterator(params))]
         };
 
         return requestArg;
@@ -899,17 +899,17 @@ const twitterAPI = {
         // ============================================================ //
 
         "statuses/home_timeline": {
-            action : "https://api.twitter.com/1/statuses/home_timeline.json",
+            action : "https://api.twitter.com/1.1/statuses/home_timeline.json",
             method : "GET"
         },
 
         "statuses/user_timeline": {
-            action : "https://api.twitter.com/1/statuses/user_timeline.json",
+            action : "https://api.twitter.com/1.1/statuses/user_timeline.json",
             method : "GET"
         },
 
         "statuses/mentions": {
-            action : "https://api.twitter.com/1/statuses/mentions.json",
+            action : "https://api.twitter.com/1.1/statuses/mentions_timeline.json",
             method : "GET"
         },
 
@@ -918,22 +918,22 @@ const twitterAPI = {
         // ============================================================ //
 
         "statuses/update": {
-            action : "https://api.twitter.com/1/statuses/update.json",
+            action : "https://api.twitter.com/1.1/statuses/update.json",
             method : "POST"
         },
 
         "statuses/destroy": {
-            action : "https://api.twitter.com/1/statuses/destroy/{id}.json",
+            action : "https://api.twitter.com/1.1/statuses/destroy/{id}.json",
             method : "DELETE"
         },
 
         "statuses/retweet": {
-            action : "https://api.twitter.com/1/statuses/retweet/{id}.json",
+            action : "https://api.twitter.com/1.1/statuses/retweet/{id}.json",
             method : "POST"
         },
 
         "statuses/show": {
-            action : "https://api.twitter.com/1/statuses/show/{id}.json",
+            action : "https://api.twitter.com/1.1/statuses/show/{id}.json",
             method : "GET"
         },
 
@@ -942,22 +942,22 @@ const twitterAPI = {
         // ============================================================ //
 
         "favorites": {
-            action : "https://api.twitter.com/1/favorites.json",
+            action : "https://api.twitter.com/1.1/favorites/list.json",
             method : "GET"
         },
 
         "favorites/user": {
-            action : "https://api.twitter.com/1/favorites/{user}.json",
+            action : "https://api.twitter.com/1.1/favorites/list.json?user_id={user}",
             method : "GET"
         },
 
         "favorites/create": {
-            action : "https://api.twitter.com/1/favorites/create/{id}.json",
+            action : "https://api.twitter.com/1.1/favorites/create.json",
             method : "POST"
         },
 
         "favorites/destroy": {
-            action : "https://api.twitter.com/1/favorites/destroy/{id}.json",
+            action : "https://api.twitter.com/1.1/favorites/destroy.json",
             method : "POST"
         },
 
@@ -966,12 +966,12 @@ const twitterAPI = {
         // ============================================================ //
 
         "lists/index": {
-            action : "https://api.twitter.com/1/lists.json",
+            action : "https://api.twitter.com/1.1/lists/list.json",
             method : "GET"
         },
 
         "lists/statuses": {
-            action : "https://api.twitter.com/1/lists/statuses.json",
+            action : "https://api.twitter.com/1.1/lists/statuses.json",
             host   : "https://api.twitter.com/",
             method : "GET"
         },
@@ -981,7 +981,7 @@ const twitterAPI = {
         // ============================================================ //
 
         "search": {
-            action : "https://search.twitter.com/search.json",
+            action : "https://api.twitter.com/1.1/search/tweets.json",
             method : "GET"
         },
 
@@ -990,12 +990,12 @@ const twitterAPI = {
         // ============================================================ //
 
         "direct_messages": {
-            action : "https://api.twitter.com/1/direct_messages.json",
+            action : "https://api.twitter.com/1.1/direct_messages.json",
             method : "GET"
         },
 
         "direct_messages/sent": {
-            action : "https://api.twitter.com/1/direct_messages/sent.json",
+            action : "https://api.twitter.com/1.1/direct_messages/sent.json",
             method : "GET"
         },
 
@@ -1004,7 +1004,7 @@ const twitterAPI = {
         // ============================================================ //
 
         "account/verify_credentials": {
-            action: "https://api.twitter.com/1/account/verify_credentials.json",
+            action: "https://api.twitter.com/1.1/account/verify_credentials.json",
             method: "GET"
         },
 
@@ -1013,7 +1013,7 @@ const twitterAPI = {
         // ============================================================ //
 
         "statuses/friends": {
-            action: "https://api.twitter.com/1/statuses/friends.json",
+            action: "https://api.twitter.com/1.1/friends/list.json",
             method: "GET"
         }
     },
@@ -1456,17 +1456,6 @@ var twitterClient =
 
         // Searches {{ ============================================================== //
 
-        function filterSearchResult(status) {
-            status.user = {
-                screen_name             : status.from_user,
-                name                    : status.from_user,
-                profile_image_url       : status.profile_image_url
-            };
-            status.in_reply_to_screen_name = status.to_user;
-
-            return status;
-        }
-
         var gTrackings = {};
 
         function addTrackingCrawler(query, infoHolder) {
@@ -1483,8 +1472,7 @@ var twitterClient =
                     name         : query,
                     interval     : infoHolder["interval"] || pOptions["tracking_update_interval"],
                     oauth        : gOAuth,
-                    countName    : "rpp",
-                    mapper       : function (response) response.results.map(filterSearchResult),
+                    mapper       : function (response) response.statuses,
                     getLastID    : function () infoHolder["lastID"],
                     setLastID    : function (v) {
                         infoHolder["lastID"] = v;
@@ -2617,7 +2605,17 @@ var twitterClient =
                     if (str === null)
                         return;
 
-                    getAccessToken(function () {
+                    var oauth_verifier = content.location.href.split('?')[1].split('&')
+                        .map(function(q) {
+                            var temp = q.split('=');
+                            return {
+                                key: temp[0],
+                                value: temp[1],
+                            };
+                        })
+                        .filter(function(q) q.key == 'oauth_verifier')[0].value;
+
+                    getAccessToken(oauth_verifier, function () {
                         showFollowersStatus();
                         setUserInfo();
                     });
@@ -2625,8 +2623,11 @@ var twitterClient =
             );
         }
 
-        function getAccessToken(next) {
+        function getAccessToken(oauth_verifier, next) {
             twitterAPI.request("oauth/access_token", {
+                params: {
+                    oauth_verifier: oauth_verifier,
+                },
                 ok: function (res) {
                     let parts = res.split("&");
 
@@ -2693,7 +2694,7 @@ var twitterClient =
                     en: "Added status to favorites" });
 
             twitterAPI.request(util.format("favorites/%s", aDelete ? "destroy" : "create"), {
-                args: {
+                params: {
                     id : aStatusID
                 },
                 ok: function (res, xhr) {
@@ -2727,8 +2728,6 @@ var twitterClient =
 
         function searchWord(word) {
             doSearchWord(word, function (results) {
-                results = results.map(filterSearchResult);
-
                 if (!results.length) {
                     display.echoStatusBar(M({
                         ja: word + L(" に対する検索結果はありません"),
@@ -2747,13 +2746,13 @@ var twitterClient =
 
                 twitterAPI.request("search", {
                     params: {
-                        rpp    : 100,
+                        count  : 100,
                         q      : word,
                         max_id : opts.max_id,
                         include_entities : true
                     },
                     ok: function (res, xhr) {
-                        let results = ($U.decodeJSON( xhr.responseText) || {"results":[]}).results;
+                        let results = ($U.decodeJSON( xhr.responseText) || {"statuses":[]}).statuses;
                         next(results);
                     },
                     ng: function (res, xhr) {
@@ -2765,7 +2764,6 @@ var twitterClient =
 
             function fetchPrevious(status, after) {
                 doSearchWord(word, function (results) {
-                    results = results.map(filterSearchResult);
                     results.shift();
                     after(results);
                 }, {
@@ -3017,7 +3015,7 @@ var twitterClient =
             }
 
             function showListsInPrompt(cache) {
-                let collection = Array.slice((cache || {lists:[]}).lists).map(
+                let collection = Array.slice((cache || [])).map(
                     function (list)
                     [
                         list.name,
