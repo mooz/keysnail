@@ -2566,25 +2566,53 @@ var twitterClient =
         // TwitterClient : Authorization
         // ================================================================================ //
 
-        function authorize() {
+        function authorize(onRequestTokenDone) {
             gOAuth.tokens.oauth_token        = "";
             gOAuth.tokens.oauth_token_secret = "";
 
             twitterAPI.request("oauth/request_token", {
                 ok: function (res) {
                     let parts = res.split("&");
-
                     gOAuth.tokens.oauth_token        = parts[0].split("=")[1];
                     gOAuth.tokens.oauth_token_secret = parts[1].split("=")[1];
 
-                    gBrowser.loadOneTab("https://twitter.com/oauth/authorize?oauth_token=" +
-                                        gOAuth.tokens.oauth_token,
-                                        null, null, null, false);
+                    requestOAuthVerifier(gOAuth.tokens.oauth_token, function (oauthVerifier) {
+                        onRequestTokenDone(oauthVerifier);
+                    });
                 },
                 ng: function (res, xhr) {
                     display.notify("Failed to request token :: " + xhr.responseText);
                 }
             });
+        }
+
+        function requestOAuthVerifier(authToken, onAuthFinish) {
+            var tabElement = gBrowser.loadOneTab(
+                "https://twitter.com/oauth/authorize?oauth_token=" + authToken,
+                null, null, null, false
+            );
+            var tabBrowser = gBrowser.getBrowserForTab(tabElement);
+            tabBrowser.addEventListener("DOMContentLoaded", function loadListener(ev) {
+                let rootWin = tabBrowser.contentWindow;
+                let doc = ev.target;
+                if (doc !== rootWin.document) return; // only for main window
+
+                let docURL = doc.location.href;
+                if (/^https:\/\/github.com\/mooz\/keysnail\/wiki\?/.test(docURL)) {
+                    tabBrowser.removeEventListener("DOMContentLoaded", loadListener, true);
+
+                    var oauth_verifier = docURL.split('?')[1].split('&')
+                            .map(function(q) {
+                                var temp = q.split('=');
+                                return {
+                                    key: temp[0],
+                                    value: temp[1]
+                                };
+                            })
+                            .filter(function(q) q.key == 'oauth_verifier')[0].value;
+                    onAuthFinish(oauth_verifier);
+                }
+            }, true);
         }
 
         function reAuthorize() {
@@ -2595,32 +2623,12 @@ var twitterClient =
         }
 
         function authorizationSequence() {
-            authorize();
-
-            gPrompt.close();
-            prompt.read(
-                M({ ja: "認証が終了したら Enter キーを押してください",
-                    en: "Press Enter When Authorization Finished:"}),
-                function (str) {
-                    if (str === null)
-                        return;
-
-                    var oauth_verifier = content.location.href.split('?')[1].split('&')
-                        .map(function(q) {
-                            var temp = q.split('=');
-                            return {
-                                key: temp[0],
-                                value: temp[1],
-                            };
-                        })
-                        .filter(function(q) q.key == 'oauth_verifier')[0].value;
-
-                    getAccessToken(oauth_verifier, function () {
-                        showFollowersStatus();
-                        setUserInfo();
-                    });
-                }
-            );
+            authorize(function (oauth_verifier) {
+              getAccessToken(oauth_verifier, function () {
+                showFollowersStatus();
+                setUserInfo();
+              });
+            });
         }
 
         function getAccessToken(oauth_verifier, next) {
