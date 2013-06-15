@@ -2450,13 +2450,16 @@ var twitterClient =
         // Popup notifications {{ =================================================== //
 
         function showPopup(arg) {
-            alertsService.showAlertNotification(arg.icon,
-                                                arg.title,
-                                                arg.message,
-                                                !!arg.link,
-                                                arg.link,
-                                                arg.observer);
-
+            try {
+                alertsService.showAlertNotification(arg.icon || "",
+                                                    arg.title || "",
+                                                    arg.message || "",
+                                                    !!arg.link || false,
+                                                    arg.link || null,
+                                                    arg.observer || null);
+            } catch (x) {
+                log(LOG_LEVEL_DEBUG, "failed to show popup: " + x);
+            }
         }
 
         function showOldestUnPopUppedStatus() {
