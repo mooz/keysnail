@@ -506,7 +506,7 @@ const $U = {
 
     decodeJSON:
     function decodeJSON(json) {
-        return util.safeEval("(" + json + ")");
+        return JSON.parse(json);
     },
 
     quoteToUnicode: function (quote) {
