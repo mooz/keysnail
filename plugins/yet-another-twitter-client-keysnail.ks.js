@@ -3696,6 +3696,9 @@ var twitterClient =
         }
 
         function modifyCache(aId, proc) {
+            if (!gStatuses.cache)
+                return;
+
             for (let [, status] in Iterator(gStatuses.cache))
                 if (status.id_str === aId)
                     proc(status);
