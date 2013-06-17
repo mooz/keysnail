@@ -581,6 +581,15 @@ const $U = {
     extractLinks: function (str) {
         return Array.slice(str.match(/(?:(?:http|ftp)s?\:\/\/|www\.)[^\s]+/g))
             .map(function (url) url.indexOf("www") ? url : "http://" + url);
+    },
+
+    encodeOAuth: function (str) {
+        return encodeURIComponent(str)
+            .replace(/\!/g, "%21")
+            .replace(/\'/g, "%27")
+            .replace(/\(/g, "%28")
+            .replace(/\)/g, "%29")
+            .replace(/\*/g, "%2A");
     }
 };
 
@@ -695,7 +704,7 @@ OAuth.prototype = {
         if (this.tokens.oauth_token)
             message.parameters.push(["oauth_token", this.tokens.oauth_token]);
 
-        if (options.parameters)
+        if (options.parameters && message.method === "POST")
         {
             outer:
             for (let [, params] in Iterator(options.parameters))
@@ -720,14 +729,11 @@ OAuth.prototype = {
         this._oauth.SignatureMethod.sign(message, accessor);
 
         var oAuthArgs  = this._oauth.getParameterMap(message.parameters);
-        var authHeader = this._oauth.getAuthorizationHeader(options.host || this.info.authHeader, oAuthArgs);
+        var endPoint = this._oauth.addToURL(message.action, oAuthArgs);
 
         xhr.mozBackgroundRequest = true;
-        xhr.open(message.method, message.action, true);
-        xhr.setRequestHeader("Authorization", authHeader);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-        xhr.send(options.query || null);
+        xhr.open(message.method, endPoint, true);
+        xhr.send(null);
     }
 };
 
@@ -767,21 +773,19 @@ const twitterAPI = {
 
         for (let [k, v] in Iterator(args))
             if (typeof v !== "undefined")
-                action = action.replace(util.format("{%s}", k), encodeURIComponent(v), "g");
+                action = action.replace(util.format("{%s}", k), $U.encodeOAuth(v), "g");
 
-        let query = [k + "=" + encodeURIComponent(v)
-                     for ([k, v] in Iterator(params))
-                     if (typeof v !== "undefined")].join("&");
-
-        if (query.length)
-            action += "?" + query;
+        let (query = [k + "=" + $U.encodeOAuth(v)
+                      for ([k, v] in Iterator(params))
+                      if (typeof v !== "undefined")].join("&")) {
+            if (query.length)
+                action += (action.indexOf("?") < 0 ? "?" : "&") + query;
+        };
 
         let requestArg = {
             action     : action,
             host       : proto.host,
-            method     : proto.method,
-            //query      : query,
-            //parameters : [[k, v] for ([k, v] in Iterator(params))]
+            method     : proto.method
         };
 
         return requestArg;
@@ -985,9 +989,7 @@ const twitterAPI = {
 
     isRetryable:
     function isRetryable(xhr) {
-        return (xhr.status === 401)
-            && ((xhr.responseText.indexOf("Could not authenticate you") !== -1) ||
-                (xhr.responseText.indexOf("This method requires authentication") !== -1));
+        return false;
     },
 
     isDMManipulationNotAllowed:
@@ -1162,7 +1164,7 @@ var twitterClient =
                 let { action } = this;
 
                 if (context.params) {
-                    let query = [k + "=" + encodeURIComponent(v)
+                    let query = [k + "=" + $U.encodeOAuth(v)
                                  for ([k, v] in Iterator(context.params))
                                  if (typeof v !== "undefined")].join("&");
                     if (query.length)
