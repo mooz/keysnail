@@ -3710,26 +3710,44 @@ var twitterClient =
             });
         }
 
-        function updateFriendsCache() {
-            share.friendsCache = [];
-            (function update(cursor){
+        function updateFriendsCache(previousCursor) {
+            if (!Array.isArray(share.friendsCache)) {
+                share.friendsCache = [];
+            }
+            (function update (cursor) {
+                var updateInterval = 1000 * 35;
+
                 twitterAPI.request('statuses/friends', {
                     params: { cursor: cursor },
                     ok: function (res, xhr) {
                         res = $U.decodeJSON(res);
-                        (res.users || []).forEach(function(i) {
-                            share.friendsCache.push("@" + i.screen_name);
-                            share.friendsCache.push("D " + i.screen_name);
+
+                        (res.users || []).forEach(function (user) {
+                            share.friendsCache.push("@" + user.screen_name);
+                            share.friendsCache.push("D " + user.screen_name);
                         });
+
+                        share.friendsCache.sort();
+                        share.friendsCache = _.uniq(share.friendsCache, true /* sorted */);
+                        persist.preserve({
+                            cache: share.friendsCache,
+                            cursor: res.next_cursor_str,
+                            last_update_date: new Date()
+                        }, "yatck_friends_cache");
+
                         if (res.next_cursor_str !== "0") {
-                            update(res.next_cursor_str);
-                        } else {
-                            share.friendsCache.sort();
-                            persist.preserve(share.friendsCache, "yatck_friends_cache");
+                            setTimeout(function () {
+                                update(res.next_cursor_str);
+                            }, updateInterval);
                         }
+                    },
+                    ng: function (res, xhr) {
+                        setTimeout(function (res, xhr) {
+                            update(cursor);
+                        }, updateInterval * 5);
                     }
                 });
-            })(-1);
+            })(typeof previousCursor === "number" ? previousCursor : -1);
         }
 
         /**
@@ -4190,10 +4208,24 @@ var twitterClient =
         if (!share.userInfo)
             self.setUserInfo();
 
-        if (!share.friendsCache)
-            share.friendsCache = persist.restore("yatck_friends_cache") || null;
-        if (!share.friendsCache)
-            self.updateFriendsCache();
+        function dayDifference(day1, day2) {
+            var diff = Math.abs(day1.getTime() - day2.getTime()) / (1000 * 60 * 60 * 24);
+            return diff;
+        }
+
+        if (!share.friendsCache) {
+            let friendsCacheInfo = persist.restore("yatck_friends_cache") || null;
+            if (friendsCacheInfo && Array.isArray(friendsCacheInfo.cache)) {
+                share.friendsCache = friendsCacheInfo.cache;
+            } else {
+                friendsCacheInfo = { cursor: -1 };
+            }
+            if (friendsCacheInfo.cursor !== 0 ||
+                !friendsCacheInfo.last_update_date ||
+                dayDifference(new Date(), new Date(friendsCacheInfo.last_update_date)) > 7 /* Expires 1 week */) {
+                self.updateFriendsCache(friendsCacheInfo.cursor);
+            }
+        }
 
         if (pOptions["automatically_begin"])
         {
