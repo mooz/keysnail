@@ -657,45 +657,6 @@ function OAuth(info, tokens) {
 }
 
 OAuth.prototype = {
-    syncRequest:
-    function syncRequest(options) {
-        var xhr = new XMLHttpRequest();
-
-        var accessor = {
-            consumerSecret : this.info.consumerSecret,
-            tokenSecret    : this.tokens.oauth_token_secret
-        };
-
-        var message = {
-            action     : options.action,
-            method     : options.method,
-            parameters : [
-                ["oauth_consumer_key"     , this.info.consumerKey],
-                ["oauth_token"            , this.tokens.oauth_token],
-                ["oauth_signature_method" , this.info.signatureMethod],
-                ["oauth_version"          , "1.0"]
-            ]
-        };
-
-        if (options.parameters)
-            message.parameters = message.parameters.concat(options.parameters);
-
-        this._oauth.setTimestampAndNonce(message);
-        this._oauth.SignatureMethod.sign(message, accessor);
-
-        var oAuthArgs  = this._oauth.getParameterMap(message.parameters);
-        var authHeader = this._oauth.getAuthorizationHeader(this.info.authHeader, oAuthArgs);
-
-        xhr.mozBackgroundRequest = true;
-        xhr.open(message.method, message.action, false);
-        xhr.setRequestHeader("Authorization", authHeader);
-        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-        xhr.send(options.query || null);
-
-        return xhr.responseText;
-    },
-
     asyncRequest:
     function asyncRequest(options, callback, onprogress) {
         var xhr = new XMLHttpRequest();
