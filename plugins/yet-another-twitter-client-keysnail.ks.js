@@ -2897,10 +2897,18 @@ var twitterClient =
                             share.twitterImmediatelyAddedStatuses.push(status);
                         },
                         ng: function (res, xhr) {
+                            var response, errorMessage;
+                            try {
+                                response = $U.decodeJSON(res);
+                                errorMessage = ":" + response.errors.map(function ({message}) message).join("\n");
+                            } catch (x) {
+                                errorMessage = "";
+                            }
+
                             showPopupMayBe({
                                 title   : M({ja: "ごめんなさい", en: "I'm sorry..."}),
                                 message : M({ja: "つぶやけませんでした",
-                                             en: "Failed to tweet"}) + " (" + xhr.status + ")"
+                                             en: "Failed to tweet"}) + " (" + xhr.status + ")" + errorMessage
                             });
                         }
                     });
