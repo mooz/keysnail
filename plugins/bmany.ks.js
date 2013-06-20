@@ -253,8 +253,7 @@ var bmany =
                      if (item)
                          aContainer.push(item);
                  }
-                 else if (PlacesUtils.nodeIsFolder(childNode)
-                          && !PlacesUtils.nodeIsLivemarkContainer(childNode))
+                 else if (PlacesUtils.nodeIsFolder(childNode))
                  {
                      arguments.callee(childNode.itemId, aFilter, aContainer);
                  }
@@ -358,7 +357,7 @@ var bmany =
              [function (url, id) { self.go(url, "unique");     },
               M({en: "Open link in unique tab", ja: "既に開いていればそのタブを選択し、いなければ現在のタブで開く"}),
               "open-unique-tab"],
-             [function (url, id) { PlacesUIUtils.showItemProperties(id, "bookmark"); },
+             [function (url, id) { PlacesUIUtils.showBookmarkDialog({ itemId:id }, window); },
               M({en: "Edit selected bookmark item", ja: "選択中のブックマークを編集"}),
               "edit-bookmark"]
          ];
