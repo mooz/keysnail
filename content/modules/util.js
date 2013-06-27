@@ -1041,8 +1041,18 @@ const util = function () {
 
             try
             {
-                var icon = PlacesUtils.favicons
-                    .getFaviconForPage(this.IOService.newURI(aURL, null, null));
+                var blocking = true;
+                var icon;
+                PlacesUtils.favicons
+                    .getFaviconURLForPage(this.IOService.newURI(aURL, null, null), {
+                        onComplete: function(aURI, aDataLen, aData, aMimeType) {
+                            icon = aURI;
+                            blocking = false;
+                        }
+                    });
+                var thread = Cc["@mozilla.org/thread-manager;1"].getService().mainThread;
+                while (blocking)
+                    thread.processNextEvent(true);
                 iconURL = icon.spec;
             }
             catch (x)
@@ -1605,6 +1615,10 @@ const util = function () {
             separator.push(" //");
 
             return separator.join("");
+        },
+
+        getTypeName: function (object) {
+            return Object.prototype.toString.call(object);
         },
 
         /**
