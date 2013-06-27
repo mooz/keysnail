@@ -1461,8 +1461,7 @@ const util = function () {
                     if (item)
                         aContainer.push(item);
                 }
-                else if (PlacesUtils.nodeIsFolder(childNode)
-                         && !PlacesUtils.nodeIsLivemarkContainer(childNode))
+                else if (PlacesUtils.nodeIsFolder(childNode))
                 {
                     arguments.callee(childNode.itemId, aFilter, aContainer);
                 }
