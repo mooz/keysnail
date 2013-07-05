@@ -216,7 +216,7 @@ const pOptions = plugins.setupOptions("kungfloo", {
 }, PLUGIN_INFO);
 
 let kungfloo = (function () {
-    let to      = Cc['@brasil.to/tombloo-service;1'].getService().wrappedJSObject;
+    let to      = (Cc['@brasil.to/tombloo-service;1'] || Cc['@tombfix.github.io/tombfix-service;1']).getService().wrappedJSObject;
     let Tombloo = to.Tombloo;
 
     function getActions() {
