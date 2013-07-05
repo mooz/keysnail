@@ -25,13 +25,6 @@ const html = {
 
     styleSheet: null,
 
-    replacePair : {
-        "<" : "&lt;",
-        ">" : "&gt;",
-        "'" : "&apos;",
-        "\"": "&quot;"
-    },
-
     init: function () {
     },
 
@@ -79,25 +72,11 @@ const html = {
     },
 
     escapeTag: function (aString) {
-        if (!aString)
-            return "";
-
-        for (let [bad, good] in Iterator(this.replacePair))
-            while (aString.indexOf(bad) !== -1)
-                aString = aString.replace(bad, good);
-
-        return aString;
+        return _.escape(aString);
     },
 
     unEscapeTag: function (aString) {
-        if (!aString)
-            return "";
-
-        for (let [bad, good] in Iterator(this.replacePair))
-            while (aString.indexOf(good) !== -1)
-                aString = aString.replace(good, bad);
-
-        return aString;
+        return _.unescape(aString);
     },
 
     // original code from prototype.js
