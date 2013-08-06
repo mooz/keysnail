@@ -1099,9 +1099,9 @@ var hok = function () {
                 util.message(x);
             }
 
+            document.removeEventListener('keydown', stopEventPropagation, true);
             document.removeEventListener('keypress', onKeyPress, true);
-            document.removeEventListener('keydown', preventEvent, true);
-            document.removeEventListener('keyup', preventEvent, true);
+            document.removeEventListener('keyup', stopEventPropagation, true);
         }
 
         display.echoStatusBar("");
@@ -1127,14 +1127,13 @@ var hok = function () {
     function onKeyPress(event) {
         var keyStr = key.keyEventToString(event);
 
+        preventEvent(event);
+
         if (!keyMap.hasOwnProperty(keyStr))
         {
             destruction(true);
             return;
         }
-
-        event.preventDefault();
-        event.stopPropagation();
 
         var role = keyMap[keyStr];
 
@@ -1194,6 +1193,10 @@ var hok = function () {
                 fire(targetElem);
             }
         }
+    }
+
+    function stopEventPropagation(event) {
+        event.stopPropagation();
     }
 
     function preventEvent(event) {
@@ -1256,9 +1259,9 @@ var hok = function () {
 
             if (hintCount > 1)
             {
+                document.addEventListener('keydown', stopEventPropagation, true);
                 document.addEventListener('keypress', onKeyPress, true);
-                document.addEventListener('keydown', preventEvent, true);
-                document.addEventListener('keyup', preventEvent, true);
+                document.addEventListener('keyup', stopEventPropagation, true);
             }
             else
             {
