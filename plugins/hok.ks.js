@@ -324,15 +324,6 @@ const pOptions = plugins.setupOptions("hok", {
         type: "array"
     },
 
-    "use_selector" : {
-        preset: true,
-        description: M({
-            en: "Use Selectors API instead of XPath. Performance up but only works after Firefox 3.1 (default: true)",
-            ja: "ヒントの取得に Selectors API を用いるかどうか。 XPath より高速となるが Firefox 3.1 以降専用。 (デフォルト: true)"
-        }),
-        type: "boolean"
-    },
-
     "selector" : {
         preset: 'a[href], input:not([type="hidden"]), textarea, iframe, area, select, button, embed,' +
             '*[onclick], *[onmouseover], *[onmousedown], *[onmouseup], *[oncommand], *[role="link"], *[role="button"], *[role="menuitem"]',
@@ -343,21 +334,11 @@ const pOptions = plugins.setupOptions("hok", {
         type: "string"
     },
 
-    "xpath" : {
-        preset: '//input[not(@type="hidden")] | //a | //area | //iframe | //textarea | //button | //select' +
-            ' | //*[@onclick or @onmouseover or @onmousedown or @onmouseup or @oncommand or @role="link"]',
-        description: M({
-            en: "XPath query",
-            ja: "ヒントの取得に使う XPath クエリ"
-        }),
-        type: "string"
-    },
-
     "local_queries" : {
         preset: null,
         description: M({
-            en: "Site local queries (Only effective when Selectors API is used)",
-            ja: "サイト毎のクエリ (Selectors API 使用時のみ有効)"
+            en: "Site local queries",
+            ja: "サイト毎のクエリ"
         }),
         type: "array"
     },
@@ -649,7 +630,6 @@ function recoverFocus() {
 // HoK object {{ ============================================================ //
 
 var originalSuspendedStatus;
-var useSelector = pOptions["use_selector"] && ("querySelector" in document);
 
 var hok = function () {
     var hintKeys            = pOptions["hint_keys"];
@@ -852,7 +832,7 @@ var hok = function () {
     }
 
     function getBodyForDocument(doc) {
-        return doc ? doc.body || (useSelector && doc.querySelector("body")) || doc.documentElement : null;
+        return doc ? doc.body || doc.querySelector("body") || doc.documentElement : null;
     }
 
     function drawHints(win) {
@@ -915,18 +895,7 @@ var hok = function () {
 
         var result, elem;
 
-        if (useSelector)
-        {
-            result = doc.querySelectorAll(priorQuery || localQuery || pOptions["selector"]);
-        }
-        else
-        {
-            let xpathResult = doc.evaluate(priorQuery || pOptions["xpath"], doc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            result = [];
-
-            for (let i = 0, len = xpathResult.snapshotLength; i < len; ++i)
-                result.push(xpathResult.snapshotItem(i));
-        }
+        result = doc.querySelectorAll(priorQuery || localQuery || pOptions["selector"]);
 
         var style, rect, hint, span, top, left, ss;
         var leftpos, toppos;
@@ -1335,8 +1304,8 @@ function formatActions(aActions) {
 }
 
 var query = {
-    images : useSelector ? "img" : "//img",
-    frames : useSelector ? "body" : "//body"
+    images : "img",
+    frames : "body"
 };
 
 // ['Key', 'Description', function (elem) { /* process hint elem */ }, supressUniqueFire, continuousMode, 'Query query']
