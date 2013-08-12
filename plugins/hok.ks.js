@@ -35,6 +35,10 @@ key.setViewKey(';', function (aEvent, aArg) {
 key.setViewKey(['C-c', 'C-e'], function (aEvent, aArg) {
     ext.exec("hok-start-continuous-mode", aArg);
 }, 'Start continuous HaH', true);
+
+key.setViewKey('c', function (aEvent, aArg) {
+    ext.exec("hok-yank-foreground-mode", aArg);
+}, 'Hok - Foreground yank hint mode', true);
 ||<
 
 In this example, you can start hah by pressing e key in the view mode.
@@ -1203,6 +1207,11 @@ var hok = function () {
             });
     }
 
+    // Yank the href of an element
+    function yank (elem) {
+        command.setClipboardText(elem.href)
+    }
+
     var self = {
         start: function (aAction, aContext) {
             if (!window.content)
@@ -1273,6 +1282,14 @@ var hok = function () {
                       });
         },
 
+        yankForeground: function (supressUniqueFire) {
+            self.start(yank,
+                      {
+                          supressUniqueFire: supressUniqueFire
+                      });
+        },
+
+
         startBackground: function (supressUniqueFire) {
             hok.start(function (elem) followLink(elem, NEW_BACKGROUND_TAB),
                       {
@@ -1321,7 +1338,7 @@ var actions = [
     ['F', M({ja: "連続してリンクを開く", en: "Open multiple hints in tabs"}), function (elem) plugins.hok.followLink(elem, NEW_BACKGROUND_TAB), false, true],
     ['v', M({ja: "リンク先のソースコードを表示", en: "View hint source"}), function (elem) plugins.hok.viewSource(elem.href, false)],
     ['V', M({ja: "リンク先のソースコードを外部エディタで表示", en: "View hint source in external editor"}), function (elem) plugins.hok.viewSource(elem.href, true)],
-    ['y', M({ja: "リンクの URL をコピー", en: "Yank hint location"}), function (elem) command.setClipboardText(elem.href)],
+    ['y', M({ja: "リンクの URL をコピー", en: "Yank hint location"}), yank],
     ['Y', M({ja: "要素の内容をコピー", en: "Yank hint description"}), function (elem) command.setClipboardText(elem.textContent || "")],
     ['c', M({ja: "右クリックメニューを開く", en: "Open context menu"}), function (elem) plugins.hok.openContextMenu(elem)],
     ['i', M({ja: "画像を開く", en: "Show image"}), function (elem) plugins.hok.openURI(elem.src), false, false, query.images],
@@ -1358,6 +1375,10 @@ plugins.withProvides(function (provide) {
     provide("hok-start-foreground-mode",
             function (ev, arg) hok.startForeground(!(arg === null)),
             M({ja: "HoK - リンクをフォアグラウンドで開く", en: "Start Hit a Hint foreground mode"}));
+
+    provide("hok-yank-foreground-mode",
+            function (ev, arg) hok.yankForeground(!(arg === null)),
+            M({ja: "HoK - リンクの URL をコピー", en: "Start Hit a Yank foreground mode"}));
 
     provide("hok-start-background-mode",
             function (ev, arg) hok.startBackground(!(arg === null)),
