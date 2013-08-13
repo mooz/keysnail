@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクを開く</description>
-    <version>1.4.1</version>
+    <version>1.4.2</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -624,6 +624,11 @@ function viewSource(url, useExternalEditor) {
     }
 }
 
+// Yank the href of an element
+function yank(elem) {
+    command.setClipboardText(elem.href);
+}
+
 function recoverFocus() {
     gBrowser.focus();
     _content.focus();
@@ -1205,11 +1210,6 @@ var hok = function () {
             function (l) {
                 keyMap[l] = l;
             });
-    }
-
-    // Yank the href of an element
-    function yank (elem) {
-        command.setClipboardText(elem.href)
     }
 
     var self = {
