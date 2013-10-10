@@ -276,7 +276,7 @@ let kungfloo = (function () {
                 // new tombfix
                 var context    = getContext(target);
                 var extensions = Tombloo.Service.check(context);
-            } catch {
+            } catch(ex) {
                 // tombloo or old tombfix
                 context.document = context.document.wrappedJSObject;
                 context.window = context.window.wrappedJSObject;
