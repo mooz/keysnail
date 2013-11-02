@@ -463,6 +463,24 @@ const util = function () {
             return (controller && controller.isCommandEnabled(aCommand));
         },
 
+        /**
+         * check if the child is really a child node of the parent
+         * @param {Node} parent a DOM node
+         * @param {Node} child a DOM node
+         * @returns {boolean} true if child is really a child node of
+         * the parent
+         */
+        nodeContains: function (parent, child) {
+            var node = child.parentNode;
+            while (node !== null) {
+                if (node === parent) {
+                    return true;
+                }
+                node = node.parentNode;
+            }
+            return false;
+        },
+
         // }} ======================================================================= //
 
         // Predicatives {{ ========================================================== //
