@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>bmany</name>
     <description>Search bookmarks incrementally and go!</description>
     <description lang="ja">anything.el 気分でブックマークを操作</description>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/bmany.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/bmany.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -519,6 +519,36 @@ var bmany =
                                  });
              },
 
+             getShortcutOrURIThen: function (aQuery, aCallback) {
+                 if (typeof getShortcutOrURI === "undefined") {
+                     // Firefox 25 ~
+                     Task.spawn(function () {
+                         let data = yield getShortcutOrURIAndPostData(aQuery);
+                         aCallback(data.url);
+                     });
+                 } else {
+                     // ~ Firefox 24
+                     aCallback(getShortcutOrURI(aQuery));
+                 }
+             },
+
+             executeBookmarklet: function (aBookmarkletURL) {
+                 try {
+                     loadURI(aBookmarkletURL);
+                 } catch (x) {}
+             },
+
+             tryToSelectTabByURL: function (aURL) {
+                 var tabs = gBrowser.mTabContainer.childNodes;
+                 for (var i = 0; i < tabs.length; ++i) {
+                     if (tabs[i].linkedBrowser.currentURI.spec === aURL) {
+                         gBrowser.mTabContainer.selectedIndex = i;
+                         return true;
+                     }
+                 }
+                 return false;
+             },
+
              /**
               * Open given url or execute bookmarklet
               * @param {} aQuery
@@ -528,40 +558,22 @@ var bmany =
                  if (!aQuery)
                      return;
 
-                 if (aQuery.indexOf("javascript:") === -1)
-                     aQuery = getShortcutOrURI(aQuery);
-
-                 if (aQuery.indexOf("javascript:") === 0)
-                 {
-                     // bookmarklet
-                     try
-                     {
-                         loadURI(aQuery);
-                     }
-                     catch (x) {}
-                 }
-                 else
-                 {
-                     if (aOpenType === "unique")
-                     {
-                         var tabs = gBrowser.mTabContainer.childNodes;
-                         for (var i = 0; i < tabs.length; ++i)
-                         {
-                             if (tabs[i].linkedBrowser.currentURI.spec === aQuery)
-                             {
-                                 gBrowser.mTabContainer.selectedIndex = i;
+                 if (aQuery.indexOf("javascript:") === 0) {
+                     this.executeBookmarklet(aQuery);
+                 } else {
+                     this.getShortcutOrURIThen(aQuery, function (aURL) {
+                         if (aOpenType === "unique") {
+                             if (self.tryToSelectTabByURL(aURL)) {
                                  return;
                              }
+                             aOpenType = "tab";
                          }
-
-                         aOpenType = "tab";
-                     }
-
-                     // tab        => foreground
-                     // tabshifted => background
-                     // window     => new window
-                     // current    => current tab
-                     openUILinkIn(aQuery, aOpenType || "current");
+                         // tab        => foreground
+                         // tabshifted => background
+                         // window     => new window
+                         // current    => current tab
+                         openUILinkIn(aQuery, aOpenType || "current");
+                     });
                  }
              }
          };
