@@ -956,7 +956,7 @@ const command = {
 
         var clipboardText = command.getClipboardText();
 
-        if (clipboardText === null || input.localName === "html")
+        if (clipboardText === null || !util.isPlainTextEditor(input))
         {
             goDoCommand('cmd_paste');
             return;
@@ -1001,6 +1001,12 @@ const command = {
             || (lastFunc === command.yankPop && command.kill.popFailed))
         {
             display.echoStatusBar("Previous command was not a yank", 2000);
+            command.kill.popFailed = true;
+            return;
+        }
+        if (!util.isPlainTextEditor(input))
+        {
+            display.echoStatusBar("Yank pop is not supported for this kind of input", 2000);
             command.kill.popFailed = true;
             return;
         }
