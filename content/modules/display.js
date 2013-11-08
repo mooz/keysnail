@@ -11,7 +11,11 @@ const display = (function () {
     const NOTIFY_ID = "ks-notify-message";
 
     // ==== status bar ====
-    function getStatusBar() document.getElementById('statusbar-display')
+    function getStatusBar() {
+      return document.getElementById('statusbar-display') ||
+        // Firefox 25 ~
+        typeof gBrowser !== "undefined" ? gBrowser.getStatusPanel() : null;
+    }
 
     let echoArea;
     let msgTimeOut;           // timeout object to the status bar
