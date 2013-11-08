@@ -485,6 +485,12 @@ const util = function () {
 
         // Predicatives {{ ========================================================== //
 
+        isPlainTextEditor: function (aElement) {
+            if (!aElement) return false;
+            var elementName = (aElement.localName || "").toLowerCase();
+            return elementName === "input" || elementName === "textarea";
+        },
+
         /**
          * check if user can input any text in current situation
          * original code from Firemacs
@@ -502,14 +508,11 @@ const util = function () {
             var insertTextController= document.commandDispatcher
                 .getControllerForCommand("cmd_insertText");
 
-            try
-            {
+            try {
                 return (insertTextController &&
                         insertTextController.isCommandEnabled("cmd_insertText"));
-            }
-            catch (x)
-            {
-                return (localName === 'input' || localName === 'textarea');
+            } catch (x) {
+                return this.isPlainTextEditor(ev.originalTarget);
             }
         },
 
