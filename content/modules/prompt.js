@@ -1153,6 +1153,8 @@ const prompt = function () {
         if (!wholeList || !wholeList.length)
         {
             display.echoStatusBar("No completion found", 1000);
+            setRows(0);
+            listbox.hidden = true;
             wholeListIndex = -1;
             return;
         }
@@ -1267,7 +1269,8 @@ const prompt = function () {
             {
                 // no candidates found
                 removeAllChilds(listbox);
-
+                setRows(0);
+                listbox.hidden = true;
                 compIndexList  = null;
                 currentRegexp  = regexp;
                 wholeListIndex = -1;
