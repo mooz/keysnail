@@ -12,9 +12,19 @@ const display = (function () {
 
     // ==== status bar ====
     function getStatusBar() {
-      return document.getElementById('statusbar-display') ||
-        // Firefox 25 ~
-        typeof gBrowser !== "undefined" ? gBrowser.getStatusPanel() : null;
+        if (typeof gBrowser !== "undefined" && gBrowser.getStatusPanel) {
+            return gBrowser.getStatusPanel();
+        } else {
+            return document.getElementById('statusbar-display');
+        }
+    }
+
+    function getNotificationBox() {
+        if (typeof gBrowser !== "undefined" && gBrowser.getNotificationBox) {
+            return gBrowser.getNotificationBox();
+        } else {
+            return util.browserWindow.gBrowser.getNotificationBox();
+        }
     }
 
     let echoArea;
@@ -304,7 +314,7 @@ const display = (function () {
                 ];
             }
 
-            let notifyBox = util.gBrowser.getNotificationBox();
+            let notifyBox = getNotificationBox();
             let current = notifyBox.currentNotification;
 
             if (current && current.value == NOTIFY_ID)
