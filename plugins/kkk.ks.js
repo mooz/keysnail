@@ -80,8 +80,22 @@ let kkk =
     (function () {
          let eventType = ["keydown", "keyup"];
 
+         function isEventOnEditor(ev) {
+             var elem = ev.originalTarget;
+             if (util.isPlainTextEditor) {
+                 return util.isPlainTextEditor(elem);
+             } else {
+                 if (!elem) return false;
+                 var elementName = (elem.localName || "").toLowerCase();
+                 return elementName === "input" || elementName === "textarea";
+             }
+         }
+
          function preventEvent(ev) {
-             if (self.status && !key.suspended && !key.escapeCurrentChar && !util.isWritable(ev))
+             if (self.status &&
+                 !key.suspended &&
+                 !key.escapeCurrentChar &&
+                 !isEventOnEditor(ev))
              {
                  ev.stopPropagation();
              }
