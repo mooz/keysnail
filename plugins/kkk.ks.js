@@ -105,16 +105,15 @@ let kkk =
          }
 
          function preventEvent(ev) {
-             if (self.status &&
-                 !key.suspended &&
-                 !key.escapeCurrentChar &&
-                 !isEventOnEditor(ev))
+             if (self.status ||
+                 (self.multiSequence && key.currentKeySequence.length > 0))
              {
-                 ev.stopPropagation();
-             } else if (self.multiSequence &&
-                        key.currentKeySequence.length > 0)
-             {
-                 ev.stopPropagation();
+                 if (!key.suspended &&
+                     !key.escapeCurrentChar &&
+                     !isEventOnEditor(ev))
+                 {
+                     ev.stopPropagation();
+                 }
              }
          }
 
