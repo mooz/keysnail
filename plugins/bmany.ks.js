@@ -523,8 +523,11 @@ var bmany =
                  if (typeof getShortcutOrURI === "undefined") {
                      // Firefox 25 ~
                      Task.spawn(function () {
-                         let data = yield getShortcutOrURIAndPostData(aQuery);
-                         aCallback(data.url);
+                         let data = yield getShortcutOrURIAndPostData(aQuery,
+                             // Firefox 31 ~
+                             function (data) aCallback(data.url));
+                         // ~ Firefox 30
+                         if (data) aCallback(data.url);
                      });
                  } else {
                      // ~ Firefox 24
