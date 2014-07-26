@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>KKK</name>
     <description>Kill keyup and keydown event</description>
     <description lang="ja">keyup, keydown イベントが特定のサイトへ渡らないように</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kkk.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kkk.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -33,6 +33,12 @@ If you want to kill shortcut keys of everywhere in GitHub, paste the code below 
 >|javascript|
 plugins.options["kkk.sites"] = ["^https?://([0-9a-zA-Z]+\\.)?github\\.com/"];
 ||<
+
+And more, only prevent multi sequence keys. It applies regardless of the settings of sites.
+
+>|javascript|
+plugins.options["kkk.multiSequence"] = true;
+||<
 	       ]]></detail>
     <detail lang="ja"><![CDATA[
 === 使い方 ===
@@ -51,6 +57,12 @@ GitHub 全体でショートカットキーを無効にさせたい場合は、�
 plugins.options["kkk.sites"] = ["^https?://([0-9a-zA-Z]+\\.)?github\\.com/"];
 ||<
 
+さらに、マルチシーケンスキーバインドの場合に無効にするには以下のようにします。この設定はサイト設定に関わらず機能します。
+
+>|javascript|
+plugins.options["kkk.multiSequence"] = true;
+||<
+
 ご利用は計画的に。
 	       ]]></detail>
 </KeySnailPlugin>;
@@ -64,7 +76,8 @@ plugins.options["kkk.sites"] = ["^https?://([0-9a-zA-Z]+\\.)?github\\.com/"];
 // }} ======================================================================= //
 
 let optionsDefaultValue = {
-    "sites" : []
+    "sites" : [],
+    "multiSequence": false
 };
 
 function getOption(aName) {
@@ -92,17 +105,21 @@ let kkk =
          }
 
          function preventEvent(ev) {
-             if (self.status &&
-                 !key.suspended &&
-                 !key.escapeCurrentChar &&
-                 !isEventOnEditor(ev))
+             if (self.status ||
+                 (self.multiSequence && key.currentKeySequence.length > 0))
              {
-                 ev.stopPropagation();
+                 if (!key.suspended &&
+                     !key.escapeCurrentChar &&
+                     !isEventOnEditor(ev))
+                 {
+                     ev.stopPropagation();
+                 }
              }
          }
 
          var self = {
              status: false,
+             multiSequence: getOption("multiSequence"),
              handleLocationChange: function (uri) {
                  self.status = (!uri || getOption("sites").some(function (pat) uri.spec.match(pat)));
              },
