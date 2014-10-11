@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>KKK</name>
     <description>Kill keyup and keydown event</description>
     <description lang="ja">keyup, keydown イベントが特定のサイトへ渡らないように</description>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kkk.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kkk.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -77,6 +77,7 @@ plugins.options["kkk.multiSequence"] = true;
 
 let optionsDefaultValue = {
     "sites" : [],
+    "sites_kill_editor" : [],
     "multiSequence": false
 };
 
@@ -105,23 +106,24 @@ let kkk =
          }
 
          function preventEvent(ev) {
-             if (self.status ||
-                 (self.multiSequence && key.currentKeySequence.length > 0))
+             if (self.status || (self.multiSequence && key.currentKeySequence.length > 0))
              {
-                 if (!key.suspended &&
-                     !key.escapeCurrentChar &&
-                     !isEventOnEditor(ev))
+                 if (!key.suspended && !key.escapeCurrentChar)
                  {
-                     ev.stopPropagation();
+                     if (!isEventOnEditor(ev) || self.isKillEditorSite) {
+                         ev.stopPropagation();
+                     }
                  }
              }
          }
 
          var self = {
              status: false,
+             isKillEditorSite: false,
              multiSequence: getOption("multiSequence"),
              handleLocationChange: function (uri) {
                  self.status = (!uri || getOption("sites").some(function (pat) uri.spec.match(pat)));
+                 self.isKillEditorSite = getOption("sites_kill_editor").some(function (pat) uri.spec.match(pat));
              },
 
              start: function () {
@@ -150,3 +152,7 @@ ext.add("kkk-prevent", function () {
             kkk.status = true;
             display.echoStatusBar(util.format("KKK prevented '%s'", content.document.title), 2000);
         }, "KKK - prevent this site");
+
+if (content && content.location) {
+    kkk.handleLocationChange({ spec: content.location.href });
+}
