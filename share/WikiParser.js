@@ -3,14 +3,18 @@
  * http://bulkya.blogdb.jp/share/browser/lang/javascript/vimperator-plugins/trunk/pluginManager.js
  */
 
-var EXPORTED_SYMBOLS = ["WikiParser", "HTMLStack"];
+const EXPORTED_SYMBOLS = ["WikiParser"];
+const { classes: Cc, interfaces: Ci } = Components;
 
 function WikiParser(text){
     this.mode = '';
     this.lines = text.split(/\n\r|[\r\n]/);
     this.preCount = 0;
     this.pendingMode = '';
-    this.xmlstack = new HTMLStack();
+    var domParser = Cc["@mozilla.org/xmlextras/domparser;1"]
+            .createInstance(Ci.nsIDOMParser);
+    this.doc = domParser.parseFromString('<html xmlns="http://www.w3.org/1999/xhtml"></html>', 'application/xml');
+    this.container = this.doc.createElement('div');
 }
 
 WikiParser.prototype = {
@@ -24,7 +28,9 @@ WikiParser.prototype = {
                 return '<a href="' + str + '" target="_blank">' + str + '</a>';
             }
         }
-        return XMLList(str.replace(/>|<|&|(?:https?:\/\/|mailto:)\S+/g, replacer));
+        var elem = this.doc.createElement('span');
+        elem.innerHTML = str.replace(/>|<|&|(?:https?:\/\/|mailto:)\S+/g, replacer);
+        return elem;
     },
     wikiReg: { // {{{
         hn: /^(={2,4})\s*(.*?)\s*(\1)$/,
@@ -34,187 +40,136 @@ WikiParser.prototype = {
         preStart: /^>\|([0-9a-zA-Z_]+)?\|$/,
         preEnd: /^\|\|<$/
     }, // }}}
-        blockParse: function(line, prevMode){ // {{{
-                if (prevMode == 'pre'){
-                    if (this.wikiReg.preEnd.test(line)){
-                        if (this.preCount > 0){
-                            this.preCount--;
-                            return <>{line}</>;
-                        } else {
-                            this.mode = '';
-                            return <></>;
-                        }
-                        return <>{line}</>;
-                    } else if (this.wikiReg.preStart.test(line)){
-                        this.preCount++;
-                    }
-                    return <>{line}</>;
-                } else if (this.wikiReg.preStart.test(line)){
-                    this.mode = 'pre';
-                    this.pendingMode = prevMode;
-                    let lang = RegExp.$1;
-                    return lang ? <pre data-lang={lang} /> : <pre />;
-                } else if (this.wikiReg.hn.test(line)){
-                    var hn = RegExp.$1.length - 1;
+    blockParse: function(line, prevMode){ // {{{
+        if (prevMode == 'pre'){
+            if (this.wikiReg.preEnd.test(line)){
+                if (this.preCount > 0){
+                    this.preCount--;
+                } else {
                     this.mode = '';
-                    return <h{hn}>{this.inlineParse(RegExp.$2)}</h{hn}>;
-                } else if (this.wikiReg.ul.test(line)){
-                    this.mode = 'ul';
-                    return <ul><li>{this.inlineParse(RegExp.$1)}</li></ul>;
-                } else if (this.wikiReg.ol.test(line)){
-                    this.mode = 'ol';
-                    return <ol><li>{this.inlineParse(RegExp.$1)}</li></ol>;
-                } else if (this.wikiReg.dt.test(line)){
-                    this.mode = 'dl';
-                    return <dl><dt>{this.inlineParse(RegExp.$1)}</dt></dl>;
-                } else if (prevMode == 'dl'){
-                    return <>{this.inlineParse(line)}</>;
+                    return this.doc.createTextNode('');
                 }
+            } else if (this.wikiReg.preStart.test(line)){
+                this.preCount++;
+            }
+            var pre = this.doc.createElement('pre');
+            pre.appendChild(this.doc.createTextNode(line));
+            return pre;
+        } else if (this.wikiReg.preStart.test(line)){
+            this.mode = 'pre';
+            this.pendingMode = prevMode;
+            var lang = RegExp.$1;
+            var pre = this.doc.createElement('pre');
+            if (lang)
+                pre.setAttribute('data-lang', lang);
+            return pre;
+        } else if (this.wikiReg.hn.test(line)){
+            var hn = RegExp.$1.length - 1;
             this.mode = '';
-            return <>{this.inlineParse(line)}</>;
-        }, // }}}
+            var h = this.doc.createElement('h' + hn);
+            h.appendChild(this.inlineParse(RegExp.$2));
+            return h;
+        } else if (this.wikiReg.ul.test(line)){
+            this.mode = 'ul';
+            var ul = this.doc.createElement('ul');
+            var li = this.doc.createElement('li');
+            li.appendChild(this.inlineParse(RegExp.$1));
+            ul.appendChild(li);
+            return ul;
+        } else if (this.wikiReg.ol.test(line)){
+            this.mode = 'ol';
+            var ol = this.doc.createElement('ol');
+            var li = this.doc.createElement('li');
+            li.appendChild(this.inlineParse(RegExp.$1));
+            ol.appendChild(li);
+            return ol;
+        } else if (this.wikiReg.dt.test(line)){
+            this.mode = 'dl';
+            var dl = this.doc.createElement('dl');
+            var dt = this.doc.createElement('dt');
+            dt.appendChild(this.inlineParse(RegExp.$1));
+            dl.appendChild(dt);
+            dl.appendChild(this.doc.createElement('dd'));
+            return dl;
+        } else if (prevMode == 'dl'){
+            return this.inlineParse(line);
+        }
+        this.mode = '';
+        return this.inlineParse(line);
+    }, // }}}
+    append: function(target, node) {
+        if (target.lastChild && target.lastChild.nodeName == node.nodeName) {
+            if (node.nodeName == 'span')
+                target.lastChild.appendChild(this.doc.createElement('br'));
+            Array.slice(node.childNodes).forEach(function(n) target.lastChild.appendChild(n));
+            return target.lastChild;
+        } else {
+            target.appendChild(node);
+            return node;
+        }
+    },
     parse: function(){
         var ite = Iterator(this.lines);
         var num, line, indent;
         var currentIndent = 0, indentList = [0], nest=0;
         var prevMode = "";
+        var target = this.container;
         var stack = [];
-        var isNest = false;
-        var bufXML;
+        var prevNode;
         //try {
         for ([num, line] in ite){
             [,indent, line] = line.match(/^(\s*)(.*)\s*$/);
             currentIndent = indent.length;
             var prevIndent = indentList[indentList.length -1];
-            bufXML = this.blockParse(line, prevMode);
+            var buf = this.blockParse(line, prevMode);
             if (prevMode == 'pre'){
                 if (this.mode){
-                    this.xmlstack.appendLastChild(indent.substr(prevIndent) + line + "\n");
+                    target.lastChild.appendChild(this.doc.createTextNode(indent.substr(prevIndent) + line + "\n"));
                 } else {
-                    this.xmlstack.reorg(-2);
                     this.mode = this.pendingMode;
                     indentList.pop();
+                    if (stack.length > 1) target = stack.pop();
                     if (indentList.length == 0) indentList = [0];
                 }
                 prevMode = this.mode;
                 continue;
             }
             if (!line) {
-                // this.xmlstack.append(<p>{bufXML}</p>);
-                this.xmlstack.append(<p>{bufXML}</p>);
-                //this.xmlstack.append(<>{"\n"}</>);
+                if (!prevMode) target.appendChild(this.doc.createElement('p'));
                 continue;
             }
 
             if (currentIndent > prevIndent){
-                if (this.mode){
-                    if (prevMode == 'dl'){
-                        this.xmlstack.appendChild(<dd/>);
-                    }
-                    this.xmlstack.push(bufXML);
+                if (prevNode.lastChild && prevNode.lastChild.nodeType == 1) {
                     indentList.push(currentIndent);
+                    stack.push(target);
+                    target = prevNode.lastChild;
+                }
+                if (this.mode){
+                    buf = this.append(target, buf);
                 } else {
-                    if (prevMode && this.xmlstack.length > 0){
-                        this.xmlstack.appendLastChild(bufXML);
-                    } else {
-                        this.xmlstack.append(bufXML);
-                    }
+                    if (prevMode && target != this.container && buf.nodeName == 'span')
+                        this.append(target, this.doc.createElement('br'));
+                    buf = this.append(target, buf);
                     this.mode = prevMode;
                 }
             } else if (currentIndent < prevIndent){
-                for (var i in indentList){
-                    if (currentIndent == indentList[i] || currentIndent < indentList[i+1]){ nest = i; break; }
+                for (var i in indentList) {
+                    indentList.pop();
+                    target = stack.pop();
+                    if (currentIndent == indentList[i] || currentIndent < indentList[i+1])
+                        break;
                 }
-                indentList.splice(nest);
                 indentList.push(currentIndent);
-                this.xmlstack.reorg(nest);
-                this.xmlstack.append(bufXML);
+                stack.push(target);
+                buf = this.append(target, buf);
             } else {
-                this.xmlstack.append(bufXML);
+                buf = this.append(target, buf);
             }
             prevMode = this.mode;
+            prevNode = buf;
         }
         //} catch (e){ alert(num + ":"+ e); }
-        this.xmlstack.reorg();
-        return this.xmlstack.last.toString();
-    }
-};
-
-function HTMLStack(){
-    this.stack = [];
-}
-
-HTMLStack.prototype = {
-    get length() { return this.stack.length; },
-    get last() { return this.stack[this.length-1]; },
-    get lastLocalName() { return this.last[this.last.length()-1].localName(); },
-    get inlineElements() { return ['a','b','i','code','samp','dfn','kbd','br','em','strong','sub','sup','img','span']; },
-    isInline: function(xml){
-        return (xml.length() > 1 || xml.nodeKind() == 'text' || this.inlineElements.indexOf(xml.localName()) >= 0) ?  true : false;
-    },
-    push: function(xml) {return this.stack.push(xml); },
-    append: function(xml){
-        if (this.length == 0){
-            this.push(xml);
-            return xml;
-        }
-        var buf = this.last[this.last.length()-1];
-        if (buf && buf.nodeKind() == 'text'){
-            this.last[this.last.length()-1] += this.isInline(xml) ? <><br/>{xml}</> : xml;
-        } else {
-            if(this.isInline(xml)){
-                this.stack[this.length-1] += xml;
-            } else if (buf && buf.localName() == xml.localName()){
-                buf.* += xml.*;
-            } else {
-                this.stack[this.length-1] += xml;
-            }
-        }
-        return this.last;
-    },
-    appendChild: function(xml) {
-        var buf = this.stack[this.length-1];
-        buf[buf.length()-1].* += xml;
-        return this.last;
-    },
-    appendLastChild: function(xml){
-        var buf = this.last[this.last.length()-1].*;
-        if (buf.length() > 0 && buf[buf.length()-1].nodeKind() == 'element'){
-            var tmp = buf[buf.length()-1].*;
-            if (tmp[tmp.length()-1].nodeKind() == 'element'){
-                buf[buf.length()-1].* += xml;
-            } else {
-                buf[buf.length()-1].* += <><br/>{xml}</>;
-            }
-        } else {
-            this.last[this.last.length()-1].* += xml;
-        }
-        return this.last;
-    },
-    reorg: function(from){
-        if (this.length == 0) return;
-        if (!from) from = 0;
-        var xmllist = this.stack.splice(from);
-        var xml;
-        if (xmllist.length > 1){
-            xml = xmllist.reduceRight(
-                function(p, c){
-                    var buf = c[c.length()-1].*;
-                    if (buf.length() > 0){
-                        if (buf[buf.length()-1].nodeKind() == 'text'){
-                            c += p;
-                        } else {
-                            buf[buf.length()-1].* += p;
-                        }
-                    } else {
-                        c += p;
-                    }
-                    return c;
-                });
-        } else if (xmllist.length > 0){
-            xml = xmllist[0];
-        }
-        this.push(xml);
-        return this.last;
+        return this.container.innerHTML;
     }
 };

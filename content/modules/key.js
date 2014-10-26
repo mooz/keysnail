@@ -1280,16 +1280,27 @@ const key = {
      * @param aType     KeyboardEvent type (keypress, keydown, keyup, ...)
      */
     generateKey: function(aTarget, aKey, aNoHandle, aType) {
-        var newEvent = document.createEvent('KeyboardEvent');
-        // event.initKeyEvent(type, bubbles, cancelable, viewArg,
-        //                    ctrlKeyArg, altKeyArg, shiftKeyArg, metaKeyArg,
-        //                    keyCodeArg, charCodeArg)
-        newEvent.initKeyEvent(aType || 'keypress',
-                              true, true, null,
-                              false, false, false, false,
-                              aKey, 0);
-        if (aNoHandle)
-        {
+        // Make effort to use document in the aTargets's context
+        var doc = document;
+        try {
+            var globalForTarget = Components.utils.getGlobalForObject(aTarget);
+            if (globalForTarget.document) {
+                doc = globalForTarget.document;
+            }
+        } catch (x) {}
+
+        var newEvent = doc.createEvent('KeyboardEvent');
+        newEvent.initKeyEvent(aType || 'keypress' /* type */,
+                              true /* bubbles */,
+                              true /* cancelable */,
+                              null /* viewArg */,
+                              false /* ctrlKeyArg */,
+                              false /* altKeyArg */,
+                              false /* shiftKeyArg */,
+                              false /* metaKeyArg */,
+                              aKey /* keyCodeArg */,
+                              0 /* charCodeArg*/);
+        if (aNoHandle) {
             // KeySnail does not handle this key event.
             // See "handleEvent".
             newEvent.ksNoHandle = true;

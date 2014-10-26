@@ -11,7 +11,21 @@ const display = (function () {
     const NOTIFY_ID = "ks-notify-message";
 
     // ==== status bar ====
-    function getStatusBar() document.getElementById('statusbar-display')
+    function getStatusBar() {
+        if (typeof gBrowser !== "undefined" && gBrowser.getStatusPanel) {
+            return gBrowser.getStatusPanel();
+        } else {
+            return document.getElementById('statusbar-display');
+        }
+    }
+
+    function getNotificationBox() {
+        if (typeof gBrowser !== "undefined" && gBrowser.getNotificationBox) {
+            return gBrowser.getNotificationBox();
+        } else {
+            return util.browserWindow.gBrowser.getNotificationBox();
+        }
+    }
 
     let echoArea;
     let msgTimeOut;           // timeout object to the status bar
@@ -300,7 +314,7 @@ const display = (function () {
                 ];
             }
 
-            let notifyBox = util.gBrowser.getNotificationBox();
+            let notifyBox = getNotificationBox();
             let current = notifyBox.currentNotification;
 
             if (current && current.value == NOTIFY_ID)

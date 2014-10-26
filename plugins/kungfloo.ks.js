@@ -5,7 +5,7 @@ let PLUGIN_INFO =
     <name>kungfloo</name>
     <description>Manipulate Tombloo from KeySnail</description>
     <description lang="ja">KeySnail から Tombloo を操作</description>
-    <version>0.0.6</version>
+    <version>0.0.8</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/kungfloo.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/kungfloo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -216,7 +216,7 @@ const pOptions = plugins.setupOptions("kungfloo", {
 }, PLUGIN_INFO);
 
 let kungfloo = (function () {
-    let to      = Cc['@brasil.to/tombloo-service;1'].getService().wrappedJSObject;
+    let to      = (Cc['@brasil.to/tombloo-service;1'] || Cc['@tombfix.github.io/tombfix-service;1']).getService().wrappedJSObject;
     let Tombloo = to.Tombloo;
 
     function getActions() {
@@ -227,8 +227,8 @@ let kungfloo = (function () {
     }
 
     function getContext(target) {
-        let doc = window.content.document.wrappedJSObject;
-        let win = window.content.wrappedJSObject;
+        let doc = window.content.document;
+        let win = window.content;
 
         target = target || doc;
 
@@ -272,8 +272,16 @@ let kungfloo = (function () {
          * @param {} preferred   ex) ["FFFFOUND", "Flickr"]
          */
         reblog: function reblog(target, dwim, withDialog, preferred) {
-            let context    = getContext(target);
-            let extensions = Tombloo.Service.check(context);
+            try {
+                // new tombfix
+                var context    = getContext(target);
+                var extensions = Tombloo.Service.check(context);
+            } catch(ex) {
+                // tombloo or old tombfix
+                context.document = context.document.wrappedJSObject;
+                context.window = context.window.wrappedJSObject;
+                var extension = Tombloo.Service.check(context);
+            }
 
             let candidates = [[e, e.ICON, e.name] for ([, e] in Iterator(extensions))];
 

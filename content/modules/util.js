@@ -463,9 +463,33 @@ const util = function () {
             return (controller && controller.isCommandEnabled(aCommand));
         },
 
+        /**
+         * check if the child is really a child node of the parent
+         * @param {Node} parent a DOM node
+         * @param {Node} child a DOM node
+         * @returns {boolean} true if child is really a child node of
+         * the parent
+         */
+        nodeContains: function (parent, child) {
+            var node = child.parentNode;
+            while (node !== null) {
+                if (node === parent) {
+                    return true;
+                }
+                node = node.parentNode;
+            }
+            return false;
+        },
+
         // }} ======================================================================= //
 
         // Predicatives {{ ========================================================== //
+
+        isPlainTextEditor: function (aElement) {
+            if (!aElement) return false;
+            var elementName = (aElement.localName || "").toLowerCase();
+            return elementName === "input" || elementName === "textarea";
+        },
 
         /**
          * check if user can input any text in current situation
@@ -484,14 +508,11 @@ const util = function () {
             var insertTextController= document.commandDispatcher
                 .getControllerForCommand("cmd_insertText");
 
-            try
-            {
+            try {
                 return (insertTextController &&
                         insertTextController.isCommandEnabled("cmd_insertText"));
-            }
-            catch (x)
-            {
-                return (localName === 'input' || localName === 'textarea');
+            } catch (x) {
+                return this.isPlainTextEditor(ev.originalTarget);
             }
         },
 
@@ -1041,8 +1062,18 @@ const util = function () {
 
             try
             {
-                var icon = PlacesUtils.favicons
-                    .getFaviconForPage(this.IOService.newURI(aURL, null, null));
+                var blocking = true;
+                var icon;
+                PlacesUtils.favicons
+                    .getFaviconURLForPage(this.IOService.newURI(aURL, null, null), {
+                        onComplete: function(aURI, aDataLen, aData, aMimeType) {
+                            icon = aURI;
+                            blocking = false;
+                        }
+                    });
+                var thread = Cc["@mozilla.org/thread-manager;1"].getService().mainThread;
+                while (blocking)
+                    thread.processNextEvent(true);
                 iconURL = icon.spec;
             }
             catch (x)
@@ -1461,8 +1492,7 @@ const util = function () {
                     if (item)
                         aContainer.push(item);
                 }
-                else if (PlacesUtils.nodeIsFolder(childNode)
-                         && !PlacesUtils.nodeIsLivemarkContainer(childNode))
+                else if (PlacesUtils.nodeIsFolder(childNode))
                 {
                     arguments.callee(childNode.itemId, aFilter, aContainer);
                 }
@@ -1606,6 +1636,10 @@ const util = function () {
             separator.push(" //");
 
             return separator.join("");
+        },
+
+        getTypeName: function (object) {
+            return Object.prototype.toString.call(object);
         },
 
         /**

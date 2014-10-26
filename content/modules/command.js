@@ -242,10 +242,19 @@ const command = {
             this.gFindBar.close();
     },
 
+    isEventOnFindbar: function (aEvent) {
+        if (aEvent.target === this.gFindBar)
+            return true;                /* ~ Firefox 24 */
+        if (/* gFindBar.contains doesn't work */
+            util.nodeContains(this.gFindBar, aEvent.originalTarget))
+            return true;                /* Firefox 25 ~ */
+        return false;
+    },
+
     iSearchForwardKs: function (aEvent) {
         if (this.gFindBar.hidden)
             this.gFindBar.open();
-        else if (aEvent.target == this.gFindBar)
+        else if (this.isEventOnFindbar(aEvent))
             this.gFindBar.onFindAgainCommand(false);
 
         this.gFindBar._findField.focus();
@@ -255,7 +264,7 @@ const command = {
     iSearchBackwardKs: function (aEvent) {
         if (this.gFindBar.hidden)
             this.gFindBar.open();
-        else if (aEvent.target == this.gFindBar)
+        else if (this.isEventOnFindbar(aEvent))
             this.gFindBar.onFindAgainCommand(true);
 
         this.gFindBar._findField.focus();
@@ -947,7 +956,7 @@ const command = {
 
         var clipboardText = command.getClipboardText();
 
-        if (clipboardText === null || input.localName === "html")
+        if (clipboardText === null || !util.isPlainTextEditor(input))
         {
             goDoCommand('cmd_paste');
             return;
@@ -992,6 +1001,12 @@ const command = {
             || (lastFunc === command.yankPop && command.kill.popFailed))
         {
             display.echoStatusBar("Previous command was not a yank", 2000);
+            command.kill.popFailed = true;
+            return;
+        }
+        if (!util.isPlainTextEditor(input))
+        {
+            display.echoStatusBar("Yank pop is not supported for this kind of input", 2000);
             command.kill.popFailed = true;
             return;
         }
