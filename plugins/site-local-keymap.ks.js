@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name lang="ja">サイトローカル・キーマップ</name>
     <description>Define keybindings by each site</description>
     <description lang="ja">ウェブサイト毎にキーバインドを定義</description>
-    <version>1.1.3</version>
+    <version>1.1.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/site-local-keymap.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/site-local-keymap.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -22,12 +22,6 @@ var PLUGIN_INFO =
             <type>array</type>
             <description>Local keymaps by each site</description>
             <description lang="ja">サイト毎のローカルキーマップ (詳細は説明を参照のこと)</description>
-        </option>
-        <option>
-            <name>site_local_keymap.disable_in_textarea</name>
-            <type>boolean</type>
-            <description>Disable site local keymap in the textarea (Default: )</description>
-            <description lang="ja">編集エリアではサイトローカルのキーマップを無視する (デフォルト値 true)</description>
         </option>
     </options>
     <detail><![CDATA[
@@ -155,8 +149,8 @@ You can specify the local keybindings by changing local["URL pattern"] in follow
 
 >||
 [
- [(key|[key sequence]), (function|null)],
- [(key|[key sequence]), (function|null)],
+ [(key|[key sequence]), (function|null), (mode)],
+ [(key|[key sequence]), (function|null), (mode)],
                ...
 ]
 ||<
@@ -296,8 +290,8 @@ local["^http://www.google.(co.jp|com)/reader/view/"] = [
 
 >||
 [
- [(キー|[キーシーケンス]), (関数|null)],
- [(キー|[キーシーケンス]), (関数|null)],
+ [(キー|[キーシーケンス]), (関数|null), (モード)],
+ [(キー|[キーシーケンス]), (関数|null), (モード)],
                ...
 ]
 ||<
@@ -374,8 +368,8 @@ key.setGlobalKey("C-;", function (ev, arg) {
 
 var siteLocalKeymap =
     (function () {
-         // {pattern : keymap}
-         var localKeyMaps = {};
+         // {pattern : { global: keymap, view: keymap, ... }}
+         var urlPatternToKeyMaps = {};
 
          var iconData = "data:image/png;base64," +
              "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A" +
@@ -391,47 +385,84 @@ var siteLocalKeymap =
              "n8lIXcNedw4pKkhFdvM8QPDTLDU7bUgGGaMsU2BL54q3l+7X0/qvJflpnNxfQP2uZTMQNjQ0n5uO" +
              "RJYqJ0NhY1mhFVVVWL9WRlEU+gMTtPs+Eo0lsc2+ESX+asLAxR/Sxa1hhI4dIQAAAABJRU5ErkJggg==";
 
-         var iconElem = document.getElementById("keysnail-statusbar-icon");
-         if (typeof plugins.options["site_local_keymap.disable_in_textarea"] === "undefined")
-             plugins.options["site_local_keymap.disable_in_textarea"] = true;
+         function getKeyMapDefinition() {
+             return plugins.options["site_local_keymap.local_keymap"] ||
+                 plugins.options["remap_pages.local_keymap"];
+         }
+
+         function updateSiteLocalKeyMapView(localKeyMapEnabled, usedURLPattern) {
+             var statusbarIcon = document.getElementById("keysnail-statusbar-icon");
+             var toolbarButton = document.getElementById("keysnail-toolbar-button");
+             var tooltipText = M({
+                 en: "Site local keymap of this page enabled",
+                 ja: "このサイト用のローカルキーマップが使われています"
+             }) + " [" + usedURLPattern + "]";
+
+             if (localKeyMapEnabled) {
+                 if (statusbarIcon) {
+                     statusbarIcon.setAttribute("src", iconData);
+                     statusbarIcon.tooltipText = tooltipText;
+                 }
+                 if (toolbarButton) {
+                     toolbarButton.tooltipText = tooltipText;
+                 }
+             } else {
+                 key.updateStatusBar();
+                 key.updateToolbarButton();
+                 if (toolbarButton) {
+                     toolbarButton.tooltipText = "KeySnail";
+                 }
+             }
+         }
 
          // ============================================================ //
 
-         // arrange keymap
-         key.modes.SITELOCAL = "sitelocal";
+         // arrange keymaps
+         var KEYMAP_PREFIX = "sitelocal_";
+         key.modes.SITELOCAL_GLOBAL = KEYMAP_PREFIX + key.modes.GLOBAL;
+         key.modes.SITELOCAL_VIEW   = KEYMAP_PREFIX + key.modes.VIEW;
+         key.modes.SITELOCAL_EDIT   = KEYMAP_PREFIX + key.modes.EDIT;
+         key.modes.SITELOCAL_CARET  = KEYMAP_PREFIX + key.modes.CARET;
+
+         function setNullToSiteLocalKeyMap() {
+             key.keyMapHolder[key.modes.SITELOCAL_GLOBAL] =
+                 key.keyMapHolder[key.modes.SITELOCAL_VIEW] =
+                 key.keyMapHolder[key.modes.SITELOCAL_EDIT] =
+                 key.keyMapHolder[key.modes.SITELOCAL_CARET] = null;
+         }
 
          function locationChangeHandler(aNsURI) {
-             // about:blank?
-             if (!aNsURI || !aNsURI.spec)
-             {
-                 key.keyMapHolder[key.modes.SITELOCAL] = null;
+             if (!aNsURI || !aNsURI.spec) {
+                 // about:blank
+                 setNullToSiteLocalKeyMap();
                  key.updateStatusBar();
                  return;
              }
 
-             var url = aNsURI.spec;
-             var keymap;
-
-             for (var regexp in localKeyMaps) if (localKeyMaps.hasOwnProperty(regexp)) {
-                 if (url.match(regexp)) {
-                     keymap = localKeyMaps[regexp];
-                     break;
+             var currentURL = aNsURI.spec;
+             var usedURLPattern = null;
+             Object.keys(urlPatternToKeyMaps).some(function (urlPattern) {
+                 if (currentURL.match(urlPattern)) {
+                     usedURLPattern = urlPattern;
+                     return true;
                  }
-             }
+             });
 
-             key.keyMapHolder[key.modes.SITELOCAL] = keymap;
+             var thisSiteHasLocalKeyMap = usedURLPattern && urlPatternToKeyMaps[usedURLPattern];
+
+             if (thisSiteHasLocalKeyMap) {
+                 var localKeyMaps = urlPatternToKeyMaps[usedURLPattern];
+                 key.keyMapHolder[key.modes.SITELOCAL_GLOBAL] = localKeyMaps[key.modes.GLOBAL];
+                 key.keyMapHolder[key.modes.SITELOCAL_VIEW]   = localKeyMaps[key.modes.VIEW];
+                 key.keyMapHolder[key.modes.SITELOCAL_EDIT]   = localKeyMaps[key.modes.EDIT];
+                 key.keyMapHolder[key.modes.SITELOCAL_CARET]  = localKeyMaps[key.modes.CARET];
+             } else {
+                 setNullToSiteLocalKeyMap();
+             }
 
              // change statusbar icon
-             if (keymap && key.status && !key.suspended)
-             {
-                 iconElem.setAttribute("src", iconData);
-                 iconElem.tooltipText = M({en: "Site local keymap of this page enabled",
-                                           ja: "このサイト用のローカルキーマップが使われています"}) + " [" + regexp + "]";
-             }
-             else
-             {
-                 key.updateStatusBar();
-             }
+             updateSiteLocalKeyMapView(thisSiteHasLocalKeyMap && key.status && !key.suspended,
+                                       usedURLPattern);
          }
 
          if (my.siteLocalKeymapLocationChangeHandler)
@@ -450,66 +481,59 @@ var siteLocalKeymap =
 
          // override mode detector
          key.getCurrentMode = function (aEvent, aKey) {
-             if (self.status &&
-                 key.keyMapHolder[key.modes.SITELOCAL] &&
-                 !(plugins.options["site_local_keymap.disable_in_textarea"] && util.isWritable(aEvent)))
-             {
-                 if (typeof key.keyMapHolder[key.modes.SITELOCAL][aKey] !== "undefined")
-                 {
-                     return key.modes.SITELOCAL;
-                 }
+             var currentMode = my.siteLocalOriginalGetCurrentMode.call(key, aEvent, aKey);
+             var localKeyMap = key.keyMapHolder[KEYMAP_PREFIX + currentMode];
+             if (self.status && localKeyMap && typeof localKeyMap[aKey] !== "undefined") {
+                 return KEYMAP_PREFIX + currentMode;
              }
-
-             return my.siteLocalOriginalGetCurrentMode.call(key, aEvent, aKey);
+             return currentMode;
          };
 
          // ============================================================ //
 
-         function processLocalKeyMap() {
-             var keyMapDefinition =
-                 plugins.options["site_local_keymap.local_keymap"] ||
-                 // to keep compatibility
-                 plugins.options["remap_pages.local_keymap"];
+         // Convert key defs to KeySnail's keymap format
+         function loadLocalKeyMap() {
+             var keyMapDefinition = getKeyMapDefinition();
+             if (!keyMapDefinition) return;
 
-             if (!keyMapDefinition)
-                 return;
+             Object.keys(keyMapDefinition).forEach(function (urlGlob) {
+                 var localKeyDefs = keyMapDefinition[urlGlob];
+                 var urlPattern = urlGlob.replace(/\./g, "\\.").replace(/\*/g, ".*");
 
-             for (var pattern in keyMapDefinition)
-             {
-                 var regexp = pattern.replace(/\./g, "\\.").replace(/\*/g, ".*");
+                 if (!urlPatternToKeyMaps[urlPattern])
+                     urlPatternToKeyMaps[urlPattern] = {};
 
-                 if (!localKeyMaps[regexp])
-                     localKeyMaps[regexp] = {};
+                 var keyMapsForThisURL = urlPatternToKeyMaps[urlPattern];
 
-                 for (let [, pair] in Iterator(keyMapDefinition[pattern]))
-                 {
-                     var keySetting = pair[0];
-                     var definition = pair[1];
+                 localKeyDefs.forEach(function (keyDef) {
+                     var [keys, command, enableModes] = keyDef;
+                     if (typeof enableModes === "string")
+                         enableModes = [enableModes];
+                     if (!enableModes) // By default, local keys are not enabled for EDIT mode
+                         enableModes = [key.modes.VIEW, key.modes.CARET];
 
-                     if (typeof keySetting === "string")
-                     {
-                         // single stroke
-                         localKeyMaps[regexp][keySetting] = definition;
-                     }
-                     else
-                     {
-                         // key sequence
-                         var current = localKeyMaps[regexp];
+                     enableModes.forEach(function (enableMode) {
+                         if (!keyMapsForThisURL[enableMode])
+                             keyMapsForThisURL[enableMode] = {};
+                         var keyMapForThisURL = keyMapsForThisURL[enableMode];
 
-                         for (var i = 0; i < keySetting.length - 1; ++i)
-                         {
-                             var keyStr = keySetting[i];
-
-                             if (typeof current[keyStr] !== "object")
-                                 current[keyStr] = {};
-
-                             current = current[keyStr];
+                         if (typeof keys === "string") {
+                             // single stroke
+                             keyMapForThisURL[keys] = command;
+                         } else {
+                             // key sequence. make KeySnail-style keymap.
+                             var currentKeyMap = keyMapForThisURL;
+                             for (var i = 0; i < keys.length - 1; ++i) {
+                                 var keyStr = keys[i];
+                                 if (typeof currentKeyMap[keyStr] !== "object")
+                                     currentKeyMap[keyStr] = {};
+                                 currentKeyMap = currentKeyMap[keyStr];
+                             }
+                             currentKeyMap[keys[i]] = command;
                          }
-
-                         current[keySetting[i]] = definition;
-                     }
-                 }
-             }
+                     });
+                 });
+             });
          }
 
          function checkLocationNow() {
@@ -521,7 +545,7 @@ var siteLocalKeymap =
              {
                  // disable
                  self.status = false;
-                 key.keyMapHolder[key.modes.SITELOCAL] = undefined;
+                 setNullToSiteLocalKeyMap();
                  key.updateStatusBar();
              }
              else
@@ -549,7 +573,7 @@ var siteLocalKeymap =
              },
 
              init: function () {
-                 processLocalKeyMap();
+                 loadLocalKeyMap();
                  checkLocationNow();
              },
 
@@ -565,3 +589,8 @@ ext.add("site-local-keymap-toggle-status",
         siteLocalKeymap.toggleStatus,
         M({ja: 'サイトローカルなキーマップの有効 / 無効を切り替え',
            en: "Toggle site local keymap"}));
+
+ext.add("site-local-keymap-reload-keymap",
+        siteLocalKeymap.init,
+        M({ja: 'サイトローカルなキーマップを再読み込み',
+           en: "Reload site local keymap"}));
