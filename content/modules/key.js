@@ -387,6 +387,16 @@ const key = {
 
     // Key handler {{ =========================================================== //
 
+    finishPrefixArgumentInputting: function () {
+        // prefix argument keys input end. now parse them.
+        this.prefixArgument
+            = this.parsePrefixArgument(this.currentKeySequence);
+        this.inputtingPrefixArgument = null;
+        // for displaying status-bar
+        this.prefixArgumentString = this.currentKeySequence.join(" ") + " ";
+        this.currentKeySequence.length = 0;
+    },
+
     /**
      * Reset Key handler status
      * @param {string} aMsg message echoed to the status bar.
@@ -507,30 +517,31 @@ const key = {
 
         if (this.inputtingPrefixArgument)
         {
-            if (this.isNumKey(aEvent) ||
-                keyStr == this.universalArgumentKey ||
-                ((this.currentKeySequence[this.currentKeySequence.length - 1] == this.universalArgumentKey) &&
-                 (keyStr == '-')))
-            {
+            var previousKeyStr = this.currentKeySequence[this.currentKeySequence.length - 1] || null;
+
+            if (previousKeyStr &&
+                previousKeyStr === this.universalArgumentKey &&
+                this.currentKeySequence.length > 1) {
+                // Finish prefix argument inputting
+                // C-u 1 1 C-u 1 -> Repeat "1" 11 times
+                this.finishPrefixArgumentInputting();
+            } else if (this.isNumKey(aEvent) ||
+                       keyStr == this.universalArgumentKey ||
+                       (previousKeyStr === this.universalArgumentKey && keyStr == '-')) {
                 // append to currentKeySequence, while the key event is number value.
                 // sequencial C-u like C-u C-u => 4 * 4 = 16 is also supported.
                 // sequencial C-u - begins negative prefix argument
                 util.stopEventPropagation(aEvent);
                 this.currentKeySequence.push(keyStr);
                 display.echoStatusBar(this.currentKeySequence.join(" ") +
-                                                   " [Prefix argument :: " +
-                                                   this.parsePrefixArgument(this.currentKeySequence) + "]");
+                                      " [Prefix argument :: " +
+                                      this.parsePrefixArgument(this.currentKeySequence) + "]");
                 // do nothing and return
                 return;
+            } else {
+                // End prefix argument
+                this.finishPrefixArgumentInputting();
             }
-
-            // prefix argument keys input end. now parse them.
-            this.prefixArgument
-                = this.parsePrefixArgument(this.currentKeySequence);
-            this.inputtingPrefixArgument = null;
-            // for displaying status-bar
-            this.prefixArgumentString = this.currentKeySequence.join(" ") + " ";
-            this.currentKeySequence.length = 0;
         }
 
         if (this.currentKeySequence.length)
@@ -1219,7 +1230,11 @@ const key = {
         // ["3", "2", "1"] => [1, 2, 3]
         for (; i < aKeySequence.length; ++i)
         {
-            numSequence.unshift(Number(aKeySequence[i]));
+            var keyStr = aKeySequence[i];
+            if (keyStr === this.universalArgumentKey) {
+                continue;
+            }
+            numSequence.unshift(Number(keyStr));
         }
 
         var base = 1;
