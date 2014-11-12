@@ -83,21 +83,21 @@ const style = function () {
          *                style.XHTML);
          */
         register: function (aCss, aNs, aAgent) {
-            var arg = getArg(arguments);
+            var arg = getArg(Array.from(arguments));
 
             if (!sss.sheetRegistered.apply(sss, arg))
                 sss.loadAndRegisterSheet.apply(sss, arg);
         },
 
         unregister: function (aCss, aNs, aAgent) {
-            var arg = getArg(arguments);
+            var arg = getArg(Array.from(arguments));
 
             if (sss.sheetRegistered.apply(sss, arg))
                 sss.unregisterSheet.apply(sss, arg);
         },
 
         toggle: function (aCss, aNs, aAgent) {
-            var arg = getArg(arguments);
+            var arg = getArg(Array.from(arguments));
 
             if (sss.sheetRegistered.apply(sss, arg))
                 sss.unregisterSheet.apply(sss, arg);
