@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクを開く</description>
-    <version>1.4.2</version>
+    <version>1.4.3</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -1016,6 +1016,7 @@ var hok = function () {
         let foundCount = 0;
 
         for (let [hintStr, hintElem] in Iterator(hintElements)) {
+            hintStr = String(hintStr);
             if (hintStr.indexOf(inputKey) === 0) {
                 if (hintStr != inputKey)
                     hintElem.style.backgroundColor = hintColorCandidates;
