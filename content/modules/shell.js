@@ -520,7 +520,7 @@ const shell =
                                          argCount : cmd.argCount,
                                          left     : qLeft,
                                          whole    : qWhole,
-                                         state    : state
+                                         state    : null
                                      };
 
                                      let isLiteral = cmd.extra.literal || typeof cmd.extra.literal === "number";
