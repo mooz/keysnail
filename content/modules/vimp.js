@@ -132,7 +132,7 @@ function getMostVisitedPages(count) {
 //                memoizedHist = collection;
 //            }, 0);
 
-function uriOpener(args, extra, callback) {
+function uriOpener(openerArgs, extra, callback) {
     extra.left.split(", ").forEach(
         function (left) {
             let query;
@@ -168,7 +168,7 @@ function uriOpener(args, extra, callback) {
         });
 }
 
-function uriCompleter(args, extra) {
+function uriCompleter(completerArgs, extra) {
     let options = {
         flags   : [modules.ICON | modules.IGNORE, 0, 0, modules.HIDDEN],
         style   : ["", style.prompt.description],
@@ -410,7 +410,7 @@ function getRemotePluginInfoByPluginName(pluginName) {
     return null;
 }
 
-function pluginCompleter(args, extra) {
+function pluginCompleter(completerArgs, extra) {
     let cc    = null;
     let left  = extra.left;
     let query = null;
