@@ -2,22 +2,22 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="2.0.5">
-    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAFFf/emm6Z3mzqh7fLCf2qsvC6JNmGtDtS9z/zNWlBbCPLqqorH+fKf8US67tJgjLeX0iw23uT6cuY8A2yz1YmK90iXisGf2CUD7QcsBdnGats+5H2rrWj5rETvJyvjt9+A/htTPy9bsYKVuaqPt9SXW7vjHwJcPp9hOSKPw5jCR">
-    <em:updates RDF:resource="rdf:#$mtJrB"/>
-  </RDF:Description>
   <RDF:Seq RDF:about="rdf:#$mtJrB">
     <RDF:li RDF:resource="rdf:#$ntJrB"/>
   </RDF:Seq>
+  <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAMNg/E953AH4ydklvE/ZIq0tvQj74WnGIIYzcL7r/aeFJfUTecXOjyG/qmMuwmAmPeu92G7YzUPiGRaqeXFAnxpw2QhEXvTQEjn/GcuhrPOxjRmTwaj60Uzhwt7Suc6RbcF+JtbBFCj+1iQsgXGKOEMDetC0Mn8KapKfEp2X3wGN">
+    <em:updates RDF:resource="rdf:#$mtJrB"/>
+  </RDF:Description>
   <RDF:Description RDF:about="rdf:#$qtJrB"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
                    em:minVersion="3.5"
-                   em:maxVersion=""
+                   em:maxVersion="35.*"
                    em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/2.0.5.xhtml"
-                   em:updateHash="sha1:083001ef1609ab020b61728d65510b99c4fa9766" />
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/2.1.0.xhtml"
+                   em:updateHash="sha1:66ee26b67ac12bc3aecf7b7c6f276f1438d472b8" />
+  <RDF:Description RDF:about="rdf:#$ntJrB"
+                   em:version="2.1.0">
+    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
+  </RDF:Description>
 </RDF:RDF>
