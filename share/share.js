@@ -213,7 +213,11 @@ let persist = {
             return null;
         }
 
-        return JSON.parse(str);
+        try {
+            return JSON.parse(str);
+        } catch (x) {
+            return null;
+        }
     }
 };
 
