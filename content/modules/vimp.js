@@ -422,6 +422,18 @@ function pluginCompleter(completerArgs, extra) {
 
     var inputPluginName = args[0];
 
+    var commandsNeedPluginCompletion = {
+        "enable"    : "Enable plugin",
+        "disable"   : "Disable plugin",
+        "update"    : "Update plugin",
+        "document"  : "See plugin documentation (Open plugin in plugin manager)",
+        "install"   : "Install plugin from repository",
+        "uninstall" : "Uninstall plugin from your computer"
+    };
+    var commandsNoCompletion = {
+        "manager": "Open plugin manager"
+    };
+
     if (args.length === 0) {
         /* List commands */
         let options = {
@@ -429,16 +441,11 @@ function pluginCompleter(completerArgs, extra) {
             style   : [style.prompt["default"], style.prompt["description"]]
         };
         let commands = {};
-        commands["enable"]   = "Enable plugin";
-        commands["disable"]  = "Disable plugin";
-        commands["update"]   = "Update plugin";
-        commands["document"] = "See plugin documentation (Open plugin in plugin manager)";
-        commands["install"]  = "Install plugin from repository";
-        commands["uninstall"]  = "Uninstall plugin from your computer";
+        Object.assign(commands, commandsNeedPluginCompletion, commandsNoCompletion);
         cc = completer.matcher.migemo([[name, description]
                                        for ([name, description] in Iterator(commands))],
                                       null)(left);
-    } else if (args.length >= 1) {
+    } else if (args.length >= 1 && commandsNeedPluginCompletion.hasOwnProperty(args[0])) {
         /* List plugin names */
 
         let selectedPluginNames = args.slice(1);
@@ -514,6 +521,11 @@ function pluginCompleter(completerArgs, extra) {
 shell.add(["pl[ugin]"], "Manage plugins", function (args, extra) {
     let command     = args[0];
     let pluginNames = args.slice(1);
+
+    if (command === "manager") {
+        userscript.openPluginManager();
+        return;
+    }
 
     if (command === "install") {
         let remotePluginURLs = pluginNames
