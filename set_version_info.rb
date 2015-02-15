@@ -1,19 +1,22 @@
 #!/usr/bin/env ruby
 
-require "readline"
+current_addon_version = File.read("./install.rdf").match(/(<em:version>)(.*?)(<\/em:version>)/)[2]
 
-version     = Readline.readline("Input next version of this addon: ", true)
-max_version = Readline.readline("Input next max version for target application: ", true)
+if ARGV.length != 1
+  puts "Usage: #{__FILE__} ADDON_VERSION"
+  puts "Current version #{current_addon_version}"
+  exit
+end
+
+addon_version = ARGV[0]
 
 replace_info = {
   "install.rdf" => {
-    /(<em:version>)(.*?)(<\/em:version>)/       => version,
-    /(<em:maxVersion>)(.*?)(<\/em:maxVersion>)/ => max_version,
+    /(<em:version>)(.*?)(<\/em:version>)/ => addon_version
   },
   "update.rdf"  => {
-    /(updateinfo\/)(.*?)(\.xhtml)/ => version,
-    /(em:version=")(.*?)(")/       => version,
-    /(em:maxVersion=")(.*?)(")/    => max_version
+    /(updateinfo\/)(.*?)(\.xhtml)/ => addon_version,
+    /(em:version=")(.*?)(")/       => addon_version,
   },
 }
 
