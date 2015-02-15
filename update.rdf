@@ -11,7 +11,7 @@
   </RDF:Seq>
   <RDF:Description RDF:about="rdf:#$qtJrB"
                    em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-                   em:minVersion="3.5"
+                   em:minVersion="34.*"
                    em:maxVersion="35.*"
                    em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
                    em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/2.1.1.xhtml"
