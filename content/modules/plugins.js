@@ -97,7 +97,7 @@ const plugins = {
             }
         }
 
-        var pluginList = Array.slice(doc.querySelectorAll("table#wiki-plugins tr"))
+        var pluginList = Array.slice(doc.querySelectorAll("table tr"))
                 .map(rowToPlugin)
                 .filter(function (info) info);
 
