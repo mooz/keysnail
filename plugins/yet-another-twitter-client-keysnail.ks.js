@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.2.0</version>
+    <version>3.2.1</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -2426,28 +2426,28 @@ var twitterClient =
 
         // Header {{ ================================================================ //
 
+        const HEAD_CONTAINER_ID  = "keysnail-twitter-client-head-container";
+        const HEAD_USER_ICON     = "keysnail-twitter-client-user-icon";
+        const HEAD_USER_INFO     = "keysnail-twitter-client-user-info";
+        const HEAD_USER_NAME     = "keysnail-twitter-client-user-name";
+        const HEAD_USER_TWEET    = "keysnail-twitter-client-user-tweet";
+
+        const HEAD_API_USAGE = "keysnail-twitter-client-api-usage";
+        const HEAD_REFRESH_BUTTON = "keysnail-twitter-client-refresh-button";
+
+        const HEAD_USER_BUTTON_HOME    = "keysnail-twitter-client-user-button-home";
+        const HEAD_USER_BUTTON_TWITTER = "keysnail-twitter-client-user-button-twitter";
+
+        const HEAD_MENU         = "keysnail-twitter-client-header-menu";
+        const HEAD_DYNAMIC_MENU = "keysnail-twitter-client-header-dynamic-menu";
+
+        const HEAD_LIST_ORIGIN   = "keysnail-twitter-client-header-search-origin";
+        const HEAD_SEARCH_ORIGIN = "keysnail-twitter-client-header-list-origin";
+        const HEAD_ADD_SEARCH    = "keysnail-twitter-client-header-add-search";
+        const HEAD_CRAWLER_BUTTON_CONTAINER = "keysnail-twitter-client-header-crawler-button-container";
+
         if (!my.twitterClientHeader)
         {
-            const HEAD_CONTAINER_ID  = "keysnail-twitter-client-head-container";
-            const HEAD_USER_ICON     = "keysnail-twitter-client-user-icon";
-            const HEAD_USER_INFO     = "keysnail-twitter-client-user-info";
-            const HEAD_USER_NAME     = "keysnail-twitter-client-user-name";
-            const HEAD_USER_TWEET    = "keysnail-twitter-client-user-tweet";
-
-            const HEAD_API_USAGE = "keysnail-twitter-client-api-usage";
-            const HEAD_REFRESH_BUTTON = "keysnail-twitter-client-refresh-button";
-
-            const HEAD_USER_BUTTON_HOME    = "keysnail-twitter-client-user-button-home";
-            const HEAD_USER_BUTTON_TWITTER = "keysnail-twitter-client-user-button-twitter";
-
-            const HEAD_MENU         = "keysnail-twitter-client-header-menu";
-            const HEAD_DYNAMIC_MENU = "keysnail-twitter-client-header-dynamic-menu";
-
-            const HEAD_LIST_ORIGIN   = "keysnail-twitter-client-header-search-origin";
-            const HEAD_SEARCH_ORIGIN = "keysnail-twitter-client-header-list-origin";
-            const HEAD_ADD_SEARCH    = "keysnail-twitter-client-header-add-search";
-            const HEAD_CRAWLER_BUTTON_CONTAINER = "keysnail-twitter-client-header-crawler-button-container";
-
             let tooltipTextTwitter     = M({ja: "このユーザの Twitter ページへ", en: "Visit this user's page on twitter"});
             let tooltipTextHome        = M({ja: "このユーザのホームページへ", en: "Visit this user's homepage"});
             let tooltipTextRefresh     = M({ja: "更新", en: "Refresh"});
