@@ -937,6 +937,13 @@ const command = {
             }
         }
 
+        try {
+            // Dispatch "input" event to emulate user's input
+            var event = document.createEvent("HTMLEvents");
+            event.initEvent("input", true, false);
+            aInput.dispatchEvent(event);
+        } catch (x) {}
+
         if (aInput.nodeName === "html:input" && !scrollLeft && !scrollTop)
             this.inputScrollSelectionIntoView(aInput);
         else
