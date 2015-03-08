@@ -179,7 +179,7 @@ const prompt = function () {
         for (let k in util.getAllPropertyNames(b)) {
             try {
                 a[k] = b[k];
-            } catch ([]) {}
+            } catch (_) {}
         }
     }
 
@@ -245,10 +245,10 @@ const prompt = function () {
     function setLabel(aItem, aLabel) {
         try {
             aItem.setAttribute("label", aLabel);
-        } catch ([]) {
+        } catch (_) {
             try {
                 aItem.setAttribute("label", Object.prototype.toString.call(aLabel));
-            } catch ([]) {}
+            } catch (_) {}
         }
     }
 
@@ -463,7 +463,7 @@ const prompt = function () {
 
             try {
                 beforeSelection(args);
-            } catch ([]) {}
+            } catch (_) {}
 
             // user can override the value of `i'
             if (typeof args.nextIndex === "number")
@@ -498,7 +498,7 @@ const prompt = function () {
         if (afterSelection) {
             try {
             afterSelection({row: currentRow, i: currentIndex});
-            } catch ([]) {}
+            } catch (_) {}
         }
     }
 
@@ -1192,10 +1192,10 @@ const prompt = function () {
                 keywords = keywords.map(function (s) {
                     try {
                         return (new RegExp(s, "i"));
-                    } catch ([]) {
+                    } catch (_) {
                         try {
                             return (new RegExp(util.toUnicodeExpression(s), "i"));
-                        } catch ([]) {
+                        } catch (_) {
                             return null;
                         }
                     }

@@ -482,7 +482,7 @@ const command = {
         try {
             selection.QueryInterface(Components.interfaces.nsISelection2)
 	        .scrollIntoView(editor.selectionController.SELECTION_ANCHOR_REGION, true, aVPercent, aHPercent);
-        } catch ([]) {}
+        } catch (_) {}
     },
 
     // ==================== Insertion ==================== //

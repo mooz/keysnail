@@ -3160,7 +3160,7 @@ var twitterClient =
                         "tweet (%s):",
                         share.userInfo.screen_name
                     );
-            } catch ([]) {}
+            } catch (_) {}
 
             if (!promptMessage)
                 promptMessage = "tweet:";

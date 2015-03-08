@@ -22,7 +22,7 @@ const userscript = {
             let procDir = util.getSpecialDir("CurProcD");
             if (util.isDirHasFiles(procDir.path, this.defaultInitFileNames))
                 return procDir.path;
-        } catch ([]) {}
+        } catch (_) {}
 
         let path = util.getUnicharPref("extensions.keysnail.userscript.location");
 
