@@ -2141,8 +2141,8 @@ const prompt = function () {
                         let value = getV(obj, k);
                         let type  = typeof value;
 
-                        let keyStr = let (filtered = propFilter(k))
-                        (prefix ? prefix + (filtered[0] !== "[" ? "." : "") : "") + filtered;
+                        let filtered = propFilter(k);
+                        let keyStr = (prefix ? prefix + (filtered[0] !== "[" ? "." : "") : "") + filtered;
                         let valueStr;
 
                         switch (type)
@@ -2402,12 +2402,13 @@ const prompt = function () {
                                                  });
 
                         // ignore case
-                        let (query = query.toLowerCase())
+                        let (query = query.toLowerCase()) {
                             remains = remains.filter(function (c) {
                                                          let text = getText(c).toLowerCase();
                                                          if (text.indexOf(query) === 0) { matched.push(c); return false; }
                                                          return true;
                                                      });
+                        }
 
                         cc.collection = matched;
                     }
@@ -2500,12 +2501,13 @@ const prompt = function () {
 
         if (typeof userOnChange === "function")
         {
-            let (arg = {
-                     key     : key.keyEventToString(aEvent),
-                     textbox : textbox,
-                     event   : aEvent,
-                     finish  : self.finish
-                 }) userOnChange(arg);
+            let arg = {
+                key     : key.keyEventToString(aEvent),
+                textbox : textbox,
+                event   : aEvent,
+                finish  : self.finish
+            };
+            userOnChange(arg);
         }
     }
 

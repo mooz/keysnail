@@ -222,10 +222,14 @@ let persist = {
 };
 
 let share = {
-    get WINDOWS() (let (xr = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime))
-                   (/windows/i.test(xulRuntime.OS))),
-    get MAC() (let (xr = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime))
-               (/darwin/i.test(xulRuntime.OS)))
+    get WINDOWS() {
+      let xr = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
+      return /windows/i.test(xr.OS);
+    },
+    get MAC() {
+      let xr = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
+      return /darwin/i.test(xr.OS);
+    }
 };
 
 // }} ======================================================================= //
