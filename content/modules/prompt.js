@@ -2408,7 +2408,7 @@ const prompt = function () {
                                                          if (text.indexOf(query) === 0) { matched.push(c); return false; }
                                                          return true;
                                                      });
-                        }
+                        };
 
                         cc.collection = matched;
                     }
