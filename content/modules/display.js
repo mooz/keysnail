@@ -343,7 +343,7 @@ const display = (function () {
 
         showPopup: function (title, message, options) {
             try {
-                const as = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
+                var as = Cc['@mozilla.org/alerts-service;1'].getService(Ci.nsIAlertsService);
             } catch (x) {
                 return false;
             }
