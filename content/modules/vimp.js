@@ -280,10 +280,10 @@ shell.add(["t[abopen]", "tb"], "Open page in new tab", function (args, extra) {
 shell.add(["o[pen]", "e[dit]"],
           "Open one or more URLs in the current tab",
           function (args, extra) {
-              let (opened = false)
-                  uriOpener(args, extra, function (uri, bang) {
-                                openUILinkIn(uri || "about:blank", opened ? "tabshifted" : (opened = true, "current"));
-                            });
+              let opened = false;
+              uriOpener(args, extra, function (uri, bang) {
+                  openUILinkIn(uri || "about:blank", opened ? "tabshifted" : (opened = true, "current"));
+              });
           },
           {
               completer : uriCompleter,
