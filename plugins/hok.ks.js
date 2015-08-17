@@ -448,7 +448,7 @@ const pOptions = plugins.setupOptions("hok", {
     },
 
     "follow_link_candidate_selector": {
-        preset: "a[href], input:not([type='hidden']), button"
+        preset: "a[href], input:not([type='hidden']), button, img[alt]"
     }
 }, PLUGIN_INFO);
 
@@ -567,7 +567,9 @@ function followRel(doc, rel, pattern) {
     );
 
     for (let [, elem] in Iterator(relLinkCandidates.reverse())) {
-        if (relLinkPattern.test(elem.textContent) /*|| regex.test(elem.value) */) {
+        if (relLinkPattern.test(elem.textContent) ||
+            relLinkPattern.test(elem.alt) ||
+            relLinkPattern.test(elem.title)) {
             followLink(elem, CURRENT_TAB);
             return;
         }
