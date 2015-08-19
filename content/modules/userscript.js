@@ -1104,11 +1104,7 @@ const userscript = {
             }
         }
 
-        var process = Components.classes["@mozilla.org/process/util;1"]
-            .createInstance(Components.interfaces.nsIProcess);
-        process.init(editorFile);
-
-        process.run(false, args, args.length);
+        util.launchProcess(editorFile, args);
     },
 
     // ==================== util / wizard ==================== //
