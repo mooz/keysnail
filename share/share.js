@@ -224,7 +224,7 @@ let persist = {
 let share = {
     get WINDOWS() {
       let xr = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
-      return /windows/i.test(xr.OS);
+      return /windows/i.test(xr.OS) || /winnt/i.test(xr.OS);
     },
     get MAC() {
       let xr = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
