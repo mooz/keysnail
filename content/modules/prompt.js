@@ -1022,9 +1022,9 @@ const prompt = function () {
             item.setAttribute("label", action[1]);
 
             if (action[2] && (action[2].split(",")[1] || "").indexOf("c") !== -1)
-                item.setAttribute("oncommand", "KeySnail.modules.prompt.doNthAction(" + i + ", true);");
+                item.addEventListener("command", (ev) => prompt.doNthAction(i, true), false);
             else
-                item.setAttribute("oncommand", "KeySnail.modules.prompt.doNthAction(" + i + ");");
+                item.addEventListener("command", (ev) => prompt.doNthAction(i), false);
 
             contextMenu.appendChild(item);
         }
