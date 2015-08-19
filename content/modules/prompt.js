@@ -637,7 +637,7 @@ const prompt = function () {
 
             // add delay
             delayedCommandTimeout = setTimeout(
-                function () {
+                function callback() {
                     delayedCommandTimeout = null;
 
                     if (createCompletionListPending)
@@ -654,7 +654,7 @@ const prompt = function () {
                     if (createCompletionListQueued)
                     {
                         createCompletionListQueued = false;
-                        delayedCommandTimeout = setTimeout(arguments.callee, options.displayDelayTime);
+                        delayedCommandTimeout = setTimeout(callback, options.displayDelayTime);
                     }
                 }, options.displayDelayTime);
         }
@@ -2826,8 +2826,8 @@ const prompt = function () {
 
             hook.addToHook(
                 'KeySnailInitialized',
-                function () {
-                    hook.removeHook('KeySnailInitialized', arguments.callee);
+                function onInitialized() {
+                    hook.removeHook('KeySnailInitialized', onInitialized);
                     let displayHelpKey = [];
 
                     for (let [k, act] in Iterator(actionKeys.selector))
