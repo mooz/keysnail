@@ -2,22 +2,22 @@
 <RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$qtJrB"
-                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-                   em:minVersion="34.*"
-                   em:maxVersion="35.*"
-                   em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/2.1.4.xhtml"
-                   em:updateHash="sha1:9b4bc5828ecae486e9b1ae0e2ec5d1c65f62053a" />
-  <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="2.1.4">
-    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
-  </RDF:Description>
   <RDF:Seq RDF:about="rdf:#$mtJrB">
     <RDF:li RDF:resource="rdf:#$ntJrB"/>
   </RDF:Seq>
+  <RDF:Description RDF:about="rdf:#$ntJrB"
+                   em:version="2.1.6">
+    <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
+  </RDF:Description>
   <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
-                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAKFq8ooh0qysCY6do5ZBDkb7PQ9ezWyJEIoUViite2f5rAy3Uqgyu19LsvdsU19G5epspn6lV/23Jbg1P5Ka+NSTw6jKjR2s9WFVwutzFxAV/6Ti1NBup5Dwt0sRE8Ouc3A5eew4FwlsZSC9i3nK5QzMMR9qgc7v42jjwwUs6JKr">
+                   em:signature="MIGTMA0GCSqGSIb3DQEBDQUAA4GBAF/ujLGVbhyPhGzI5lA0BEFvVqrDk7BTB6CkKQqLCSVQZ9lmwWVHS6VsWtE08yBTehkeU71eZwUWCaSIx8cbew6gCB66M1ky5yDjJKm5lC4RrOk1W7+xpyTHnUu15LKVo2O8TG2ofKJMt7Fe5c3X03pJcFmIDs2md37yXOUIZ40f">
     <em:updates RDF:resource="rdf:#$mtJrB"/>
   </RDF:Description>
+  <RDF:gDescription RDF:about="rdf:#$qtJrB"
+                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
+                   em:minVersion="34.*"
+                   em:maxVersion="41.*"
+                   em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/2.1.6.xhtml"
+                   em:updateHash="sha1:cd7cb3601d78418315e48a3bab2bb66d41f5f5ac" />
 </RDF:RDF>
