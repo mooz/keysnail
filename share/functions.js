@@ -157,7 +157,8 @@ var ksBuiltin = {
 
         focus_to_content: [
             function (ev, arg) {
-                let (elem = document.commandDispatcher.focusedElement) elem && elem.blur();
+                let elem = document.commandDispatcher.focusedElement;
+                if (elem) { elem.blur(); }
                 gBrowser.focus();
                 content.focus();
             }, true],
@@ -285,25 +286,21 @@ var ksBuiltin = {
 
         open_url_from_clipboard: [
             function (ev, arg) {
-                gBrowser.loadOneTab(
-                    let (url = command.getClipboardText())
-                        url.indexOf("://") === -1 ?
-                        util.format("http://www.google.com/search?q=%s&ie=utf-8&oe=utf-8", encodeURIComponent(url)) :
-                        url,
-                    null, null, null, false
-                );
+                let url = command.getClipboardText();
+                if (url.indexOf("://") === -1) {
+                    url = util.format("http://www.google.com/search?q=%s&ie=utf-8&oe=utf-8", encodeURIComponent(url));
+                }
+                gBrowser.loadOneTab(url, null, null, null, false);
             }, false
         ],
 
         open_url_from_selection_clipboard: [
             function (ev, arg) {
-                gBrowser.loadOneTab(
-                    let (url = command.getClipboardText(true))
-                        url.indexOf("://") === -1 ?
-                        util.format("http://www.google.com/search?q=%s&ie=utf-8&oe=utf-8", encodeURIComponent(url)) :
-                        url,
-                    null, null, null, false
-                );
+                let url = command.getClipboardText(true);
+                if (url.indexOf("://") === -1) {
+                    url = util.format("http://www.google.com/search?q=%s&ie=utf-8&oe=utf-8", encodeURIComponent(url));
+                }
+                gBrowser.loadOneTab(url, null, null, null, false);
             }, false
         ]
 
@@ -491,8 +488,10 @@ var ksBuiltin = {
                 if (!command.kill.ring.length)
                     return;
 
-                let (ct = command.getClipboardText())
-                    (!command.kill.ring.length || ct != command.kill.ring[0]) && command.pushKillRing(ct);
+                let ct = command.getClipboardText();
+                if (!command.kill.ring.length || ct != command.kill.ring[0]) {
+                    command.pushKillRing(ct);
+                }
 
                 prompt.selector(
                     {
