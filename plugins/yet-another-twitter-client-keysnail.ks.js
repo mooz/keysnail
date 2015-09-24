@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.2.1</version>
+    <version>3.2.2</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -1116,12 +1116,11 @@ const twitterAPI = {
             if (typeof v !== "undefined")
                 action = action.replace(util.format("{%s}", k), $U.encodeOAuth(v), "g");
 
-        let (query = [k + "=" + $U.encodeOAuth(v)
-                      for ([k, v] in Iterator(params))
-                      if (typeof v !== "undefined")].join("&")) {
-            if (query.length)
-                action += (action.indexOf("?") < 0 ? "?" : "&") + query;
-        };
+        let query = [k + "=" + $U.encodeOAuth(v)
+                     for ([k, v] in Iterator(params))
+                     if (typeof v !== "undefined")].join("&");
+        if (query.length)
+            action += (action.indexOf("?") < 0 ? "?" : "&") + query;
 
         let requestArg = {
             action     : action,
@@ -1763,12 +1762,10 @@ var twitterClient =
         var gTrackings = {};
 
         function addTrackingCrawler(query, infoHolder) {
-            let searchAction = let (params = { q : query },
-                                    lang   = pOptions["tracking_langage"])
-            (
-                lang && (params[lang] = lang),
-                twitterAPI.get("search", params)
-            );
+            let params = { q : query },
+                lang   = pOptions["tracking_langage"];
+            if (lang) params[lang] = lang;
+            let searchAction = twitterAPI.get("search", params);
 
             return gTrackings[query] = new Crawler(
                 {
@@ -3778,10 +3775,10 @@ var twitterClient =
             var statuses = options.supressFilter ? aStatuses : aStatuses.filter(notBlack);
 
             // apply filters
-            let (filters = pOptions.filters)
-                filters &&
-                filters.length &&
-                filters.forEach(function (f) statuses = statuses.filter(f));
+            let filters = pOptions.filters;
+            if (filters && filters.length) {
+                filters.forEach(f => statuses = statuses.filter(f));
+            }
 
             // ============================================================ //
 
@@ -3794,11 +3791,13 @@ var twitterClient =
                 var created = Date.parse(status.created_at);
                 var matched = status.source ? status.source.match(">(.*)</a>") : "";
 
+                let profile_image = status.user.profile_image_url;
+                if (pOptions.hide_profile_image_gif && /\.gif$/.test(profile_image))
+                    profile_image = "http://a1.twimg.com/images/default_profile_0_bigger.png";
+
                 return [
                     status,
-                    let (url = status.user.profile_image_url)
-                        ((pOptions.hide_profile_image_gif && /\.gif$/.test(url)) ?
-                         "http://a1.twimg.com/images/default_profile_0_bigger.png" : url),
+                    profile_image,
                     preferScreenName ? status.user.screen_name : status.user.name,
                     html.unEscapeTag(status.text),
                     favIconGetter,
