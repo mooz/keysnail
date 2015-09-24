@@ -285,13 +285,20 @@ const userscript = {
                 {
                     let self = this;
                     buttons = [{
-                                   label     : util.getLocaleString("openErrorOccurredPlace"),
-                                   callback  : function (aNotification) {
-                                       self.editFile(e.fileName, e.lineNumber);
-                                       aNotification.close();
-                                   },
-                                   accessKey : "o"
-                               }];
+                        label     : util.getLocaleString("oldSyntaxMigrationGuide"),
+                        callback  : function (aNotification) {
+                            openUILinkIn(util.getLocaleString("oldSyntaxMigrationGuideURL"), "tab");
+                            aNotification.close();
+                        },
+                        accessKey : "m"
+                    }, {
+                        label     : util.getLocaleString("openErrorOccurredPlace"),
+                        callback  : function (aNotification) {
+                            self.editFile(e.fileName, e.lineNumber);
+                            aNotification.close();
+                        },
+                        accessKey : "o"
+                    }];
                 }
                 display.notify(msgstr, buttons);
                 return -2;
