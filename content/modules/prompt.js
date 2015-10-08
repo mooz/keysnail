@@ -654,7 +654,7 @@ const prompt = function () {
                     if (createCompletionListQueued)
                     {
                         createCompletionListQueued = false;
-                        delayedCommandTimeout = setTimeout(callback, options.displayDelayTime);
+                        delayedCommandTimeout = setTimeout(() => callback(), options.displayDelayTime);
                     }
                 }, options.displayDelayTime);
         }

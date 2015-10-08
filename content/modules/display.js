@@ -215,7 +215,7 @@ const display = (function () {
                     {
                         if (hideMessageTimeout)
                             clearTimeout(hideMessageTimeout);
-                        hideMessageTimeout = setTimeout(hideMessage, aTimeout);
+                        hideMessageTimeout = setTimeout(() => hideMessage(), aTimeout);
                     }
                 }
 
