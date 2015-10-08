@@ -140,6 +140,7 @@
 
             document.addEventListener("copy", function () { command.clipboardChanged(); }, true);
             hook.callHook("KeySnailInitialized");
+            this.ensureToolbarButtonInstalled();
         },
 
         /**
@@ -166,6 +167,51 @@
                 this.error(x, "KeySnail.initModule");
             }
         },
+
+        // ------------------------------------------------------------ //
+        // Toolbar button {{{
+        // ------------------------------------------------------------ //
+
+        get isFirstRun() {
+            return util.getBoolPref("extensions.keysnail.first_run", true);
+        },
+
+        set isFirstRun(val) {
+            return util.setBoolPref("extensions.keysnail.first_run", val);
+        },
+
+        ensureToolbarButtonInstalled: function () {
+            if (this.isFirstRun) {
+                this.installToolbarButton();
+                this.isFirstRun = false;
+            }
+        },
+
+        toolbarButtonId: "keysnail-toolbar-button",
+
+        getToolbarButton: function () { return document.getElementById(this.toolbarButtonId); },
+
+        get toolbarButtonInstalled() { return !!this.getToolbarButton(); },
+
+        installToolbarButton: function () {
+            if (this.toolbarButtonInstalled)
+                return;
+
+            let navBar = document.getElementById("nav-bar");
+            navBar.insertItem(this.toolbarButtonId, null, null, false);
+
+            this.makeToolbarButtonsPersistent();
+        },
+
+        makeToolbarButtonsPersistent: function () {
+            let navBar = document.getElementById("nav-bar");
+            navBar.setAttribute("currentset", navBar.currentSet);
+            document.persist("nav-bar", "currentset");
+        },
+
+        // ------------------------------------------------------------ //
+        // }}} Toolbar button
+        // ------------------------------------------------------------ //
 
         /**
          * Create context menu
