@@ -265,7 +265,7 @@ var bmany =
          function getBookmarks(aItemId) {
              return filterBookmarks(
                  aItemId,
-                 function (childNode, parentNode) [childNode.itemId,
+                 function (childNode, parentNode) [childNode,
                                                    folderIconGetter,
                                                    parentNode.title  || "",
                                                    getFaviconPath(childNode.icon),
@@ -282,7 +282,7 @@ var bmany =
 
                      if (keyword)
                      {
-                         return [childNode.itemId,
+                         return [childNode,
                                  folderIconGetter,
                                  parentNode.title || "",
                                  keyword || "",
@@ -304,7 +304,7 @@ var bmany =
 
                      if (tags.length)
                      {
-                         return [childNode.itemId,
+                         return [childNode,
                                  folderIconGetter,
                                  parentNode.title || "",
                                  tags || "",
@@ -325,7 +325,7 @@ var bmany =
                      if (childNode.uri.indexOf("javascript:") === 0)
                      {
                          let keyword = bmService.getKeywordForURI(ioService.newURI(childNode.uri, null, null));
-                         return [childNode.itemId,
+                         return [childNode,
                                  folderIconGetter,
                                  parentNode.title  || "",
                                  keyword || "",
@@ -342,22 +342,22 @@ var bmany =
          // Misc values {{ =========================================================== //
 
          var actions = [
-             [function (url, id) { self.go(url, "current");    },
+             [function (url, node) { self.go(url, "current");    },
               M({en: "Open link in current tab", ja: "現在のタブで開く"}),
               "open-current-tab"],
-             [function (url, id) { self.go(url, "tab");        },
+             [function (url, node) { self.go(url, "tab");        },
               M({en: "Open link in new tab (foreground)", ja: "新しいタブを前面に開く"}),
               "open-foreground-tab"],
-             [function (url, id) { self.go(url, "tabshifted"); },
+             [function (url, node) { self.go(url, "tabshifted"); },
               M({en: "Open link in new tab (background)", ja: "新しいタブを背面に開く"}),
               "open-background-tab"],
-             [function (url, id) { self.go(url, "window");     },
+             [function (url, node) { self.go(url, "window");     },
               M({en: "Open link in new window", ja: "新しいウィンドウで開く"}),
               "open-new-window"],
-             [function (url, id) { self.go(url, "unique");     },
+             [function (url, node) { self.go(url, "unique");     },
               M({en: "Open link in unique tab", ja: "既に開いていればそのタブを選択し、いなければ現在のタブで開く"}),
               "open-unique-tab"],
-             [function (url, id) { PlacesUIUtils.showBookmarkDialog({ itemId:id }, window); },
+             [function (url, node) { PlacesUIUtils.showBookmarkDialog({ action:"edit", node }, window); },
               M({en: "Edit selected bookmark item", ja: "選択中のブックマークを編集"}),
               "edit-bookmark"]
          ];
@@ -407,7 +407,7 @@ var bmany =
                  prompt.selector({
                                      message       : "pattern:",
                                      collection    : cache.bookmarks,
-                                     //            : id, icon, folder, icon, title, uri
+                                     //            : node, icon, folder, icon, title, uri
                                      flags         : [hid, ico, 0, ico, 0, 0],
                                      header        : ["Folder", "Title", "URL / Script"],
                                      width         : [17, 45, 38],
@@ -427,7 +427,7 @@ var bmany =
                  prompt.selector({
                                      message       : "pattern:",
                                      collection    : cache.toolbarBookmarks,
-                                     //            : id, icon, folder, icon, title, uri
+                                     //            : node, icon, folder, icon, title, uri
                                      flags         : [hid, ico, 0, ico, 0, 0],
                                      header        : ["Title", "URL / Script"],
                                      width         : [17, 45, 38],
@@ -454,7 +454,7 @@ var bmany =
                  prompt.selector({
                                      message       : "pattern:",
                                      collection    : cache.bookmarksWithKeywords,
-                                     //            : id, folder, keyword, (icon), title, uri
+                                     //            : node, folder, keyword, (icon), title, uri
                                      flags         : [hid, ico, 0, 0, ico, 0, 0],
                                      header        : ["Folder", "Keyword", "Title", "URL / Script"],
                                      width         : [15, 15, 35, 35],
@@ -482,7 +482,7 @@ var bmany =
                  prompt.selector({
                                      message       : "pattern:",
                                      collection    : cache.bookmarksWithTags,
-                                     //            : id, folder, tag, (icon), title, uri
+                                     //            : node, folder, tag, (icon), title, uri
                                      flags         : [hid, ico, 0, 0, ico, 0, 0],
                                      header        : ["Folder", "Tag", "Title", "URL / Script"],
                                      width         : [15, 15, 35, 35],
@@ -505,7 +505,7 @@ var bmany =
                  prompt.selector({
                                      message       : "pattern:",
                                      collection    : cache.bookmarklets,
-                                     //            : id, folder, keyword, icon, title, uri
+                                     //            : node, folder, keyword, icon, title, uri
                                      flags         : [hid, ico, 0, 0, ico, 0, 0],
                                      header        : ["Folder", "Keyword", "Title", "Script"],
                                      style         : [getOption("folder_style"), getOption("keyword_style"),
