@@ -650,7 +650,7 @@ var EXPORTED_SYMBOLS = ["_"];
         previous = now;
         result = func.apply(context, args);
       } else if (!timeout) {
-        timeout = setTimeout(later, remaining);
+        timeout = setTimeout(() => later(), remaining);
       }
       return result;
     };
@@ -670,7 +670,7 @@ var EXPORTED_SYMBOLS = ["_"];
       };
       var callNow = immediate && !timeout;
       clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
+      timeout = setTimeout(() => later(), wait);
       if (callNow) result = func.apply(context, args);
       return result;
     };

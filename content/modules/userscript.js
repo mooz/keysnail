@@ -285,13 +285,20 @@ const userscript = {
                 {
                     let self = this;
                     buttons = [{
-                                   label     : util.getLocaleString("openErrorOccurredPlace"),
-                                   callback  : function (aNotification) {
-                                       self.editFile(e.fileName, e.lineNumber);
-                                       aNotification.close();
-                                   },
-                                   accessKey : "o"
-                               }];
+                        label     : util.getLocaleString("oldSyntaxMigrationGuide"),
+                        callback  : function (aNotification) {
+                            openUILinkIn(util.getLocaleString("oldSyntaxMigrationGuideURL"), "tab");
+                            aNotification.close();
+                        },
+                        accessKey : "m"
+                    }, {
+                        label     : util.getLocaleString("openErrorOccurredPlace"),
+                        callback  : function (aNotification) {
+                            self.editFile(e.fileName, e.lineNumber);
+                            aNotification.close();
+                        },
+                        accessKey : "o"
+                    }];
                 }
                 display.notify(msgstr, buttons);
                 return -2;
@@ -1104,11 +1111,7 @@ const userscript = {
             }
         }
 
-        var process = Components.classes["@mozilla.org/process/util;1"]
-            .createInstance(Components.interfaces.nsIProcess);
-        process.init(editorFile);
-
-        process.run(false, args, args.length);
+        util.launchProcess(editorFile, args);
     },
 
     // ==================== util / wizard ==================== //

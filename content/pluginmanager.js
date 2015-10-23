@@ -371,7 +371,7 @@ let ksPluginManager = (function () {
 
                 let toggler = createElementWithText("span", util.getLocaleString("toggleOptionsWithNoDescription"));
                 toggler.setAttribute("class", "button");
-                toggler.setAttribute("onclick", "pluginManagerContent.toggleOptions(event);");
+                toggler.addEventListener("click", (ev) => iframeDoc.defaultView.pluginManagerContent.toggleOptions(ev), false);
 
                 buttonContainer.appendChild(toggler);
                 infoBox.appendChild(buttonContainer);
@@ -584,7 +584,7 @@ let ksPluginManager = (function () {
                 button.setAttribute("style", "font-size:140%;");
                 button.setAttribute("type", "button");
                 button.setAttribute("value", "Refresh");
-                button.setAttribute("onclick", "content.document.location.reload();");
+                button.addEventListener("click", (ev) => content.document.location.reload(), false);
                 form.appendChild(button);
                 container.appendChild(form);
 

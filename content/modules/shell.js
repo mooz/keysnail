@@ -3,7 +3,6 @@ const shell =
          const Cc = Components.classes;
          const Ci = Components.interfaces;
 
-         let localCommands;
          let commands = {};
 
          let option = {
@@ -301,27 +300,13 @@ const shell =
 
          function executeLocalCommand(args) {
              let commandName = args.shift();
-             let commandFile;
 
-             localCommands.some(function ([name, path]) {
-                                    if (commandName === name)
-                                    {
-                                        commandFile = util.openFile(path);
-                                        return true;
-                                    }
-                                    return false;
-                                });
+             let localCommands = getLocalCommands();
+             let localCommandIndex = localCommands.map(([name, path]) => name).indexOf(commandName);
+             if (localCommandIndex < 0) return;
+             let commandPath = localCommands[localCommandIndex][1];
 
-             if (!commandFile)
-             {
-                 // error
-                 return;
-             }
-
-             let process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
-             process.init(commandFile);
-
-             process.run(false, args, args.length);
+             util.launchProcess(commandPath, args);
          }
 
          function chomp(text) text.replace(/^[ \t\n]*/, "").replace(/[ \t\n]*$/, "");
@@ -338,15 +323,29 @@ const shell =
              return b;
          }
 
-         function getLocalCommands() {
-             return util.getEnv("PATH").split(":")
-                 .reduce(
-                     function (accum, path) accum.concat(
-                         util.readDirectory(path)
+         function getPathDirectories() {
+             var pathString = util.getEnv("PATH");
+             var splitter = share.WINDOWS ? ";" : ":";
+             return pathString.split(splitter);
+         }
+
+         function gatherLocalCommands() {
+             return getPathDirectories().reduce((accum, path) => {
+                 try {
+                     var paths = util.readDirectory(path)
                              .filter(function (file) file.isExecutable)
-                             .map(function (file) [file.leafName, file.path])
-                     ), []
-                 ).sort(util.sortMultiple);
+                             .map(function (file) [file.leafName, file.path]);
+                     return accum.concat(paths);
+                 } catch (x) {
+                     return accum;
+                 }
+             }, []).sort(util.sortMultiple);
+         }
+
+         let cachedLocalCommands = null;
+         function getLocalCommands() {
+             if (!cachedLocalCommands) cachedLocalCommands = gatherLocalCommands();
+             return cachedLocalCommands;
          }
 
          let self = {
@@ -374,11 +373,8 @@ const shell =
                      {
                          argCount  : "+",
                          completer : function (args, extra) {
-                             if (!localCommands)
-                                 localCommands = getLocalCommands();
-
                              return completer.matcher.header(
-                                 localCommands,
+                                 getLocalCommands(),
                                  {style : ["", style.prompt.description]}
                              )(extra.left);
                          }

@@ -1574,6 +1574,42 @@ const util = function () {
             return res.length ? res : null;
         },
 
+        // callback is a function (err, topic, data) which will be
+        // called when process finished successfully or failed
+        launchProcess: function (exeFile, args, callback) {
+            if (!args) args = [];
+
+            if (typeof exeFile === "string") {
+                exeFile = util.openFile(exeFile);
+            }
+            if (!(exeFile instanceof Ci.nsIFile) ||
+                !exeFile.exists()) {
+                throw exeFile + " is no a valid exe file";
+            }
+
+            var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+            process.init(exeFile);
+
+            if (typeof callback === "function") {
+                // handler waits for process termination
+                process.runAsync(args, args.length, function (subject, topic, data) {
+                    switch (topic) {
+                    case "process-finished":
+                        callback(null, topic, data);
+                        break;
+                    case "process-failed":
+                        callback(new Error("Process failed"), subject, data);
+                        break;
+                    default:
+                    }
+                });
+            } else {
+                // launch and run
+                process.run(false, args, args.length);
+            }
+            return process;
+        },
+
         // }} ======================================================================= //
 
         // Range / Iterator {{ ====================================================== //
