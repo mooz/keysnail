@@ -278,7 +278,10 @@ var bmany =
              return filterBookmarks(
                  aItemId,
                  function (childNode, parentNode) {
-                     let keyword = bmService.getKeywordForURI(ioService.newURI(childNode.uri, null, null));
+                     let keyword;
+                     try {
+                         keyword = bmService.getKeywordForURI(ioService.newURI(childNode.uri, null, null));
+                     } catch (x) {}
 
                      if (keyword)
                      {
@@ -324,7 +327,10 @@ var bmany =
                  function (childNode, parentNode) {
                      if (childNode.uri.indexOf("javascript:") === 0)
                      {
-                         let keyword = bmService.getKeywordForURI(ioService.newURI(childNode.uri, null, null));
+                         let keyword;
+                         try {
+                             keyword = bmService.getKeywordForURI(ioService.newURI(childNode.uri, null, null));
+                         } catch (x) {}
                          return [childNode,
                                  folderIconGetter,
                                  parentNode.title  || "",
