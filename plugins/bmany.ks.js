@@ -427,7 +427,7 @@ var bmany =
              },
 
              listToolbarBookmarks: function (arg, openType) {
-                 if (arg || !cache.bookmarks)
+                 if (arg || !cache.toolbarBookmarks)
                      cache.toolbarBookmarks = getBookmarks(PlacesUtils.toolbarFolderId);
 
                  prompt.selector({
