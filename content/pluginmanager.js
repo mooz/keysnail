@@ -267,9 +267,9 @@ let ksPluginManager = (function () {
         // compatible version
 
         let versionMsg = "";
-        let (minVersion = pluginInfo.minKeySnailVersion,
-             maxVersion = pluginInfo.maxKeySnailVersion)
         {
+          let minVersion = pluginInfo.minKeySnailVersion,
+              maxVersion = pluginInfo.maxKeySnailVersion;
             if (minVersion)
                 versionMsg += util.getLocaleString("compatibleMinVersion", [minVersion]);
             if (maxVersion)

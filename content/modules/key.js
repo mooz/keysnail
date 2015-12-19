@@ -987,10 +987,11 @@ const key = {
                     keyCode = KeyEvent.DOM_VK_DELETE;
                     break;
                 default:
-                    let (keyName = aKey.replace(/^<|>$/g, "")) {
+                    {
+                        let keyName = aKey.replace(/^<|>$/g, "");
                         if (keyName in this.keyName2Code)
                             keyCode = this.keyName2Code[keyName];
-                    };
+                    }
                     break;
                 }
             }
