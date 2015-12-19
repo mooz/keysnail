@@ -6,11 +6,11 @@
  */
 
 // flags
-const HIDDEN = 1;
-const IGNORE = 2;
-const ICON   = 4;
+var HIDDEN = 1;
+var IGNORE = 2;
+var ICON   = 4;
 
-const prompt = function () {
+var prompt = function () {
     /**
      * @private
      */

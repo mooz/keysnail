@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-const key = {
+var key = {
     modules: null,
     // "modules" is automatically added
     // by KeySnail.initModule in keysnail.js

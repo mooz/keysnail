@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-const hook = {
+var hook = {
     // ==== hooks ====
     hookList: {},               // all hooks are stored in it
 
