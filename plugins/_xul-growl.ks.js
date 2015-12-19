@@ -107,14 +107,14 @@ var xulGrowl =
 
          let panelStyle = 'border:none; width:300px;';
 
-         let (xulRuntime = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime))
          {
+             let xulRuntime = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
              if (xulRuntime.OS !== "Linux")
              {
                  containerStyle += "-moz-border-radius:5px; margin-top: 10px;";
                  panelStyle     += "background-color:transparent;";
              }
-         };
+         }
 
          // }} ======================================================================= //
 
