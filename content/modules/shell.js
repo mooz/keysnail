@@ -1,4 +1,4 @@
-const shell =
+var shell =
     (function () {
          const Cc = Components.classes;
          const Ci = Components.interfaces;
@@ -161,13 +161,13 @@ const shell =
                              optValue = args[i];
                              break;
                          case option.BOOL:   // 1
-                             let (v = {true : true, false : false}[args[i].toLowerCase()])
                              {
+                                 let v = {true : true, false : false}[args[i].toLowerCase()];
                                  if (typeof v === "undefined")
                                      parsed.errorMsg = "Option [" + arg + "] expects boolean but invalid value is given";
                                  else
                                      optValue = v;
-                             };
+                             }
                              break;
                          case option.INT:    // 1
                              if (+args[i] === parseInt(args[i]))
@@ -176,13 +176,13 @@ const shell =
                                  parsed.errorMsg = "Option [" + arg + "] expects integer but invalid value is given";
                              break;
                          case option.FLOAT:  // 1
-                             let (v = parseFloat(args[i]))
                              {
+                                 let v = parseFloat(args[i]);
                                  if (isNaN(v))
                                      optValue = v;
                                  else
                                      parsed.errorMsg = "Option [" + arg + "] expects float but invalid value given";
-                             };
+                             }
                              break;
                          default:
                              parsed.errorMsg = "Invalid type is specified for option " + arg;

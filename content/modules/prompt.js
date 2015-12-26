@@ -6,11 +6,11 @@
  */
 
 // flags
-const HIDDEN = 1;
-const IGNORE = 2;
-const ICON   = 4;
+var HIDDEN = 1;
+var IGNORE = 2;
+var ICON   = 4;
 
-const prompt = function () {
+var prompt = function () {
     /**
      * @private
      */
@@ -739,11 +739,11 @@ const prompt = function () {
         }
 
         // if additional opts are found
-        let (tmp = command.split(","))
         {
-            command = tmp[0];
-            opts  += tmp[1] || "";
-        };
+          let tmp = command.split(",");
+          command = tmp[0];
+          opts  += tmp[1] || "";
+        }
 
         var next = 0;
 
@@ -2329,8 +2329,8 @@ const prompt = function () {
                                                                return true;
                                                            });
 
-                            let (query = query.toLowerCase())
                             {
+                                let query = query.toLowerCase();
                                 // ignore case
                                 remains = remains.filter(function (c) {
                                                              let text = getText(c).toLowerCase();
@@ -2344,7 +2344,7 @@ const prompt = function () {
                                                              if (text.indexOf(query) !== -1) { matched.push(c); return false; }
                                                              return true;
                                                          });
-                            };
+                            }
 
                             // mige!
                             let migexp  = new RegExp(window.xulMigemoCore.getRegExp(query), "i");
@@ -2402,13 +2402,14 @@ const prompt = function () {
                                                  });
 
                         // ignore case
-                        let (query = query.toLowerCase()) {
+                        {
+                            let query = query.toLowerCase();
                             remains = remains.filter(function (c) {
                                                          let text = getText(c).toLowerCase();
                                                          if (text.indexOf(query) === 0) { matched.push(c); return false; }
                                                          return true;
                                                      });
-                        };
+                        }
 
                         cc.collection = matched;
                     }
@@ -2460,8 +2461,8 @@ const prompt = function () {
                                                      return true;
                                                  });
 
-                        let (query = query.toLowerCase())
                         {
+                            let query = query.toLowerCase();
                             // ignore case
                             remains = remains.filter(function (c) {
                                                          let text = getText(c).toLowerCase();
@@ -2475,7 +2476,7 @@ const prompt = function () {
                                                          if (text.indexOf(query) !== -1) { matched.push(c); return false; }
                                                          return true;
                                                      });
-                        };
+                        }
 
                         cc.collection = matched;
                     }

@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-const util = function () {
+var util = function () {
     /**
      * @private
      */

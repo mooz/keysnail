@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-const plugins = {
+var plugins = {
     modules : null,
     context : {},
     options : {},

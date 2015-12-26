@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-const ext = function () {
+var ext = function () {
     /**
      * @private
      */

@@ -5,7 +5,7 @@
  * @license The MIT License
  */
 
-const userscript = {
+var userscript = {
     // ==== user configuration file name ====
     // at first .keysnail.js is used. When the file not found,
     // then the _keysnail.js is used instead. (for the Windows user)
