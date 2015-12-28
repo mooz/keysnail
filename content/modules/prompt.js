@@ -740,9 +740,9 @@ var prompt = function () {
 
         // if additional opts are found
         {
-          let tmp = command.split(",");
-          command = tmp[0];
-          opts  += tmp[1] || "";
+            let tmp = command.split(",");
+            command = tmp[0];
+            opts  += tmp[1] || "";
         }
 
         var next = 0;
