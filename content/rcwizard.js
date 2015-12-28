@@ -144,24 +144,11 @@
                 next(util.readDirectory(root, true));
             }
 
-            if ("@mozilla.org/addons/integration;1" in Cc) // Over Gecko 2.0 or not
-            {
-                let am = {};
-                Components.utils.import("resource://gre/modules/AddonManager.jsm", am);
-
-                am.AddonManager.getAddonByID(ID, function (addon) {
-                    doNext(addon.getResourceURI('/').QueryInterface(Ci.nsIFileURL).file.clone());
-                });
-            }
-            else
-            {
-                let il = Cc["@mozilla.org/extensions/manager;1"]
-                    .getService(Ci.nsIExtensionManager)
-                    .getInstallLocation(ID);
-                let location = il.location.clone();
-                location.append(ID);
-                doNext(location);
-            }
+            let am = {};
+            Components.utils.import("resource://gre/modules/AddonManager.jsm", am);
+            am.AddonManager.getAddonByID(ID, function (addon) {
+                doNext(addon.getResourceURI('/').QueryInterface(Ci.nsIFileURL).file.clone());
+            });
         },
 
         // }} ======================================================================= //
