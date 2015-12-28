@@ -1818,7 +1818,7 @@ var prompt = function () {
                 let engines = aEngines ? util.suggest.filterEngines(aEngines) : [];
 
                 return function (currentText, text) {
-                    [query, origin] = completer.utils.getQuery(currentText, [" "]);
+                    let [query, origin] = completer.utils.getQuery(currentText, [" "]);
 
                     let cc = {
                         origin : origin,
