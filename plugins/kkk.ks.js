@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>KKK</name>
     <description>Kill keyup and keydown event</description>
     <description lang="ja">keyup, keydown イベントが特定のサイトへ渡らないように</description>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/kkk.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/kkk.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
