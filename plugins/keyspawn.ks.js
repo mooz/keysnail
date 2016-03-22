@@ -3,7 +3,7 @@ const PLUGIN_INFO =
     <name>KeySpawn</name>
     <description>Spawn</description>
     <description lang="ja">外部コマンドを実行</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/keyspawn.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/keyspawn.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -74,7 +74,7 @@ let KeySpawn = {
     },
 
     withTempFiles: function (f, self) {
-        let tmpFiles = [i for (i in util.range(0, f.length))].map(this.createTempFile);
+        let tmpFiles = [for (i of util.range(0, f.length)) i].map(this.createTempFile);
 
         try {
             return f.apply(self || this, tmpFiles);

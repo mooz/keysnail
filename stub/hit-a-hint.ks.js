@@ -396,11 +396,11 @@ var ksHah = new function () {
         let type = elem.type;
 
         if (elem instanceof HTMLInputElement && /(submit|button|reset)/.test(type)) {
-            return [elem.value, false];   
+            return [elem.value, false];
         }
         else
         {
-            for (let [, option] in Iterator(options["hintinputs"].split(",")))
+            for (let option of options["hintinputs"].split(","))
             {
                 if (option == "value")
                 {
@@ -641,7 +641,7 @@ var ksHah = new function () {
         let activeHint = hintNumber || 1;
         validHints = [];
 
-        for (let [,{ doc: doc, start: start, end: end }] in Iterator(docs))
+        for (let { doc: doc, start: start, end: end } of docs)
         {
             let [scrollX, scrollY] = getBodyOffsets(doc);
 
@@ -701,7 +701,7 @@ var ksHah = new function () {
         {
             let css = [];
             // FIXME: Broken for imgspans.
-            for (let [, { doc: doc }] in Iterator(docs))
+            for (let { doc: doc } of docs)
             {
                 for (let elem in evaluateXPath("//*[@keysnail:highlight and @number]", doc))
                 {
@@ -727,7 +727,7 @@ var ksHah = new function () {
     {
         let firstElem = validHints[0] || null;
 
-        for (let [,{ doc: doc, start: start, end: end }] in Iterator(docs))
+        for (let { doc: doc, start: start, end: end } of docs)
         {
             for (let elem in evaluateXPath("//*[@keysnail:highlight='hints']", doc))
                 elem.parentNode.removeChild(elem);
@@ -987,7 +987,7 @@ var ksHah = new function () {
             function stringsAtBeginningOfWords(strings, words, allowWordOverleaping)
             {
                 let strIdx = 0;
-                for (let [, word] in Iterator(words))
+                for (let word of words)
                 {
                     if (word.length == 0)
                         continue;
@@ -1126,7 +1126,7 @@ var ksHah = new function () {
     //                 completer: function (context)
     //                 {
     //                     context.compare = function () 0;
-    //                     context.completions = [[k, v.prompt] for ([k, v] in Iterator(hintModes))];
+    //                     context.completions = [for (k of hintModes) [k, hintModes[k].prompt]];
     //                 },
     //                 onChange: function () { modes.pop(); },
     //                 onCancel: function (arg) { arg && setTimeout(function () hints.show(arg), 0); }

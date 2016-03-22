@@ -698,13 +698,14 @@ ext.add("scrollet-jump-to-mark", function (ev, arg) {
             var mode  = getCurrentMode();
 
             var current = Date.now();
-            var collection = [[marks[k].mode,
-                               k,
-                               marks[k],
-                               getElapsedTimeString(current - marks[k].date)
-                              ] for (k in marks)].sort(
-                                  function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
-                              );
+            var collection = [for (k of Object.keys(marks)) [
+                marks[k].mode,
+                k,
+                marks[k],
+                getElapsedTimeString(current - marks[k].date)
+            ]].sort(
+                function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
+            );
 
             var selectedMark;
 
@@ -778,7 +779,7 @@ var PLUGIN_INFO =
     <name>Scrollet!</name>
     <description>Provides various scroll commands and mark system</description>
     <description lang="ja">強力なマークシステムと様々なスクロールコマンドを提供します</description>
-    <version>0.0.8</version>
+    <version>0.0.9</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>

@@ -109,7 +109,6 @@ WikiParser.prototype = {
         }
     },
     parse: function(){
-        var ite = Iterator(this.lines);
         var num, line, indent;
         var currentIndent = 0, indentList = [0], nest=0;
         var prevMode = "";
@@ -117,7 +116,7 @@ WikiParser.prototype = {
         var stack = [];
         var prevNode;
         //try {
-        for ([num, line] in ite){
+        for ([num, line] of util.keyValues(this.lines)){
             [,indent, line] = line.match(/^(\s*)(.*)\s*$/);
             currentIndent = indent.length;
             var prevIndent = indentList[indentList.length -1];

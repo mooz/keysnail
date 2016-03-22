@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>MetaPlus</name>
     <description>Make ESC behave as Meta</description>
     <description lang="ja">ESC キーを Meta キーとして</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/metaplus.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/metaplus.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -104,12 +104,12 @@ function getOption(aName) {
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
 }
 
-for (let [mode, keymap] in Iterator(key.keyMapHolder))
+for (let [mode, keymap] of util.keyValues(key.keyMapHolder))
 {
     if (!keymap)
         continue;
 
-    for (let [k, f] in Iterator(keymap))
+    for (let [k, f] of util.keyValues(keymap))
     {
         let matched = k.match(/^(C-)?M-(.+)/);
         if (matched)

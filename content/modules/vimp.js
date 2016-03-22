@@ -351,7 +351,7 @@ shell.add("dia[log]", "Open a dialog",
 
               try
               {
-                  for (let [, dialog] in Iterator(dialogs))
+                  for (let dialog of dialogs)
                   {
                       if (dialog[0].toLowerCase() === arg.toLowerCase())
                       {
@@ -404,7 +404,7 @@ function getRemotePluginListCached(purgeCache) {
     return remotePluginListCache;
 }
 function getRemotePluginInfoByPluginName(pluginName) {
-    for (let [, remotePluginInfo] in Iterator(getRemotePluginListCached()))
+    for (let remotePluginInfo of getRemotePluginListCached())
         if (remotePluginInfo.leafName === pluginName)
             return remotePluginInfo;
     return null;
@@ -442,8 +442,7 @@ function pluginCompleter(completerArgs, extra) {
         };
         let commands = {};
         Object.assign(commands, commandsNeedPluginCompletion, commandsNoCompletion);
-        cc = completer.matcher.migemo([[name, description]
-                                       for ([name, description] in Iterator(commands))],
+        cc = completer.matcher.migemo([for (kv of util.keyValues(commands)) kv],
                                       null)(left);
     } else if (args.length >= 1 && commandsNeedPluginCompletion.hasOwnProperty(args[0])) {
         /* List plugin names */
@@ -478,9 +477,9 @@ function pluginCompleter(completerArgs, extra) {
                 header   : ["Name", "Description", "Author"],
                 multiple : true
             };
-            pluginList = [[
+            pluginList = [for (pluginInfo of getRemotePluginListCached()) [
                 pluginInfo.iconURL, pluginInfo.leafName, pluginInfo.description, pluginInfo.authorName
-            ] for ([, pluginInfo] in Iterator(getRemotePluginListCached()))];
+            ]];
         } else {
             /* list installed plugins */
             let installedPluginTable = plugins.getInstalledPlugins();
@@ -496,10 +495,12 @@ function pluginCompleter(completerArgs, extra) {
                 multiple : true
             };
 
-            pluginList = [[
-                pluginInfo.iconURL, pluginName, pluginInfo.description
-            ] for ([pluginName, {pluginPath, pluginInfo}] in Iterator(installedPluginTable))
-              if (pluginShouldBeDisplayed(pluginPath))];
+            pluginList = [
+                for ([pluginName, {pluginPath, pluginInfo}] of util.keyValues(installedPluginTable))
+                if (pluginShouldBeDisplayed(pluginPath)) [
+                    pluginInfo.iconURL, pluginName, pluginInfo.description
+                ]
+            ];
         }
 
         /* Remove already selected plugins */

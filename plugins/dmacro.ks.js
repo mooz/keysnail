@@ -5,7 +5,7 @@ let PLUGIN_INFO =
     <name>Dynamic Macro</name>
     <description>Detect duplicated manipulation. Repeat it easily.</description>
     <description lang="ja">繰り返しを検出し、簡単に再実行</description>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/dmacro.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/dmacro.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -246,7 +246,7 @@ let dmacro =
          function play(aEvents) {
              var len = aEvents.length;
 
-             for (let [, event] in Iterator(aEvents))
+             for (let event of aEvents)
              {
                  let target  = macro.getCurrentFocusedElement();
                  let fakedEv = {originalTarget : target};

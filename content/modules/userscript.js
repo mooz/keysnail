@@ -777,7 +777,7 @@ var userscript = {
             main: "chrome://browser/content/browser.xul"
         };
 
-        for (let [, entry] in Iterator(includeURIs))
+        for (let entry of includeURIs)
         {
             uri = replacePair[entry] || entry;
 
@@ -785,7 +785,7 @@ var userscript = {
                 return false;
         }
 
-        for (let [, entry] in Iterator(excludeURIs))
+        for (let entry of excludeURIs)
         {
             uri = replacePair[entry] || entry;
 
@@ -1318,9 +1318,9 @@ var userscript = {
             'negativeArgument3'
         ];
 
-        var maxLen = Math.max.apply(null, [str.length for each (str in keys)]);
+        var maxLen = Math.max.apply(null, [for (str of keys) str.length]);
 
-        for (let [, key] in Iterator(keys))
+        for (let key of keys)
         {
             var setting = settings[key] || "undefined";
             var padding = Math.max(maxLen - key.length, 0) + 2;
@@ -1335,7 +1335,7 @@ var userscript = {
             return;
         }
 
-        for (let [, setting] in Iterator(aScheme.hooks))
+        for (let setting of aScheme.hooks)
         {
             let [name, body] = setting;
             if (!name || !body)
@@ -1376,7 +1376,7 @@ var userscript = {
         function getFunction(aCommand) {
             if (typeof aCommand === "string")
             {
-                for (let [, commands] in Iterator(builtin))
+                for (let commands of util.values(builtin))
                 {
                     if (commands[aCommand])
                         return commands[aCommand][0].toString();
@@ -1420,7 +1420,7 @@ var userscript = {
 
             var settings = aScheme.keybindings[mode];
 
-            for (let [, setting] in Iterator(settings))
+            for (let setting of settings)
             {
                 if (!setting)
                     continue;

@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>Hatebnail</name>
     <description>Use Hatena bookmark extension from KeySnail!</description>
     <description lang="ja">はてなブックマーク拡張を KeySnail から使おう！</description>
-    <version>1.3.1</version>
+    <version>1.3.2</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/hateb-keysnail-collabo.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/hateb-keysnail-collabo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -232,7 +232,7 @@ function addBookMark(options) {
     const limit = 100;
 
     let tags         = hBookmark.model('Tag').findDistinctTags();
-    let filteredTags = [tag.name for ([, tag] in Iterator(tags))];
+    let filteredTags = [for (tag of tags) tag.name];
 
     let currentMsg;
 

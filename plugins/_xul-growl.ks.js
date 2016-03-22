@@ -9,7 +9,7 @@ var PLUGIN_INFO =
     <name>XUL Growl</name>
     <description>Growl like interface using XUL</description>
     <description lang="ja">XUL を用いた Growl のようなインタフェース</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_xul-growl.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_xul-growl.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -286,7 +286,7 @@ var xulGrowl =
                                     style={panelStyle} xmlns={xulNS}/>),
 
              getIndexAndMessageByCount: function (count) {
-                 for (let [i, gm] in Iterator(this.gmList))
+                 for (let [i, gm] of util.keyValues(this.gmList))
                  {
                      if (count == gm.count)
                          return [i, gm];
