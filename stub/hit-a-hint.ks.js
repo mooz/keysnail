@@ -1126,7 +1126,7 @@ var ksHah = new function () {
     //                 completer: function (context)
     //                 {
     //                     context.compare = function () 0;
-    //                     context.completions = [[k, v.prompt] for ([k, v] in Iterator(hintModes))];
+    //                     context.completions = [for (k of hintModes) [k, hintModes[k].prompt]];
     //                 },
     //                 onChange: function () { modes.pop(); },
     //                 onCancel: function (arg) { arg && setTimeout(function () hints.show(arg), 0); }

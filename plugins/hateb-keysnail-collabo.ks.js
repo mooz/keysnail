@@ -232,7 +232,7 @@ function addBookMark(options) {
     const limit = 100;
 
     let tags         = hBookmark.model('Tag').findDistinctTags();
-    let filteredTags = [tag.name for ([, tag] in Iterator(tags))];
+    let filteredTags = [for (tag of tags) tag.name];
 
     let currentMsg;
 

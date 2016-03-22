@@ -482,7 +482,7 @@ function createMouseEvent(aDocument, aType, aOptions) {
         defaults[prop] = aOptions[prop];
     }
 
-    event.initMouseEvent.apply(event, [v for each(v in defaults)]);
+    event.initMouseEvent.apply(event, [for (v of defaults) v]);
 
     return event;
 }

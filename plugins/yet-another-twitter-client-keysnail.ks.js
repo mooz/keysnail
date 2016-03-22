@@ -1116,9 +1116,9 @@ const twitterAPI = {
             if (typeof v !== "undefined")
                 action = action.replace(util.format("{%s}", k), $U.encodeOAuth(v), "g");
 
-        let query = [k + "=" + $U.encodeOAuth(v)
-                     for ([k, v] in Iterator(params))
-                     if (typeof v !== "undefined")].join("&");
+        let query = [for (kv of util.keyValues(params))
+                     if (typeof kv[1] !== "undefined")
+                       kv[0] + "=" + $U.encodeOAuth(kv[1])].join("&");
         if (query.length)
             action += (action.indexOf("?") < 0 ? "?" : "&") + query;
 
@@ -1435,7 +1435,7 @@ var twitterClient =
             createParams: function () {
                 let params = {};
                 if (this.params)
-                    [[k, v] for ([k, v] in Iterator(this.params))].forEach(
+                    [for (kv of util.keyValues(this.params)) kv].forEach(
                         function ([k, v]) params[k] = v
                     );
                 return params;
@@ -1504,9 +1504,9 @@ var twitterClient =
                 let { action } = this;
 
                 if (context.params) {
-                    let query = [k + "=" + $U.encodeOAuth(v)
-                                 for ([k, v] in Iterator(context.params))
-                                 if (typeof v !== "undefined")].join("&");
+                    let query = [for (kv of util.keyValues(context.params))
+                                 if (typeof kv[1] !== "undefined")
+                                 kv[0] + "=" + $U.encodeOAuth(kv[1])].join("&");
                     if (query.length)
                         action += (action.indexOf("?") < 0 ? "?" : "&") + query;
                 }
@@ -3358,19 +3358,23 @@ var twitterClient =
                 return "(" + (unreadCount < 0 ? "-" : unreadCount) + ") " + crawler.name;
             }
 
-            let lists = [[TAG_ICON, crawlerToLabel(crawler), (function (name) {
-                                               return function () {
-                                                   self.showCrawledListStatuses.apply(null, name.split("/"));
-                                               };
-                                           })(name)]
-                         for ([name, crawler] in Iterator(gLists))];
+            let lists = [
+              for (kv of util.keyValues(gLists))
+                [TAG_ICON, crawlerToLabel(kv[1]), (function (name) {
+                  return function () {
+                    self.showCrawledListStatuses.apply(null, name.split("/"));
+                  };
+                })(kv[0])]
+            ];
 
-            let trackings = [[SEARCH_ICON, crawlerToLabel(crawler), (function (name) {
-                                               return function () {
-                                                   self.showCrawledTrackingStatuses.call(null, name);
-                                               };
-                                           })(name)]
-                         for ([name, crawler] in Iterator(gTrackings))];
+            let trackings = [
+              for (kv of util.keyValues(gTrackings))
+                [SEARCH_ICON, crawlerToLabel(kv[1]), (function (name) {
+                  return function () {
+                    self.showCrawledTrackingStatuses.call(null, name);
+                  };
+                })(kv[0])]
+            ];
 
             const ACT_ROW = 2;
 
@@ -3637,7 +3641,9 @@ var twitterClient =
         }
 
         function getSortedEntitiesWithType(entities) {
-            let sortedEntities = [[entityType, entityList] for ([entityType, entityList] in Iterator(entities))].reduce(
+            let sortedEntities = [
+              for (kv of util.keyValues(entities)) kv
+            ].reduce(
                 function (entityWithTypes, [entityType, entityList]) {
                     return entityWithTypes.concat(entityList.map(function (entity) {
                         return {

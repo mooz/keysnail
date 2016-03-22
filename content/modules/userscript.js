@@ -1318,7 +1318,7 @@ var userscript = {
             'negativeArgument3'
         ];
 
-        var maxLen = Math.max.apply(null, [str.length for each (str in keys)]);
+        var maxLen = Math.max.apply(null, [for (str of keys) str.length]);
 
         for (let [, key] in Iterator(keys))
         {

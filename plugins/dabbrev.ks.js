@@ -370,7 +370,7 @@ let dabbrev =
              connective : /[\u30FC\u301C]/
          };
 
-         let acode = [p for ([, p] in Iterator(code))];
+         let acode = [for (p of code) p];
 
          const WORD       = 0;
          const HIRAGANA   = 1;

@@ -1201,7 +1201,7 @@ var prompt = function () {
                     }
                 }).filter(function (r) r);
 
-            var cellForSearch = gFlags ? [i for (i in gFlags) if ((gFlags[i] & IGNORE) === 0)] : null;
+            var cellForSearch = gFlags ? [for (i of Object.keys(gFlags)) if ((gFlags[i] & IGNORE) === 0) i] : null;
 
             // reduce prototype chaine
             let list  = wholeList;
@@ -1797,8 +1797,8 @@ var prompt = function () {
                     context.text = left;
 
                     let tabs       = getBrowser().mTabContainer.childNodes;
-                    let collection = [[tab.image, tab.label, tab.linkedBrowser.contentDocument.URL]
-                                      for ([, tab] in Iterator(Array.slice(tabs)))];
+                    let collection = [for (tab of Array.slice(tabs))
+                                      [tab.image, tab.label, tab.linkedBrowser.contentDocument.URL]];
 
                     let cc    = completer.matcher.migemo(collection, {multiple:true})(left, whole);
                     cc.flags  = [ICON | IGNORE, 0, 0];
@@ -2214,8 +2214,7 @@ var prompt = function () {
                     if (!query)
                     {
                         cc.collection =
-                            [getRow(root, k)
-                             for (k in util.getAllPropertyNames(root))].sort(cmp);
+                            [for (k of util.getAllPropertyNames(root)) getRow(root, k)].sort(cmp);
                         return cc;
                     }
                     else
@@ -2263,12 +2262,11 @@ var prompt = function () {
                         {
                             if (all)
                             {
-                                cc.collection = [getRow(obj, k, prefix)
-                                                 for (k in util.getAllPropertyNames(obj))].sort(cmp);
+                                cc.collection = [for (k of util.getAllPropertyNames(obj)) getRow(obj, k, prefix)].sort(cmp);
                             }
                             else
                             {
-                                let keys    = [(k || "") for (k in util.getAllPropertyNames(obj))];
+                                let keys    = [for (k of util.getAllPropertyNames(obj)) (k || "")];
                                 let matched = [];
 
                                 // head
@@ -2289,7 +2287,7 @@ var prompt = function () {
                                                        return true;
                                                    });
 
-                                cc.collection = [getRow(obj, k, prefix) for each (k in matched)];
+                                cc.collection = [for (k of matched) getRow(obj, k, prefix)];
                             }
                         }
 

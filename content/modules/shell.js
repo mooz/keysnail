@@ -443,7 +443,7 @@ var shell =
                          argCount  : "1",
                          options   : [[["-prefix-arguments", "-pa"], option.INT, null]],
                          completer : function (args, extra) completer.matcher.header(
-                             [[n, ext.description(n)] for (n in ext.exts)].sort(util.sortMultiple),
+                             [for (n of Object.keys(ext.exts)) [n, ext.description(n)]].sort(util.sortMultiple),
                              { style : ["", style.prompt.description] }
                          )(extra.left, extra.whole)
                      });
