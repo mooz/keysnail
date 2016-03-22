@@ -123,7 +123,7 @@ let dabbrev =
 
              popup.setAttribute("ignorekeys", "true");
 
-             for (let [i, text] in Iterator(items))
+             for (let [i, text] of util.keyValues(items))
              {
                  let item = document.createElement("menuitem");
                  item.setAttribute("label", text);
@@ -370,7 +370,7 @@ let dabbrev =
              connective : /[\u30FC\u301C]/
          };
 
-         let acode = [p for ([, p] in Iterator(code))];
+         let acode = [for (p of code) p];
 
          const WORD       = 0;
          const HIRAGANA   = 1;

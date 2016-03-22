@@ -74,7 +74,7 @@ let KeySpawn = {
     },
 
     withTempFiles: function (f, self) {
-        let tmpFiles = [i for (i in util.range(0, f.length))].map(this.createTempFile);
+        let tmpFiles = [for (i of util.range(0, f.length)) i].map(this.createTempFile);
 
         try {
             return f.apply(self || this, tmpFiles);

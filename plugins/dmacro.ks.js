@@ -246,7 +246,7 @@ let dmacro =
          function play(aEvents) {
              var len = aEvents.length;
 
-             for (let [, event] in Iterator(aEvents))
+             for (let event of aEvents)
              {
                  let target  = macro.getCurrentFocusedElement();
                  let fakedEv = {originalTarget : target};

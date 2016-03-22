@@ -125,8 +125,8 @@ function main() {
         return;
     }
 
-    for (let [, commands] in Iterator(context.ksBuiltin)) {
-        for (var name in commands) {
+    for (let commands of util.keyValues(context.ksBuiltin)) {
+        for (let name of Object.keys(commands)) {
             var ename = propertyToExtName(name);
 
 

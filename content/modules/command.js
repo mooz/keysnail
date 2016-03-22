@@ -346,7 +346,7 @@ var command = {
             return node && /^(https?|ftp):/.test(node.uri);
         }
 
-        var urlList = [getInfo(item) for ([, item] in Iterator(items)) if (isBookmarkItem(item))];
+        var urlList = [for (item of items) if (isBookmarkItem(item)) getInfo(item)];
 
         prompt.selector(
             {

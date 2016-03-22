@@ -54,7 +54,7 @@ var hook = {
         if (!hook)
             return;
 
-        for (let [i, action] in Iterator(hook)) {
+        for (let [i, action] of util.keyValues(hook)) {
             try {
                 action(arg);
             } catch (x) {

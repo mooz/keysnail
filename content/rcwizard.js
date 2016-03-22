@@ -68,7 +68,7 @@
             let self = this;
 
             this.getSchemeFiles(function (files) {
-                for (let [, leaf] in Iterator(files.map(function (f) f.leafName)))
+                for (let leaf of files.map(function (f) f.leafName))
                 {
                     try
                     {

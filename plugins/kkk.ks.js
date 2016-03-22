@@ -127,12 +127,12 @@ let kkk =
              },
 
              start: function () {
-                 for (let [, type] in Iterator(eventType))
+                 for (let type of eventType)
                      window.addEventListener(type, preventEvent, true);
              },
 
              stop: function () {
-                 for (let [, type] in Iterator(eventType))
+                 for (let type of eventType)
                      window.removeEventListener(type, preventEvent, true);
              }
          };

@@ -698,13 +698,14 @@ ext.add("scrollet-jump-to-mark", function (ev, arg) {
             var mode  = getCurrentMode();
 
             var current = Date.now();
-            var collection = [[marks[k].mode,
-                               k,
-                               marks[k],
-                               getElapsedTimeString(current - marks[k].date)
-                              ] for (k in marks)].sort(
-                                  function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
-                              );
+            var collection = [for (k of Object.keys(marks)) [
+                marks[k].mode,
+                k,
+                marks[k],
+                getElapsedTimeString(current - marks[k].date)
+            ]].sort(
+                function (a, b) (a[0] > b[0] ? 1 : a[0] === b[0] ? 0 : -1)
+            );
 
             var selectedMark;
 
