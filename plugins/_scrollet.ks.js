@@ -779,7 +779,7 @@ var PLUGIN_INFO =
     <name>Scrollet!</name>
     <description>Provides various scroll commands and mark system</description>
     <description lang="ja">強力なマークシステムと様々なスクロールコマンドを提供します</description>
-    <version>0.0.8</version>
+    <version>0.0.9</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_scrollet.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_scrollet.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>

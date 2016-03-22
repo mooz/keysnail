@@ -3,7 +3,7 @@ var PLUGIN_INFO =
     <name>MetaPlus</name>
     <description>Make ESC behave as Meta</description>
     <description lang="ja">ESC キーを Meta キーとして</description>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/metaplus.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/metaplus.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
