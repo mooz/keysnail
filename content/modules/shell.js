@@ -317,7 +317,7 @@ var shell =
           * @param {} b
           */
          function implant(a, b) {
-             for (let [k, v] in Iterator(a))
+             for (let [k, v] of util.keyValues(a))
                  b[k] = v;
 
              return b;
@@ -480,7 +480,7 @@ var shell =
                                  //     if user input
                                  //        "h" <TAB>
                                  //     returned item is will be "hoge".
-                                 for ([name, cmd] in Iterator(commands))
+                                 for (let [name, cmd] of util.keyValues(commands))
                                  {
                                      if (name.indexOf(left) === 0)
                                      {

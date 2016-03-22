@@ -78,8 +78,8 @@ let PLUGIN_INFO =
      style.js["undefined"] = "color:#e000a5;";
      style.js["null"]      = "color:#07d8a8;";
 
-     for (let [prefix, opts] in Iterator(ooo))
-         for (let [k, v] in Iterator(opts))
+     for (let [prefix, opts] of util.keyValues(ooo))
+         for (let [k, v] of util.keyValues(opts))
              plugins.options[prefix + "." + k] = arrange(v);
 
      let darkTheme = arrange(<><![CDATA[

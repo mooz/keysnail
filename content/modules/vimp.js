@@ -351,7 +351,7 @@ shell.add("dia[log]", "Open a dialog",
 
               try
               {
-                  for (let [, dialog] in Iterator(dialogs))
+                  for (let dialog of dialogs)
                   {
                       if (dialog[0].toLowerCase() === arg.toLowerCase())
                       {
@@ -404,7 +404,7 @@ function getRemotePluginListCached(purgeCache) {
     return remotePluginListCache;
 }
 function getRemotePluginInfoByPluginName(pluginName) {
-    for (let [, remotePluginInfo] in Iterator(getRemotePluginListCached()))
+    for (let remotePluginInfo of getRemotePluginListCached())
         if (remotePluginInfo.leafName === pluginName)
             return remotePluginInfo;
     return null;

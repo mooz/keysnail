@@ -104,12 +104,12 @@ function getOption(aName) {
         return aName in optionsDefaultValue ? optionsDefaultValue[aName] : undefined;
 }
 
-for (let [mode, keymap] in Iterator(key.keyMapHolder))
+for (let [mode, keymap] of util.keyValues(key.keyMapHolder))
 {
     if (!keymap)
         continue;
 
-    for (let [k, f] in Iterator(keymap))
+    for (let [k, f] of util.keyValues(keymap))
     {
         let matched = k.match(/^(C-)?M-(.+)/);
         if (matched)

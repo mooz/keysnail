@@ -286,7 +286,7 @@ var xulGrowl =
                                     style={panelStyle} xmlns={xulNS}/>),
 
              getIndexAndMessageByCount: function (count) {
-                 for (let [i, gm] in Iterator(this.gmList))
+                 for (let [i, gm] of util.keyValues(this.gmList))
                  {
                      if (count == gm.count)
                          return [i, gm];

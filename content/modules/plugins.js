@@ -17,7 +17,7 @@ var plugins = {
     setupOptions: function (prefix, defaults, pluginInfo) {
         let options = {};
 
-        for (let [name, { preset, description, type, hidden }] in Iterator(defaults)) {
+        for (let [name, { preset, description, type, hidden }] of util.keyValues(defaults)) {
             let fullName = prefix + "." + name;
 
             // XXX: bind values
@@ -107,7 +107,7 @@ var plugins = {
     getInstalledPlugins: function () {
         let pluginList = {};
 
-        for (let [pluginPath, pluginContext] in Iterator(plugins.context)) {
+        for (let [pluginPath, pluginContext] of util.keyValues(plugins.context)) {
             let isDisabled      = userscript.isDisabledPlugin(pluginPath);
             let isNotCompatible = pluginContext.__ksNotCompatible__;
 

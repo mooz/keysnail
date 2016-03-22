@@ -101,7 +101,7 @@
                 _ = modules._;
             } catch (x) {}
 
-            for (let [, name] in Iterator(moduleObjects))
+            for (let name of moduleObjects)
                 this.initModule(name);
 
             // set modules

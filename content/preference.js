@@ -91,7 +91,7 @@ var ksPreference = {
     setPluginUpdaterIntervalFieldState: function (enabled) {
         let box = document.getElementById("plugin-updater-interval");
 
-        for (let [, elem] in Iterator(box.childNodes))
+        for (let elem of box.childNodes)
             elem.disabled = !enabled;
     },
 

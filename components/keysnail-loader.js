@@ -113,7 +113,7 @@ KeySnailLoader.prototype = {
 
         let context = win.KeySnail.modules;
 
-        for (let [, module] in Iterator(modules))
+        for (let module of modules)
             loadModule(module, context);
     },
 
@@ -122,7 +122,7 @@ KeySnailLoader.prototype = {
                      "password1Container",
                      "password2Container"];
 
-        for (let [, id] in Iterator(ids))
+        for (let id of ids)
         {
             let elem = aDocument.getElementById(id);
             if (elem && !elem.hidden)

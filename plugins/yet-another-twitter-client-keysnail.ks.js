@@ -524,11 +524,11 @@ const $U = {
         let elem = document.createElement(name);
 
         if (attrs)
-            for (let [k, v] in Iterator(attrs))
+            for (let [k, v] of util.keyValues(attrs))
                 elem.setAttribute(k, v);
 
         if (childs)
-            for (let [, v] in Iterator(childs))
+            for (let v of childs)
                 elem.appendChild(v);
 
         return elem;
@@ -1048,7 +1048,7 @@ OAuth.prototype = {
         if (options.parameters && message.method === "POST")
         {
             outer:
-            for (let [, params] in Iterator(options.parameters))
+            for (let params of options.parameters)
             {
                 for (let i = 0; i < message.parameters; ++i)
                 {
@@ -1112,7 +1112,7 @@ const twitterAPI = {
 
         let action = proto.action;
 
-        for (let [k, v] in Iterator(args))
+        for (let [k, v] of util.keyValues(args))
             if (typeof v !== "undefined")
                 action = action.replace(util.format("{%s}", k), $U.encodeOAuth(v), "g");
 
@@ -1629,7 +1629,7 @@ var twitterClient =
                 window.addEventListener("unload", function () {
                     self.stop();
 
-                    for (let [, win] in Iterator(Notifier.getBrowserWindows()))
+                    for (let win of Notifier.getBrowserWindows())
                     {
                         try
                         {
@@ -1792,7 +1792,7 @@ var twitterClient =
         if (!share.twitterTrackingInfo)
             share.twitterTrackingInfo = persist.restore("yatck_tracking_info") || {};
 
-        for (let [name, info] in Iterator(share.twitterTrackingInfo))
+        for (let [name, info] of util.keyValues(share.twitterTrackingInfo))
         {
             if (!share.twitterTrackingInfo[name])
                 share.twitterTrackingInfo[name] = {};
@@ -2585,7 +2585,7 @@ var twitterClient =
             let listOrigin  = document.getElementById(HEAD_LIST_ORIGIN);
             let listButtons = {};
 
-            for (let [, crawler] in Iterator(gLists))
+            for (let crawler of util.values(gLists))
             {
                 let button = document.createElement("toolbarbutton");
 
@@ -2608,7 +2608,7 @@ var twitterClient =
             let searchOrigin    = document.getElementById(HEAD_SEARCH_ORIGIN);
             let trackingButtons = {};
 
-            for (let [, crawler] in Iterator(gTrackings))
+            for (let crawler of util.values(gTrackings))
             {
                 let name    = crawler.name;
                 let keyword = crawler.nameEscaped;
@@ -3588,7 +3588,7 @@ var twitterClient =
             ["entities", "media"].forEach(function (entityContainerName) {
                 let entityContainer = status[entityContainerName];
                 if (status[entityContainerName]) {
-                    for (let [entityName, entity] in Iterator(entityContainer)) {
+                    for (let [entityName, entity] of util.keyValues(entityContainer)) {
                         entities[entityName] = entity;
                     }
                 }
@@ -3614,7 +3614,7 @@ var twitterClient =
                     retweetedMessageNode.removeChild(retweetedMessageNode.firstChild);
                 }
 
-                for (let [, childNode] in Iterator(newChildren)) {
+                for (let childNode of newChildren) {
                     retweetedMessageNode.appendChild(childNode);
                 }
 
@@ -3999,7 +3999,7 @@ var twitterClient =
             if (!gStatuses.cache)
                 return;
 
-            for (let [, status] in Iterator(gStatuses.cache))
+            for (let status of gStatuses.cache)
                 if (status.id_str === aId)
                     proc(status);
         }
@@ -4383,7 +4383,7 @@ var twitterClient =
             updateListButton: function () {
                 let listButtons = my.twitterClientHeader.listButtons;
 
-                for (let [, crawler] in Iterator(gLists))
+                for (let crawler of gLists)
                 {
                     if (crawler.name in listButtons && crawler.cache && crawler.cache.length)
                     {
@@ -4397,7 +4397,7 @@ var twitterClient =
             updateTrackingButton: function () {
                 let trackingButtons = my.twitterClientHeader.trackingButtons;
 
-                for (let [, crawler] in Iterator(gTrackings))
+                for (let crawler of util.values(gTrackings))
                 {
                     if (crawler.name in trackingButtons && crawler.cache && crawler.cache.length)
                     {
@@ -4575,7 +4575,7 @@ var twitterClient =
 
         if (pOptions["automatically_begin_list"])
         {
-            for (let [, crawler] in Iterator(gLists))
+            for (let crawler of gLists)
             {
                 if (crawler.cache)
                     continue;
@@ -4587,7 +4587,7 @@ var twitterClient =
 
         if (pOptions["automatically_begin_tracking"])
         {
-            for (let [, crawler] in Iterator(gTrackings))
+            for (let crawler of util.keyValues(gTrackings))
             {
                 if (crawler.cache)
                     continue;

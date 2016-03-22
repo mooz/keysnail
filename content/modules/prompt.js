@@ -164,19 +164,19 @@ var prompt = function () {
     function $E(aName, aAttributes) {
         let elem = document.createElement(aName);
 
-        for (let [k, v] in Iterator(aAttributes))
+      for (let [k, v] of util.keyValues(aAttributes))
             elem.setAttribute(k, v);
 
         return elem;
     }
 
     function implant(a, b) {
-        for (let [k, v] in Iterator(b))
+        for (let [k, v] of util.keyValues(b))
             a[k] = v;
     }
 
     function implantAll(a, b) {
-        for (let k in util.getAllPropertyNames(b)) {
+        for (let k of util.getAllPropertyNames(b)) {
             try {
                 a[k] = b[k];
             } catch (_) {}
@@ -193,10 +193,10 @@ var prompt = function () {
         var newObject = {};
         var key;
 
-        for (let [key, value] in Iterator(a))
+        for (let [key, value] of util.keyValues(a))
             newObject[key] = value;
 
-        for (let [key, value] in Iterator(b))
+        for (let [key, value] of util.keyValues(b))
             newObject[key] = value;
 
         return newObject;
@@ -210,7 +210,7 @@ var prompt = function () {
 
     function getActualCols(aCols) {
         if (gFlags)
-            for (let [, flag] in Iterator(gFlags))
+            for (let flag of gFlags)
                 if (flag & (HIDDEN | ICON)) aCols--;
         return aCols;
     }
@@ -259,7 +259,7 @@ var prompt = function () {
     function setColumns(aColumn) {
         if (gFlags)
         {
-            for (let [, flag] in Iterator(gFlags))
+            for (let flag of gFlags)
             {
                 if (flag & (HIDDEN | ICON))
                     aColumn--;
@@ -726,7 +726,7 @@ var prompt = function () {
             var found   = {};
             var uniqStr = "";
 
-            for (let [, c] in Iterator(str))
+            for (let c of str)
             {
                 if (found[c])
                     continue;
@@ -749,7 +749,7 @@ var prompt = function () {
 
         var continuousMode = false;
 
-        for (let [, opt] in Iterator(uniq(opts)))
+        for (let opt of uniq(opts))
         {
             switch (opt)
             {
@@ -1016,7 +1016,7 @@ var prompt = function () {
         if (typeof aActions === "function")
             aActions = [[aActions, "Default callback"]];
 
-        for (let [i, action] in Iterator(aActions))
+        for (let [i, action] of util.keyValues(aActions))
         {
             var item = document.createElement("menuitem");
             item.setAttribute("label", action[1]);
@@ -1047,7 +1047,7 @@ var prompt = function () {
         );
 
         function stick(keymap) {
-            for (let [k, a] in Iterator(keymap))
+            for (let [k, a] of util.keyValues(keymap))
             {
                 let act  = a.split(",")[0];
                 let desc = actionDescriptionMap[act] || "";
@@ -1091,7 +1091,7 @@ var prompt = function () {
         var list = [];
 
         // create action list and local command
-        for (let [i, action] in Iterator(aActions))
+        for (let [i, action] of util.keyValues(aActions))
         {
             let index = i + 1;
             list.push([action[0], index.toString() + ". " + action[1]]);
@@ -1456,7 +1456,7 @@ var prompt = function () {
                 let buffer   = [];
                 let escapeIt = false;
 
-                for (let [, c] in Iterator(str))
+                for (let c of str)
                 {
                     if (!escapeIt && c === escapeChar)
                         escapeIt = true;
@@ -1734,7 +1734,7 @@ var prompt = function () {
                     collection : null
                 };
 
-                for (let [, cmpltr] in Iterator(completers))
+                for (let cmpltr of completers)
                 {
                     let tmpCc      = cmpltr(currentText, text) || {collection : null};
                     let collection = tmpCc.collection;
@@ -1749,7 +1749,7 @@ var prompt = function () {
 
                 let max = -1;
 
-                for (let [, c] in Iterator(collections))
+                for (let c of collections)
                 {
                     let first = c[0];
 
@@ -1964,12 +1964,12 @@ var prompt = function () {
                                 "watch"                : undefined
                             };
 
-                            for (let k in Iterator(objectPrototype, true))
+                            for (let k of Object.keys(objectPrototype))
                                 objectPrototype[k] = Object[k];
 
                             let functionPrototype = {__proto__ : objectPrototype};
 
-                            for (let [, k] in Iterator(["apply", "call", "toSource", "toString", "valueOf"]))
+                            for (let  k of ["apply", "call", "toSource", "toString", "valueOf"])
                                 functionPrototype[k] = Function[k];
 
                             let globalObjects = {
@@ -1994,11 +1994,11 @@ var prompt = function () {
                                 URIError       : []
                             };
 
-                            for (let [objName, keys] in Iterator(globalObjects))
+                            for (let [objName, keys] of util.keyValues(globalObjects))
                             {
                                 globalObjects[objName] = {};
 
-                                for ([, k] in Iterator(keys))
+                                for (k of keys)
                                 {
                                     globalObjects[objName][k] = global[objName][k];
                                 }
@@ -2826,7 +2826,7 @@ var prompt = function () {
                     hook.removeHook('KeySnailInitialized', onInitialized);
                     let displayHelpKey = [];
 
-                    for (let [k, act] in Iterator(actionKeys.selector))
+                    for (let [k, act] of util.keyValues(actionKeys.selector))
                     {
                         if (act === "prompt-display-keymap-help")
                             displayHelpKey.push(k);

@@ -123,7 +123,7 @@ let dabbrev =
 
              popup.setAttribute("ignorekeys", "true");
 
-             for (let [i, text] in Iterator(items))
+             for (let [i, text] of util.keyValues(items))
              {
                  let item = document.createElement("menuitem");
                  item.setAttribute("label", text);

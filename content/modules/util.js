@@ -35,7 +35,7 @@ var util = function () {
 
                 // partially borrowed from bookmarks.js of liberator
                 ensureAliases : function (aEngines) {
-                    for (let [, engine] in Iterator(aEngines))
+                    for (let engine of aEngines)
                     {
                         if (!engine.alias)
                         {
@@ -633,7 +633,7 @@ var util = function () {
          */
         setPrefs:
         function setPrefs(aPrefList) {
-            for (let [key, value] in Iterator(aPrefList))
+            for (let [key, value] of util.keyValues(aPrefList))
                 this.setPref(key, value);
         },
 
@@ -1257,7 +1257,7 @@ var util = function () {
             if (opts.mimeType)
                 req.overrideMimeType(opts.mimeType);
 
-            for (let [name, value] in Iterator(opts.header || {}))
+            for (let [name, value] of util.keyValue(opts.header || {}))
                 req.setRequestHeader(name, value);
 
             req.send(util.paramsToString(params) || null);
@@ -1529,7 +1529,7 @@ var util = function () {
                 if ("getOwnPropertyNames" in Object) {
                     let encountered = { __proto__ : null };
 
-                    for (let [, k] in Iterator(Object.getOwnPropertyNames(obj)))
+                    for (let k of Object.getOwnPropertyNames(obj))
                         try {
                             encountered[k] = true;
                             yield k;
@@ -1559,17 +1559,20 @@ var util = function () {
         sortMultiple: function ([a], [b]) { return (a < b) ? -1 : (a > b) ? 1 : 0; },
 
         find: function (array, pred) {
-            for (let [i, v] in Iterator(array))
+            for (let [i, v] of util.keyValues(array)) {
                 if (pred(v, i))
                     return v;
+            }
+            return undefined;
         },
 
         findAll: function (array, pred) {
             let res = [];
 
-            for (let [i, v] in Iterator(array))
+            for (let [i, v] of util.keyValues(array)) {
                 if (pred(v, i))
-                    res.push(v);
+                  res.push(v);
+            }
 
             return res.length ? res : null;
         },
