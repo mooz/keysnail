@@ -1642,6 +1642,20 @@ var util = function () {
             g.next();
         },
 
+        keyValues:
+        function keyValues(obj) {
+            for (let k of Object.keys(obj)) {
+                yield [k, obj[k]];
+            }
+        },
+
+        values:
+        function values(obj) {
+            for (let k of Object.keys(obj)) {
+                yield obj[k];
+            }
+        },
+
         // }} ======================================================================= //
 
         // String {{ ================================================================ //
