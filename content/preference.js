@@ -91,7 +91,7 @@ var ksPreference = {
     setPluginUpdaterIntervalFieldState: function (enabled) {
         let box = document.getElementById("plugin-updater-interval");
 
-        for (let [, elem] in Iterator(box.childNodes))
+        for (let elem of box.childNodes)
             elem.disabled = !enabled;
     },
 
@@ -966,7 +966,7 @@ var ksPreference = {
 
         var keys = keyCustomizer.getSpecialKeys();
 
-        var maxLen = Math.max.apply(null, [str.length for (str in keys)]);
+        var maxLen = Math.max.apply(null, [for (str of Object.keys(keys)) str.length]);
         for (var key in keys)
         {
             var padding = Math.max(maxLen - key.length, 0) + 2;

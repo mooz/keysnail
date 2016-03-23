@@ -2,7 +2,7 @@ let PLUGIN_INFO =
         <KeySnailPlugin>
         <name>Color Theme Solarized</name>
         <description>A color scheme inspired by Solarized</description>
-        <version>0.0.2</version>
+        <version>0.0.3</version>
         <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/_color-theme-solarized.ks.js</updateURL>
         <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/_color-theme-solarized.icon.png</iconURL>
         <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -86,8 +86,8 @@ let PLUGIN_INFO =
     style.js["undefined"] = color($red);
     style.js["null"]      = color($cyan);
 
-    for (let [prefix, opts] in Iterator(ooo))
-        for (let [k, v] in Iterator(opts))
+    for (let [prefix, opts] of util.keyValues(ooo))
+        for (let [k, v] of util.keyValues(opts))
             plugins.options[prefix + "." + k] = arrange(v);
 
     let colorThemeSolarized = arrange('\

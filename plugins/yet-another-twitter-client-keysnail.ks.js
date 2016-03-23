@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.2.2</version>
+    <version>3.2.3</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -524,11 +524,11 @@ const $U = {
         let elem = document.createElement(name);
 
         if (attrs)
-            for (let [k, v] in Iterator(attrs))
+            for (let [k, v] of util.keyValues(attrs))
                 elem.setAttribute(k, v);
 
         if (childs)
-            for (let [, v] in Iterator(childs))
+            for (let v of childs)
                 elem.appendChild(v);
 
         return elem;
@@ -1048,7 +1048,7 @@ OAuth.prototype = {
         if (options.parameters && message.method === "POST")
         {
             outer:
-            for (let [, params] in Iterator(options.parameters))
+            for (let params of options.parameters)
             {
                 for (let i = 0; i < message.parameters; ++i)
                 {
@@ -1112,13 +1112,13 @@ const twitterAPI = {
 
         let action = proto.action;
 
-        for (let [k, v] in Iterator(args))
+        for (let [k, v] of util.keyValues(args))
             if (typeof v !== "undefined")
                 action = action.replace(util.format("{%s}", k), $U.encodeOAuth(v), "g");
 
-        let query = [k + "=" + $U.encodeOAuth(v)
-                     for ([k, v] in Iterator(params))
-                     if (typeof v !== "undefined")].join("&");
+        let query = [for (kv of util.keyValues(params))
+                     if (typeof kv[1] !== "undefined")
+                       kv[0] + "=" + $U.encodeOAuth(kv[1])].join("&");
         if (query.length)
             action += (action.indexOf("?") < 0 ? "?" : "&") + query;
 
@@ -1435,7 +1435,7 @@ var twitterClient =
             createParams: function () {
                 let params = {};
                 if (this.params)
-                    [[k, v] for ([k, v] in Iterator(this.params))].forEach(
+                    [for (kv of util.keyValues(this.params)) kv].forEach(
                         function ([k, v]) params[k] = v
                     );
                 return params;
@@ -1504,9 +1504,9 @@ var twitterClient =
                 let { action } = this;
 
                 if (context.params) {
-                    let query = [k + "=" + $U.encodeOAuth(v)
-                                 for ([k, v] in Iterator(context.params))
-                                 if (typeof v !== "undefined")].join("&");
+                    let query = [for (kv of util.keyValues(context.params))
+                                 if (typeof kv[1] !== "undefined")
+                                 kv[0] + "=" + $U.encodeOAuth(kv[1])].join("&");
                     if (query.length)
                         action += (action.indexOf("?") < 0 ? "?" : "&") + query;
                 }
@@ -1629,7 +1629,7 @@ var twitterClient =
                 window.addEventListener("unload", function () {
                     self.stop();
 
-                    for (let [, win] in Iterator(Notifier.getBrowserWindows()))
+                    for (let win of Notifier.getBrowserWindows())
                     {
                         try
                         {
@@ -1792,7 +1792,7 @@ var twitterClient =
         if (!share.twitterTrackingInfo)
             share.twitterTrackingInfo = persist.restore("yatck_tracking_info") || {};
 
-        for (let [name, info] in Iterator(share.twitterTrackingInfo))
+        for (let [name, info] of util.keyValues(share.twitterTrackingInfo))
         {
             if (!share.twitterTrackingInfo[name])
                 share.twitterTrackingInfo[name] = {};
@@ -2585,7 +2585,7 @@ var twitterClient =
             let listOrigin  = document.getElementById(HEAD_LIST_ORIGIN);
             let listButtons = {};
 
-            for (let [, crawler] in Iterator(gLists))
+            for (let crawler of util.values(gLists))
             {
                 let button = document.createElement("toolbarbutton");
 
@@ -2608,7 +2608,7 @@ var twitterClient =
             let searchOrigin    = document.getElementById(HEAD_SEARCH_ORIGIN);
             let trackingButtons = {};
 
-            for (let [, crawler] in Iterator(gTrackings))
+            for (let crawler of util.values(gTrackings))
             {
                 let name    = crawler.name;
                 let keyword = crawler.nameEscaped;
@@ -3358,19 +3358,23 @@ var twitterClient =
                 return "(" + (unreadCount < 0 ? "-" : unreadCount) + ") " + crawler.name;
             }
 
-            let lists = [[TAG_ICON, crawlerToLabel(crawler), (function (name) {
-                                               return function () {
-                                                   self.showCrawledListStatuses.apply(null, name.split("/"));
-                                               };
-                                           })(name)]
-                         for ([name, crawler] in Iterator(gLists))];
+            let lists = [
+              for (kv of util.keyValues(gLists))
+                [TAG_ICON, crawlerToLabel(kv[1]), (function (name) {
+                  return function () {
+                    self.showCrawledListStatuses.apply(null, name.split("/"));
+                  };
+                })(kv[0])]
+            ];
 
-            let trackings = [[SEARCH_ICON, crawlerToLabel(crawler), (function (name) {
-                                               return function () {
-                                                   self.showCrawledTrackingStatuses.call(null, name);
-                                               };
-                                           })(name)]
-                         for ([name, crawler] in Iterator(gTrackings))];
+            let trackings = [
+              for (kv of util.keyValues(gTrackings))
+                [SEARCH_ICON, crawlerToLabel(kv[1]), (function (name) {
+                  return function () {
+                    self.showCrawledTrackingStatuses.call(null, name);
+                  };
+                })(kv[0])]
+            ];
 
             const ACT_ROW = 2;
 
@@ -3584,7 +3588,7 @@ var twitterClient =
             ["entities", "media"].forEach(function (entityContainerName) {
                 let entityContainer = status[entityContainerName];
                 if (status[entityContainerName]) {
-                    for (let [entityName, entity] in Iterator(entityContainer)) {
+                    for (let [entityName, entity] of util.keyValues(entityContainer)) {
                         entities[entityName] = entity;
                     }
                 }
@@ -3610,7 +3614,7 @@ var twitterClient =
                     retweetedMessageNode.removeChild(retweetedMessageNode.firstChild);
                 }
 
-                for (let [, childNode] in Iterator(newChildren)) {
+                for (let childNode of newChildren) {
                     retweetedMessageNode.appendChild(childNode);
                 }
 
@@ -3637,7 +3641,9 @@ var twitterClient =
         }
 
         function getSortedEntitiesWithType(entities) {
-            let sortedEntities = [[entityType, entityList] for ([entityType, entityList] in Iterator(entities))].reduce(
+            let sortedEntities = [
+              for (kv of util.keyValues(entities)) kv
+            ].reduce(
                 function (entityWithTypes, [entityType, entityList]) {
                     return entityWithTypes.concat(entityList.map(function (entity) {
                         return {
@@ -3993,7 +3999,7 @@ var twitterClient =
             if (!gStatuses.cache)
                 return;
 
-            for (let [, status] in Iterator(gStatuses.cache))
+            for (let status of gStatuses.cache)
                 if (status.id_str === aId)
                     proc(status);
         }
@@ -4377,7 +4383,7 @@ var twitterClient =
             updateListButton: function () {
                 let listButtons = my.twitterClientHeader.listButtons;
 
-                for (let [, crawler] in Iterator(gLists))
+                for (let crawler of gLists)
                 {
                     if (crawler.name in listButtons && crawler.cache && crawler.cache.length)
                     {
@@ -4391,7 +4397,7 @@ var twitterClient =
             updateTrackingButton: function () {
                 let trackingButtons = my.twitterClientHeader.trackingButtons;
 
-                for (let [, crawler] in Iterator(gTrackings))
+                for (let crawler of util.values(gTrackings))
                 {
                     if (crawler.name in trackingButtons && crawler.cache && crawler.cache.length)
                     {
@@ -4569,7 +4575,7 @@ var twitterClient =
 
         if (pOptions["automatically_begin_list"])
         {
-            for (let [, crawler] in Iterator(gLists))
+            for (let crawler of gLists)
             {
                 if (crawler.cache)
                     continue;
@@ -4581,7 +4587,7 @@ var twitterClient =
 
         if (pOptions["automatically_begin_tracking"])
         {
-            for (let [, crawler] in Iterator(gTrackings))
+            for (let crawler of util.keyValues(gTrackings))
             {
                 if (crawler.cache)
                     continue;

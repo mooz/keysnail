@@ -371,8 +371,8 @@ var key = {
 
         this.passAllKeys = true;
 
-        for (let [, keyStr] in Iterator(aKeys)) {
-            for (let [, type] in Iterator(aType)) {
+        for (let keyStr of aKeys) {
+            for (let type of aType) {
                 util.message("feed " + keyStr);
                 let event = this.stringToKeyEvent(keyStr, true, type, true);
                 // event.ksNoHandle becomes undefined while propagating
@@ -1049,7 +1049,7 @@ var key = {
         var aTarget = this.keyMapHolder[aTargetKeyMapName];
         var aDestination = this.keyMapHolder[aDestinationKeyMapName];
 
-        for (let [property, value] in Iterator(aTarget))
+        for (let [property, value] of util.keyValues(aTarget))
             aDestination[property] = value;
     },
 
@@ -1104,7 +1104,7 @@ var key = {
         if (!(aKeyMapName instanceof Array))
             aKeyMapName = [aKeyMapName];
 
-        for (let [, keyMapName] in Iterator(aKeyMapName))
+        for (let keyMapName of aKeyMapName)
         {
             var addTo = this.keyMapHolder[keyMapName];
 
@@ -1348,7 +1348,7 @@ var key = {
         if (!aKeySequence)
             aKeySequence = [];
 
-        for (let [keyStr, cont] in Iterator(aKeyMap))
+        for (let [keyStr, cont] of util.keyValues(aKeyMap))
         {
             switch (typeof cont)
             {

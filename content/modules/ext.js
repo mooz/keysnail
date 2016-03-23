@@ -25,7 +25,7 @@ var ext = function () {
         }
         keyList = keyList.sort();
 
-        for (let [, name] in Iterator(keyList))
+        for (let name of keyList)
             extList.push([name, exts[name].description || ""]);
 
         return extList;

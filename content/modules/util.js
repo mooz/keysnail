@@ -35,7 +35,7 @@ var util = function () {
 
                 // partially borrowed from bookmarks.js of liberator
                 ensureAliases : function (aEngines) {
-                    for (let [, engine] in Iterator(aEngines))
+                    for (let engine of aEngines)
                     {
                         if (!engine.alias)
                         {
@@ -309,7 +309,7 @@ var util = function () {
                 // returns pair of hex code for given 1 byte
                 function toHexString(charCode) ("0" + charCode.toString(16)).slice(-2);
 
-                return [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
+                return [for (i of Object.keys(hash)) toHexString(hash.charCodeAt(i))].join("");
             }
 
             return hash;
@@ -445,7 +445,7 @@ var util = function () {
                     }
                 }
 
-                let buffer = [[k, v] for ([k, v] in new Iterator(obj))];
+                let buffer = [for (kv of util.keyValues(obj)) kv];
                 let max    = Math.max.apply(null, buffer.map(function ([k]) (k || "").length));
                 let util   = this;
                 this.message(buffer.map(function ([k, v]) k + util.repeatString(" ", max - k.length) + " : " + getV(v)).join("\n"));
@@ -633,7 +633,7 @@ var util = function () {
          */
         setPrefs:
         function setPrefs(aPrefList) {
-            for (let [key, value] in Iterator(aPrefList))
+            for (let [key, value] of util.keyValues(aPrefList))
                 this.setPref(key, value);
         },
 
@@ -1209,7 +1209,7 @@ var util = function () {
             let pt = typeof prm;
 
             if (prm && pt === "object")
-                prm = [k + "=" + v for ([k, v] in Iterator(prm))].join("&");
+                prm = [for (k of util.keyValues(prm)) k + "=" + v].join("&");
             else if (pt !== "string")
                 prm = "";
 
@@ -1257,7 +1257,7 @@ var util = function () {
             if (opts.mimeType)
                 req.overrideMimeType(opts.mimeType);
 
-            for (let [name, value] in Iterator(opts.header || {}))
+            for (let [name, value] of util.keyValue(opts.header || {}))
                 req.setRequestHeader(name, value);
 
             req.send(util.paramsToString(params) || null);
@@ -1379,7 +1379,7 @@ var util = function () {
                 // nothing
                 break;
             case "object":
-                params = [k + "=" + v for ([k, v] in Iterator(params))].join("&");
+                params = [for (kv of util.keyValues(params)) kv[0] + "=" + kv[1]].join("&");
                 break;
             default:
                 params = "";
@@ -1529,7 +1529,7 @@ var util = function () {
                 if ("getOwnPropertyNames" in Object) {
                     let encountered = { __proto__ : null };
 
-                    for (let [, k] in Iterator(Object.getOwnPropertyNames(obj)))
+                    for (let k of Object.getOwnPropertyNames(obj))
                         try {
                             encountered[k] = true;
                             yield k;
@@ -1549,7 +1549,7 @@ var util = function () {
             }
             catch (x)
             {
-                throw StopIteration;
+                return;
             }
 
             if (wrapped)
@@ -1559,17 +1559,20 @@ var util = function () {
         sortMultiple: function ([a], [b]) { return (a < b) ? -1 : (a > b) ? 1 : 0; },
 
         find: function (array, pred) {
-            for (let [i, v] in Iterator(array))
+            for (let [i, v] of util.keyValues(array)) {
                 if (pred(v, i))
                     return v;
+            }
+            return undefined;
         },
 
         findAll: function (array, pred) {
             let res = [];
 
-            for (let [i, v] in Iterator(array))
+            for (let [i, v] of util.keyValues(array)) {
                 if (pred(v, i))
-                    res.push(v);
+                  res.push(v);
+            }
 
             return res.length ? res : null;
         },
@@ -1630,7 +1633,7 @@ var util = function () {
                 if (this.rangeInterrupted)
                 {
                     this.message("Interrupted");
-                    throw StopIteration;
+                    return;
                 }
                 yield i;
             }
@@ -1642,12 +1645,26 @@ var util = function () {
             g.next();
         },
 
+        keyValues:
+        function keyValues(obj) {
+            for (let k of Object.keys(obj)) {
+                yield [k, obj[k]];
+            }
+        },
+
+        values:
+        function values(obj) {
+            for (let k of Object.keys(obj)) {
+                yield obj[k];
+            }
+        },
+
         // }} ======================================================================= //
 
         // String {{ ================================================================ //
 
         repeatString: function (str, len) {
-            return [str for (i in this.range(0, len))].join("");
+            return [for (i of this.range(0, len)) str].join("");
         },
 
         createSeparator: function (label) {

@@ -5,7 +5,7 @@ let PLUGIN_INFO =
     <name>kungfloo</name>
     <description>Manipulate Tombloo from KeySnail</description>
     <description lang="ja">KeySnail から Tombloo を操作</description>
-    <version>0.0.8</version>
+    <version>0.0.9</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/kungfloo.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/kungfloo.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -222,8 +222,9 @@ let kungfloo = (function () {
     function getActions() {
         let actions = Tombloo.Service.actions;
 
-        return [actions[name] for ([, name] in Iterator(actions.names))
-                              if (actions[name] && typeof actions[name].execute === "function")];
+        return [for (name of actions.names)
+                if (actions[name] && typeof actions[name].execute === "function")
+                  actions[name]];
     }
 
     function getContext(target) {
@@ -283,7 +284,7 @@ let kungfloo = (function () {
                 var extension = Tombloo.Service.check(context);
             }
 
-            let candidates = [[e, e.ICON, e.name] for ([, e] in Iterator(extensions))];
+            let candidates = [for (e of extensions) [e, e.ICON, e.name]];
 
             function share(extension, dialog) {
                 Tombloo.Service.share(context, extension, dialog);

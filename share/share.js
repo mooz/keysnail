@@ -243,7 +243,7 @@ function hookApplicationQuit() {
 
     quitObserver.prototype = {
         observe: function(subject, topic, data) {
-            for (let [name, obj] in Iterator(persist.registeredObjects))
+            for (let [name, obj] of util.keyValues(persist.registeredObjects))
             {
                 persist.preserve(obj, name);
             }
