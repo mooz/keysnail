@@ -5,7 +5,7 @@ var PLUGIN_INFO =
     <name>HoK</name>
     <description>Hit a hint for KeySnail</description>
     <description lang="ja">キーボードでリンクを開く</description>
-    <version>1.4.5</version>
+    <version>1.4.6</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/hok.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/hok.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -482,7 +482,23 @@ function createMouseEvent(aDocument, aType, aOptions) {
         defaults[prop] = aOptions[prop];
     }
 
-    event.initMouseEvent.apply(event, [for (v of defaults) v]);
+    event.initMouseEvent(
+        defaults.type,
+        defaults.bubbles,
+        defaults.cancelable,
+        defaults.view,
+        defaults.detail,
+        defaults.screenX,
+        defaults.screenY,
+        defaults.clientX,
+        defaults.clientY,
+        defaults.ctrlKey,
+        defaults.altKey,
+        defaults.shiftKey,
+        defaults.metaKey,
+        defaults.button,
+        defaults.relatedTarget
+    );
 
     return event;
 }
