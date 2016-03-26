@@ -12,7 +12,7 @@ const PLUGIN_INFO =
     <name>Yet Another Twitter Client KeySnail</name>
     <description>Make KeySnail behave like Twitter client</description>
     <description lang="ja">KeySnail を Twitter クライアントに</description>
-    <version>3.2.3</version>
+    <version>3.2.4</version>
     <updateURL>https://github.com/mooz/keysnail/raw/master/plugins/yet-another-twitter-client-keysnail.ks.js</updateURL>
     <iconURL>https://github.com/mooz/keysnail/raw/master/plugins/icon/yet-another-twitter-client-keysnail.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -4383,7 +4383,7 @@ var twitterClient =
             updateListButton: function () {
                 let listButtons = my.twitterClientHeader.listButtons;
 
-                for (let crawler of gLists)
+                for (let crawler of util.values(gLists))
                 {
                     if (crawler.name in listButtons && crawler.cache && crawler.cache.length)
                     {
@@ -4575,7 +4575,7 @@ var twitterClient =
 
         if (pOptions["automatically_begin_list"])
         {
-            for (let crawler of gLists)
+            for (let crawler of util.values(gLists))
             {
                 if (crawler.cache)
                     continue;
@@ -4587,7 +4587,7 @@ var twitterClient =
 
         if (pOptions["automatically_begin_tracking"])
         {
-            for (let crawler of util.keyValues(gTrackings))
+            for (let crawler of util.values(gTrackings))
             {
                 if (crawler.cache)
                     continue;

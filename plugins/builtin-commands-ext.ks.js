@@ -4,7 +4,7 @@ var PLUGIN_INFO =
     <name>組み込みコマンドをエクステ化</name>
     <description>Make builtin commands to ext</description>
     <description lang="ja">組み込みコマンドをエクステ化します</description>
-    <version>1.2</version>
+    <version>1.3</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/builtin-commands-ext.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/builtin-commands-ext.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -125,7 +125,7 @@ function main() {
         return;
     }
 
-    for (let commands of util.keyValues(context.ksBuiltin)) {
+    for (let commands of util.values(context.ksBuiltin)) {
         for (let name of Object.keys(commands)) {
             var ename = propertyToExtName(name);
 

@@ -5,7 +5,7 @@ let PLUGIN_INFO =
     <name>dabbrev</name>
     <description>Generate abbreviation.</description>
     <description lang="ja">動的略語展開</description>
-    <version>0.0.3</version>
+    <version>0.0.4</version>
     <updateURL>http://github.com/mooz/keysnail/raw/master/plugins/dabbrev.ks.js</updateURL>
     <iconURL>http://github.com/mooz/keysnail/raw/master/plugins/icon/dabbrev.icon.png</iconURL>
     <author mail="stillpedant@gmail.com" homepage="http://d.hatena.ne.jp/mooz/">mooz</author>
@@ -370,7 +370,7 @@ let dabbrev =
              connective : /[\u30FC\u301C]/
          };
 
-         let acode = [for (p of code) p];
+         let acode = [for (p of util.values(code)) p];
 
          const WORD       = 0;
          const HIRAGANA   = 1;
