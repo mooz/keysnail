@@ -3,7 +3,7 @@
          xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
   <RDF:Description RDF:about="rdf:#$ntJrB"
-                   em:version="2.2.0">
+                   em:version="2.2.1">
     <em:targetApplication RDF:resource="rdf:#$qtJrB"/>
   </RDF:Description>
   <RDF:Seq RDF:about="rdf:#$mtJrB">
@@ -14,8 +14,8 @@
                    em:minVersion="34.*"
                    em:maxVersion="41.*"
                    em:updateLink="https://github.com/mooz/keysnail/raw/master/keysnail.xpi"
-                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/2.2.0.xhtml"
-                   em:updateHash="sha1:5ba7f0b7428ca58f807c7f5618ecf13cb36ad83f" />
+                   em:updateInfoURL="http://bitbucket.org/mooz/lab/raw/tip/updateinfo/2.2.1.xhtml"
+                   em:updateHash="sha1:3f82aa69456676299042bd43c51200c724c923e5" />
   <RDF:Description RDF:about="urn:mozilla:install-manifest"
                    em:updateKey="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGO9hYnSCroKCLRqGbV1czqWsQfZBsuU3EjnvumarZYQ4YE5tp3RCSploa6+qs4GLL7/aqtDnasWlM+cECJDh2XdrhHjm+vxc4X38Ym7BRL1x/Np0ujQ7o0F6hdD9CGPFdOvYMgqszO8GxJg8eshaTy1nr8fStUF9HwVXRfYqT1QIDAQAB" />
   <RDF:Description RDF:about="urn:mozilla:extension:keysnail@mooz.github.com"
