@@ -1503,14 +1503,13 @@ var command = {
     function restartApp() {
         const nsIAppStartup = Ci.nsIAppStartup;
 
-        let os         = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
-        let cancelQuit = Cc["@mozilla.org/supports-PRBool;1"].createInstance(Ci.nsISupportsPRBool);
-
-        os.notifyObservers(cancelQuit, "quit-application-requested", null);
-        if (cancelQuit.data)
-            return;
-
-        os.notifyObservers(null, "quit-application-granted", null);
+        let os = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+        if (os) {
+            let cancelQuit = Cc["@mozilla.org/supports-PRBool;1"].createInstance(Ci.nsISupportsPRBool);
+            os.notifyObservers(cancelQuit, "quit-application-requested", "restart");
+            if (cancelQuit.data)
+                return;
+        }
         let wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
         let windows = wm.getEnumerator(null);
 
