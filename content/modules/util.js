@@ -1257,7 +1257,7 @@ var util = function () {
             if (opts.mimeType)
                 req.overrideMimeType(opts.mimeType);
 
-            for (let [name, value] of util.keyValue(opts.header || {}))
+            for (let [name, value] of util.keyValues(opts.header || {}))
                 req.setRequestHeader(name, value);
 
             req.send(util.paramsToString(params) || null);

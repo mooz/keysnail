@@ -494,11 +494,10 @@ function pluginCompleter(completerArgs, extra) {
                 header   : ["Name", "Description"],
                 multiple : true
             };
-
             pluginList = [
-                for ([pluginName, {pluginPath, pluginInfo}] of util.keyValues(installedPluginTable))
-                if (pluginShouldBeDisplayed(pluginPath)) [
-                    pluginInfo.iconURL, pluginName, pluginInfo.description
+                for (kv of util.keyValues(installedPluginTable))
+                if (pluginShouldBeDisplayed(kv[1].pluginPath)) [
+                    kv[1].pluginInfo.iconURL, kv[0], kv[1].pluginInfo.description
                 ]
             ];
         }

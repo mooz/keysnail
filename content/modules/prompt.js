@@ -1093,7 +1093,7 @@ var prompt = function () {
         // create action list and local command
         for (let [i, action] of util.keyValues(aActions))
         {
-            let index = i + 1;
+            let index = Number(i) + 1;
             list.push([action[0], index.toString() + ". " + action[1]]);
 
             if (action[2])
