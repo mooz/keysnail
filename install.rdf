@@ -1,49 +1,55 @@
-<?xml version="1.0"?>
-<RDF:RDF xmlns:em="http://www.mozilla.org/2004/em-rdf#"
-         xmlns:NC="http://home.netscape.com/NC-rdf#"
-         xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="rdf:#$0u5zY"
-                   em:id="{ec8030f7-c20a-464f-9b0e-13a3a9e97384}"
-                   em:minVersion="34.*"
-                   em:maxVersion="41.*" />
-  <RDF:Description RDF:about="urn:mozilla:install-manifest"
-                   em:id="keysnail@mooz.github.com"
-                   em:type="2"
-                   em:version="2.2.1"
-                   em:name="KeySnail"
-                   em:creator="mooz"
-                   em:developer="mooz"
-                   em:homepageURL="https://wiki.github.com/mooz/keysnail/"
-                   em:optionsURL="chrome://keysnail/content/preference.xul"
-                   em:iconURL="chrome://keysnail/skin/icon.png"
-                   em:updateURL="https://github.com/mooz/keysnail/raw/master/update.rdf"
-                   em:unpack="true"
-                   em:description="Bind functions to key sequences"
-                   em:updateKey="MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGO9hYnSCroKCLRqGbV1czqWsQfZBsuU3EjnvumarZYQ4YE5tp3RCSploa6+qs4GLL7/aqtDnasWlM+cECJDh2XdrhHjm+vxc4X38Ym7BRL1x/Np0ujQ7o0F6hdD9CGPFdOvYMgqszO8GxJg8eshaTy1nr8fStUF9HwVXRfYqT1QIDAQAB">
-    <em:contributor>958</em:contributor>
-    <em:contributor>Florent Le Coz</em:contributor>
-    <em:contributor>SHIMODA Hiroshi</em:contributor>
-    <em:contributor>hogelog</em:contributor>
-    <em:contributor>tomykaira</em:contributor>
-    <em:contributor>usk</em:contributor>
-    <em:contributor>Yuki Ibe</em:contributor>
-    <em:contributor>Makoto Nakashima</em:contributor>
-    <em:contributor>gifnksm</em:contributor>
-    <em:localized RDF:resource="rdf:#$Ot5zY"/>
-    <em:targetApplication RDF:resource="rdf:#$0u5zY"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="rdf:#$Ot5zY"
-                   em:locale="ja"
-                   em:name="KeySnail"
-                   em:creator="mooz"
-                   em:description="JavaScript の関数をキーシーケンスに割り当て"
-                   em:homepageURL="https://wiki.github.com/mooz/keysnail/keysnail-japanese">
-    <em:contributor>958</em:contributor>
-    <em:contributor>Florent Le Coz</em:contributor>
-    <em:contributor>SHIMODA Hiroshi</em:contributor>
-    <em:contributor>hogelog</em:contributor>
-    <em:contributor>tomykaira</em:contributor>
-    <em:contributor>usk</em:contributor>
-    <em:contributor>Yuki Ibe</em:contributor>
-  </RDF:Description>
-</RDF:RDF>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+    <Description about="urn:mozilla:install-manifest">
+        <em:id>keysnail@mooz.github.com</em:id>
+        <em:type>2</em:type> <!-- type of the addon, 2 means the extension -->
+        <em:version>2.3.0</em:version>
+        <em:name>KeySnail</em:name>
+        <em:creator>mooz</em:creator>
+        <em:developer>mooz</em:developer>
+        <em:contributor>958</em:contributor>
+        <em:contributor>Florent Le Coz</em:contributor>
+        <em:contributor>SHIMODA Hiroshi</em:contributor>
+        <em:contributor>hogelog</em:contributor>
+        <em:contributor>tomykaira</em:contributor>
+        <em:contributor>usk</em:contributor>
+        <em:contributor>Yuki Ibe</em:contributor>
+        <em:contributor>Makoto Nakashima</em:contributor>
+        <em:contributor>gifnksm</em:contributor>
+        <em:homepageURL>https://wiki.github.com/mooz/keysnail/</em:homepageURL>
+        <em:optionsURL>chrome://keysnail/content/preference.xul</em:optionsURL>
+        <em:iconURL>chrome://keysnail/skin/icon.png</em:iconURL>
+        <em:updateURL>https://github.com/mooz/keysnail/raw/master/update.rdf</em:updateURL>
+        <em:updateKey>MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGO9hYnSCroKCLRqGbV1czqWsQfZBsuU3EjnvumarZYQ4YE5tp3RCSploa6+qs4GLL7/aqtDnasWlM+cECJDh2XdrhHjm+vxc4X38Ym7BRL1x/Np0ujQ7o0F6hdD9CGPFdOvYMgqszO8GxJg8eshaTy1nr8fStUF9HwVXRfYqT1QIDAQAB</em:updateKey>
+        <em:unpack>true</em:unpack>
+        <!-- en-US -->
+        <em:description>Bind functions to key sequences</em:description>
+        <!-- ja -->
+        <em:localized>
+            <Description>
+                <em:locale>ja</em:locale>
+                <em:name>KeySnail</em:name>
+                <em:creator>mooz</em:creator>
+                <em:contributor>958</em:contributor>
+                <em:contributor>Florent Le Coz</em:contributor>
+                <em:contributor>SHIMODA Hiroshi</em:contributor>
+                <em:contributor>hogelog</em:contributor>
+                <em:contributor>tomykaira</em:contributor>
+                <em:contributor>usk</em:contributor>
+                <em:contributor>Yuki Ibe</em:contributor>
+                <em:description>JavaScript の関数をキーシーケンスに割り当て</em:description>
+                <em:homepageURL>https://wiki.github.com/mooz/keysnail/keysnail-japanese</em:homepageURL>
+            </Description>
+        </em:localized>
+        <!-- Firefox -->
+        <em:targetApplication>
+            <Description>
+                <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+                <em:minVersion>34.*</em:minVersion>
+                <em:maxVersion>41.*</em:maxVersion>
+            </Description>
+        </em:targetApplication>
+    </Description>
+
+</RDF>
