@@ -105,10 +105,14 @@ let kkk =
              }
          }
 
+         function isCtrlTabKeystroke() {
+             return key.ctrlKey && key.which == 9;
+         }
+
          function preventEvent(ev) {
              if (self.status || (self.multiSequence && key.currentKeySequence.length > 0))
              {
-                 if (!key.suspended && !key.escapeCurrentChar)
+                 if (!key.suspended && !key.escapeCurrentChar && !self.isCtrlTabKeystroke())
                  {
                      if (!isEventOnEditor(ev) || self.isKillEditorSite) {
                          ev.stopPropagation();
