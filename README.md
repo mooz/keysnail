@@ -1,6 +1,22 @@
 KeySnail
 ========
 
+For those who misses Emacs keys on Linux (both in Firefox and Chrome)
+---------------------------------------------------------------------
+
+Good news! I started a new
+project [xkeysnail](https://github.com/mooz/xkeysnail), which provides you a
+key-configuration functionality on **every** application (including Firefox and
+Chrome) on Linux (it's like AutoHotKey on Windows). This frees you from
+limitations of web-browsers that prohibits you to override keys such as `Ctrl+n`
+and `Ctrl+p`.
+
+In combination of Vim-oriented browsing-addons such
+as [Surfingkeys](https://github.com/brookhong/Surfingkeys/) (BTW, this add-on is
+a way better than old-style KeySnail I
+feel), [xkeysnail](https://github.com/brookhong/Surfingkeys/) provides you a
+better browsing experience as in KeySnail, I believe.
+
 KeySnail doesn't support Firefox57+
 -----------------------------------
 
@@ -10,7 +26,10 @@ The most important feature, which has been unfortunately dropped in Firefox 57+,
 
 If you want to keep using KeySnail, I recommend using Waterfox https://www.waterfoxproject.org/ instead of Firefox. Several KeySnail users have already reported that they are enjoying Waterfox.
 
-Another option is to switch to other add-ons that still work in Firefox 57+. I tried several add-ons and personally recommend Vimium-ff https://addons.mozilla.org/en-US/firefox/addon/vimium-ff/
+Another option is to switch to other add-ons that still work in Firefox 57+. I
+tried several add-ons and personally
+recommend [Surfingkeys](https://github.com/brookhong/Surfingkeys/), which is
+highly extensible and has sophisticated APIs.
 
 Thanks for using KeySnail! Without your encouraging reactions, I couldn't enjoy such a long-time lasting development.
 
