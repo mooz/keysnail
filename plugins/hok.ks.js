@@ -842,6 +842,8 @@ var hok = function () {
             var rect = html.getBoundingClientRect();
             pos = { x: -rect.left, y: -rect.top };
         }
+        pos.x = pos.x > 0 ? pos.x : 0;
+        pos.y = pos.y > 0 ? pos.y : 0;
         return [ pos.x, pos.y ];
     }
 
